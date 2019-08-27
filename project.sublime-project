@@ -1,0 +1,55 @@
+{
+    "folders":
+    [
+        {
+            "name": "VimbaPython",
+            "path": ".",
+            "follow_symlinks": true
+        }
+    ],
+
+    "settings":
+    {
+        "default_encoding": "UTF-8",
+        "default_line_ending": "unix",
+        "spell_check": true,
+        "show_encoding": true,
+        "show_line_endings": true,
+        "draw_white_space": "all",
+        "translate_tabs_to_spaces": true,
+        "ensure_newline_at_eof_on_save": true,
+        "trim_trailing_white_space_on_save": true,
+        "highlight_line": true,
+        "tab_size": 4,
+        "rulers": [79]
+    },
+
+    "build_systems":
+    [
+        {
+            "name": "exec Examples/sandbox",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/sandbox.py"
+        },
+        {
+            "name": "exec Examples/list_cameras",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/list_cameras.py"
+        },
+        {
+            "name": "exec Examples/asynchronous_grab.py",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/asynchronous_grab.py"
+        },
+        {
+            "name": "run static_checks",
+            "working_dir": "$project_path",
+            "shell_cmd": "flake8 vimba/c_binding"
+        },
+        {
+            "name": "run unit tests",
+            "working_dir": "$project_path",
+            "shell_cmd": "python -m unittest discover -s Tests -p *_test.py"
+        }
+    ]
+}
