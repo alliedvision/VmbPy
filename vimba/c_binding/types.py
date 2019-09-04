@@ -5,21 +5,7 @@
 import ctypes
 import enum
 
-from vimba.c_binding.util import decompose_flags_to_enum
-from functools import reduce
-
-
-def _flags_to_str(flags: int, enum_type):
-    values = decompose_flags_to_enum(flags, enum_type)
-
-    if values:
-        def fold_func(acc, arg):
-            return '{} {}'.format(acc, str(arg))
-
-        return reduce(fold_func, values, '(') + ')'
-
-    else:
-        return '({})'.format(str(enum_type(0)))
+from .util import fmt_repr, fmt_enum_repr, fmt_flags_repr
 
 
 class _Int32Enum(enum.IntEnum):
@@ -51,7 +37,7 @@ class _VmbPixelOccupy(_Uint32Enum):
     Bit64 = 0x00400000
 
 
-# Exposed Types
+# Aliases for vmb base types
 VmbInt8 = ctypes.c_byte
 VmbUint8 = ctypes.c_ubyte
 VmbInt16 = ctypes.c_short
@@ -85,9 +71,8 @@ class VmbError(_Int32Enum):
         MoreData        - More data available in a string/list than space is
                           provided
         WrongType       - Wrong feature type for this access function
-        InvalidValue    - The value is not valid;
-                          Either out of bounds or not an increment of
-                          the minimum
+        InvalidValue    - The value is not valid; Either out of bounds or not
+                          an increment of the minimum
         Timeout         - Timeout during wait
         Other           - Other error
         Resources       - Resources not available (e.g. memory)
@@ -120,6 +105,32 @@ class VmbError(_Int32Enum):
     NotSupported = -18
     Incomplete = -19
     IO = -20
+
+    def __str__(self):
+        enum_to_str = {
+            VmbError.Success: 'Success',
+            VmbError.InternalFault: 'InternalFault',
+            VmbError.ApiNotStarted: 'ApiNotStarted',
+            VmbError.NotFound: 'NotFound',
+            VmbError.BadHandle: 'BadHandle',
+            VmbError.DeviceNotOpen: 'DeviceNotOpen',
+            VmbError.InvalidAccess: 'InvalidAccess',
+            VmbError.BadParameter: 'BadParameter',
+            VmbError.StructSize: 'StructSize',
+            VmbError.MoreData: 'MoreData',
+            VmbError.WrongType: 'WrongType',
+            VmbError.InvalidValue: 'InvalidValue',
+            VmbError.Timeout: 'Timeout',
+            VmbError.Other: 'Other',
+            VmbError.Resources: 'Resources',
+            VmbError.InvalidCall: 'InvalidCall',
+            VmbError.NoTL: 'NoTL',
+            VmbError.NotImplemented_: 'NotImplemented_',
+            VmbError.NotSupported: 'NotSupported',
+            VmbError.Incomplete: 'Incomplete',
+            VmbError.IO: 'IO'
+        }
+        return enum_to_str[self.value]
 
 
 class VmbPixelFormat(_Uint32Enum):
@@ -296,6 +307,75 @@ class VmbPixelFormat(_Uint32Enum):
     YCbCr422_8_CbYCrY = _VmbPixel.Color | _VmbPixelOccupy.Bit16 | 0x0043
     YCbCr8_CbYCr = _VmbPixel.Color | _VmbPixelOccupy.Bit24 | 0x003A
 
+    def __str__(self):
+        enum_to_str = {
+            VmbPixelFormat.None_: 'None',
+            VmbPixelFormat.Mono8: 'Mono8',
+            VmbPixelFormat.Mono10: 'Mono10',
+            VmbPixelFormat.Mono10p: 'Mono10p',
+            VmbPixelFormat.Mono12: 'Mono12',
+            VmbPixelFormat.Mono12Packed: 'Mono12Packed',
+            VmbPixelFormat.Mono12p: 'Mono12p',
+            VmbPixelFormat.Mono14: 'Mono14',
+            VmbPixelFormat.Mono16: 'Mono16',
+            VmbPixelFormat.BayerGR8: 'BayerGR8',
+            VmbPixelFormat.BayerRG8: 'BayerRG8',
+            VmbPixelFormat.BayerGB8: 'BayerGB8',
+            VmbPixelFormat.BayerBG8: 'BayerBG8',
+            VmbPixelFormat.BayerGR10: 'BayerGR10',
+            VmbPixelFormat.BayerGR10: 'BayerGR10',
+            VmbPixelFormat.BayerGB10: 'BayerGB10',
+            VmbPixelFormat.BayerBG10: 'BayerBG10',
+            VmbPixelFormat.BayerGR12: 'BayerGR12',
+            VmbPixelFormat.BayerRG12: 'BayerRG12',
+            VmbPixelFormat.BayerGB12: 'BayerGB12',
+            VmbPixelFormat.BayerBG12: 'BayerBG12',
+            VmbPixelFormat.BayerGR12Packed: 'BayerGR12Packed',
+            VmbPixelFormat.BayerRG12Packed: 'BayerRG12Packed',
+            VmbPixelFormat.BayerGB12Packed: 'BayerGB12Packed',
+            VmbPixelFormat.BayerBG12Packed: 'BayerBG12Packed',
+            VmbPixelFormat.BayerGR10p: 'BayerGR10p',
+            VmbPixelFormat.BayerRG10p: 'BayerRG10p',
+            VmbPixelFormat.BayerGB10p: 'BayerGB10p',
+            VmbPixelFormat.BayerBG10p: 'BayerBG10p',
+            VmbPixelFormat.BayerGR12p: 'BayerGR12p',
+            VmbPixelFormat.BayerRG12p: 'BayerRG12p',
+            VmbPixelFormat.BayerGB12p: 'BayerGB12p',
+            VmbPixelFormat.BayerBG12p: 'BayerBG12p',
+            VmbPixelFormat.BayerGR16: 'BayerGR16',
+            VmbPixelFormat.BayerRG16: 'BayerRG16',
+            VmbPixelFormat.BayerGB16: 'BayerGB16',
+            VmbPixelFormat.BayerBG16: 'BayerBG16',
+            VmbPixelFormat.Rgb8: 'Rgb8',
+            VmbPixelFormat.Bgr8: 'Bgr8',
+            VmbPixelFormat.Rgb10: 'Rgb10',
+            VmbPixelFormat.Bgr10: 'Bgr10',
+            VmbPixelFormat.Rgb12: 'Rgb12',
+            VmbPixelFormat.Bgr12: 'Bgr12',
+            VmbPixelFormat.Rgb14: 'Rgb14',
+            VmbPixelFormat.Bgr14: 'Bgr14',
+            VmbPixelFormat.Rgb16: 'Rgb16',
+            VmbPixelFormat.Bgr16: 'Bgr16',
+            VmbPixelFormat.Argb8: 'Argb8',
+            VmbPixelFormat.Rgba8: 'Rgba8',
+            VmbPixelFormat.Bgra8: 'Bgra8',
+            VmbPixelFormat.Rgba10: 'Rgba10',
+            VmbPixelFormat.Bgra10: 'Bgra10',
+            VmbPixelFormat.Rgba12: 'Rgba12',
+            VmbPixelFormat.Bgra12: 'Bgra12',
+            VmbPixelFormat.Rgba14: 'Rgba14',
+            VmbPixelFormat.Bgra14: 'Bgra14',
+            VmbPixelFormat.Rgba16: 'Rgba16',
+            VmbPixelFormat.Bgra16: 'Bgra16',
+            VmbPixelFormat.Yuv411: 'Yuv411',
+            VmbPixelFormat.Yuv422: 'Yuv422',
+            VmbPixelFormat.Yuv444: 'Yuv444',
+            VmbPixelFormat.YCbCr411_8_CbYYCrYY: 'YCbCr411_8_CbYYCrYY',
+            VmbPixelFormat.YCbCr422_8_CbYCrY: 'YCbCr422_8_CbYCrY',
+            VmbPixelFormat.YCbCr8_CbYCr: 'YCbCr8_CbYCr'
+        }
+        return enum_to_str[self.value]
+
 
 class VmbInterface(_Uint32Enum):
     """
@@ -314,6 +394,17 @@ class VmbInterface(_Uint32Enum):
     CL = 4
     CSI2 = 5
 
+    def __str__(self):
+        enum_to_str = {
+            VmbInterface.Unknown: 'Unknown',
+            VmbInterface.Firewire: 'Firewire',
+            VmbInterface.Ethernet: 'Ethernet',
+            VmbInterface.Usb: 'Usb',
+            VmbInterface.CL: 'CL',
+            VmbInterface.CSI2: 'CSI2'
+        }
+        return enum_to_str[self.value]
+
 
 class VmbAccessMode(_Uint32Enum):
     """
@@ -329,6 +420,16 @@ class VmbAccessMode(_Uint32Enum):
     Read = 2
     Config = 4
     Lite = 8
+
+    def __str__(self):
+        enum_to_str = {
+            VmbAccessMode.None_: 'None',
+            VmbAccessMode.Full: 'Full',
+            VmbAccessMode.Read: 'Read',
+            VmbAccessMode.Config: 'Config',
+            VmbAccessMode.Lite: 'Lite'
+        }
+        return enum_to_str[self.value]
 
 
 class VmbFeatureData(_Uint32Enum):
@@ -354,6 +455,20 @@ class VmbFeatureData(_Uint32Enum):
     Raw = 7
     None_ = 8
 
+    def __str__(self):
+        enum_to_str = {
+            VmbFeatureData.Unknown: 'Unknown',
+            VmbFeatureData.Int: 'Int',
+            VmbFeatureData.Float: 'Float',
+            VmbFeatureData.Enum: 'Enum',
+            VmbFeatureData.String: 'String',
+            VmbFeatureData.Bool: 'Bool',
+            VmbFeatureData.Command: 'Command',
+            VmbFeatureData.Raw: 'Raw',
+            VmbFeatureData.None_: 'None'
+        }
+        return enum_to_str[self.value]
+
 
 class VmbFeaturePersist(_Uint32Enum):
     """
@@ -368,6 +483,14 @@ class VmbFeaturePersist(_Uint32Enum):
     All = 0
     Streamable = 1
     NoLUT = 2
+
+    def __str__(self):
+        enum_to_str = {
+            VmbFeaturePersist.All: 'All',
+            VmbFeaturePersist.Streamable: 'Streamable',
+            VmbFeaturePersist.NoLUT: 'NoLUT'
+        }
+        return enum_to_str[self.value]
 
 
 class VmbFeatureVisibility(_Uint32Enum):
@@ -384,6 +507,16 @@ class VmbFeatureVisibility(_Uint32Enum):
     Expert = 2
     Guru = 3
     Invisible = 4
+
+    def __str__(self):
+        enum_to_str = {
+            VmbFeatureVisibility.Unknown: 'Unknown',
+            VmbFeatureVisibility.Beginner: 'Beginner',
+            VmbFeatureVisibility.Expert: 'Expert',
+            VmbFeatureVisibility.Guru: 'Guru',
+            VmbFeatureVisibility.Invisible: 'Invisible'
+        }
+        return enum_to_str[self.value]
 
 
 class VmbFeatureFlags(_Uint32Enum):
@@ -406,6 +539,17 @@ class VmbFeatureFlags(_Uint32Enum):
     Volatile = 8
     ModifyWrite = 16
 
+    def __str__(self):
+        enum_to_str = {
+            VmbFeatureFlags.None_: 'None',
+            VmbFeatureFlags.Read: 'Read',
+            VmbFeatureFlags.Write: 'Write',
+            VmbFeatureFlags.Undocumented: 'Undocumented',
+            VmbFeatureFlags.Volatile: 'Volatile',
+            VmbFeatureFlags.ModifyWrite: 'ModifyWrite'
+        }
+        return enum_to_str[self.value]
+
 
 class VmbFrameStatus(_Int32Enum):
     """
@@ -419,6 +563,15 @@ class VmbFrameStatus(_Int32Enum):
     Incomplete = -1
     TooSmall = -2
     Invalid = -3
+
+    def __str__(self):
+        enum_to_str = {
+            VmbFrameStatus.Complete: 'Complete',
+            VmbFrameStatus.Incomplete: 'Incomplete',
+            VmbFrameStatus.TooSmall: 'TooSmall',
+            VmbFrameStatus.Invalid: 'Invalid'
+        }
+        return enum_to_str[self.value]
 
 
 class VmbFrameFlags(_Uint32Enum):
@@ -435,6 +588,16 @@ class VmbFrameFlags(_Uint32Enum):
     Offset = 2
     FrameID = 4
     Timestamp = 8
+
+    def __str__(self):
+        enum_to_str = {
+            VmbFrameFlags.None_: 'None',
+            VmbFrameFlags.Dimension: 'Dimension',
+            VmbFrameFlags.Offset: 'Offset',
+            VmbFrameFlags.FrameID: 'FrameID',
+            VmbFrameFlags.Timestamp: 'Timestamp'
+        }
+        return enum_to_str[self.value]
 
 
 class VmbVersionInfo(ctypes.Structure):
@@ -488,12 +651,13 @@ class VmbInterfaceInfo(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbInterfaceInfo'
-        rep += '(interfaceIdString=' + repr(self.interfaceIdString)
-        rep += ',interfaceType=' + str(VmbInterface(self.interfaceType))
-        rep += ',interfaceName=' + repr(self.interfaceName)
-        rep += ',serialString=' + repr(self.serialString)
-        rep += ',permittedAccess=' + _flags_to_str(self.permittedAccess,
-                                                   VmbAccessMode)
+        rep += fmt_repr('(interfaceIdString={}', self.interfaceIdString)
+        rep += fmt_enum_repr(',interfaceType={}', VmbInterface,
+                             self.interfaceType)
+        rep += fmt_repr(',interfaceName={}', self.interfaceName)
+        rep += fmt_repr(',serialString={}', self.serialString)
+        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode,
+                              self.permittedAccess)
         rep += ')'
         return rep
 
@@ -526,13 +690,13 @@ class VmbCameraInfo(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbCameraInfo'
-        rep += '(cameraIdString=' + repr(self.cameraIdString)
-        rep += ',cameraName=' + repr(self.cameraName)
-        rep += ',modelName=' + repr(self.modelName)
-        rep += ',serialString=' + repr(self.serialString)
-        rep += ',permittedAccess=' + _flags_to_str(self.permittedAccess,
-                                                   VmbAccessMode)
-        rep += ',interfaceIdString=' + repr(self.interfaceIdString)
+        rep += fmt_repr('(cameraIdString={}', self.cameraIdString)
+        rep += fmt_repr(',cameraName={}', self.cameraName)
+        rep += fmt_repr(',modelName={}', self.modelName)
+        rep += fmt_repr(',serialString={}', self.serialString)
+        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode,
+                              self.permittedAccess)
+        rep += fmt_repr(',interfaceIdString={}', self.interfaceIdString)
         rep += ')'
         return rep
 
@@ -596,22 +760,24 @@ class VmbFeatureInfo(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbFeatureInfo'
-        rep += '(name=' + repr(self.name)
-        rep += ',featureDataType=' + str(VmbFeatureData(self.featureDataType))
-        rep += ',featureFlags=' + _flags_to_str(self.featureFlags,
-                                                VmbFeatureFlags)
-        rep += ',category=' + repr(self.category)
-        rep += ',displayName=' + repr(self.displayName)
-        rep += ',pollingTime=' + repr(self.pollingTime)
-        rep += ',unit=' + repr(self.unit)
-        rep += ',representation=' + repr(self.representation)
-        rep += ',visibility=' + str(VmbFeatureVisibility(self.visibility))
-        rep += ',tooltip=' + repr(self.tooltip)
-        rep += ',description=' + repr(self.description)
-        rep += ',sfncNamespace=' + repr(self.sfncNamespace)
-        rep += ',isStreamable=' + repr(self.isStreamable)
-        rep += ',hasAffectedFeatures=' + repr(self.hasAffectedFeatures)
-        rep += ',hasSelectedFeatures=' + repr(self.hasSelectedFeatures)
+        rep += fmt_repr('(name={}', self.name)
+        rep += fmt_enum_repr(',featureDataType={}', VmbFeatureData,
+                             self.featureDataType)
+        rep += fmt_flags_repr(',featureFlags={}', VmbFeatureFlags,
+                              self.featureFlags)
+        rep += fmt_repr(',category={}', self.category)
+        rep += fmt_repr(',displayName={}', self.displayName)
+        rep += fmt_repr(',pollingTime={}', self.pollingTime)
+        rep += fmt_repr(',unit={}', self.unit)
+        rep += fmt_repr(',representation={}', self.representation)
+        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility,
+                             self.visibility)
+        rep += fmt_repr(',tooltip={}', self.tooltip)
+        rep += fmt_repr(',description={}', self.description)
+        rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
+        rep += fmt_repr(',isStreamable={}', self.isStreamable)
+        rep += fmt_repr(',hasAffectedFeatures={}', self.hasAffectedFeatures)
+        rep += fmt_repr(',hasSelectedFeatures={}', self.hasSelectedFeatures)
         rep += ')'
         return rep
 
@@ -647,13 +813,14 @@ class VmbFeatureEnumEntry(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbFeatureEnumEntry'
-        rep += '(name=' + repr(self.name)
-        rep += ',displayName=' + repr(self.displayName)
-        rep += ',visibility=' + str(VmbFeatureVisibility(self.visibility))
-        rep += ',tooltip=' + repr(self.tooltip)
-        rep += ',description=' + repr(self.description)
-        rep += ',sfncNamespace=' + repr(self.sfncNamespace)
-        rep += ',intValue=' + repr(self.intValue)
+        rep += fmt_repr('(name={}', self.name)
+        rep += fmt_repr(',displayName={}', self.displayName)
+        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility,
+                             self.visibility)
+        rep += fmt_repr(',tooltip={}', self.tooltip)
+        rep += fmt_repr(',description={}', self.description)
+        rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
+        rep += fmt_repr(',intValue={},', self.intValue)
         rep += ')'
         return rep
 
@@ -715,21 +882,23 @@ class VmbFrame(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbFrame'
-        rep += '(buffer=' + repr(self.buffer)
-        rep += ',bufferSize=' + repr(self.bufferSize)
-        rep += ',context=' + repr(self.context)
-        rep += ',receiveStatus=' + repr(VmbFrameStatus(self.receiveStatus))
-        rep += ',receiveFlags=' + repr(_flags_to_str(self.receiveFlags,
-                                                     VmbFrameFlags))
-        rep += ',imageSize=' + repr(self.imageSize)
-        rep += ',ancillarySize=' + repr(self.ancillarySize)
-        rep += ',pixelFormat=' + repr(VmbPixelFormat(self.pixelFormat))
-        rep += ',width=' + repr(self.width)
-        rep += ',height=' + repr(self.height)
-        rep += ',offsetX=' + repr(self.offsetX)
-        rep += ',offsetY=' + repr(self.offsetY)
-        rep += ',frameID=' + repr(self.frameID)
-        rep += ',timestamp=' + repr(self.timestamp)
+        rep += fmt_repr('(buffer={}', self.buffer)
+        rep += fmt_repr(',bufferSize={}', self.bufferSize)
+        rep += fmt_repr(',context={}', self.context)
+        rep += fmt_enum_repr('receiveStatus: {}', VmbFrameStatus,
+                             self.receiveStatus)
+        rep += fmt_flags_repr(',receiveFlags={}', VmbFrameFlags,
+                              self.receiveFlags)
+        rep += fmt_repr(',imageSize={}', self.imageSize)
+        rep += fmt_repr(',ancillarySize={}', self.ancillarySize)
+        rep += fmt_enum_repr(',pixelFormat={}', VmbPixelFormat,
+                             self.pixelFormat)
+        rep += fmt_repr(',width={}', self.width)
+        rep += fmt_repr(',height={}', self.height)
+        rep += fmt_repr(',offsetX={}', self.offsetX)
+        rep += fmt_repr(',offsetY={}', self.offsetY)
+        rep += fmt_repr(',frameID={}', self.frameID)
+        rep += fmt_repr(',timestamp={}', self.timestamp)
         rep += ')'
         return rep
 
@@ -755,9 +924,10 @@ class VmbFeaturePersistSettings(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbFrame'
-        rep += '(persistType=' + repr(VmbFeaturePersist(self.persistType))
-        rep += ',maxIterations=' + repr(self.maxIterations)
-        rep += ',loggingLevel=' + repr(self.loggingLevel)
+        rep += fmt_enum_repr('(persistType={}', VmbFeaturePersist,
+                             self.persistType)
+        rep += fmt_repr(',maxIterations={}', self.maxIterations)
+        rep += fmt_repr(',loggingLevel={}', self.loggingLevel)
         rep += ')'
         return rep
 

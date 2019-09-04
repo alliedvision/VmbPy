@@ -5,9 +5,10 @@
 import os
 import sys
 import platform
+import functools
+import ctypes
 
 from os.path import join
-from ctypes import cdll
 
 
 def static_var(var, val):
@@ -16,6 +17,55 @@ def static_var(var, val):
         return func
 
     return decorate
+
+
+def _split_into_powers_of_two(num: int):
+    return [2**i for i in range(32) if 2**i < num and (i & num)]
+
+
+def _split_flags_into_enum(num: int, enum_type):
+    return [enum_type(val) for val in _split_into_powers_of_two(num)]
+
+
+def _stringify_enum_list(enum_type, flag_val: int, string_func):
+    values = _split_flags_into_enum(flag_val, enum_type)
+
+    if values:
+        def fold_func(acc, arg):
+            return '{} {}'.format(acc, string_func(arg))
+
+        return functools.reduce(fold_func, values, '')
+
+    else:
+        return '{}'.format(string_func(enum_type(0)))
+
+
+def fmt_str(fmt: str, val):
+    return fmt.format(str(val))
+
+
+def fmt_cstr_str(fmt: str, val: ctypes.c_char_p):
+    return fmt.format('"' + val.decode() + '"') if val else fmt.format('')
+
+
+def fmt_enum_str(fmt: str, enum_type, enum_val):
+    return fmt.format(str(enum_type(enum_val)))
+
+
+def fmt_flags_str(fmt: str, enum_type, enum_val):
+    return fmt.format(_stringify_enum_list(enum_type, enum_val, str))
+
+
+def fmt_repr(fmt: str, val):
+    return fmt.format(repr(val))
+
+
+def fmt_enum_repr(fmt: str, enum_type, enum_val):
+    return fmt.format(repr(enum_type(enum_val)))
+
+
+def fmt_flags_repr(fmt: str, enum_type, enum_val):
+    return fmt.format(_stringify_enum_list(enum_type, enum_val, repr))
 
 
 def load_vimba_raw():
@@ -29,26 +79,6 @@ def load_vimba_raw():
                       .format(sys.platform))
 
     return platform_handlers[sys.platform]()
-
-
-def decompose_into_powers_of_two(num: int):
-    result = []
-    powers = [2**i for i in range(32) if 2**i < num]
-
-    for power in powers:
-        if num & power:
-            result.append(power)
-
-    return result
-
-
-def decompose_flags_to_enum(num: int, enum_type):
-    result = decompose_into_powers_of_two(num)
-
-    for i in range(len(result)):
-        result[i] = enum_type(result[i])
-
-    return result
 
 
 def _get_vimba_home():
@@ -77,7 +107,7 @@ def _load_under_windows():
         # TODO: Clarify if additional search is required
         raise NotImplementedError('Loading of VimbaC.dll')
 
-    return cdll.LoadLibrary(lib_path)
+    return ctypes.cdll.LoadLibrary(lib_path)
 
 
 def _get_arch():
