@@ -21,7 +21,7 @@
         "trim_trailing_white_space_on_save": true,
         "highlight_line": true,
         "tab_size": 4,
-        "rulers": [79]
+        "rulers": [79, 120]
     },
 
     "build_systems":
@@ -37,6 +37,11 @@
             "shell_cmd": "python Examples/list_cameras.py"
         },
         {
+            "name": "exec Examples/list_features",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/list_features.py"
+        },
+        {
             "name": "exec Examples/asynchronous_grab.py",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/asynchronous_grab.py"
@@ -44,7 +49,7 @@
         {
             "name": "run static_checks",
             "working_dir": "$project_path",
-            "shell_cmd": "flake8 vimba/c_binding"
+            "shell_cmd": "flake8 vimba"
         },
         {
             "name": "run unit tests",

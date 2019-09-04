@@ -8,15 +8,20 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from vimba import *
 
+@scoped_log_enable(LogLevel.Trace)
 def main():
-    System.get_instance().enable_log(LogLevel.Trace)
-
+    # Perform logged full system discovery
     with System.get_instance() as sys:
-        print('Print Camera Information of all cameras:')
 
         for cam in sys.get_all_cameras():
-            print(cam)
+            with cam:
+                pass
+
+        for inter in sys.get_all_interfaces():
+            with inter:
+                pass
 
 
 if __name__ == '__main__':
     main()
+
