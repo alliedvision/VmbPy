@@ -42,7 +42,7 @@ def _feat_data_to_type(enum_val: VmbFeatureData):
     raise Exception('Can\'t map feature feat_type to implementation')
 
 
-def build_feature(handle, info):
+def _build_feature(handle, info):
     feat_type = _feat_data_to_type(VmbFeatureData(info.featureDataType))
     return feat_type(handle, info)
 
@@ -63,7 +63,7 @@ def discover_features(handle: VmbHandle):
                           byref(feats_found), sizeof(VmbFeatureInfo))
 
         for info in feats_infos[:feats_found.value]:
-            result.append(build_feature(handle, info))
+            result.append(_build_feature(handle, info))
 
     return tuple(result)
 
@@ -74,7 +74,7 @@ def discover_feature(handle: VmbHandle, feat_name: str):
     call_vimba_c_func('VmbFeatureInfoQuery', handle, feat_name.encode('utf-8'),
                       byref(info), sizeof(VmbFeatureInfo))
 
-    return build_feature(handle, info)
+    return _build_feature(handle, info)
 
 
 def filter_affected_features(feats, feat):

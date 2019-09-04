@@ -31,9 +31,6 @@ class BaseFeature:
     def get_type(self):
         return type(self)
 
-    def get_flags(self):
-        pass
-
     def get_category(self):
         return self._info.category.decode()
 
