@@ -3,27 +3,30 @@
 # TODO: Add Contact Info (clarify if this is required...)
 # TODO: Add docstring to public entities
 
-from .log import LogLevel, Log
+from .log import LogConfig, Log
 
 
-class _ScopedLogger:
+class _ScopedLog:
     _log = Log.get_instance()
 
-    def __init__(self, loglevel: LogLevel):
-        self._loglevel = loglevel
+    def __init__(self, config: LogConfig):
+        self._config = config
 
     def __enter__(self):
-        _ScopedLogger._log.enable(self._loglevel)
+        _ScopedLog._log.enable(self._config)
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        _ScopedLogger._log.disable()
+        _ScopedLog._log.disable()
 
 
-def scoped_log_enable(loglevel: LogLevel):
-    def decorate(func):
-        def wrapper(*args):
-            with _ScopedLogger(loglevel):
+class ScopedLogEnable:
+    def __init__(self, config):
+        self._config = config
+
+    def __call__(self, func):
+        def decorate(*args):
+            with _ScopedLog(self._config):
                 return func(*args)
-        return wrapper
-    return decorate
+
+        return decorate

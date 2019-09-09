@@ -59,7 +59,7 @@ class LogConfig:
         self._handlers.append(handler)
         return self
 
-    def set_max_msg_length(self, max_msg_length):
+    def set_max_msg_length(self, max_msg_length: int):
         self._max_msg_length = max_msg_length
 
     def get_max_msg_length(self):

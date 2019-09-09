@@ -22,4 +22,4 @@ from .log import LOG_CONFIG_CRITICAL_FILE_ONLY
 from .log import LOG_CONFIG_CRITICAL
 
 from .tracer import TraceEnable
-from .scoped_log import scoped_log_enable
+from .scoped_log import ScopedLogEnable

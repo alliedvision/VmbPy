@@ -35,5 +35,5 @@ from .logging import LOG_CONFIG_ERROR
 from .logging import LOG_CONFIG_CRITICAL_CONSOLE_ONLY
 from .logging import LOG_CONFIG_CRITICAL_FILE_ONLY
 from .logging import LOG_CONFIG_CRITICAL
-from .logging import scoped_log_enable
+from .logging import ScopedLogEnable
 from .logging import TraceEnable
