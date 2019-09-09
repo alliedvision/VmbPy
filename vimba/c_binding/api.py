@@ -3,7 +3,7 @@
 # TODA: Add Contact Info (clarify if this is required...)
 
 from ctypes import byref, sizeof, c_void_p, POINTER as c_ptr, c_char_p as c_str
-from vimba.log import trace_enable
+from vimba.logging import TraceEnable
 from vimba.error import VimbaCError
 from .util import static_var, load_vimba_raw
 from .types import VmbBool, VmbUint32, VmbInt64, VmbUint64, VmbDouble, \
@@ -113,7 +113,7 @@ EXPECTED_VIMBA_C_VERSION = '1.8.0'
 
 
 @static_var("_vimba_instance", _load_vimba())
-@trace_enable()
+@TraceEnable()
 def call_vimba_c_func(func_name, *args):
     getattr(call_vimba_c_func._vimba_instance, func_name)(*args)
 

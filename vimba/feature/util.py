@@ -17,33 +17,19 @@ from vimba.feature.command_feature import CommandFeature
 from vimba.feature.raw_feature import RawFeature
 
 
-def _feat_data_to_type(enum_val: VmbFeatureData):
-    if enum_val == VmbFeatureData.Int:
-        return IntFeature
-
-    elif enum_val == VmbFeatureData.Float:
-        return FloatFeature
-
-    elif enum_val == VmbFeatureData.String:
-        return StringFeature
-
-    elif enum_val == VmbFeatureData.Bool:
-        return BoolFeature
-
-    elif enum_val == VmbFeatureData.Enum:
-        return EnumFeature
-
-    elif enum_val == VmbFeatureData.Command:
-        return CommandFeature
-
-    elif enum_val == VmbFeatureData.Raw:
-        return RawFeature
-
-    raise Exception('Can\'t map feature feat_type to implementation')
+_MAP_FEAT_DATA_TO_TYPE = {
+    VmbFeatureData.Int: IntFeature,
+    VmbFeatureData.Float: FloatFeature,
+    VmbFeatureData.String: StringFeature,
+    VmbFeatureData.Bool: BoolFeature,
+    VmbFeatureData.Enum: EnumFeature,
+    VmbFeatureData.Command: CommandFeature,
+    VmbFeatureData.Raw: RawFeature
+}
 
 
 def _build_feature(handle, info):
-    feat_type = _feat_data_to_type(VmbFeatureData(info.featureDataType))
+    feat_type = _MAP_FEAT_DATA_TO_TYPE[(VmbFeatureData(info.featureDataType))]
     return feat_type(handle, info)
 
 

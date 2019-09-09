@@ -107,30 +107,7 @@ class VmbError(_Int32Enum):
     IO = -20
 
     def __str__(self):
-        enum_to_str = {
-            VmbError.Success: 'Success',
-            VmbError.InternalFault: 'InternalFault',
-            VmbError.ApiNotStarted: 'ApiNotStarted',
-            VmbError.NotFound: 'NotFound',
-            VmbError.BadHandle: 'BadHandle',
-            VmbError.DeviceNotOpen: 'DeviceNotOpen',
-            VmbError.InvalidAccess: 'InvalidAccess',
-            VmbError.BadParameter: 'BadParameter',
-            VmbError.StructSize: 'StructSize',
-            VmbError.MoreData: 'MoreData',
-            VmbError.WrongType: 'WrongType',
-            VmbError.InvalidValue: 'InvalidValue',
-            VmbError.Timeout: 'Timeout',
-            VmbError.Other: 'Other',
-            VmbError.Resources: 'Resources',
-            VmbError.InvalidCall: 'InvalidCall',
-            VmbError.NoTL: 'NoTL',
-            VmbError.NotImplemented_: 'NotImplemented_',
-            VmbError.NotSupported: 'NotSupported',
-            VmbError.Incomplete: 'Incomplete',
-            VmbError.IO: 'IO'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbPixelFormat(_Uint32Enum):
@@ -308,73 +285,7 @@ class VmbPixelFormat(_Uint32Enum):
     YCbCr8_CbYCr = _VmbPixel.Color | _VmbPixelOccupy.Bit24 | 0x003A
 
     def __str__(self):
-        enum_to_str = {
-            VmbPixelFormat.None_: 'None',
-            VmbPixelFormat.Mono8: 'Mono8',
-            VmbPixelFormat.Mono10: 'Mono10',
-            VmbPixelFormat.Mono10p: 'Mono10p',
-            VmbPixelFormat.Mono12: 'Mono12',
-            VmbPixelFormat.Mono12Packed: 'Mono12Packed',
-            VmbPixelFormat.Mono12p: 'Mono12p',
-            VmbPixelFormat.Mono14: 'Mono14',
-            VmbPixelFormat.Mono16: 'Mono16',
-            VmbPixelFormat.BayerGR8: 'BayerGR8',
-            VmbPixelFormat.BayerRG8: 'BayerRG8',
-            VmbPixelFormat.BayerGB8: 'BayerGB8',
-            VmbPixelFormat.BayerBG8: 'BayerBG8',
-            VmbPixelFormat.BayerGR10: 'BayerGR10',
-            VmbPixelFormat.BayerGR10: 'BayerGR10',
-            VmbPixelFormat.BayerGB10: 'BayerGB10',
-            VmbPixelFormat.BayerBG10: 'BayerBG10',
-            VmbPixelFormat.BayerGR12: 'BayerGR12',
-            VmbPixelFormat.BayerRG12: 'BayerRG12',
-            VmbPixelFormat.BayerGB12: 'BayerGB12',
-            VmbPixelFormat.BayerBG12: 'BayerBG12',
-            VmbPixelFormat.BayerGR12Packed: 'BayerGR12Packed',
-            VmbPixelFormat.BayerRG12Packed: 'BayerRG12Packed',
-            VmbPixelFormat.BayerGB12Packed: 'BayerGB12Packed',
-            VmbPixelFormat.BayerBG12Packed: 'BayerBG12Packed',
-            VmbPixelFormat.BayerGR10p: 'BayerGR10p',
-            VmbPixelFormat.BayerRG10p: 'BayerRG10p',
-            VmbPixelFormat.BayerGB10p: 'BayerGB10p',
-            VmbPixelFormat.BayerBG10p: 'BayerBG10p',
-            VmbPixelFormat.BayerGR12p: 'BayerGR12p',
-            VmbPixelFormat.BayerRG12p: 'BayerRG12p',
-            VmbPixelFormat.BayerGB12p: 'BayerGB12p',
-            VmbPixelFormat.BayerBG12p: 'BayerBG12p',
-            VmbPixelFormat.BayerGR16: 'BayerGR16',
-            VmbPixelFormat.BayerRG16: 'BayerRG16',
-            VmbPixelFormat.BayerGB16: 'BayerGB16',
-            VmbPixelFormat.BayerBG16: 'BayerBG16',
-            VmbPixelFormat.Rgb8: 'Rgb8',
-            VmbPixelFormat.Bgr8: 'Bgr8',
-            VmbPixelFormat.Rgb10: 'Rgb10',
-            VmbPixelFormat.Bgr10: 'Bgr10',
-            VmbPixelFormat.Rgb12: 'Rgb12',
-            VmbPixelFormat.Bgr12: 'Bgr12',
-            VmbPixelFormat.Rgb14: 'Rgb14',
-            VmbPixelFormat.Bgr14: 'Bgr14',
-            VmbPixelFormat.Rgb16: 'Rgb16',
-            VmbPixelFormat.Bgr16: 'Bgr16',
-            VmbPixelFormat.Argb8: 'Argb8',
-            VmbPixelFormat.Rgba8: 'Rgba8',
-            VmbPixelFormat.Bgra8: 'Bgra8',
-            VmbPixelFormat.Rgba10: 'Rgba10',
-            VmbPixelFormat.Bgra10: 'Bgra10',
-            VmbPixelFormat.Rgba12: 'Rgba12',
-            VmbPixelFormat.Bgra12: 'Bgra12',
-            VmbPixelFormat.Rgba14: 'Rgba14',
-            VmbPixelFormat.Bgra14: 'Bgra14',
-            VmbPixelFormat.Rgba16: 'Rgba16',
-            VmbPixelFormat.Bgra16: 'Bgra16',
-            VmbPixelFormat.Yuv411: 'Yuv411',
-            VmbPixelFormat.Yuv422: 'Yuv422',
-            VmbPixelFormat.Yuv444: 'Yuv444',
-            VmbPixelFormat.YCbCr411_8_CbYYCrYY: 'YCbCr411_8_CbYYCrYY',
-            VmbPixelFormat.YCbCr422_8_CbYCrY: 'YCbCr422_8_CbYCrY',
-            VmbPixelFormat.YCbCr8_CbYCr: 'YCbCr8_CbYCr'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbInterface(_Uint32Enum):
@@ -395,15 +306,7 @@ class VmbInterface(_Uint32Enum):
     CSI2 = 5
 
     def __str__(self):
-        enum_to_str = {
-            VmbInterface.Unknown: 'Unknown',
-            VmbInterface.Firewire: 'Firewire',
-            VmbInterface.Ethernet: 'Ethernet',
-            VmbInterface.Usb: 'Usb',
-            VmbInterface.CL: 'CL',
-            VmbInterface.CSI2: 'CSI2'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbAccessMode(_Uint32Enum):
@@ -422,14 +325,7 @@ class VmbAccessMode(_Uint32Enum):
     Lite = 8
 
     def __str__(self):
-        enum_to_str = {
-            VmbAccessMode.None_: 'None',
-            VmbAccessMode.Full: 'Full',
-            VmbAccessMode.Read: 'Read',
-            VmbAccessMode.Config: 'Config',
-            VmbAccessMode.Lite: 'Lite'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbFeatureData(_Uint32Enum):
@@ -456,18 +352,7 @@ class VmbFeatureData(_Uint32Enum):
     None_ = 8
 
     def __str__(self):
-        enum_to_str = {
-            VmbFeatureData.Unknown: 'Unknown',
-            VmbFeatureData.Int: 'Int',
-            VmbFeatureData.Float: 'Float',
-            VmbFeatureData.Enum: 'Enum',
-            VmbFeatureData.String: 'String',
-            VmbFeatureData.Bool: 'Bool',
-            VmbFeatureData.Command: 'Command',
-            VmbFeatureData.Raw: 'Raw',
-            VmbFeatureData.None_: 'None'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbFeaturePersist(_Uint32Enum):
@@ -485,12 +370,7 @@ class VmbFeaturePersist(_Uint32Enum):
     NoLUT = 2
 
     def __str__(self):
-        enum_to_str = {
-            VmbFeaturePersist.All: 'All',
-            VmbFeaturePersist.Streamable: 'Streamable',
-            VmbFeaturePersist.NoLUT: 'NoLUT'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbFeatureVisibility(_Uint32Enum):
@@ -509,14 +389,7 @@ class VmbFeatureVisibility(_Uint32Enum):
     Invisible = 4
 
     def __str__(self):
-        enum_to_str = {
-            VmbFeatureVisibility.Unknown: 'Unknown',
-            VmbFeatureVisibility.Beginner: 'Beginner',
-            VmbFeatureVisibility.Expert: 'Expert',
-            VmbFeatureVisibility.Guru: 'Guru',
-            VmbFeatureVisibility.Invisible: 'Invisible'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbFeatureFlags(_Uint32Enum):
@@ -540,15 +413,7 @@ class VmbFeatureFlags(_Uint32Enum):
     ModifyWrite = 16
 
     def __str__(self):
-        enum_to_str = {
-            VmbFeatureFlags.None_: 'None',
-            VmbFeatureFlags.Read: 'Read',
-            VmbFeatureFlags.Write: 'Write',
-            VmbFeatureFlags.Undocumented: 'Undocumented',
-            VmbFeatureFlags.Volatile: 'Volatile',
-            VmbFeatureFlags.ModifyWrite: 'ModifyWrite'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbFrameStatus(_Int32Enum):
@@ -565,13 +430,7 @@ class VmbFrameStatus(_Int32Enum):
     Invalid = -3
 
     def __str__(self):
-        enum_to_str = {
-            VmbFrameStatus.Complete: 'Complete',
-            VmbFrameStatus.Incomplete: 'Incomplete',
-            VmbFrameStatus.TooSmall: 'TooSmall',
-            VmbFrameStatus.Invalid: 'Invalid'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbFrameFlags(_Uint32Enum):
@@ -590,14 +449,7 @@ class VmbFrameFlags(_Uint32Enum):
     Timestamp = 8
 
     def __str__(self):
-        enum_to_str = {
-            VmbFrameFlags.None_: 'None',
-            VmbFrameFlags.Dimension: 'Dimension',
-            VmbFrameFlags.Offset: 'Offset',
-            VmbFrameFlags.FrameID: 'FrameID',
-            VmbFrameFlags.Timestamp: 'Timestamp'
-        }
-        return enum_to_str[self.value]
+        return self._name_
 
 
 class VmbVersionInfo(ctypes.Structure):

@@ -3,17 +3,30 @@
 # TODO: Add Contact Info (clarify if this is required...)
 # TODO: Add docstring to public entities
 
-from vimba.c_binding import call_vimba_c_func, byref, sizeof
-from vimba.c_binding import VmbInterfaceInfo, VmbHandle, VmbUint32
+import enum
+
+from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
+from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, \
+                            VmbUint32
+from vimba.access_mode import AccessMode
 from vimba.feature import discover_features, filter_features_by_name, \
                           filter_features_by_type, filter_affected_features, \
                           filter_selected_features
 
 
+class InterfaceType(enum.IntEnum):
+    Unknown = VmbInterface.Unknown
+    Firewire = VmbInterface.Firewire
+    Ethernet = VmbInterface.Ethernet
+    Usb = VmbInterface.Usb
+    CL = VmbInterface.CL
+    CSI2 = VmbInterface.CSI2
+
+
 class Interface:
     def __init__(self, info: VmbInterfaceInfo):
-        self._info = info
         self._handle = VmbHandle(0)
+        self._info = info
         self._feats = ()
         self._context_cnt = 0
 
@@ -31,18 +44,29 @@ class Interface:
             self._close()
 
     def __str__(self):
-        return 'Interface(id={}, handle={})'.format(self.get_id(),
-                                                    self._handle)
+        return 'Interface(id={})'.format(self.get_id())
 
     def __repr__(self):
         rep = 'Interface'
-        rep += '(_info=' + repr(self._info)
-        rep += ',_handle=' + repr(self._handle)
+        rep += '(_handle=' + repr(self._handle)
+        rep += ',_info=' + repr(self._info)
         rep += ')'
         return rep
 
     def get_id(self):
-        return self._info.interfaceIdString.decode()
+        return decode_cstr(self._info.interfaceIdString)
+
+    def get_type(self):
+        return InterfaceType(self._info.interfaceType)
+
+    def get_name(self):
+        return decode_cstr(self._info.interfaceName)
+
+    def get_serial(self):
+        return decode_cstr(self._info.serialString)
+
+    def get_permitted_access_mode(self):
+        return AccessMode(self._info.permittedAccess)
 
     def get_all_features(self):
         return self._feats
@@ -66,6 +90,9 @@ class Interface:
         self._feats = discover_features(self._handle)
 
     def _close(self):
+        for feat in self._feats:
+            feat.remove_all_change_handlers()
+
         self._feats = ()
 
         call_vimba_c_func('VmbInterfaceClose', self._handle)

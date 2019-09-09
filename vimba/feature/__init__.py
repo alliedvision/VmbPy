@@ -5,6 +5,9 @@
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
 
+from .base_feature import FeatureFlags
+from .base_feature import FeatureVisibility
+
 from .int_feature import IntFeature
 from .float_feature import FloatFeature
 from .string_feature import StringFeature

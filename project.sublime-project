@@ -27,6 +27,11 @@
     "build_systems":
     [
         {
+            "name": "exec Examples/logger",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/logger.py"
+        },
+        {
             "name": "exec Examples/sandbox",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/sandbox.py"

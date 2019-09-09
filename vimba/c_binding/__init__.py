@@ -41,5 +41,8 @@ from .types import G_VIMBA_HANDLE
 from .api import call_vimba_c_func
 from .api import print_vimba_c_func_signatures
 
+from .util import decode_cstr
+from .util import decode_flags
+
 # Alias for commonly used ctypes helper functions
 from ctypes import byref, sizeof, create_string_buffer

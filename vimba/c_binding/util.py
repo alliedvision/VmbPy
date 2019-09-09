@@ -20,7 +20,15 @@ def static_var(var, val):
 
 
 def _split_into_powers_of_two(num: int):
-    return [2**i for i in range(32) if 2**i < num and (i & num)]
+    result = []
+    for mask in [1 << i for i in range(32)]:
+        if mask & num:
+            result.append(mask)
+
+    if not result:
+        result.append(0)
+
+    return tuple(result)
 
 
 def _split_flags_into_enum(num: int, enum_type):
@@ -38,6 +46,14 @@ def _stringify_enum_list(enum_type, flag_val: int, string_func):
 
     else:
         return '{}'.format(string_func(enum_type(0)))
+
+
+def decode_cstr(val: ctypes.c_char_p):
+    return val.decode() if val else ''
+
+
+def decode_flags(enum_type, enum_val: int):
+    return tuple(_split_flags_into_enum(enum_val, enum_type))
 
 
 def fmt_str(fmt: str, val):
