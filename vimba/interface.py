@@ -91,7 +91,7 @@ class Interface:
 
     def _close(self):
         for feat in self._feats:
-            feat.remove_all_change_handlers()
+            feat.unregister_all_change_handlers()
 
         self._feats = ()
 

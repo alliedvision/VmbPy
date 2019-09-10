@@ -48,7 +48,7 @@ def _stringify_enum_list(enum_type, flag_val: int, string_func):
         return '{}'.format(string_func(enum_type(0)))
 
 
-def decode_cstr(val: ctypes.c_char_p):
+def decode_cstr(val: bytes) -> str:
     return val.decode() if val else ''
 
 
@@ -60,8 +60,8 @@ def fmt_str(fmt: str, val):
     return fmt.format(str(val))
 
 
-def fmt_cstr_str(fmt: str, val: ctypes.c_char_p):
-    return fmt.format('"' + val.decode() + '"') if val else fmt.format('')
+def fmt_cstr_str(fmt: str, val: ctypes.c_char_p) -> str:
+    return fmt.format('"{}"'.format(val.value.decode() if val.value else ''))
 
 
 def fmt_enum_str(fmt: str, enum_type, enum_val):

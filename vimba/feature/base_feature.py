@@ -115,7 +115,7 @@ class BaseFeature:
         _, w = self.get_access_mode()
         return w
 
-    def add_change_handler(self, change_handler):
+    def register_change_handler(self, change_handler):
         with self._change_handlers_lock:
             if change_handler in self._change_handlers:
                 return
@@ -125,13 +125,13 @@ class BaseFeature:
             if len(self._change_handlers) == 1:
                 self._register_callback()
 
-    def remove_all_change_handlers(self):
+    def unregister_all_change_handlers(self):
         with self._change_handlers_lock:
             if self._change_handlers:
                 self._unregister_callback()
                 self._change_handlers.clear()
 
-    def remove_change_handler(self, change_handler):
+    def unregister_change_handler(self, change_handler):
         with self._change_handlers_lock:
             if change_handler not in self._change_handlers:
                 return

@@ -34,22 +34,22 @@ def handle_camera(cam):
 
         # Register Object
         change_handler_obj = ChangeHandlerAsObj('With Context')
-        payload_size.add_change_handler(change_handler_obj)
+        payload_size.register_change_handler(change_handler_obj)
 
         # Register Function
-        payload_size.add_change_handler(ChangeHandlerAsFunc)
+        payload_size.register_change_handler(ChangeHandlerAsFunc)
 
         # Register lambda expression
-        payload_size.add_change_handler(change_handler_lambda)
+        payload_size.register_change_handler(change_handler_lambda)
 
         # Changing Width affects PayloadSize. Width set must trigger change_handler Functor
         old_value = width.get()
         width.set(2000)
         width.set(old_value)
 
-        payload_size.remove_change_handler(change_handler_obj)
-        payload_size.remove_change_handler(ChangeHandlerAsFunc)
-        payload_size.remove_change_handler(change_handler_lambda)
+        payload_size.unregister_change_handler(change_handler_obj)
+        payload_size.unregister_change_handler(ChangeHandlerAsFunc)
+        payload_size.unregister_change_handler(change_handler_lambda)
 
 
 def main():

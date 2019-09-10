@@ -27,14 +27,29 @@
     "build_systems":
     [
         {
-            "name": "exec Examples/logger",
+            "name": "make test",
             "working_dir": "$project_path",
-            "shell_cmd": "python Examples/logger.py"
+            "shell_cmd": "make test"
+        },
+        {
+            "name": "make test (output=junit)",
+            "working_dir": "$project_path",
+            "shell_cmd": "make test_junit_export"
+        },
+        {
+            "name": "make clean",
+            "working_dir": "$project_path",
+            "shell_cmd": "make clean"
         },
         {
             "name": "exec Examples/sandbox",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/sandbox.py"
+        },
+        {
+            "name": "exec Examples/experimentation",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/experimentation.py"
         },
         {
             "name": "exec Examples/list_cameras",
@@ -45,21 +60,6 @@
             "name": "exec Examples/list_features",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/list_features.py"
-        },
-        {
-            "name": "exec Examples/asynchronous_grab.py",
-            "working_dir": "$project_path",
-            "shell_cmd": "python Examples/asynchronous_grab.py"
-        },
-        {
-            "name": "run static_checks",
-            "working_dir": "$project_path",
-            "shell_cmd": "flake8 vimba"
-        },
-        {
-            "name": "run unit tests",
-            "working_dir": "$project_path",
-            "shell_cmd": "python -m unittest discover -s Tests -p *_test.py"
         }
     ]
 }

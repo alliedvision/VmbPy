@@ -1,10 +1,5 @@
-from vimba.c_binding.types import VmbError, VmbPixelFormat, VmbInterface, \
-                                  VmbAccessMode, VmbFeatureData, \
-                                  VmbFeaturePersist, VmbFeatureVisibility, \
-                                  VmbFeatureFlags, VmbFrameStatus, \
-                                  VmbFrameFlags
-
 import unittest
+from vimba.c_binding import *
 
 
 class CBindingTypesTest(unittest.TestCase):
@@ -153,12 +148,3 @@ class CBindingTypesTest(unittest.TestCase):
         self.assertEqual(VmbFrameFlags.Offset, 2)
         self.assertEqual(VmbFrameFlags.FrameID, 4)
         self.assertEqual(VmbFrameFlags.Timestamp, 8)
-
-if __name__ == '__main__':
-    import xmlrunner
-
-    unittest.main(
-        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
-        failfast=False,
-        buffer=False,
-        catchbreak=False)
