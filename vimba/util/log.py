@@ -8,6 +8,8 @@ import enum
 import datetime
 import logging
 
+from typing import List, Optional
+
 
 class LogLevel(enum.IntEnum):
     Trace = logging.DEBUG
@@ -19,7 +21,7 @@ class LogLevel(enum.IntEnum):
     def __str__(self):
         return self._name_
 
-    def as_equal_len_str(self):
+    def as_equal_len_str(self) -> str:
         return _LEVEL_TO_EQUAL_LEN_STR[self]
 
 
@@ -36,8 +38,8 @@ class LogConfig:
     _ENTRY_FORMAT = logging.Formatter('%(asctime)s | %(message)s')
 
     def __init__(self):
-        self._handlers = []
-        self._max_msg_length = None
+        self._handlers: List[logging.Handler] = []
+        self._max_msg_length: Optional[int] = None
 
     def add_file_log(self, level: LogLevel):
         log_ts = datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
@@ -62,18 +64,18 @@ class LogConfig:
     def set_max_msg_length(self, max_msg_length: int):
         self._max_msg_length = max_msg_length
 
-    def get_max_msg_length(self):
+    def get_max_msg_length(self) -> Optional[int]:
         return self._max_msg_length
 
-    def get_handlers(self):
+    def get_handlers(self) -> List[logging.Handler]:
         return self._handlers
 
 
 class Log:
     class _Impl:
         def __init__(self):
-            self._logger = None
-            self._config = None
+            self._logger: Optional[logging.Logger] = None
+            self._config: Optional[LogConfig] = None
 
         def __bool__(self):
             return bool(self._logger) and bool(self._config)
@@ -99,7 +101,7 @@ class Log:
                 self._logger = None
                 self._config = None
 
-        def get_config(self):
+        def get_config(self) -> Optional[LogConfig]:
             return self._config
 
         def trace(self, msg: str):
@@ -122,9 +124,9 @@ class Log:
             if self._logger:
                 self._logger.critical(self._build_msg(LogLevel.Critical, msg))
 
-        def _build_msg(self, loglevel: LogLevel, msg: str):
+        def _build_msg(self, loglevel: LogLevel, msg: str) -> str:
             msg = '{} | {}'.format(loglevel.as_equal_len_str(), msg)
-            max_len = self._config.get_max_msg_length()
+            max_len = self._config.get_max_msg_length() if self._config else None
 
             if max_len and (max_len < len(msg)):
                 suffix = ' ...'
@@ -139,7 +141,7 @@ class Log:
         return Log._instance
 
 
-def _build_cfg(console_level, file_level):
+def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]) -> LogConfig:
     cfg = LogConfig()
 
     cfg.set_max_msg_length(200)

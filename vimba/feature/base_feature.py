@@ -5,19 +5,19 @@
 # TODO: Add getters to all members given interface struct. Handle Encoding
 # TODO: Add repr and str
 
-import enum
-
+from enum import IntEnum
+from typing import Tuple, List, Callable, Type
 from threading import Lock
-from vimba.c_binding import call_vimba_c_func, byref, decode_cstr, \
-                            decode_flags
-from vimba.c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbHandle, \
-                            VmbFeatureVisibility, VmbBool, \
-                            VmbInvalidationCallback
-
-from vimba.logging import Log
+from vimba.c_binding import call_vimba_c_func, byref, decode_cstr, decode_flags
+from vimba.c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbHandle, VmbFeatureVisibility, \
+                            VmbBool, VmbInvalidationCallback
+from vimba.util import Log
 
 
-class FeatureFlags(enum.IntEnum):
+ChangeHandler = Callable[[Type['BaseFeature']], None]
+
+
+class FeatureFlags(IntEnum):
     None_ = VmbFeatureFlags.None_
     Read = VmbFeatureFlags.Read
     Write = VmbFeatureFlags.Write
@@ -26,7 +26,7 @@ class FeatureFlags(enum.IntEnum):
     ModifyWrite = VmbFeatureFlags.ModifyWrite
 
 
-class FeatureVisibility(enum.IntEnum):
+class FeatureVisibility(IntEnum):
     Unknown = VmbFeatureVisibility.Unknown
     Beginner = VmbFeatureVisibility.Beginner
     Expert = VmbFeatureVisibility.Expert
@@ -36,15 +36,14 @@ class FeatureVisibility(enum.IntEnum):
 
 class BaseFeature:
     def __init__(self,  handle: VmbHandle, info: VmbFeatureInfo):
-        self._handle = handle
-        self._info = info
-        self._change_handlers = []
+        self._handle: VmbHandle = handle
+        self._info: VmbFeatureInfo = info
+        self._change_handlers: List[ChangeHandler] = []
         self._change_handlers_lock = Lock()
         self._callback = VmbInvalidationCallback(self._callback_impl)
 
     def __str__(self):
-        return 'Feature(name={}, type={})'.format(self.get_name(),
-                                                  self.get_type())
+        return 'Feature(name={}, type={})'.format(self.get_name(), self.get_type())
 
     def __repr__(self):
         rep = 'Feature'
@@ -53,69 +52,69 @@ class BaseFeature:
         rep += ')'
         return rep
 
-    def get_name(self):
+    def get_name(self) -> str:
         return decode_cstr(self._info.name)
 
-    def get_type(self):
+    def get_type(self) -> Type['BaseFeature']:
         return type(self)
 
-    def get_flags(self):
+    def get_flags(self) -> Tuple[FeatureFlags, ...]:
         return decode_flags(FeatureFlags, self._info.featureFlags)
 
-    def get_category(self):
+    def get_category(self) -> str:
         return decode_cstr(self._info.category)
 
-    def get_display_name(self):
+    def get_display_name(self) -> str:
         return decode_cstr(self._info.displayName)
 
-    def get_polling_time(self):
+    def get_polling_time(self) -> int:
         return self._info.pollingTime
 
-    def get_unit(self):
+    def get_unit(self) -> str:
         return decode_cstr(self._info.unit)
 
-    def get_representation(self):
+    def get_representation(self) -> str:
         return decode_cstr(self._info.representation)
 
-    def get_visibility(self):
+    def get_visibility(self) -> FeatureVisibility:
         return FeatureVisibility(self._info.visibility)
 
-    def get_tooltip(self):
+    def get_tooltip(self) -> str:
         return decode_cstr(self._info.tooltip)
 
-    def get_description(self):
+    def get_description(self) -> str:
         return decode_cstr(self._info.description)
 
-    def get_sfnc_namespace(self):
+    def get_sfnc_namespace(self) -> str:
         return decode_cstr(self._info.sfncNamespace)
 
-    def is_streamable(self):
+    def is_streamable(self) -> bool:
         return self._info.isStreamable
 
-    def has_affected_features(self):
+    def has_affected_features(self) -> bool:
         return self._info.hasAffectedFeatures
 
-    def has_selected_features(self):
+    def has_selected_features(self) -> bool:
         return self._info.hasSelectedFeatures
 
-    def get_access_mode(self):
-        c_read = VmbBool()
-        c_write = VmbBool()
+    def get_access_mode(self) -> Tuple[bool, bool]:
+        c_read = VmbBool(False)
+        c_write = VmbBool(False)
 
         call_vimba_c_func('VmbFeatureAccessQuery', self._handle,
                           self._info.name, byref(c_read), byref(c_write))
 
         return (c_read.value, c_write.value)
 
-    def is_readable(self):
+    def is_readable(self) -> bool:
         r, _ = self.get_access_mode()
         return r
 
-    def is_writeable(self):
+    def is_writeable(self) -> bool:
         _, w = self.get_access_mode()
         return w
 
-    def register_change_handler(self, change_handler):
+    def register_change_handler(self, change_handler: ChangeHandler):
         with self._change_handlers_lock:
             if change_handler in self._change_handlers:
                 return
@@ -131,7 +130,7 @@ class BaseFeature:
                 self._unregister_callback()
                 self._change_handlers.clear()
 
-    def unregister_change_handler(self, change_handler):
+    def unregister_change_handler(self, change_handler: ChangeHandler):
         with self._change_handlers_lock:
             if change_handler not in self._change_handlers:
                 return
@@ -142,12 +141,12 @@ class BaseFeature:
             self._change_handlers.remove(change_handler)
 
     def _register_callback(self):
-        call_vimba_c_func('VmbFeatureInvalidationRegister', self._handle,
-                          self._info.name, self._callback, None)
+        call_vimba_c_func('VmbFeatureInvalidationRegister', self._handle, self._info.name,
+                          self._callback, None)
 
     def _unregister_callback(self):
-        call_vimba_c_func('VmbFeatureInvalidationUnregister', self._handle,
-                          self._info.name, self._callback)
+        call_vimba_c_func('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
+                          self._callback)
 
     def _callback_impl(self, *ignored):
         with self._change_handlers_lock:
@@ -165,5 +164,3 @@ class BaseFeature:
                     msg += 'raised by: {}'.format(change_handler)
 
                     Log.get_instance().error(msg)
-
-        return None

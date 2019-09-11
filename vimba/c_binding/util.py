@@ -9,17 +9,19 @@ import functools
 import ctypes
 
 from os.path import join
+from ctypes import CDLL
+from typing import Any, Tuple, Optional
 
 
-def static_var(var, val):
+def static_var(name: str, val: Any):
     def decorate(func):
-        setattr(func, var, val)
+        setattr(func, name, val)
         return func
 
     return decorate
 
 
-def _split_into_powers_of_two(num: int):
+def _split_into_powers_of_two(num: int) -> Tuple[int, ...]:
     result = []
     for mask in [1 << i for i in range(32)]:
         if mask & num:
@@ -35,17 +37,17 @@ def _split_flags_into_enum(num: int, enum_type):
     return [enum_type(val) for val in _split_into_powers_of_two(num)]
 
 
-def _stringify_enum_list(enum_type, flag_val: int, string_func):
+def _repr_flags_list(enum_type, flag_val: int):
     values = _split_flags_into_enum(flag_val, enum_type)
 
     if values:
         def fold_func(acc, arg):
-            return '{} {}'.format(acc, string_func(arg))
+            return '{} {}'.format(acc, repr(arg))
 
         return functools.reduce(fold_func, values, '')
 
     else:
-        return '{}'.format(string_func(enum_type(0)))
+        return '{}'.format(repr(enum_type(0)))
 
 
 def decode_cstr(val: bytes) -> str:
@@ -54,22 +56,6 @@ def decode_cstr(val: bytes) -> str:
 
 def decode_flags(enum_type, enum_val: int):
     return tuple(_split_flags_into_enum(enum_val, enum_type))
-
-
-def fmt_str(fmt: str, val):
-    return fmt.format(str(val))
-
-
-def fmt_cstr_str(fmt: str, val: ctypes.c_char_p) -> str:
-    return fmt.format('"{}"'.format(val.value.decode() if val.value else ''))
-
-
-def fmt_enum_str(fmt: str, enum_type, enum_val):
-    return fmt.format(str(enum_type(enum_val)))
-
-
-def fmt_flags_str(fmt: str, enum_type, enum_val):
-    return fmt.format(_stringify_enum_list(enum_type, enum_val, str))
 
 
 def fmt_repr(fmt: str, val):
@@ -81,38 +67,31 @@ def fmt_enum_repr(fmt: str, enum_type, enum_val):
 
 
 def fmt_flags_repr(fmt: str, enum_type, enum_val):
-    return fmt.format(_stringify_enum_list(enum_type, enum_val, repr))
+    return fmt.format(_repr_flags_list(enum_type, enum_val))
 
 
-def load_vimba_raw():
+def load_vimba_raw() -> CDLL:
     platform_handlers = {
         'linux': _load_under_linux,
         'win32': _load_under_windows
     }
 
     if sys.platform not in platform_handlers:
-        raise OSError('Abort. Unsupported Platform ({}) detected.'
-                      .format(sys.platform))
+        raise OSError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
 
     return platform_handlers[sys.platform]()
 
 
-def _get_vimba_home():
-    try:
-        vimba_home = os.environ['VIMBA_HOME']
-
-    except KeyError:
-        vimba_home = None
-
-    return vimba_home
+def _get_vimba_home() -> Optional[str]:
+    return os.environ.get('VIMBA_HOME')
 
 
-def _load_under_linux():
+def _load_under_linux() -> CDLL:
     # TODO: Implement loading under Linux.
     raise NotImplementedError('Loading of libVimbaC.so')
 
 
-def _load_under_windows():
+def _load_under_windows() -> CDLL:
     vimba_home = _get_vimba_home()
 
     if vimba_home:
@@ -126,7 +105,7 @@ def _load_under_windows():
     return ctypes.cdll.LoadLibrary(lib_path)
 
 
-def _get_arch():
+def _get_arch() -> str:
     arch = platform.machine()
     if arch == 'AMD64':
         return '64Bit'

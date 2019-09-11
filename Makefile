@@ -16,6 +16,7 @@ static_test:
 
 	@echo "2) mypy (static type checker):"
 	-mypy vimba
+	-mypy Examples
 	@echo
 
 

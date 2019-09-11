@@ -16,9 +16,14 @@ from .enum_feature import EnumFeature
 from .command_feature import CommandFeature
 from .raw_feature import RawFeature
 
+from .util import FeatureTypes
+from .util import FeaturesTuple
+
 from .util import discover_features
 from .util import discover_feature
 from .util import filter_features_by_name
 from .util import filter_features_by_type
 from .util import filter_affected_features
 from .util import filter_selected_features
+
+

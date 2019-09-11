@@ -4,14 +4,13 @@
 # TODO: Add docstring to public entities
 
 import enum
-
+from typing import Tuple
 from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
-from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, \
-                            VmbUint32
+from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from vimba.access_mode import AccessMode
-from vimba.feature import discover_features, filter_features_by_name, \
-                          filter_features_by_type, filter_affected_features, \
-                          filter_selected_features
+from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
+                          filter_affected_features, filter_selected_features, FeatureTypes, \
+                          FeaturesTuple
 
 
 class InterfaceType(enum.IntEnum):
@@ -25,10 +24,10 @@ class InterfaceType(enum.IntEnum):
 
 class Interface:
     def __init__(self, info: VmbInterfaceInfo):
-        self._handle = VmbHandle(0)
-        self._info = info
-        self._feats = ()
-        self._context_cnt = 0
+        self._handle: VmbHandle = VmbHandle(0)
+        self._info: VmbInterfaceInfo = info
+        self._feats: FeaturesTuple = ()
+        self._context_cnt: int = 0
 
     def __enter__(self):
         if not self._context_cnt:
@@ -53,39 +52,38 @@ class Interface:
         rep += ')'
         return rep
 
-    def get_id(self):
+    def get_id(self) -> str:
         return decode_cstr(self._info.interfaceIdString)
 
-    def get_type(self):
+    def get_type(self) -> InterfaceType:
         return InterfaceType(self._info.interfaceType)
 
-    def get_name(self):
+    def get_name(self) -> str:
         return decode_cstr(self._info.interfaceName)
 
-    def get_serial(self):
+    def get_serial(self) -> str:
         return decode_cstr(self._info.serialString)
 
-    def get_permitted_access_mode(self):
+    def get_permitted_access_mode(self) -> AccessMode:
         return AccessMode(self._info.permittedAccess)
 
-    def get_all_features(self):
+    def get_all_features(self) -> FeaturesTuple:
         return self._feats
 
-    def get_features_affected_by(self, feat):
+    def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         return filter_affected_features(self._feats, feat)
 
-    def get_features_selected_by(self, feat):
+    def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         return filter_selected_features(self._feats, feat)
 
-    def get_features_by_type(self, feat_type):
+    def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
         return filter_features_by_type(self._feats, feat_type)
 
-    def get_feature_by_name(self, feat_name: str):
+    def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         return filter_features_by_name(self._feats, feat_name)
 
     def _open(self):
-        call_vimba_c_func('VmbInterfaceOpen', self._info.interfaceIdString,
-                          byref(self._handle))
+        call_vimba_c_func('VmbInterfaceOpen', self._info.interfaceIdString, byref(self._handle))
 
         self._feats = discover_features(self._handle)
 
@@ -100,19 +98,20 @@ class Interface:
         self._handle = VmbHandle(0)
 
 
-def discover_interfaces():
+InterfacesTuple = Tuple[Interface, ...]
+
+
+def discover_interfaces() -> InterfacesTuple:
     result = []
     inters_count = VmbUint32(0)
 
-    call_vimba_c_func('VmbInterfacesList', None, 0, byref(inters_count),
-                      sizeof(VmbInterfaceInfo))
+    call_vimba_c_func('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
 
     if inters_count:
         inters_found = VmbUint32(0)
         inters_infos = (VmbInterfaceInfo * inters_count.value)()
 
-        call_vimba_c_func('VmbInterfacesList', inters_infos,
-                          inters_count, byref(inters_found),
+        call_vimba_c_func('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
                           sizeof(VmbInterfaceInfo))
 
         for info in inters_infos[:inters_found.value]:

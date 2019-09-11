@@ -23,3 +23,4 @@ from .log import LOG_CONFIG_CRITICAL
 
 from .tracer import TraceEnable
 from .scoped_log import ScopedLogEnable
+from .runtime_type_check import RuntimeTypeCheckEnable

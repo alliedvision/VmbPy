@@ -504,12 +504,10 @@ class VmbInterfaceInfo(ctypes.Structure):
     def __repr__(self):
         rep = 'VmbInterfaceInfo'
         rep += fmt_repr('(interfaceIdString={}', self.interfaceIdString)
-        rep += fmt_enum_repr(',interfaceType={}', VmbInterface,
-                             self.interfaceType)
+        rep += fmt_enum_repr(',interfaceType={}', VmbInterface, self.interfaceType)
         rep += fmt_repr(',interfaceName={}', self.interfaceName)
         rep += fmt_repr(',serialString={}', self.serialString)
-        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode,
-                              self.permittedAccess)
+        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode, self.permittedAccess)
         rep += ')'
         return rep
 
@@ -546,8 +544,7 @@ class VmbCameraInfo(ctypes.Structure):
         rep += fmt_repr(',cameraName={}', self.cameraName)
         rep += fmt_repr(',modelName={}', self.modelName)
         rep += fmt_repr(',serialString={}', self.serialString)
-        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode,
-                              self.permittedAccess)
+        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode, self.permittedAccess)
         rep += fmt_repr(',interfaceIdString={}', self.interfaceIdString)
         rep += ')'
         return rep
@@ -613,17 +610,14 @@ class VmbFeatureInfo(ctypes.Structure):
     def __repr__(self):
         rep = 'VmbFeatureInfo'
         rep += fmt_repr('(name={}', self.name)
-        rep += fmt_enum_repr(',featureDataType={}', VmbFeatureData,
-                             self.featureDataType)
-        rep += fmt_flags_repr(',featureFlags={}', VmbFeatureFlags,
-                              self.featureFlags)
+        rep += fmt_enum_repr(',featureDataType={}', VmbFeatureData, self.featureDataType)
+        rep += fmt_flags_repr(',featureFlags={}', VmbFeatureFlags, self.featureFlags)
         rep += fmt_repr(',category={}', self.category)
         rep += fmt_repr(',displayName={}', self.displayName)
         rep += fmt_repr(',pollingTime={}', self.pollingTime)
         rep += fmt_repr(',unit={}', self.unit)
         rep += fmt_repr(',representation={}', self.representation)
-        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility,
-                             self.visibility)
+        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility, self.visibility)
         rep += fmt_repr(',tooltip={}', self.tooltip)
         rep += fmt_repr(',description={}', self.description)
         rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
@@ -667,8 +661,7 @@ class VmbFeatureEnumEntry(ctypes.Structure):
         rep = 'VmbFeatureEnumEntry'
         rep += fmt_repr('(name={}', self.name)
         rep += fmt_repr(',displayName={}', self.displayName)
-        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility,
-                             self.visibility)
+        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility, self.visibility)
         rep += fmt_repr(',tooltip={}', self.tooltip)
         rep += fmt_repr(',description={}', self.description)
         rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
@@ -737,14 +730,11 @@ class VmbFrame(ctypes.Structure):
         rep += fmt_repr('(buffer={}', self.buffer)
         rep += fmt_repr(',bufferSize={}', self.bufferSize)
         rep += fmt_repr(',context={}', self.context)
-        rep += fmt_enum_repr('receiveStatus: {}', VmbFrameStatus,
-                             self.receiveStatus)
-        rep += fmt_flags_repr(',receiveFlags={}', VmbFrameFlags,
-                              self.receiveFlags)
+        rep += fmt_enum_repr('receiveStatus: {}', VmbFrameStatus, self.receiveStatus)
+        rep += fmt_flags_repr(',receiveFlags={}', VmbFrameFlags, self.receiveFlags)
         rep += fmt_repr(',imageSize={}', self.imageSize)
         rep += fmt_repr(',ancillarySize={}', self.ancillarySize)
-        rep += fmt_enum_repr(',pixelFormat={}', VmbPixelFormat,
-                             self.pixelFormat)
+        rep += fmt_enum_repr(',pixelFormat={}', VmbPixelFormat, self.pixelFormat)
         rep += fmt_repr(',width={}', self.width)
         rep += fmt_repr(',height={}', self.height)
         rep += fmt_repr(',offsetX={}', self.offsetX)
@@ -776,8 +766,7 @@ class VmbFeaturePersistSettings(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbFrame'
-        rep += fmt_enum_repr('(persistType={}', VmbFeaturePersist,
-                             self.persistType)
+        rep += fmt_enum_repr('(persistType={}', VmbFeaturePersist, self.persistType)
         rep += fmt_repr(',maxIterations={}', self.maxIterations)
         rep += fmt_repr(',loggingLevel={}', self.loggingLevel)
         rep += ')'
@@ -788,5 +777,6 @@ VmbInvalidationCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.c_char_p,
                                            ctypes.c_void_p)
 
 VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
+
 
 G_VIMBA_HANDLE = VmbHandle(1)

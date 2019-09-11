@@ -21,7 +21,7 @@
         "trim_trailing_white_space_on_save": true,
         "highlight_line": true,
         "tab_size": 4,
-        "rulers": [79, 120]
+        "rulers": [100, 120]
     },
 
     "build_systems":

@@ -3,14 +3,15 @@
 # TODO: Add Contact Info (clarify if this is required...)
 # TODO: Add docstring to public entities
 
+from typing import Any, Callable, Tuple
 from .log import LogConfig, Log
 
 
 class _ScopedLog:
-    _log = Log.get_instance()
+    _log: Log._Impl = Log.get_instance()
 
     def __init__(self, config: LogConfig):
-        self._config = config
+        self._config: LogConfig = config
 
     def __enter__(self):
         _ScopedLog._log.enable(self._config)
@@ -21,11 +22,11 @@ class _ScopedLog:
 
 
 class ScopedLogEnable:
-    def __init__(self, config):
+    def __init__(self, config: LogConfig):
         self._config = config
 
-    def __call__(self, func):
-        def decorate(*args):
+    def __call__(self, func: Callable[..., Any]):
+        def decorate(*args: Tuple[Any, ...]):
             with _ScopedLog(self._config):
                 return func(*args)
 

@@ -2,16 +2,15 @@
 # TODO: Add Copywrite Note
 # TODA: Add Contact Info (clarify if this is required...)
 
-from ctypes import byref, sizeof, c_void_p, POINTER as c_ptr, c_char_p as c_str
-from vimba.logging import TraceEnable
+from ctypes import CDLL, byref, sizeof, c_void_p, POINTER as c_ptr, c_char_p as c_str
+from typing import Any, Callable, Tuple
+from vimba.util import TraceEnable
 from vimba.error import VimbaCError
 from .util import static_var, load_vimba_raw
-from .types import VmbBool, VmbUint32, VmbInt64, VmbUint64, VmbDouble, \
-                   VmbError, VmbHandle, VmbFeatureEnumEntry, VmbFeatureInfo, \
-                   VmbVersionInfo, VmbFrame, VmbFrameCallback, \
-                   VmbInvalidationCallback, VmbAccessMode, VmbInterfaceInfo, \
+from .types import VmbBool, VmbUint32, VmbInt64, VmbUint64, VmbDouble, VmbError, VmbHandle, \
+                   VmbFeatureEnumEntry, VmbFeatureInfo, VmbVersionInfo, VmbFrame, \
+                   VmbFrameCallback, VmbInvalidationCallback, VmbAccessMode, VmbInterfaceInfo, \
                    VmbCameraInfo, VmbFeaturePersistSettings
-
 
 # For detailed information on the signatures see "VimbaC.h"
 # To improve readability, suppress 'E501 line too long (104 > 79 characters)'
@@ -78,11 +77,11 @@ _SIGNATURES = {
 }
 
 
-def _load_vimba():
+def _load_vimba() -> CDLL:
     return _check_version(_attach_signatures(load_vimba_raw()))
 
 
-def _attach_signatures(vimba_handle):
+def _attach_signatures(vimba_handle: CDLL) -> CDLL:
     # Apply given signatures onto loaded library
     for function_name, signature in _SIGNATURES.items():
         fn = getattr(vimba_handle, function_name)
@@ -92,12 +91,12 @@ def _attach_signatures(vimba_handle):
     return vimba_handle
 
 
-def _eval_vmberror(result, func, args):
-    if result not in (None, VmbError.Success):
+def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any, ...]):
+    if result not in (VmbError.Success, None):
         raise VimbaCError(result)
 
 
-def _check_version(vimba_handle):
+def _check_version(vimba_handle: CDLL) -> CDLL:
     ver = VmbVersionInfo()
     vimba_handle.VmbVersionQuery(byref(ver), sizeof(ver))
 
@@ -114,7 +113,7 @@ EXPECTED_VIMBA_C_VERSION = '1.8.0'
 
 @static_var("_vimba_instance", _load_vimba())
 @TraceEnable()
-def call_vimba_c_func(func_name, *args):
+def call_vimba_c_func(func_name: str, *args):
     getattr(call_vimba_c_func._vimba_instance, func_name)(*args)
 
 
