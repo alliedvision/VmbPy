@@ -1,6 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
+"""VimbaPython top level module.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
@@ -45,7 +48,7 @@ __all__ = [
 
 from .system import System
 
-from .access_mode import AccessMode
+from .camera import AccessMode
 
 from .error import VimbaSystemError, VimbaFeatureError
 

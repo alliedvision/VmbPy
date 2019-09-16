@@ -1,6 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODA: Add Contact Info (clarify if this is required...)
+"""Runtime type checking.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 from inspect import getfullargspec
 from functools import wraps
@@ -14,6 +17,15 @@ __all__ = [
 
 
 class RuntimeTypeCheckEnable:
+    """ Decorator adding runtime Type checking to the Wrapped Callable.
+
+    Each time the callable is executed, all arguments checked if they match with the given
+    Typehints. If all checks are passed, the wrapped function will be executed, if the given
+    Arguments to not match a TypeError is raised.
+    Note: This Decorator is no replacement for a feature complete TypeChecker supports only
+    a subset of all Types expressible by Typehints.
+
+    """
     _log = Log.get_instance()
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:

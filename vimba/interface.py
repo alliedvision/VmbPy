@@ -1,13 +1,16 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
+"""Interface access.
+
+This module allows access to all detected interfaces.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import enum
 from typing import Tuple
 from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
 from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
-from vimba.access_mode import AccessMode
 from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
                           filter_affected_features, filter_selected_features, FeatureTypes, \
                           FeaturesTuple
@@ -23,6 +26,16 @@ __all__ = [
 
 
 class InterfaceType(enum.IntEnum):
+    """Enum specifying all interface types.
+
+    Enum values:
+        Unknown  - Interface is not known to this VimbaPython version.
+        Firewire - 1394
+        Ethernet - Gigabit Ethernet
+        Usb      - USB 3.0
+        CL       - Camera Link
+        CSI2     - CSI-2
+    """
     Unknown = VmbInterface.Unknown
     Firewire = VmbInterface.Firewire
     Ethernet = VmbInterface.Ethernet
@@ -32,7 +45,14 @@ class InterfaceType(enum.IntEnum):
 
 
 class Interface:
+    """This class allows access a Interface detected by the Vimba System.
+    Camera is meant be used in conjunction with the "with" - Statement. On entering a context
+    all Interface features are detected and can be accessed within the context. Basic Interface
+    properties like Name can be access outside of the context.
+    """
+
     def __init__(self, info: VmbInterfaceInfo):
+        """Do not call directly. Access Interfaces via vimba.System instead."""
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbInterfaceInfo = info
         self.__feats: FeaturesTuple = ()
@@ -62,37 +82,97 @@ class Interface:
         return rep
 
     def get_id(self) -> str:
+        """Get Interface Id, e.g. VimbaUSBInterface_0x0."""
         return decode_cstr(self.__info.interfaceIdString)
 
     def get_type(self) -> InterfaceType:
+        """Get Interface Type, e.g. InterfaceType.Usb."""
         return InterfaceType(self.__info.interfaceType)
 
     def get_name(self) -> str:
+        """Get Interface Name, e.g. Vimba USB Interface."""
         return decode_cstr(self.__info.interfaceName)
 
     def get_serial(self) -> str:
+        """Get Interface Serial or '' if not set."""
         return decode_cstr(self.__info.serialString)
 
-    def get_permitted_access_mode(self) -> AccessMode:
-        return AccessMode(self.__info.permittedAccess)
-
     def get_all_features(self) -> FeaturesTuple:
+        """Get access to all discovered features of this Interface:
+
+        Returns:
+            A set of all currently detected features. Returns an empty set then called
+            outside of 'with' - statement.
+        """
         return self.__feats
 
     @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
+        """Get all features affected by a specific interface feature.
+
+        Arguments:
+            feat - Feature used find features that are affected by 'feat'.
+
+        Returns:
+            A set of features affected by changes on 'feat'. Can be an empty set if 'feat'
+            does not affect any features.
+
+        Raises:
+            TypeError if 'feat' is not of any feature type.
+            VimbaFeatureError if 'feat' is not a feature of this interface.
+        """
         return filter_affected_features(self.__feats, feat)
 
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
+        """Get all features selected by a specific interface feature.
+
+        Arguments:
+            feat - Feature used find features that are selected by 'feat'.
+
+        Returns:
+            A set of features selected by changes on 'feat'. Can be an empty set if 'feat'
+            does not affect any features.
+
+        Raises:
+            TypeError if 'feat' is not of any feature type.
+            VimbaFeatureError if 'feat' is not a feature of this interface.
+        """
         return filter_selected_features(self.__feats, feat)
 
     #@RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
+        """Get all interface features of a specific feature type.
+
+        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
+        EnumFeature, CommandFeature, RawFeature
+
+        Arguments:
+            feat_type - FeatureType used find features of that type.
+
+        Returns:
+            A set of features of type 'feat_type'. Can be an empty set if there is
+            no interface feature with the given type available.
+
+        Raises:
+            TypeError if 'feat_type' is not of any feature Type.
+        """
         return filter_features_by_type(self.__feats, feat_type)
 
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
+        """Get a interface feature by its name.
+
+        Arguments:
+            feat_name - Name used to find a feature.
+
+        Returns:
+            Feature with the associated name.
+
+        Raises:
+            TypeError if 'feat_name' is not of type 'str'.
+            VimbaFeatureError if no feature is associated with 'feat_name'.
+        """
         return filter_features_by_name(self.__feats, feat_name)
 
     def _open(self):
@@ -115,6 +195,8 @@ InterfacesTuple = Tuple[Interface, ...]
 
 
 def discover_interfaces() -> InterfacesTuple:
+    """Do not call directly. Access Interfaces via vimba.System instead."""
+
     result = []
     inters_count = VmbUint32(0)
 

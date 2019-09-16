@@ -34,7 +34,6 @@ def print_interface(interfaces):
         print('type: {}'.format(str(inter.get_type())))
         print('name: {}'.format(inter.get_name()))
         print('serial: {}'.format(inter.get_serial()))
-        print('permitted access mode: {}'.format(inter.get_permitted_access_mode()))
 
         print('Interface features:')
         with inter:
@@ -60,11 +59,9 @@ def print_camera(cameras):
 
 
 def main():
-    System.get_instance().enable_log(LOG_CONFIG_TRACE_CONSOLE_ONLY)
     with System.get_instance() as sys:
         print('Print system wide properties:')
         print('camera access mode: {}'.format(str(sys.get_camera_access_mode())))
-        print('network discovery: {}'.format(sys.get_network_discovery()))
 
         print('Print system features:')
         for feat in sys.get_all_features():

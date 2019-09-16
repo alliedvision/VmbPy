@@ -1,8 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
-# TODO: Add repr and str
+"""IntFeature implementation
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import inspect
 
@@ -19,10 +20,21 @@ __all__ = [
 
 
 class IntFeature(BaseFeature):
+    """The IntFeature is a feature, that is represented by a integer."""
+
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
+        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
     def get(self) -> int:
+        """Get current value (int)
+
+        Returns:
+            Current int value.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_val = VmbInt64()
 
@@ -41,6 +53,14 @@ class IntFeature(BaseFeature):
         return c_val.value
 
     def get_range(self) -> Tuple[int, int]:
+        """Get range of accepted values
+
+        Returns:
+            A pair of range boundaries. First value is the minimum second value is the maximum.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_min = VmbInt64()
         c_max = VmbInt64()
@@ -61,6 +81,14 @@ class IntFeature(BaseFeature):
         return (c_min.value, c_max.value)
 
     def get_increment(self) -> int:
+        """Get increment (steps between valid values, starting from minimal values).
+
+        Returns:
+            The increment of this feature.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_val = VmbInt64()
 
@@ -81,6 +109,17 @@ class IntFeature(BaseFeature):
 
     @RuntimeTypeCheckEnable()
     def set(self, val: int):
+        """Set current value of type int.
+
+        Arguments:
+            val - The int value to set.
+
+        Raises:
+            TypeError if argument 'val' is not of type 'int'.
+            VimbaFeatureError if access rights are not sufficient.
+            VimbaFeatureError if value is out of bounds or misaligned with regards the increment.
+            VimbaFeatureError if executed within a registered change_handler.
+        """
         exc = None
 
         try:

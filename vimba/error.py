@@ -1,7 +1,12 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
+"""VimbaPython specific error Types.
+
+This module contains VimbaPython specific Error Types.
+All contained error types add a Log entry upon error construction.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 from vimba.util import Log
 
@@ -18,8 +23,22 @@ class _LoggedError(Exception):
 
 
 class VimbaSystemError(_LoggedError):
+    """Errors related to the underlaying Vimba System
+
+    Error Type to indicate system wide errors like:
+    - Incomplete Vimba installation.
+    - Incompatible version of the underlaying C-Layer.
+    - Running on an unsupported OS.
+    """
     pass
 
 
 class VimbaFeatureError(_LoggedError):
+    """Error related to Feature access.
+
+    Error Type to indicate invalid Feature access like:
+    - Invalid access mode on Feature access.
+    - Out of range values upon setting a value.
+    - Failed lookup of Features.
+    """
     pass

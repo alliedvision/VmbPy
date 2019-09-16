@@ -1,7 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
+"""VimbaPythons central logging facility.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import os
 import enum
@@ -34,6 +36,15 @@ __all__ = [
 
 
 class LogLevel(enum.IntEnum):
+    """ Enumeration containing all LogLevels.
+
+    Enumeration values are:
+        Trace    - Show Tracing information. Show all Messages
+        Info     - Show Informational, Warning, Error and Critical Events.
+        Warning  - Show Warning, Error and Critical Events.
+        Error    - Show Errors and Critical Events.
+        Critical - Show only Critical Events.
+    """
     Trace = logging.DEBUG
     Info = logging.INFO
     Warning = logging.WARNING
@@ -57,6 +68,11 @@ _LEVEL_TO_EQUAL_LEN_STR = {
 
 
 class LogConfig:
+    """ The LogConfig is a builder to configure various specialized Logging Configurations.
+    The constructed LogConfig must set via vimba.System or the ScopedLogEnable Decorator
+    to start logging.
+    """
+
     __ENTRY_FORMAT = logging.Formatter('%(asctime)s | %(message)s')
 
     def __init__(self):
@@ -64,6 +80,14 @@ class LogConfig:
         self.__max_msg_length: Optional[int] = None
 
     def add_file_log(self, level: LogLevel) -> 'LogConfig':
+        """Add a new Log file to the Config Builder.
+
+        Arguments:
+            level: LogLevel of the added log file.
+
+        Returns:
+            Reference to the LogConfig instance (builder pattern).
+        """
         log_ts = datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
         log_file = 'VimbaPython_{}_{}.log'.format(log_ts, str(level))
         log_file = os.path.join(os.getcwd(), log_file)
@@ -76,6 +100,14 @@ class LogConfig:
         return self
 
     def add_console_log(self, level: LogLevel) -> 'LogConfig':
+        """Add a new Console Log to the Config Builder.
+
+        Arguments:
+            level: LogLevel of the added console log file.
+
+        Returns:
+            Reference to the LogConfig instance (builder pattern).
+        """
         handler = logging.StreamHandler()
         handler.setLevel(level)
         handler.setFormatter(LogConfig.__ENTRY_FORMAT)
@@ -84,18 +116,25 @@ class LogConfig:
         return self
 
     def set_max_msg_length(self, max_msg_length: int):
+        """Set max length of a log entry. Messages long than that entry will be cutoff."""
         self.__max_msg_length = max_msg_length
 
     def get_max_msg_length(self) -> Optional[int]:
+        """Get configured max message length"""
         return self.__max_msg_length
 
     def get_handlers(self) -> List[logging.Handler]:
+        """Get all configured log handlers"""
         return self.__handlers
 
 
 class Log:
     class __Impl:
+        """This class is wraps the logging Facility. Since this is as Singleton
+        Use Log.get_instace(), to access the log.
+        """
         def __init__(self):
+            """Do not call directly. Use Log.get_instance() instead."""
             self.__logger: Optional[logging.Logger] = None
             self.__config: Optional[LogConfig] = None
 
@@ -103,6 +142,11 @@ class Log:
             return bool(self.__logger) and bool(self.__config)
 
         def enable(self, config: LogConfig):
+            """Enable global VimbaPython logging mechanism.
+
+            Arguments:
+                config: The configuration to apply.
+            """
             self.disable()
 
             logger = logging.getLogger('VimbaPythonLog')
@@ -115,6 +159,7 @@ class Log:
             self.__logger = logger
 
         def disable(self):
+            """Disable global VimbaPython logging mechanism."""
             if self.__logger and self.__config:
                 for handler in self.__config.get_handlers():
                     handler.close()
@@ -124,25 +169,55 @@ class Log:
                 self.__config = None
 
         def get_config(self) -> Optional[LogConfig]:
+            """ Get log configuration
+
+            Returns:
+                Configuration if the log is enabled. In case the log is disabled return None.
+            """
             return self.__config
 
         def trace(self, msg: str):
+            """Add an entry of LogLevel.Trace to the log. Does nothing is the log is disabled.
+
+            Arguments:
+                msg - The message that should be added to the Log.
+            """
             if self.__logger:
                 self.__logger.debug(self.__build_msg(LogLevel.Trace, msg))
 
         def info(self, msg: str):
+            """Add an entry of LogLevel.Info to the log. Does nothing is the log is disabled.
+
+            Arguments:
+                msg - The message that should be added to the Log.
+            """
             if self.__logger:
                 self.__logger.info(self.__build_msg(LogLevel.Info, msg))
 
         def warning(self, msg: str):
+            """Add an entry of LogLevel.Warning to the log. Does nothing is the log is disabled.
+
+            Arguments:
+                msg - The message that should be added to the Log.
+            """
             if self.__logger:
                 self.__logger.warning(self.__build_msg(LogLevel.Warning, msg))
 
         def error(self, msg: str):
+            """Add an entry of LogLevel.Error to the log. Does nothing is the log is disabled.
+
+            Arguments:
+                msg - The message that should be added to the Log.
+            """
             if self.__logger:
                 self.__logger.error(self.__build_msg(LogLevel.Error, msg))
 
         def critical(self, msg: str):
+            """Add an entry of LogLevel.Critical to the log. Does nothing is the log is disabled.
+
+            Arguments:
+                msg - The message that should be added to the Log.
+            """
             if self.__logger:
                 self.__logger.critical(self.__build_msg(LogLevel.Critical, msg))
 
@@ -160,6 +235,7 @@ class Log:
 
     @staticmethod
     def get_instance() -> '__Impl':
+        """Get Log instance."""
         return Log.__instance
 
 
@@ -176,7 +252,7 @@ def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]
 
     return cfg
 
-
+# Exported Default Log configurations.
 LOG_CONFIG_TRACE_CONSOLE_ONLY = _build_cfg(LogLevel.Trace, None)
 LOG_CONFIG_TRACE_FILE_ONLY = _build_cfg(None, LogLevel.Trace)
 LOG_CONFIG_TRACE = _build_cfg(LogLevel.Trace, LogLevel.Trace)

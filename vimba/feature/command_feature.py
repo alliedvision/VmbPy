@@ -1,8 +1,10 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
-# TODO: Add repr and str
+"""Command Feature implementation.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
+
 from typing import cast
 from vimba.c_binding import call_vimba_c_func, byref
 from vimba.c_binding import VmbBool, VmbHandle, VmbFeatureInfo, VmbError, VimbaCError
@@ -15,10 +17,18 @@ __all__ = [
 
 
 class CommandFeature(BaseFeature):
+    """The CommandFeature is a feature, that can perform some kind on operation."""
+
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
+        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
     def run(self):
+        """Execute feature.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
 
         try:
@@ -34,6 +44,15 @@ class CommandFeature(BaseFeature):
             raise exc
 
     def is_done(self) -> bool:
+        """Test if a feature execution is done.
+
+        Returns:
+            True if feature was fully executed. False if the Feature is still being executed.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
+
         exc = None
         c_val = VmbBool(False)
 

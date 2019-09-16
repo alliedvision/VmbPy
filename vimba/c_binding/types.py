@@ -1,6 +1,11 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODA: Add Contact Info (clarify if this is required...)
+"""Implementation of all VimbaC interface Types.
+
+For additional details of specific types. See 'VimbaC.h'
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import ctypes
 import enum
@@ -819,6 +824,11 @@ G_VIMBA_HANDLE = VmbHandle(1)
 
 
 class VimbaCError(Exception):
+    """Error Type containing an error code from the C-Layer. This error code is highly context
+       sensitive. All wrapped C-Functions that do not return VmbError.Success or None must
+       raise a VimbaCError and the surrounding code must deal if the Error is possible.
+    """
+
     def __init__(self, c_error: VmbError):
         super().__init__(repr(c_error))
         self.__c_error = c_error
@@ -830,4 +840,5 @@ class VimbaCError(Exception):
         return 'VimbaCError({})'.format(repr(self.__c_error))
 
     def get_error_code(self) -> VmbError:
+        """ Get contained Error Code """
         return self.__c_error

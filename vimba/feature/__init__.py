@@ -1,6 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
+"""submodule containing all feature related functionality.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401

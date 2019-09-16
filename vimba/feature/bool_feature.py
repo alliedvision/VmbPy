@@ -1,8 +1,10 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
-# TODO: Add repr and str
+"""Boolean Feature implementation.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
+
 import inspect
 
 from typing import cast
@@ -18,10 +20,21 @@ __all__ = [
 
 
 class BoolFeature(BaseFeature):
+    """The BoolFeature is a feature, that is represented by a boolean value"""
+
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
+        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
     def get(self) -> bool:
+        """Get current feature value of type bool
+
+        Returns:
+            Feature value of type 'bool'.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_val = VmbBool(False)
 
@@ -40,6 +53,17 @@ class BoolFeature(BaseFeature):
 
     @RuntimeTypeCheckEnable()
     def set(self, val: bool):
+        """Set current feature value of type bool
+
+        Arguments:
+            val - The boolean value to set.
+
+        Raises:
+            TypeError if argument 'val' is not of type 'bool'.
+            VimbaFeatureError if access rights are not sufficient.
+            VimbaFeatureError if called with an invalid value.
+            VimbaFeatureError if executed within a registered change_handler.
+        """
         exc = None
 
         try:

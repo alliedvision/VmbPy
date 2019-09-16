@@ -1,7 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
+"""StringFeature implementation.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import inspect
 from typing import cast
@@ -17,10 +19,21 @@ __all__ = [
 
 
 class StringFeature(BaseFeature):
+    """The StringFeature is a feature, that is represented by a string."""
+
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
+        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
     def get(self) -> str:
+        """Get current value (str)
+
+        Returns:
+            Current str value.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_buf_len = VmbUint32(0)
 
@@ -58,6 +71,17 @@ class StringFeature(BaseFeature):
 
     @RuntimeTypeCheckEnable()
     def set(self, val: str):
+        """Set current value of type str.
+
+        Arguments:
+            val - The str value to set.
+
+        Raises:
+            TypeError if argument 'val' is not of type 'str'.
+            VimbaFeatureError if access rights are not sufficient.
+            VimbaFeatureError if val exceeds the maximum string length.
+            VimbaFeatureError if executed within a registered change_handler.
+        """
         exc = None
 
         try:
@@ -81,6 +105,18 @@ class StringFeature(BaseFeature):
             raise exc
 
     def get_max_length(self) -> int:
+        """Get maximum string length the Feature can store.
+
+        In this context, string length does not mean the number of character, it means
+        the number of bytes after encoding. A string encoded in UTF-8 could exceed,
+        the max length.
+
+        Returns:
+            Return the number of ASCII characters, the Feature can store.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_max_len = VmbUint32(0)
 

@@ -1,8 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
-# TODO: Add repr and str
+"""Enumeration Feature implementation.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import ctypes
 
@@ -21,7 +22,11 @@ __all__ = [
 
 
 class EnumEntry:
+    """An EnumEntry represents a single value of an EnumFeature. A EnumEntry
+    is a one to one association between a str and an int.
+    """
     def __init__(self, handle: VmbHandle, feat_name: str, info: VmbFeatureEnumEntry):
+        """Do not call directly. Access EnumEntries via EnumFeatures instead."""
         self.__handle: VmbHandle = handle
         self.__feat_name: str = feat_name
         self.__info: VmbFeatureEnumEntry = info
@@ -33,18 +38,28 @@ class EnumEntry:
         return self.as_int()
 
     def as_bytes(self) -> bytes:
+        """Get EnumEntry as bytes"""
         return self.__info.name
 
     def as_string(self) -> str:
+        """Get EnumEntry as str"""
         return self.as_bytes().decode()
 
     def as_int(self) -> int:
+        """Get EnumEntry as int"""
         return self.__info.intValue
 
     def as_tuple(self) -> Tuple[str, int]:
+        """Get EnumEntry in str and int representation"""
         return (self.as_string(), self.as_int())
 
     def is_available(self) -> bool:
+        """Query if the EnumEntry can be used currently as a value.
+
+        Returns:
+            True if the EnumEntry can be used as a value otherwise False.
+        """
+
         c_val = VmbBool(False)
 
         call_vimba_c_func('VmbFeatureEnumIsAvailable', self.__handle, self.__feat_name,
@@ -57,24 +72,51 @@ EnumEntryTuple = Tuple[EnumEntry, ...]
 
 
 class EnumFeature(BaseFeature):
+    """The EnumFeature is a feature, where only EnumEntry values are allowed.
+    All possible values of an EnumFeature can be queried through the Feature itself.
+    """
+
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
+        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
-        self._entires: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
+        self.__entires: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
 
     def get_all_entries(self) -> EnumEntryTuple:
-        return self._entires
+        """Get a set of all possible EnumEntries of this Feature."""
+        return self.__entires
 
     @RuntimeTypeCheckEnable()
-    def get_entry(self, int_or_name: Union[int, str]) -> EnumEntry:
-        for entry in self._entires:
-            if type(int_or_name)(entry) == int_or_name:
+    def get_entry(self, val_or_name: Union[int, str]) -> EnumEntry:
+        """Get a specific EnumEntry.
+
+        Arguments:
+            val_or_name: Lookup EnumEntry either by its name or its associated value.
+
+        Returns:
+            EnumEntry associated with Argument 'val_or_name'.
+
+        Raises:
+            TypeError if int_or_name it not of type int or type str.
+            VimbaFeatureError if no EnumEntry is associated with 'val_or_name'
+        """
+        for entry in self.__entires:
+            if type(val_or_name)(entry) == val_or_name:
                 return entry
 
-        msg = 'EnumEntry lookup failed: No Entry associated with \'{}\'.'.format(int_or_name)
+        msg = 'EnumEntry lookup failed: No Entry associated with \'{}\'.'.format(val_or_name)
         raise VimbaFeatureError(msg)
 
     def get(self) -> EnumEntry:
+        """Get current feature value of type EnumEntry
+
+        Returns:
+            Feature value of type 'EnumEntry'.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
+
         exc = None
         c_val = ctypes.c_char_p(None)
 
@@ -94,6 +136,18 @@ class EnumFeature(BaseFeature):
 
     @RuntimeTypeCheckEnable()
     def set(self, val: Union[int, str, EnumEntry]):
+        """Set current feature value of type EnumFeature.
+
+        Arguments:
+            val - The value to set. Can be int or str or EnumEntry.
+
+        Raises:
+            TypeError if argument 'val' is not int, str or EunmFeature.
+            VimbaFeatureError if val is of type int or str and does not match to an EnumEntry.
+            VimbaFeatureError if access rights are not sufficient.
+            VimbaFeatureError if executed within a registered change_handler.
+        """
+
         if type(val) != EnumEntry:
             val = self.get_entry(val)
 

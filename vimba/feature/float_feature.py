@@ -1,9 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
-# TODO: Add repr and str
+"""Float feature implementation.
 
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 import inspect
 
 from typing import Tuple, Optional, cast
@@ -20,10 +20,21 @@ __all__ = [
 
 
 class FloatFeature(BaseFeature):
+    """The BoolFeature is a feature, that is represented by a floating number."""
+
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
+        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
     def get(self) -> float:
+        """Get current value (float)
+
+        Returns:
+            Current float value.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_val = VmbDouble(0.0)
 
@@ -42,6 +53,14 @@ class FloatFeature(BaseFeature):
         return c_val.value
 
     def get_range(self) -> Tuple[float, float]:
+        """Get range of accepted values
+
+        Returns:
+            A pair of range boundaries. First value is the minimum second value is the maximum.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
         exc = None
         c_min = VmbDouble(0.0)
         c_max = VmbDouble(0.0)
@@ -62,6 +81,15 @@ class FloatFeature(BaseFeature):
         return (c_min.value, c_max.value)
 
     def get_increment(self) -> Optional[float]:
+        """Get increment (steps between valid values, starting from minimal values).
+
+        Returns:
+            The increment or None if the feature has currently no increment.
+
+        Raises:
+            VimbaFeatureError if access rights are not sufficient.
+        """
+
         exc = None
         c_has_val = VmbBool(False)
         c_val = VmbDouble(False)
@@ -83,6 +111,17 @@ class FloatFeature(BaseFeature):
 
     @RuntimeTypeCheckEnable()
     def set(self, val: float):
+        """Set current value of type float.
+
+        Arguments:
+            val - The float value to set.
+
+        Raises:
+            TypeError if argument 'val' is not of type 'float'.
+            VimbaFeatureError if access rights are not sufficient.
+            VimbaFeatureError if value is out of bounds.
+            VimbaFeatureError if executed within a registered change_handler.
+        """
         exc = None
 
         try:

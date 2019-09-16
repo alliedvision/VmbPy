@@ -1,8 +1,11 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
-# TODO: Add repr and str
+"""Various utility functions for Feature discovery and handling.
+
+<Detailed Module description>
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 from itertools import product
 from typing import Union, Tuple
@@ -64,6 +67,14 @@ def _build_feature(handle: VmbHandle, info: VmbFeatureInfo) -> FeatureTypes:
 
 
 def discover_features(handle: VmbHandle) -> FeaturesTuple:
+    """Discover all features associated with the given handle.
+
+    Arguments:
+        handle - Vimba entity used to find the associated features.
+
+    Returns:
+        A set of all discovered Features associated with handle.
+    """
     result = []
 
     feats_count = VmbUint32(0)
@@ -85,6 +96,15 @@ def discover_features(handle: VmbHandle) -> FeaturesTuple:
 
 
 def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
+    """Discover a singe feature associated with the given handle.
+
+    Arguments:
+        handle     - Vimba entity used to find the associated feature.
+        feat_name: - Name of the Feature that should be searched.
+
+    Returns:
+        The Feature associated with 'handle' by the name of 'feat_name'
+    """
     info = VmbFeatureInfo()
 
     call_vimba_c_func('VmbFeatureInfoQuery', handle, feat_name.encode('utf-8'),
@@ -94,6 +114,19 @@ def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
 
 
 def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
+    """Search for all Features affected by a given feature within a feature set.
+
+    Arguments:
+        feats: Feature set to search in.
+        feat: Feature that might affect Features within 'feats'.
+
+    Returns:
+        A set of all features that are affected by 'feat'.
+
+    Raises:
+        VimbaFeatureError if 'feat' is not stored within 'feats'.
+    """
+
     if feat not in feats:
         raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
 
@@ -124,6 +157,18 @@ def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
 
 
 def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
+    """Search for all Features selected by a given feature within a feature set.
+
+    Arguments:
+        feats: Feature set to search in.
+        feat: Feature that might select Features within 'feats'.
+
+    Returns:
+        A set of all features that are selected by 'feat'.
+
+    Raises:
+        VimbaFeatureError if 'feat' is not stored within 'feats'.
+    """
     if feat not in feats:
         raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
 
@@ -153,6 +198,18 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
 
 
 def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureTypes:
+    """Search for a feature with a specific name within a feature set.
+
+    Arguments:
+        feats: Feature set to search in.
+        feat_name: Feature name to look for.
+
+    Returns:
+        The Feature with the name 'feat_name'
+
+    Raises:
+        VimbaFeatureError if feature with name 'feat_name' can't be found in 'feats'.
+    """
     filtered = [feat for feat in feats if feat_name == feat.get_name()]
 
     if len(filtered) == 0:
@@ -162,4 +219,14 @@ def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureType
 
 
 def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypes) -> FeaturesTuple:
+    """Search for all features with a specific type within a given feature set.
+
+    Arguments:
+        feats: Feature set to search in.
+        feat_type: Feature Type to search for
+
+    Returns:
+        A set of all features of type 'feat_type' in 'feats'. If no matching type is found an
+        empty set is returned.
+    """
     return tuple([feat for feat in feats if type(feat) == feat_type])

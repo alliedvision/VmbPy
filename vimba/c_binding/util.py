@@ -1,6 +1,11 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODA: Add Contact Info (clarify if this is required...)
+"""Various utility functions for accessing the underlaying C Layer.
+
+<Detailed Module description>
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 import os
 import sys
@@ -53,26 +58,78 @@ def _repr_flags_list(enum_type, flag_val: int):
 
 
 def decode_cstr(val: bytes) -> str:
+    """Converts c_char_p stored in interface structures to a str.
+
+    Arguments:
+        val - Byte sequence to convert into str.
+
+    Returns:
+        str represented by 'val'
+    """
     return val.decode() if val else ''
 
 
 def decode_flags(enum_type, enum_val: int):
+    """Splits C-styled bit mask into a set of flags from a given Enumeration.
+
+    Arguments:
+        enum_val - Bit mask to decode.
+        enum_type - Enum Type represented within 'enum_val'
+
+    Returns:
+        A set of all values of enum_type occurring in enum_val.
+
+    Raises:
+        Attribute error a set value is not within the given 'enum_type'.
+    """
+
     return tuple(_split_flags_into_enum(enum_val, enum_type))
 
 
 def fmt_repr(fmt: str, val):
+    """Append repr to a format string."""
     return fmt.format(repr(val))
 
 
 def fmt_enum_repr(fmt: str, enum_type, enum_val):
+    """Append repr of a given enum type to a format string.
+
+    Arguments:
+        fmt - Format string
+        enum_type - Enum Type to construct.
+        enum_val - Enum value.
+
+    Returns:
+        formatted string
+    """
     return fmt.format(repr(enum_type(enum_val)))
 
 
 def fmt_flags_repr(fmt: str, enum_type, enum_val):
+    """Append repr of a c-style flag value in the form of a set containing
+       all bits set from a given enum_type.
+
+    Arguments:
+        fmt - Format string
+        enum_type - Enum Type to construct.
+        enum_val - Enum value.
+
+    Returns:
+        formatted string
+    """
     return fmt.format(_repr_flags_list(enum_type, enum_val))
 
 
 def load_vimba_raw() -> CDLL:
+    """Load VimbaC without any safety measure.
+
+    Returns:
+        Raw instance of VimbaC interface.
+
+    Raises:
+        VimbaSystemError if VimbaPython runs on an unsupported Platform.
+    """
+
     platform_handlers = {
         'linux': _load_under_linux,
         'win32': _load_under_windows

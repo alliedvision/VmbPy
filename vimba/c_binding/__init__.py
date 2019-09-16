@@ -1,6 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
+"""Submodule encapsulating the VimbaC access.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
@@ -42,7 +45,6 @@ __all__ = [
 
     'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c_func',
-    'print_vimba_c_func_signatures',
 
     'decode_cstr',
     'decode_flags',
@@ -60,7 +62,7 @@ from .types import VmbInt8,  VmbUint8,  VmbInt16,  VmbUint16,  VmbInt32, VmbUint
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
                    VmbInvalidationCallback, VmbFrameCallback, G_VIMBA_HANDLE, VimbaCError
 
-from .api import EXPECTED_VIMBA_C_VERSION, call_vimba_c_func, print_vimba_c_func_signatures
+from .api import EXPECTED_VIMBA_C_VERSION, call_vimba_c_func
 
 from .util import decode_cstr, decode_flags
 

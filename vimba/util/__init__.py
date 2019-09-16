@@ -1,3 +1,10 @@
+"""Submodule containing all utility classes.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
+
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
 

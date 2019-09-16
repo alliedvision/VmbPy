@@ -1,7 +1,9 @@
-# TODO: Add License
-# TODO: Add Copywrite Note
-# TODO: Add Contact Info (clarify if this is required...)
-# TODO: Add docstring to public entities
+"""Tracer implementation.
+
+(C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
+
+<Insert license here>
+"""
 
 from functools import reduce, wraps
 from typing import Callable, Any, Tuple
@@ -83,7 +85,17 @@ class _Tracer:
 
 
 class TraceEnable:
+    """Decorator: Adds a entry of LogLevel.Trace on entry and exit of the wrapped function.
+    On Exit the Log entry contains information if the Function was left normally or with an
+    Exception.
+    """
     def __init__(self, expand_args: bool = True):
+        """Add Tracing information to a Callable.
+
+        Arguments:
+            expand_args - If True the entire argument list is printed on execution. If False
+                          (...) is printed instead.
+        """
         self.__expand_args: bool = expand_args
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
