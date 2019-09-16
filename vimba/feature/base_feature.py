@@ -4,6 +4,7 @@
 # TODO: Add docstring to public entities
 # TODO: Add getters to all members given interface struct. Handle Encoding
 # TODO: Add repr and str
+import inspect
 
 from enum import IntEnum
 from typing import Tuple, List, Callable, Type
@@ -12,6 +13,14 @@ from vimba.c_binding import call_vimba_c_func, byref, decode_cstr, decode_flags
 from vimba.c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbHandle, VmbFeatureVisibility, \
                             VmbBool, VmbInvalidationCallback
 from vimba.util import Log
+from vimba.error import VimbaFeatureError
+
+__all__ = [
+    'ChangeHandler',
+    'FeatureFlags',
+    'FeatureVisibility',
+    'BaseFeature'
+]
 
 
 ChangeHandler = Callable[[Type['BaseFeature']], None]
@@ -38,9 +47,10 @@ class BaseFeature:
     def __init__(self,  handle: VmbHandle, info: VmbFeatureInfo):
         self._handle: VmbHandle = handle
         self._info: VmbFeatureInfo = info
-        self._change_handlers: List[ChangeHandler] = []
-        self._change_handlers_lock = Lock()
-        self._callback = VmbInvalidationCallback(self._callback_impl)
+
+        self.__change_handlers: List[ChangeHandler] = []
+        self.__change_handlers_lock = Lock()
+        self.__callback = VmbInvalidationCallback(self.__callback_impl)
 
     def __str__(self):
         return 'Feature(name={}, type={})'.format(self.get_name(), self.get_type())
@@ -101,8 +111,8 @@ class BaseFeature:
         c_read = VmbBool(False)
         c_write = VmbBool(False)
 
-        call_vimba_c_func('VmbFeatureAccessQuery', self._handle,
-                          self._info.name, byref(c_read), byref(c_write))
+        call_vimba_c_func('VmbFeatureAccessQuery', self._handle, self._info.name, byref(c_read),
+                          byref(c_write))
 
         return (c_read.value, c_write.value)
 
@@ -115,42 +125,42 @@ class BaseFeature:
         return w
 
     def register_change_handler(self, change_handler: ChangeHandler):
-        with self._change_handlers_lock:
-            if change_handler in self._change_handlers:
+        with self.__change_handlers_lock:
+            if change_handler in self.__change_handlers:
                 return
 
-            self._change_handlers.append(change_handler)
+            self.__change_handlers.append(change_handler)
 
-            if len(self._change_handlers) == 1:
-                self._register_callback()
+            if len(self.__change_handlers) == 1:
+                self.__register_callback()
 
     def unregister_all_change_handlers(self):
-        with self._change_handlers_lock:
-            if self._change_handlers:
-                self._unregister_callback()
-                self._change_handlers.clear()
+        with self.__change_handlers_lock:
+            if self.__change_handlers:
+                self.__unregister_callback()
+                self.__change_handlers.clear()
 
     def unregister_change_handler(self, change_handler: ChangeHandler):
-        with self._change_handlers_lock:
-            if change_handler not in self._change_handlers:
+        with self.__change_handlers_lock:
+            if change_handler not in self.__change_handlers:
                 return
 
-            if len(self._change_handlers) == 1:
-                self._unregister_callback()
+            if len(self.__change_handlers) == 1:
+                self.__unregister_callback()
 
-            self._change_handlers.remove(change_handler)
+            self.__change_handlers.remove(change_handler)
 
-    def _register_callback(self):
+    def __register_callback(self):
         call_vimba_c_func('VmbFeatureInvalidationRegister', self._handle, self._info.name,
-                          self._callback, None)
+                          self.__callback, None)
 
-    def _unregister_callback(self):
+    def __unregister_callback(self):
         call_vimba_c_func('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
-                          self._callback)
+                          self.__callback)
 
-    def _callback_impl(self, *ignored):
-        with self._change_handlers_lock:
-            for change_handler in self._change_handlers:
+    def __callback_impl(self, *ignored):
+        with self.__change_handlers_lock:
+            for change_handler in self.__change_handlers:
 
                 # Since this is called from the C-Context, all exceptions
                 # should be fetched.
@@ -164,3 +174,20 @@ class BaseFeature:
                     msg += 'raised by: {}'.format(change_handler)
 
                     Log.get_instance().error(msg)
+
+    def _build_access_error(self) -> VimbaFeatureError:
+        caller_name = inspect.stack()[1][3]
+        read, write = self.get_access_mode()
+
+        msg = 'Invalid access while calling \'{}()\' of Feature \'{}\'. '
+
+        msg += 'Read access: {}. '.format('allowed' if read else 'not allowed')
+        msg += 'Write access: {}. '.format('allowed' if write else 'not allowed')
+
+        return VimbaFeatureError(msg.format(caller_name, self.get_name()))
+
+    def _build_within_callback_error(self) -> VimbaFeatureError:
+        caller_name = inspect.stack()[1][3]
+        msg = 'Invalid access. Calling \'{}()\' of Feature \'{}\' in change_handler is invalid.'
+
+        return VimbaFeatureError(msg.format(caller_name, self.get_name()))

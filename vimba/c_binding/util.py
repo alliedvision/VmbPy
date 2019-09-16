@@ -10,15 +10,17 @@ import ctypes
 
 from os.path import join
 from ctypes import CDLL
-from typing import Any, Tuple, Optional
+from typing import Tuple, Optional
+from vimba.error import VimbaSystemError
 
-
-def static_var(name: str, val: Any):
-    def decorate(func):
-        setattr(func, name, val)
-        return func
-
-    return decorate
+__all__ = [
+    'decode_cstr',
+    'decode_flags',
+    'fmt_repr',
+    'fmt_enum_repr',
+    'fmt_flags_repr',
+    'load_vimba_raw'
+]
 
 
 def _split_into_powers_of_two(num: int) -> Tuple[int, ...]:
@@ -77,7 +79,7 @@ def load_vimba_raw() -> CDLL:
     }
 
     if sys.platform not in platform_handlers:
-        raise OSError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
+        raise VimbaSystemError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
 
     return platform_handlers[sys.platform]()
 
@@ -95,7 +97,7 @@ def _load_under_windows() -> CDLL:
     vimba_home = _get_vimba_home()
 
     if vimba_home:
-        arch = 'Win64' if _get_arch() == '64Bit' else 'Win32'
+        arch = 'Win64' if _is_arch_64_bit() else 'Win32'
         lib_path = join(vimba_home, 'VimbaC', 'Bin', arch, 'VimbaC.dll')
 
     else:
@@ -105,13 +107,5 @@ def _load_under_windows() -> CDLL:
     return ctypes.cdll.LoadLibrary(lib_path)
 
 
-def _get_arch() -> str:
-    arch = platform.machine()
-    if arch == 'AMD64':
-        return '64Bit'
-
-    elif arch == 'i386':
-        return '32Bit'
-
-    else:
-        raise OSError('Unknown OS Architecture')
+def _is_arch_64_bit() -> bool:
+    return True if platform.machine() == 'AMD64' else False

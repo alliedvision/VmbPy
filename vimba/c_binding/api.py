@@ -5,12 +5,21 @@
 from ctypes import CDLL, byref, sizeof, c_void_p, POINTER as c_ptr, c_char_p as c_str
 from typing import Any, Callable, Tuple
 from vimba.util import TraceEnable
-from vimba.error import VimbaCError
-from .util import static_var, load_vimba_raw
+from vimba.error import VimbaSystemError
+from .util import load_vimba_raw
 from .types import VmbBool, VmbUint32, VmbInt64, VmbUint64, VmbDouble, VmbError, VmbHandle, \
                    VmbFeatureEnumEntry, VmbFeatureInfo, VmbVersionInfo, VmbFrame, \
                    VmbFrameCallback, VmbInvalidationCallback, VmbAccessMode, VmbInterfaceInfo, \
-                   VmbCameraInfo, VmbFeaturePersistSettings
+                   VmbCameraInfo, VmbFeaturePersistSettings, VimbaCError
+
+
+__all__ = [
+    'EXPECTED_VIMBA_C_VERSION',
+    'call_vimba_c_func',
+    'print_vimba_c_func_signatures'
+]
+
+EXPECTED_VIMBA_C_VERSION = '1.8.0'
 
 # For detailed information on the signatures see "VimbaC.h"
 # To improve readability, suppress 'E501 line too long (104 > 79 characters)'
@@ -100,21 +109,21 @@ def _check_version(vimba_handle: CDLL) -> CDLL:
     ver = VmbVersionInfo()
     vimba_handle.VmbVersionQuery(byref(ver), sizeof(ver))
 
-    assert str(ver) == EXPECTED_VIMBA_C_VERSION, \
-        'Unsupported VimbaC Version: Expected: {}, Found: {}'\
-        .format(EXPECTED_VIMBA_C_VERSION, ver)
+    if (str(ver) != EXPECTED_VIMBA_C_VERSION):
+        msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
+        raise VimbaSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, str(ver)))
 
     return vimba_handle
 
 
-# Exposed Interface
-EXPECTED_VIMBA_C_VERSION = '1.8.0'
+_vimba_instance: CDLL = _load_vimba()
 
 
-@static_var("_vimba_instance", _load_vimba())
 @TraceEnable()
 def call_vimba_c_func(func_name: str, *args):
-    getattr(call_vimba_c_func._vimba_instance, func_name)(*args)
+    global _vimba_instance
+
+    getattr(_vimba_instance, func_name)(*args)
 
 
 def print_vimba_c_func_signatures():

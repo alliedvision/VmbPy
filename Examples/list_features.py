@@ -60,6 +60,7 @@ def print_camera(cameras):
 
 
 def main():
+    System.get_instance().enable_log(LOG_CONFIG_TRACE_CONSOLE_ONLY)
     with System.get_instance() as sys:
         print('Print system wide properties:')
         print('camera access mode: {}'.format(str(sys.get_camera_access_mode())))

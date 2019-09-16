@@ -7,6 +7,42 @@ import enum
 
 from .util import fmt_repr, fmt_enum_repr, fmt_flags_repr
 
+__all__ = [
+    'VmbInt8',
+    'VmbUint8',
+    'VmbInt16',
+    'VmbUint16',
+    'VmbInt32',
+    'VmbUint32',
+    'VmbInt64',
+    'VmbUint64',
+    'VmbHandle',
+    'VmbBool',
+    'VmbUchar',
+    'VmbDouble',
+    'VmbError',
+    'VmbPixelFormat',
+    'VmbInterface',
+    'VmbAccessMode',
+    'VmbFeatureData',
+    'VmbFeaturePersist',
+    'VmbFeatureVisibility',
+    'VmbFeatureFlags',
+    'VmbFrameStatus',
+    'VmbFrameFlags',
+    'VmbVersionInfo',
+    'VmbInterfaceInfo',
+    'VmbCameraInfo',
+    'VmbFeatureInfo',
+    'VmbFeatureEnumEntry',
+    'VmbFrame',
+    'VmbFeaturePersistSettings',
+    'VmbInvalidationCallback',
+    'VmbFrameCallback',
+    'G_VIMBA_HANDLE',
+    'VimbaCError'
+]
+
 
 class _Int32Enum(enum.IntEnum):
     @classmethod
@@ -780,3 +816,18 @@ VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
 
 
 G_VIMBA_HANDLE = VmbHandle(1)
+
+
+class VimbaCError(Exception):
+    def __init__(self, c_error: VmbError):
+        super().__init__(repr(c_error))
+        self.__c_error = c_error
+
+    def __str__(self):
+        return repr(self)
+
+    def __repr__(self):
+        return 'VimbaCError({})'.format(repr(self.__c_error))
+
+    def get_error_code(self) -> VmbError:
+        return self.__c_error

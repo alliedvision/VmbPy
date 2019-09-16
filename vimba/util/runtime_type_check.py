@@ -3,12 +3,22 @@
 # TODA: Add Contact Info (clarify if this is required...)
 
 from inspect import getfullargspec
-from typing import get_type_hints, Any, Callable, Tuple
+from functools import wraps
+from typing import get_type_hints, Any, Callable, Tuple, Union
+from .log import Log
+
+
+__all__ = [
+    'RuntimeTypeCheckEnable'
+]
 
 
 class RuntimeTypeCheckEnable:
+    _log = Log.get_instance()
+
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
-        def decorate(*args: Tuple[Any, ...]):
+        @wraps(func)
+        def wrapper(*args: Tuple[Any, ...]):
             self.__dismantle_sig(func, *args)
 
             for name_hint, type_hint in self.__hints.items():
@@ -20,7 +30,7 @@ class RuntimeTypeCheckEnable:
 
             return return_value
 
-        return decorate
+        return wrapper
 
     def __dismantle_sig(self, func: Callable[..., Any], *args: Tuple[Any, ...]):
         self.__func = func
@@ -28,34 +38,89 @@ class RuntimeTypeCheckEnable:
         self.__hints = get_type_hints(func)
         self.__return_type = self.__hints.pop('return', None)
 
-    def __get_func_name(self) -> str:
-        func = self.__func
-        return '{}.{}'.format(func.__module__, func.__qualname__)
-
     def __verify_arg(self, expected: Any, arg_name: str):
-        actual = type(self.__kwargs.get(arg_name))
+        arg = self.__kwargs.get(arg_name)
+        actual = type(arg)
 
-        if expected == actual:
+        if (self.__matches_base_types(expected, actual) or
+                self.__matches_union_types(expected, actual) or
+                self.__matches_tuple_types(expected, actual, arg)):
             return
 
-        name = self.__get_func_name()
-        err_msg = 'Function \'{}\'() called with unexpected argument type.'
-        err_msg += ' Argument Name \'{}\'.'
-        err_msg += ' Expected type: {},'
-        err_msg += ' Actual type: {}'
+        msg = '\'{}\' called with unexpected argument type.'
+        msg += ' Argument\'{}\'.'
+        msg += ' Expected type: {},'
+        msg += ' Actual type: {}'
+        msg = msg.format(self.__func.__qualname__, arg_name, expected, actual)
 
-        raise TypeError(err_msg.format(name, arg_name, expected, actual))
+        RuntimeTypeCheckEnable._log.error(msg)
+        raise TypeError(msg)
 
     def __verify_result(self, return_value: Any):
         expected = self.__return_type
         actual = type(return_value)
 
-        if (not expected) or (expected == actual):
+        if ((not expected) or self.__matches_base_types(expected, actual) or
+                self.__matches_union_types(expected, actual) or
+                self.__matches_tuple_types(expected, actual, return_value)):
             return
 
-        func_name = self.__get_func_name()
-        err_msg = 'Function \'{}\' returns unexpected type.'
-        err_msg += ' Expected type: {},'
-        err_msg += ' Actual type: {}'
+        msg = '\'{}\' returned unexpected type.'
+        msg += ' Expected type: {},'
+        msg += ' Actual type: {}'
+        msg = msg.format(self.__func.__qualname__, expected, actual)
 
-        raise TypeError(err_msg.format(func_name, expected, actual))
+        RuntimeTypeCheckEnable._log.error(msg)
+        raise TypeError(msg)
+
+    def __matches_base_types(self, expected: Any, actual: Any) -> bool:
+        return expected == actual
+
+    def __matches_union_types(self, expected: Any, actual: Any) -> bool:
+        try:
+            if not expected.__origin__ == Union:
+                return False
+
+        except AttributeError:
+            return False
+
+        if actual in expected.__args__:
+            return True
+
+        else:
+            return False
+
+    def __matches_tuple_types(self, expected: Any, actual: Any, arg_tuple: Any) -> bool:
+        try:
+            if not (expected.__origin__ == tuple and actual == tuple):
+                return False
+
+        except AttributeError:
+            return False
+
+        if Ellipsis in expected.__args__:
+            return self.__matches_var_length_tuple(expected.__args__, arg_tuple)
+
+        else:
+            return self.__matches_fixed_size_tuple(expected.__args__, arg_tuple)
+
+    def __matches_fixed_size_tuple(self, expected_tuple_types: Any, arg_tuple: Any) -> bool:
+        # To pass, the entire tuple must match in length and all types
+        if len(expected_tuple_types) != len(arg_tuple):
+            return False
+
+        for expected_type, arg in zip(expected_tuple_types, arg_tuple):
+            if not expected_type == type(arg):
+                return False
+
+        return True
+
+    def __matches_var_length_tuple(self, expected_types: Any, arg_tuple: Any) -> bool:
+        # To pass a tuple can be empty or all contents must match the given type.
+        expected_type, _ = expected_types
+
+        for arg in arg_tuple:
+            if not expected_type == type(arg):
+                return False
+
+        return True

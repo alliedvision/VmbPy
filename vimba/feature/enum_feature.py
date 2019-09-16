@@ -6,17 +6,25 @@
 
 import ctypes
 
-from typing import Tuple, Union
+from typing import Tuple, Union, cast
 from vimba.c_binding import call_vimba_c_func, byref, sizeof
-from vimba.c_binding import VmbBool, VmbHandle, VmbFeatureEnumEntry, VmbFeatureInfo, VmbUint32
+from vimba.c_binding import VmbBool, VmbHandle, VmbFeatureEnumEntry, VmbFeatureInfo, VmbUint32, \
+                            VmbError, VimbaCError
 from vimba.feature.base_feature import BaseFeature
+from vimba.util import RuntimeTypeCheckEnable
+from vimba.error import VimbaFeatureError
+
+__all__ = [
+    'EnumEntry',
+    'EnumFeature'
+]
 
 
 class EnumEntry:
     def __init__(self, handle: VmbHandle, feat_name: str, info: VmbFeatureEnumEntry):
-        self._handle: VmbHandle = handle
-        self._feat_name: str = feat_name
-        self._info: VmbFeatureEnumEntry = info
+        self.__handle: VmbHandle = handle
+        self.__feat_name: str = feat_name
+        self.__info: VmbFeatureEnumEntry = info
 
     def __str__(self):
         return self.as_string()
@@ -24,11 +32,14 @@ class EnumEntry:
     def __int__(self):
         return self.as_int()
 
+    def as_bytes(self) -> bytes:
+        return self.__info.name
+
     def as_string(self) -> str:
-        return self._info.name.decode()
+        return self.as_bytes().decode()
 
     def as_int(self) -> int:
-        return self._info.intValue
+        return self.__info.intValue
 
     def as_tuple(self) -> Tuple[str, int]:
         return (self.as_string(), self.as_int())
@@ -36,8 +47,8 @@ class EnumEntry:
     def is_available(self) -> bool:
         c_val = VmbBool(False)
 
-        call_vimba_c_func('VmbFeatureEnumIsAvailable', self._handle, self._feat_name,
-                          self._info.name, byref(c_val))
+        call_vimba_c_func('VmbFeatureEnumIsAvailable', self.__handle, self.__feat_name,
+                          self.__info.name, byref(c_val))
 
         return c_val.value
 
@@ -54,23 +65,56 @@ class EnumFeature(BaseFeature):
     def get_all_entries(self) -> EnumEntryTuple:
         return self._entires
 
+    @RuntimeTypeCheckEnable()
     def get_entry(self, int_or_name: Union[int, str]) -> EnumEntry:
         for entry in self._entires:
             if type(int_or_name)(entry) == int_or_name:
                 return entry
 
-        # TODO: Add better error
-        raise Exception('Lookup Failed')
+        msg = 'EnumEntry lookup failed: No Entry associated with \'{}\'.'.format(int_or_name)
+        raise VimbaFeatureError(msg)
 
     def get(self) -> EnumEntry:
+        exc = None
         c_val = ctypes.c_char_p(None)
 
-        call_vimba_c_func('VmbFeatureEnumGet', self._handle, self._info.name, byref(c_val))
+        try:
+            call_vimba_c_func('VmbFeatureEnumGet', self._handle, self._info.name, byref(c_val))
+
+        except VimbaCError as e:
+            exc = cast(VimbaFeatureError, e)
+
+            if e.get_error_code() == VmbError.InvalidAccess:
+                exc = self._build_access_error()
+
+        if exc:
+            raise exc
 
         return self.get_entry(c_val.value.decode() if c_val.value else '')
 
-    def set(self, val: EnumEntry):
-        call_vimba_c_func('VmbFeatureEnumSet', self._handle, self._info.name, val._info.name)
+    @RuntimeTypeCheckEnable()
+    def set(self, val: Union[int, str, EnumEntry]):
+        if type(val) != EnumEntry:
+            val = self.get_entry(val)
+
+        exc = None
+        val = cast(EnumEntry, val)
+
+        try:
+            call_vimba_c_func('VmbFeatureEnumSet', self._handle, self._info.name, val.as_bytes())
+
+        except VimbaCError as e:
+            exc = cast(VimbaFeatureError, e)
+            err = e.get_error_code()
+
+            if err == VmbError.InvalidAccess:
+                exc = self._build_access_error()
+
+            elif err == VmbError.InvalidCall:
+                exc = self._build_within_callback_error()
+
+        if exc:
+            raise exc
 
 
 def _discover_enum_entries(handle: VmbHandle, feat_name: str) -> EnumEntryTuple:

@@ -16,7 +16,6 @@ static_test:
 
 	@echo "2) mypy (static type checker):"
 	-mypy vimba
-	-mypy Examples
 	@echo
 
 
@@ -25,7 +24,7 @@ unit_test:
 	python -m unittest discover -s Test -p *_test.py
 
 
-test: static_test unit_test
+test: unit_test static_test
 
 
 static_test_junit_export:
@@ -43,4 +42,4 @@ unit_test_junit_export:
 	python -m xmlrunner discover -s Test -p *_test.py -o $(UNIT_TEST_REPORT_DIR)
 
 
-test_junit_export: clean static_test_junit_export unit_test_junit_export
+test_junit_export: clean unit_test_junit_export static_test_junit_export

@@ -8,35 +8,59 @@ from itertools import product
 from typing import Union, Tuple
 from vimba.c_binding import call_vimba_c_func, byref, sizeof
 from vimba.c_binding import VmbFeatureInfo, VmbFeatureData, VmbHandle, VmbUint32
-from vimba.feature.base_feature import BaseFeature
-from vimba.feature.int_feature import IntFeature
-from vimba.feature.float_feature import FloatFeature
-from vimba.feature.string_feature import StringFeature
-from vimba.feature.bool_feature import BoolFeature
-from vimba.feature.enum_feature import EnumFeature
-from vimba.feature.command_feature import CommandFeature
-from vimba.feature.raw_feature import RawFeature
+from vimba.error import VimbaFeatureError
+from .int_feature import IntFeature
+from .float_feature import FloatFeature
+from .string_feature import StringFeature
+from .bool_feature import BoolFeature
+from .enum_feature import EnumFeature
+from .command_feature import CommandFeature
+from .raw_feature import RawFeature
 
+__all__ = [
+    'FeatureTypes',
+    'FeaturesTuple',
+    'discover_features',
+    'discover_feature',
+    'filter_affected_features',
+    'filter_selected_features',
+    'filter_features_by_name',
+    'filter_features_by_type'
+]
 
-FeatureTypes = Union[BaseFeature, IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature,
+FeatureTypes = Union[IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature,
                      CommandFeature, RawFeature]
 
 FeaturesTuple = Tuple[FeatureTypes, ...]
 
-_MAP_FEAT_DATA_TO_TYPE = {
-    VmbFeatureData.Int: IntFeature,
-    VmbFeatureData.Float: FloatFeature,
-    VmbFeatureData.String: StringFeature,
-    VmbFeatureData.Bool: BoolFeature,
-    VmbFeatureData.Enum: EnumFeature,
-    VmbFeatureData.Command: CommandFeature,
-    VmbFeatureData.Raw: RawFeature
-}
-
 
 def _build_feature(handle: VmbHandle, info: VmbFeatureInfo) -> FeatureTypes:
-    feat_type = _MAP_FEAT_DATA_TO_TYPE[(VmbFeatureData(info.featureDataType))]
-    return feat_type(handle, info)
+    feat_value = VmbFeatureData(info.featureDataType)
+
+    if VmbFeatureData.Int == feat_value:
+        return IntFeature(handle, info)
+
+    elif VmbFeatureData.Float == feat_value:
+        return FloatFeature(handle, info)
+
+    elif VmbFeatureData.String == feat_value:
+        return StringFeature(handle, info)
+
+    elif VmbFeatureData.Bool == feat_value:
+        return BoolFeature(handle, info)
+
+    elif VmbFeatureData.Enum == feat_value:
+        return EnumFeature(handle, info)
+
+    elif VmbFeatureData.Command == feat_value:
+        return CommandFeature(handle, info)
+
+    elif VmbFeatureData.Raw == feat_value:
+        return RawFeature(handle, info)
+
+    # This should never happen because all possible types are handled.
+    # However the static type checker will not accept None as an return.
+    raise VimbaFeatureError('Unhandled feature type.')
 
 
 def discover_features(handle: VmbHandle) -> FeaturesTuple:
@@ -70,8 +94,8 @@ def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
 
 
 def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
-    # TODO: Better Exception
-    assert feat in feats
+    if feat not in feats:
+        raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
 
     result = []
 
@@ -100,8 +124,8 @@ def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
 
 
 def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
-    # TODO: Better Exception
-    assert feat in feats
+    if feat not in feats:
+        raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
 
     result = []
 
@@ -132,7 +156,7 @@ def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureType
     filtered = [feat for feat in feats if feat_name == feat.get_name()]
 
     if len(filtered) == 0:
-        raise Exception('Unknown Feature')
+        raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
     return filtered.pop()
 

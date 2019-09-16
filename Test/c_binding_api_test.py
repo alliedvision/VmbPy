@@ -2,7 +2,7 @@ import unittest
 import ctypes
 
 from vimba.c_binding import *
-from vimba.error import VimbaCError
+
 
 class CBindingApiTest(unittest.TestCase):
     def test_call_vimba_c_valid(self):
@@ -80,12 +80,12 @@ class CBindingApiTest(unittest.TestCase):
             self.fail("Previous call must raise Exception.")
 
         except VimbaCError as e:
-            self.assertEqual(e.c_error, VmbError.StructSize)
+            self.assertEqual(e.get_error_code(), VmbError.StructSize)
 
         try:
             call_vimba_c_func('VmbVersionQuery', None, sizeof(ver_info))
             self.fail("Previous call must raise Exception.")
 
         except VimbaCError as e:
-            self.assertEqual(e.c_error, VmbError.BadParameter)
+            self.assertEqual(e.get_error_code(), VmbError.BadParameter)
 

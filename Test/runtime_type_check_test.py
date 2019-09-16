@@ -1,4 +1,5 @@
 import unittest
+from typing import Union, Optional, List, Tuple, Callable
 from vimba import RuntimeTypeCheckEnable
 
 class RuntimeTypeCheckTest(unittest.TestCase):
@@ -143,6 +144,134 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         try:
             obj.err(0)
             self.fail('Previous call must raise.')
+
+        except TypeError:
+            pass
+
+    def test_union(self):
+        """ Expectation: int and string are valid parameters. Everything else must throw """
+        @RuntimeTypeCheckEnable()
+        def func(arg: Union[int, str]) -> Union[int, str]:
+            return arg
+
+        try:
+            func(0)
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func('str')
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func(0.0)
+            self.fail('Previous call must raise')
+        except TypeError:
+            pass
+
+
+    def test_optional(self):
+        """ Expectation: For optionals the check must accept the given type or None.
+            Anything else must lead to an TypeError
+        """
+
+        @RuntimeTypeCheckEnable()
+        def func(arg: Optional[int]) -> Optional[str]:
+            return str(arg)
+
+        try:
+            func(0)
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func(None)
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func('str')
+            self.fail('Previous call must raise')
+
+        except TypeError:
+            pass
+
+    def test_tuple(self):
+        """ Expectation: Fixed size tuples checking must verify that size and type order is
+            enforced.
+        """
+        @RuntimeTypeCheckEnable()
+        def func(arg: Tuple[int, str, float]) -> Tuple[float, int, str]:
+            i, s, f = arg
+            return (f, i, s)
+
+        try:
+            func((1, 'str', 0.1))
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func((1, 'str'))
+            self.fail('Previous call must raise')
+
+        except TypeError:
+            pass
+
+        try:
+            func((1, 'str', 0.0, 'extra'))
+            self.fail('Previous call must raise')
+
+        except TypeError:
+            pass
+
+        try:
+            func(('str1', 'str', 0.0))
+            self.fail('Previous call must raise')
+
+        except TypeError:
+            pass
+
+    def test_tuple_var_length(self):
+        """ Expectation: Var length tuples checking must verify that contained type is enforced.
+        """
+        @RuntimeTypeCheckEnable()
+        def func(arg: Tuple[int, ...]) -> Tuple[str, ...]:
+            return tuple([str(i) for i in arg])
+
+        try:
+            func(())
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func((1,))
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func((1, 2, 3, 4, 5, 6))
+
+        except TypeError:
+            self.fail('Previous call must not raise')
+
+        try:
+            func(('str'))
+            self.fail('Previous call must raise')
+
+        except TypeError:
+            pass
+
+        try:
+            func((1, 'str'))
+            self.fail('Previous call must raise')
 
         except TypeError:
             pass

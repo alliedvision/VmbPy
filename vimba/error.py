@@ -3,16 +3,23 @@
 # TODO: Add Contact Info (clarify if this is required...)
 # TODO: Add docstring to public entities
 
-from vimba.c_binding import VmbError
+from vimba.util import Log
+
+__all__ = [
+    'VimbaSystemError',
+    'VimbaFeatureError'
+]
 
 
-class VimbaCError(Exception):
-    def __init__(self, c_error: VmbError):
-        assert type(c_error) == VmbError
-
-        super().__init__(str(c_error))
-        self.c_error = c_error
+class _LoggedError(Exception):
+    def __init__(self, msg: str):
+        super().__init__(msg)
+        Log.get_instance().error(msg)
 
 
-class FeatureAccessError(Exception):
+class VimbaSystemError(_LoggedError):
+    pass
+
+
+class VimbaFeatureError(_LoggedError):
     pass
