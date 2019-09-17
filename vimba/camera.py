@@ -7,13 +7,15 @@ This module allows access to a detected camera.
 <Insert license here>
 """
 import enum
-from typing import Tuple
+from typing import Tuple, cast
 from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
-from vimba.c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode
+from vimba.c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
+                            VimbaCError, VmbError
 from vimba.feature import discover_features, discover_feature, filter_features_by_name, \
                           filter_features_by_type, filter_affected_features, \
                           filter_selected_features, FeatureTypes, FeaturesTuple
 from vimba.util import RuntimeTypeCheckEnable
+from vimba.error import VimbaSystemError
 
 
 __all__ = [
@@ -203,8 +205,27 @@ class Camera:
         return filter_features_by_name(self.__feats, feat_name)
 
     def _open(self):
-        call_vimba_c_func('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
-                          byref(self.__handle))
+        exc = None
+
+        try:
+            call_vimba_c_func('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
+                              byref(self.__handle))
+
+        except VimbaCError as e:
+            exc = cast(VimbaSystemError, e)
+            err = e.get_error_code()
+
+            # In theory InvalidAccess should be thrown on using a non permitted access mode.
+            # In reality VmbError.NotImplemented_ is returned.
+            if err == VmbError.InvalidAccess or err == VmbError.NotImplemented_:
+                msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
+                msg = msg.format(self.get_id(), str(self.__access_mode),
+                                 self.get_permitted_access_modes())
+
+                exc = VimbaSystemError(msg)
+
+        if exc:
+            raise exc
 
         self.__feats = discover_features(self.__handle)
 

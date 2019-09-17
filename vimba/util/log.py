@@ -252,6 +252,7 @@ def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]
 
     return cfg
 
+
 # Exported Default Log configurations.
 LOG_CONFIG_TRACE_CONSOLE_ONLY = _build_cfg(LogLevel.Trace, None)
 LOG_CONFIG_TRACE_FILE_ONLY = _build_cfg(None, LogLevel.Trace)
