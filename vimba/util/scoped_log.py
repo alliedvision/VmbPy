@@ -23,11 +23,16 @@ class _ScopedLog:
         self.__old_config: Optional[LogConfig] = None
 
     def __enter__(self):
+        self.__old_config = _ScopedLog.__log.get_config()
         _ScopedLog.__log.enable(self.__config)
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        _ScopedLog.__log.disable()
+        if self.__old_config:
+            _ScopedLog.__log.enable(self.__old_config)
+
+        else:
+            _ScopedLog.__log.disable()
 
 
 class ScopedLogEnable:
@@ -41,12 +46,12 @@ class ScopedLogEnable:
         Arguments:
             config: The configuration the log should be enabled with.
         """
-        self._config = config
+        self.__config = config
 
     def __call__(self, func: Callable[..., Any]):
         @wraps(func)
         def wrapper(*args: Tuple[Any, ...]):
-            with _ScopedLog(self._config):
+            with _ScopedLog(self.__config):
                 return func(*args)
 
         return wrapper
