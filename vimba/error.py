@@ -32,6 +32,14 @@ class VimbaSystemError(_LoggedError):
     """
     pass
 
+class VimbaCameraError(_LoggedError):
+    """ Errors related to Cameras
+
+    Error Type to indicated Camera related Errors like
+    - Access on a disconnected camera Object
+    - Lookup of non-existing cameras etc
+    """
+    pass
 
 class VimbaFeatureError(_LoggedError):
     """Error related to Feature access.

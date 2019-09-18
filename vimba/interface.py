@@ -8,7 +8,7 @@ This module allows access to all detected interfaces.
 """
 
 import enum
-from typing import Tuple
+from typing import Tuple, List
 from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
 from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
@@ -21,6 +21,7 @@ __all__ = [
     'InterfaceType',
     'Interface',
     'InterfacesTuple',
+    'InterfacesList',
     'discover_interfaces'
 ]
 
@@ -192,9 +193,9 @@ class Interface:
 
 
 InterfacesTuple = Tuple[Interface, ...]
+InterfacesList = List[Interface]
 
-
-def discover_interfaces() -> InterfacesTuple:
+def discover_interfaces() -> InterfacesList:
     """Do not call directly. Access Interfaces via vimba.System instead."""
 
     result = []
@@ -212,4 +213,4 @@ def discover_interfaces() -> InterfacesTuple:
         for info in inters_infos[:inters_found.value]:
             result.append(Interface(info))
 
-    return tuple(result)
+    return result

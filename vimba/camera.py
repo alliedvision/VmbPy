@@ -7,7 +7,7 @@ This module allows access to a detected camera.
 <Insert license here>
 """
 import enum
-from typing import Tuple, cast
+from typing import Tuple, List, cast
 from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
 from vimba.c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
                             VimbaCError, VmbError
@@ -22,6 +22,7 @@ __all__ = [
     'AccessMode',
     'Camera',
     'CamerasTuple',
+    'CamerasList',
     'discover_cameras'
 ]
 
@@ -247,9 +248,9 @@ def _setup_network_discovery():
 
 
 CamerasTuple = Tuple[Camera, ...]
+CamerasList = List[Camera]
 
-
-def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> CamerasTuple:
+def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> CamerasList:
     """Do not call directly. Access Cameras via vimba.System instead."""
 
     if network_discovery:
@@ -270,4 +271,4 @@ def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> Camera
         for info in cams_infos[:cams_found.value]:
             result.append(Camera(info, access_mode))
 
-    return tuple(result)
+    return result

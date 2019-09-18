@@ -12,10 +12,10 @@ from vimba.c_binding import call_vimba_c_func, G_VIMBA_HANDLE
 from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
                           filter_affected_features, filter_selected_features, FeatureTypes, \
                           FeaturesTuple
-from vimba.interface import InterfacesTuple, discover_interfaces
-from vimba.camera import AccessMode, CamerasTuple, discover_cameras
+from vimba.interface import InterfacesTuple, InterfacesList, discover_interfaces
+from vimba.camera import AccessMode, Camera, CamerasTuple, CamerasList, discover_cameras
 from vimba.util import Log, LogConfig, RuntimeTypeCheckEnable
-
+from vimba.error import VimbaCameraError
 
 __all__ = [
     'System'
@@ -33,8 +33,8 @@ class System:
         def __init__(self):
             """Do not call directly. Use System.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
-            self.__inters: InterfacesTuple = ()
-            self.__cams: CamerasTuple = ()
+            self.__inters: InterfacesList = ()
+            self.__cams: CamerasList = ()
             self.__cams_access_mode: AccessMode = AccessMode.Full
             self.__nw_discover: bool = True
             self.__context_cnt: int = 0
@@ -110,16 +110,35 @@ class System:
                 A set of all currently detected Interfaces. Returns an empty set then called
                 outside of 'with'.
             """
-            return self.__inters
+            return tuple(self.__inters)
 
         def get_all_cameras(self) -> CamerasTuple:
-            """Get access to all discovered Cameras:
+            """Get access to all discovered Cameras.
 
             Returns:
                 A set of all currently detected Cameras. Returns an empty set then called
                 outside of 'with'.
             """
-            return self.__cams
+            return tuple(self.__cams)
+
+        def get_camera_by_id(self, id_: str) -> Camera:
+            """Lookup Camera with given ID.
+
+            Arguments:
+                id_ - Camera Id to search for.
+
+            Returns:
+                Camera associated with given Id
+
+            Raises:
+                VimbaCameraError if camera with id_ can't be found.
+            """
+            cam = [cam for cam in self.__cams if id_ == cam.get_id()]
+
+            if not cam:
+                raise VimbaCameraError('Camera with ID \'{}\' not found.'.format(id_))
+
+            return cam.pop()
 
         def get_all_features(self) -> FeaturesTuple:
             """Get access to all discovered system features:

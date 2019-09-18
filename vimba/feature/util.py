@@ -212,7 +212,7 @@ def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureType
     """
     filtered = [feat for feat in feats if feat_name == feat.get_name()]
 
-    if len(filtered) == 0:
+    if not filtered:
         raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
     return filtered.pop()
