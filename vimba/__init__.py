@@ -9,7 +9,10 @@
 # flake8: noqa: F401
 
 __all__ = [
-    'System',
+    'Vimba',
+    'CameraChangeHandler',
+    'InterfaceChangeHandler',
+
     'AccessMode',
     'VimbaSystemError',
     'VimbaFeatureError',
@@ -46,9 +49,11 @@ __all__ = [
     'RuntimeTypeCheckEnable'
 ]
 
-from .system import System
+from .vimba import Vimba
 
-from .camera import AccessMode
+from .camera import AccessMode, CameraChangeHandler
+
+from .interface import InterfaceChangeHandler
 
 from .error import VimbaSystemError, VimbaFeatureError
 

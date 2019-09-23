@@ -59,16 +59,16 @@ def print_camera(cameras):
 
 
 def main():
-    with System.get_instance() as sys:
+    with Vimba.get_instance() as vimba:
         print('Print system wide properties:')
-        print('camera access mode: {}'.format(str(sys.get_camera_access_mode())))
+        print('camera access mode: {}'.format(str(vimba.get_camera_access_mode())))
 
         print('Print system features:')
-        for feat in sys.get_all_features():
+        for feat in vimba.get_all_features():
             print_feature(feat)
 
-        print_camera(sys.get_all_cameras())
-        print_interface(sys.get_all_interfaces())
+        print_camera(vimba.get_all_cameras())
+        print_interface(vimba.get_all_interfaces())
 
 
 if __name__ == '__main__':

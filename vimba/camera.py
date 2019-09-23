@@ -7,7 +7,7 @@ This module allows access to a detected camera.
 <Insert license here>
 """
 import enum
-from typing import Tuple, List, cast
+from typing import Tuple, List, Callable, cast
 from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
 from vimba.c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
                             VimbaCError, VmbError
@@ -21,9 +21,11 @@ from vimba.error import VimbaSystemError
 __all__ = [
     'AccessMode',
     'Camera',
+    'CameraChangeHandler',
     'CamerasTuple',
     'CamerasList',
-    'discover_cameras'
+    'discover_cameras',
+    'discover_camera'
 ]
 
 
@@ -247,11 +249,13 @@ def _setup_network_discovery():
         discover_feature(G_VIMBA_HANDLE, 'GeVDiscoveryAllOnce').run()
 
 
+CameraChangeHandler = Callable[[Camera, bool], None]
 CamerasTuple = Tuple[Camera, ...]
 CamerasList = List[Camera]
 
+
 def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> CamerasList:
-    """Do not call directly. Access Cameras via vimba.System instead."""
+    """Do not call directly. Access Cameras via vimba.Vimba instead."""
 
     if network_discovery:
         _setup_network_discovery()
@@ -272,3 +276,13 @@ def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> Camera
             result.append(Camera(info, access_mode))
 
     return result
+
+
+def discover_camera(id_: str, access_mode: AccessMode) -> Camera:
+    """Do not call directly. Access Cameras via vimba.Vimba instead."""
+
+    info = VmbCameraInfo()
+
+    call_vimba_c_func('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
+
+    return Camera(info, access_mode)

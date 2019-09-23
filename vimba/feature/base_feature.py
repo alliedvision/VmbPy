@@ -54,7 +54,7 @@ class FeatureVisibility(IntEnum):
         Beginner  - Feature is visible in feature list (beginner level)
         Expert    - Feature is visible in feature list (expert level)
         Guru      - Feature is visible in feature list (guru level)
-        Invisible - Feature is not visible in feature list
+        Invisible - Feature is not visible in feature listSu
     """
 
     Unknown = VmbFeatureVisibility.Unknown
@@ -74,8 +74,8 @@ class BaseFeature:
         self._handle: VmbHandle = handle
         self._info: VmbFeatureInfo = info
 
-        self.__change_handlers: List[ChangeHandler] = []
-        self.__change_handlers_lock = Lock()
+        self.__handlers: List[ChangeHandler] = []
+        self.__handlers_lock = Lock()
         self.__callback = VmbInvalidationCallback(self.__callback_impl)
 
     def __str__(self):
@@ -183,52 +183,52 @@ class BaseFeature:
         _, w = self.get_access_mode()
         return w
 
-    def register_change_handler(self, change_handler: ChangeHandler):
+    def register_change_handler(self, handler: ChangeHandler):
         """Register Callable on the Feature.
 
         The Callable will be executed as soon as the Features value changes. The first parameter
-        on a registered change_handler will be called with the changed feature itself. The methods
-        returns early if a given change_handler is already registered.
+        on a registered handler will be called with the changed feature itself. The methods
+        returns early if a given handler is already registered.
 
         Arguments:
-            change_handler - The Callable that should be executed on change.
+            handler - The Callable that should be executed on change.
         """
 
-        with self.__change_handlers_lock:
-            if change_handler in self.__change_handlers:
+        with self.__handlers_lock:
+            if handler in self.__handlers:
                 return
 
-            self.__change_handlers.append(change_handler)
+            self.__handlers.append(handler)
 
-            if len(self.__change_handlers) == 1:
+            if len(self.__handlers) == 1:
                 self.__register_callback()
 
     def unregister_all_change_handlers(self):
         """Remove all registered change handlers."""
-        with self.__change_handlers_lock:
-            if self.__change_handlers:
+        with self.__handlers_lock:
+            if self.__handlers:
                 self.__unregister_callback()
-                self.__change_handlers.clear()
+                self.__handlers.clear()
 
-    def unregister_change_handler(self, change_handler: ChangeHandler):
+    def unregister_change_handler(self, handler: ChangeHandler):
         """Remove registered Callable from the Feature.
 
-        Removes a previously registered change_handler from this Feature. In case the
-        change_handler that should be removed was never added in the first place, the method
+        Removes a previously registered handler from this Feature. In case the
+        handler that should be removed was never added in the first place, the method
         returns silently.
 
         Arguments:
-            change_handler - The Callable that should be removed.
+            handler - The Callable that should be removed.
         """
 
-        with self.__change_handlers_lock:
-            if change_handler not in self.__change_handlers:
+        with self.__handlers_lock:
+            if handler not in self.__handlers:
                 return
 
-            if len(self.__change_handlers) == 1:
+            if len(self.__handlers) == 1:
                 self.__unregister_callback()
 
-            self.__change_handlers.remove(change_handler)
+            self.__handlers.remove(handler)
 
     def __register_callback(self):
         call_vimba_c_func('VmbFeatureInvalidationRegister', self._handle, self._info.name,
@@ -239,19 +239,19 @@ class BaseFeature:
                           self.__callback)
 
     def __callback_impl(self, *ignored):
-        with self.__change_handlers_lock:
-            for change_handler in self.__change_handlers:
+        with self.__handlers_lock:
+            for handler in self.__handlers:
 
                 # Since this is called from the C-Context, all exceptions
                 # should be fetched.
                 try:
-                    change_handler(self)
+                    handler(self)
 
                 except BaseException as e:
-                    msg = 'Caught Exception in change_handler: '
+                    msg = 'Caught Exception in handler: '
                     msg += 'Type: {}, '.format(type(e))
                     msg += 'Value: {}, '.format(e)
-                    msg += 'raised by: {}'.format(change_handler)
+                    msg += 'raised by: {}'.format(handler)
 
                     Log.get_instance().error(msg)
 

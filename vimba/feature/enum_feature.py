@@ -80,11 +80,15 @@ class EnumFeature(BaseFeature):
         """Do not call directly. Access Features via System, Camera or Interface Types instead."""
         super().__init__(handle, info)
 
-        self.__entires: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
+        self.__entries: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
 
     def get_all_entries(self) -> EnumEntryTuple:
         """Get a set of all possible EnumEntries of this Feature."""
-        return self.__entires
+        return self.__entries
+
+    def get_all_available_entries(self) -> EnumEntryTuple:
+        """Get a set of all currently available EnumEntries of this Feature."""
+        return tuple([e for e in self.get_all_entries() if e.is_available()])
 
     @RuntimeTypeCheckEnable()
     def get_entry(self, val_or_name: Union[int, str]) -> EnumEntry:
@@ -100,7 +104,7 @@ class EnumFeature(BaseFeature):
             TypeError if int_or_name it not of type int or type str.
             VimbaFeatureError if no EnumEntry is associated with 'val_or_name'
         """
-        for entry in self.__entires:
+        for entry in self.__entries:
             if type(val_or_name)(entry) == val_or_name:
                 return entry
 

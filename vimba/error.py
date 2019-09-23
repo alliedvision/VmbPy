@@ -32,6 +32,7 @@ class VimbaSystemError(_LoggedError):
     """
     pass
 
+
 class VimbaCameraError(_LoggedError):
     """ Errors related to Cameras
 
@@ -40,6 +41,17 @@ class VimbaCameraError(_LoggedError):
     - Lookup of non-existing cameras etc
     """
     pass
+
+
+class VimbaInterfaceError(_LoggedError):
+    """ Errors related to Interfaces
+
+    Error Type to indicated Interface related Errors like
+    - Access on a disconnected interface Object
+    - Lookup of non-existing interface etc
+    """
+    pass
+
 
 class VimbaFeatureError(_LoggedError):
     """Error related to Feature access.
