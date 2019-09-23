@@ -5,6 +5,12 @@ from vimba.c_binding import *
 
 
 class CBindingUtilTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def test_decode_cstr_behavior(self):
         """ Expected Behavior:
             c_char_p() == ''

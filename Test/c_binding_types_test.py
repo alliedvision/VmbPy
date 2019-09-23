@@ -3,6 +3,12 @@ from vimba.c_binding import *
 
 
 class CBindingTypesTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def test_enum_vmb_error(self):
         self.assertEqual(VmbError.Success, 0)
         self.assertEqual(VmbError.InternalFault, -1)

@@ -5,6 +5,12 @@ from vimba.c_binding import *
 
 
 class CBindingApiTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def test_call_vimba_c_valid(self):
         """ Expectation for valid call: No exceptions, no errors """
         expected_ver_info = (1, 8, 0)

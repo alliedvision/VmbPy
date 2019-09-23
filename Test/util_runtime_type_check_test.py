@@ -1,8 +1,15 @@
 import unittest
 from typing import Union, Optional, List, Tuple, Callable
-from vimba import RuntimeTypeCheckEnable
+
+from vimba.util import *
 
 class RuntimeTypeCheckTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
     def test_func_no_hints_no_return(self):
         """ Expectation: Functions without type hints
             should not throw any type errors

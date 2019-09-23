@@ -47,11 +47,6 @@
             "shell_cmd": "python Examples/sandbox.py"
         },
         {
-            "name": "exec Examples/experimentation",
-            "working_dir": "$project_path",
-            "shell_cmd": "python Examples/experimentation.py"
-        },
-        {
             "name": "exec Examples/list_cameras",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/list_cameras.py"
