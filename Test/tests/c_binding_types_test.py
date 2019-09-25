@@ -32,6 +32,7 @@ class CBindingTypesTest(unittest.TestCase):
         self.assertEqual(VmbError.Incomplete, -19)
         self.assertEqual(VmbError.IO, -20)
 
+
     def test_enum_vmb_pixel_format(self):
         self.assertEqual(VmbPixelFormat.Mono8, 0x01080001)
         self.assertEqual(VmbPixelFormat.Mono10, 0x01100003)

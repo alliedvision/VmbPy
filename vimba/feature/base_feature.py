@@ -41,7 +41,6 @@ class FeatureFlags(IntEnum):
     None_ = VmbFeatureFlags.None_
     Read = VmbFeatureFlags.Read
     Write = VmbFeatureFlags.Write
-    Undocumented = VmbFeatureFlags.Undocumented
     Volatile = VmbFeatureFlags.Volatile
     ModifyWrite = VmbFeatureFlags.ModifyWrite
 
@@ -98,7 +97,13 @@ class BaseFeature:
 
     def get_flags(self) -> Tuple[FeatureFlags, ...]:
         """Get a set of FeatureFlags, e.g. (FeatureFlags.Read, FeatureFlags.Write))"""
-        return decode_flags(FeatureFlags, self._info.featureFlags)
+        val = self._info.featureFlags
+
+        # The feature flag could contain undocumented values at third bit.
+        # To prevent any issues, clear the third bit before decoding.
+        val &= ~4
+
+        return decode_flags(FeatureFlags, val)
 
     def get_category(self) -> str:
         """Get Feature category, e.g. '/Discovery'"""
@@ -183,6 +188,7 @@ class BaseFeature:
         _, w = self.get_access_mode()
         return w
 
+    # RuntimeCheckEnable()
     def register_change_handler(self, handler: ChangeHandler):
         """Register Callable on the Feature.
 
@@ -210,6 +216,7 @@ class BaseFeature:
                 self.__unregister_callback()
                 self.__handlers.clear()
 
+    # RuntimeCheckEnable()
     def unregister_change_handler(self, handler: ChangeHandler):
         """Remove registered Callable from the Feature.
 
@@ -238,12 +245,15 @@ class BaseFeature:
         call_vimba_c_func('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
                           self.__callback)
 
-    def __callback_impl(self, *ignored):
+    def __callback_impl(self, *ignored):   # coverage: skip
+        # Note: This function is executed from the C-Context. This means that:
+        # 1) All Exceptions must be fetched since there is no direct caller that could catch a
+        #    thrown exception.
+        # 2) Coverage is disabled, because it can't track execution from the C-Context.
+
         with self.__handlers_lock:
             for handler in self.__handlers:
 
-                # Since this is called from the C-Context, all exceptions
-                # should be fetched.
                 try:
                     handler(self)
 

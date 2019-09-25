@@ -12,6 +12,8 @@ from vimba.util import Log
 
 __all__ = [
     'VimbaSystemError',
+    'VimbaCameraError',
+    'VimbaInterfaceError',
     'VimbaFeatureError'
 ]
 

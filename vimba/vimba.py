@@ -18,7 +18,7 @@ from vimba.interface import Interface, InterfaceChangeHandler, InterfacesTuple, 
 from vimba.camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, CamerasList, \
                          discover_cameras, discover_camera
 from vimba.util import Log, LogConfig, RuntimeTypeCheckEnable
-from vimba.error import VimbaCameraError
+from vimba.error import VimbaCameraError, VimbaInterfaceError
 
 __all__ = [
     'Vimba'
@@ -125,6 +125,7 @@ class Vimba:
             with self.__inters_lock:
                 return tuple(self.__inters)
 
+        @RuntimeTypeCheckEnable()
         def get_interface_by_id(self, id_: str) -> Interface:
             """Lookup Interface with given ID.
 
@@ -141,7 +142,7 @@ class Vimba:
                 inter = [inter for inter in self.__inters if id_ == inter.get_id()]
 
             if not inter:
-                raise VimbaCameraError('Interface with ID \'{}\' not found.'.format(id_))
+                raise VimbaInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
 
             return inter.pop()
 
@@ -155,6 +156,7 @@ class Vimba:
             with self.__cams_lock:
                 return tuple(self.__cams)
 
+        @RuntimeTypeCheckEnable()
         def get_camera_by_id(self, id_: str) -> Camera:
             """Lookup Camera with given ID.
 
@@ -349,7 +351,9 @@ class Vimba:
 
             call_vimba_c_func('VmbShutdown')
 
-        def __cam_handler(self, cam_event):
+        def __cam_handler(self, cam_event):   # coverage: skip
+            # Skip coverage because it can't be measured. This is called from C-Context
+
             # Early return for 'Unrechable', 'Reachable'. These value are triggered on
             # camera open/camera close. This handler is for detection of new cameras only.
             event = str(cam_event.get())
@@ -382,7 +386,8 @@ class Vimba:
                 for handler in self.__cams_handlers:
                     handler(cam, cam_avail)
 
-        def __inter_handler(self, inter_event):
+        def __inter_handler(self, inter_event):   # coverage: skip
+            # Skip coverage because it can't be measured. This is called from C-Context
             inter_avail = True if str(inter_event.get()) == 'Available' else False
             inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
             log = Log.get_instance()

@@ -1,0 +1,37 @@
+<?xml version="1.0" standalone="no" ?>
+<Settings>
+
+    <!--
+            Use this to activate logging and set filename for logging (path can be absolute or relative to TL)
+            Default behavior if omitted:    Logging is deactivated
+    -->
+    <!-- <LogFileName>AVTFileTL.log</LogFileName> -->
+
+
+    <!--
+            Append messages to log file or reset log file at each transport layer restart (if logging is enabled)
+            True:                           Always append log messages
+            False:                          Reset log file at each transport layer restart
+            Default behavior if omitted:    Reset log file at each transport layer restart
+    -->
+    <!-- <AppendLog>False</AppendLog> -->
+
+
+    <!--
+            Activate less pedantic function parameter checks (needed for some TL consumers)
+            True:                           Tolerant function parameter checks
+            False:                          Pedantic function parameter checks
+            Default behavior if omitted:    Pedantic function parameter checks (GenTL compliant behavior)
+    -->
+    <TolerateTypeNullptr>True</TolerateTypeNullptr>
+
+
+    <!--
+            Emulate unsupported device access modes (needed for some TL consumers)
+            True:                           Emulation on
+            False:                          Emulation off
+            Default behavior if omitted:    Emulation off (GenTL compliant behavior)
+    -->
+    <EmulateAccessModes>True</EmulateAccessModes>
+
+</Settings>

@@ -17,6 +17,8 @@ __all__ = [
 
     'AccessMode',
     'VimbaSystemError',
+    'VimbaCameraError',
+    'VimbaInterfaceError',
     'VimbaFeatureError',
 
     'IntFeature',
@@ -57,7 +59,7 @@ from .camera import AccessMode, CameraChangeHandler
 
 from .interface import InterfaceChangeHandler
 
-from .error import VimbaSystemError, VimbaFeatureError
+from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature, \
                      CommandFeature, RawFeature

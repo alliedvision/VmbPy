@@ -2,27 +2,46 @@ import os
 import sys
 import unittest
 import xmlrunner
+
+# Add relative location to vimba to search path.
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Inject 'assertNotRaise' to default test module. Tests are derived from this class.
+def _assertNoRaise(self, func, *args, **kwargs):
+    try:
+        func(*args, **kwargs)
+
+    except:
+      self.fail('Function raised')
+
+unittest.TestCase.assertNoRaise = _assertNoRaise
+
+# Disable Vimba network discovery to speedup tests.
+from vimba import Vimba
+Vimba.get_instance().set_network_discovery(False)
+
 # import tests cases
-import c_binding_api_test
-import c_binding_types_test
-import c_binding_util_test
+import tests.c_binding_api_test
+import tests.c_binding_types_test
+import tests.c_binding_util_test
+import tests.util_runtime_type_check_test
+import tests.vimba_test
 
-import util_runtime_type_check_test
+import file_tl_tests.vimba_test
+import file_tl_tests.feature_test
 
-
-INDEPENDENT_TEST_MODS = [
-    c_binding_api_test,
-    c_binding_types_test,
-    c_binding_util_test,
-    util_runtime_type_check_test
+# Assign test cases to test suites
+BASIC_TEST_MODS = [
+    tests.c_binding_api_test,
+    tests.c_binding_types_test,
+    tests.c_binding_util_test,
+    tests.util_runtime_type_check_test,
+    tests.vimba_test
 ]
 
 FILETL_TEST_MODS = [
-]
-
-CAM_TEST_MODS = [
+    file_tl_tests.vimba_test,
+    file_tl_tests.feature_test
 ]
 
 
@@ -30,7 +49,7 @@ def usage(fail_msg):
     print(fail_msg, '\n')
     print('runner.py <TestSuite> <OutputFormat> [ReportDirectory]')
     print('Options:')
-    print('    TestSuite - Either \'file_tl\', \'cam\', \'all\'')
+    print('    TestSuite - Either \'basic\', \'file_tl\', \'all\'')
     print('    OutputFormat - Either \'console\' or \'junit_xml\'')
     print('    ReportDirectory - Required if OutputFormat is junit_xml')
 
@@ -45,8 +64,8 @@ def parse_args():
        usage('runner.py invalid argument number. Abort.')
 
     arg = args[0]
-    if arg not in ('file_tl', 'cam', 'all'):
-        usage('Parameter \'TestSuite\' is not \'file_tl\', \'cam\' or \'all\'. Abort')
+    if arg not in ('basic', 'file_tl', 'all'):
+        usage('Parameter \'TestSuite\' is not \'basic\', \'file_tl\' or \'all\'. Abort')
 
     result['TestSuite'] = arg
 
@@ -64,6 +83,18 @@ def parse_args():
 
     return result
 
+def setup_file_tl():
+    file_tl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'file_tl_data')
+
+    # TODO: Might require so sanity checking for different Architectures and Operating Systems...
+    tl_path = os.environ.get('GENICAM_GENTL64_PATH')
+
+    if not tl_path:
+        raise Exception('GENICAM_GENTL64_PATH variable is not set')
+
+    # Append FileTL during tests
+    os.environ['GENICAM_GENTL64_PATH'] = tl_path + ";" + file_tl_dir
+
 
 def main():
     args = parse_args()
@@ -77,31 +108,28 @@ def main():
         runner = xmlrunner.XMLTestRunner(output=args['ReportDirectory'])
 
     # Prepare TestSuites
-    suite_independent = unittest.TestSuite()
-    for mod in INDEPENDENT_TEST_MODS:
-        suite_independent.addTests(loader.loadTestsFromModule(mod))
+    suite_basic = unittest.TestSuite()
+    for mod in BASIC_TEST_MODS:
+        suite_basic.addTests(loader.loadTestsFromModule(mod))
 
     suite_file_tl = unittest.TestSuite()
     for mod in FILETL_TEST_MODS:
         suite_file_tl.addTests(loader.loadTestsFromModule(mod))
 
-    suite_cam = unittest.TestSuite()
-    for mod in CAM_TEST_MODS:
-        suite_cam.addTests(loader.loadTestsFromModule(mod))
-
     # Execute TestSuites
-    if args['TestSuite'] == 'file_tl':
-        runner.run(suite_independent)
-        runner.run(suite_file_tl)
+    if args['TestSuite'] == 'basic':
+        runner.run(suite_basic)
 
-    elif args['TestSuite'] == 'cam':
-        runner.run(suite_independent)
-        runner.run(suite_cam)
+    elif args['TestSuite'] == 'file_tl':
+        setup_file_tl()
+
+        runner.run(suite_file_tl)
 
     elif args['TestSuite'] == 'all':
-        runner.run(suite_independent)
+        setup_file_tl()
+
+        runner.run(suite_basic)
         runner.run(suite_file_tl)
-        runner.run(suite_cam)
 
 
 if __name__ == '__main__':

@@ -26,13 +26,7 @@ class CBindingApiTest(unittest.TestCase):
         """ Expectation: An invalid function name must throw an AttributeError """
 
         ver_info = VmbVersionInfo()
-
-        try:
-            call_vimba_c_func('VmbVersionQuer', byref(ver_info), sizeof(ver_info))
-            self.fail("Previous call must raise Exception.")
-
-        except AttributeError:
-            pass
+        self.assertRaises(AttributeError, call_vimba_c_func, 'VmbVersionQuer', byref(ver_info), sizeof(ver_info))
 
     def test_call_vimba_c_invalid_arg_number(self):
         """ Expectation: Invalid number of arguments with sane types.
@@ -40,34 +34,17 @@ class CBindingApiTest(unittest.TestCase):
         """
 
         ver_info = VmbVersionInfo()
-
-        try:
-            call_vimba_c_func('VmbVersionQuery', byref(ver_info))
-            self.fail("Previous call must raise Exception.")
-
-        except TypeError:
-            pass
+        self.assertRaises(TypeError, call_vimba_c_func, 'VmbVersionQuery', byref(ver_info))
 
     def test_call_vimba_c_invalid_arg_type(self):
         """ Expectation: Arguments with invalid types must lead to TypeErrors """
 
         # Call with unexpected base types
-        try:
-            call_vimba_c_func('VmbVersionQuery', 0, 'hi')
-            self.fail("Previous call must raise Exception.")
-
-        except ctypes.ArgumentError:
-            pass
+        self.assertRaises(ctypes.ArgumentError, call_vimba_c_func, 'VmbVersionQuery', 0, 'hi')
 
         # Call with valid ctypes used wrongly
         ver_info = VmbVersionInfo()
-        try:
-            call_vimba_c_func('VmbVersionQuery', byref(ver_info), ver_info)
-            self.fail("Previous call must raise Exception.")
-
-        except ctypes.ArgumentError:
-            pass
-
+        self.assertRaises(ctypes.ArgumentError, call_vimba_c_func, 'VmbVersionQuery', byref(ver_info), ver_info)
 
     def test_call_vimba_c_exception(self):
         """ Expectation: Errors returned from the C-Layer must be mapped

@@ -86,7 +86,7 @@ class EnumFeature(BaseFeature):
         """Get a set of all possible EnumEntries of this Feature."""
         return self.__entries
 
-    def get_all_available_entries(self) -> EnumEntryTuple:
+    def get_available_entries(self) -> EnumEntryTuple:
         """Get a set of all currently available EnumEntries of this Feature."""
         return tuple([e for e in self.get_all_entries() if e.is_available()])
 
@@ -152,7 +152,10 @@ class EnumFeature(BaseFeature):
             VimbaFeatureError if executed within a registered change_handler.
         """
 
-        if type(val) != EnumEntry:
+        if type(val) == EnumEntry:
+            val = self.get_entry(str(val))
+
+        else:
             val = self.get_entry(val)
 
         exc = None
