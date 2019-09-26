@@ -6,6 +6,7 @@
 """
 
 from functools import reduce, wraps
+
 from typing import Callable, Any, Tuple
 from .log import Log
 
@@ -22,16 +23,41 @@ _FMT_ERROR: str = 'ErrorType: {}, ErrorValue: {}'
 _INDENT_PER_LEVEL: str = '  '
 
 
-def _args_to_str(*args) -> str:
-    def fold(args_as_str: str, arg: Any):
-        return '{}{}, '.format(args_as_str, str(arg))
-
-    args_str = reduce(fold, args, '')
-
-    if not args_str:
+def _args_to_str(func, *args) -> str:
+    # Early return if there is nothing to print
+    if not args:
         return '(None)'
 
-    return '({})'.format(args_str[:-2])
+    # Determine if func is a method or a function
+    try:
+        maybe_method = getattr(args[0], func.__name__)
+
+    except AttributeError:
+        maybe_method = None
+
+    finally:
+        if maybe_method:
+            same_mod = maybe_method.__module__ == func.__module__
+            same_name = maybe_method.__qualname__ == func.__qualname__
+
+            is_method = same_mod and same_name
+
+        else:
+            is_method = False
+
+    def fold(args_as_str: str, arg: Any):
+        return '{}{}, '.format(args_as_str, arg)
+
+    # If this is no method: Expand all args and return
+    if not is_method:
+        return '({})'.format(reduce(fold, args, '')[:-2])
+
+    # For here it is a method that might be partially constructed.
+    # replace the string version of self with 'self'
+    if len(args) == 1:
+        return '({})'.format('self')
+
+    return '({})'.format(reduce(fold, args[1:], 'self, ')[:-2])
 
 
 def _get_indent(level: int) -> str:
@@ -62,9 +88,9 @@ class _Tracer:
     def get_logger():
         return _Tracer.__log
 
-    def __init__(self, expand_args: bool, func: Callable[..., Any], *args: Tuple[Any, ...]):
+    def __init__(self, func: Callable[..., Any], *args: Tuple[Any, ...]):
         self.__full_name: str = '{}.{}'.format(func.__module__, func.__qualname__)
-        self.__full_args: str = _args_to_str(*args) if expand_args else '(...)'
+        self.__full_args: str = _args_to_str(func, *args)
 
     def __enter__(self):
         msg = _create_enter_msg(self.__full_name, _Tracer.__level, self.__full_args)
@@ -89,20 +115,11 @@ class TraceEnable:
     On Exit the Log entry contains information if the Function was left normally or with an
     Exception.
     """
-    def __init__(self, expand_args: bool = True):
-        """Add Tracing information to a Callable.
-
-        Arguments:
-            expand_args - If True the entire argument list is printed on execution. If False
-                          (...) is printed instead.
-        """
-        self.__expand_args: bool = expand_args
-
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Tuple[Any, ...]):
             if _Tracer.get_logger():
-                with _Tracer(self.__expand_args, func, *args):
+                with _Tracer(func, *args):
                     result = func(*args)
 
                 return result

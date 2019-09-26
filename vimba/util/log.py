@@ -137,9 +137,10 @@ class Log:
             """Do not call directly. Use Log.get_instance() instead."""
             self.__logger: Optional[logging.Logger] = None
             self.__config: Optional[LogConfig] = None
+            self._test_buffer: Optional[List[str]] = None
 
         def __bool__(self):
-            return bool(self.__logger) and bool(self.__config)
+            return bool(self.__logger)
 
         def enable(self, config: LogConfig):
             """Enable global VimbaPython logging mechanism.
@@ -228,6 +229,9 @@ class Log:
             if max_len and (max_len < len(msg)):
                 suffix = ' ...'
                 msg = msg[:max_len - len(suffix)] + suffix
+
+            if self._test_buffer is not None:
+                self._test_buffer.append(msg)
 
             return msg
 
