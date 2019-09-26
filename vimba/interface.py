@@ -14,7 +14,7 @@ from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
                           filter_affected_features, filter_selected_features, FeatureTypes, \
                           FeaturesTuple
-from vimba.util import RuntimeTypeCheckEnable
+from vimba.util import TraceEnable, RuntimeTypeCheckEnable
 
 
 __all__ = [
@@ -54,6 +54,7 @@ class Interface:
     properties like Name can be access outside of the context.
     """
 
+    @TraceEnable()
     def __init__(self, info: VmbInterfaceInfo):
         """Do not call directly. Access Interfaces via vimba.System instead."""
         self.__handle: VmbHandle = VmbHandle(0)
@@ -61,6 +62,7 @@ class Interface:
         self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
 
+    @TraceEnable()
     def __enter__(self):
         if not self.__context_cnt:
             self._open()
@@ -68,6 +70,7 @@ class Interface:
         self.__context_cnt += 1
         return self
 
+    @TraceEnable()
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.__context_cnt -= 1
 
@@ -109,6 +112,7 @@ class Interface:
         """
         return self.__feats
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features affected by a specific interface feature.
@@ -126,6 +130,7 @@ class Interface:
         """
         return filter_affected_features(self.__feats, feat)
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific interface feature.
@@ -178,11 +183,13 @@ class Interface:
         """
         return filter_features_by_name(self.__feats, feat_name)
 
+    @TraceEnable()
     def _open(self):
         call_vimba_c_func('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
 
         self.__feats = discover_features(self.__handle)
 
+    @TraceEnable()
     def _close(self):
         for feat in self.__feats:
             feat.unregister_all_change_handlers()
@@ -199,6 +206,7 @@ InterfacesTuple = Tuple[Interface, ...]
 InterfacesList = List[Interface]
 
 
+@TraceEnable()
 def discover_interfaces() -> InterfacesList:
     """Do not call directly. Access Interfaces via vimba.System instead."""
 
@@ -220,6 +228,7 @@ def discover_interfaces() -> InterfacesList:
     return result
 
 
+@TraceEnable()
 def discover_interface(id_: str) -> Interface:
     """Do not call directly. Access Interfaces via vimba.System instead."""
 
@@ -227,4 +236,3 @@ def discover_interface(id_: str) -> Interface:
     # extract the Interface with the matching ID.
     inters = discover_interfaces()
     return [i for i in inters if id_ == i.get_id()].pop()
-

@@ -12,7 +12,7 @@ from multiprocessing import Lock
 from ctypes import byref, sizeof
 from vimba.c_binding.api import call_vimba_c_func
 from vimba.c_binding.types import VmbUint32, VmbCameraInfo, VmbAccessMode, \
-                                  VmbHandle, VmbFrame, VmbInt64, \
+                                  VmbHandle, VmbFrame, VmbInt64,  \
                                   VmbFrameCallback \
 
 g_camera_handle = VmbHandle()

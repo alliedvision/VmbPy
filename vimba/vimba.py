@@ -17,7 +17,7 @@ from vimba.interface import Interface, InterfaceChangeHandler, InterfacesTuple, 
                             discover_interfaces, discover_interface
 from vimba.camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, CamerasList, \
                          discover_cameras, discover_camera
-from vimba.util import Log, LogConfig, RuntimeTypeCheckEnable
+from vimba.util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
 from vimba.error import VimbaCameraError, VimbaInterfaceError
 
 __all__ = [
@@ -33,6 +33,7 @@ class Vimba:
         and can be used.
         """
 
+        @TraceEnable()
         def __init__(self):
             """Do not call directly. Use Vimba.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
@@ -51,6 +52,7 @@ class Vimba:
             self.__nw_discover: bool = True
             self.__context_cnt: int = 0
 
+        @TraceEnable()
         def __enter__(self):
             if not self.__context_cnt:
                 self._startup()
@@ -58,6 +60,7 @@ class Vimba:
             self.__context_cnt += 1
             return self
 
+        @TraceEnable()
         def __exit__(self, exc_type, exc_value, exc_traceback):
             self.__context_cnt -= 1
 
@@ -186,6 +189,7 @@ class Vimba:
             """
             return self.__feats
 
+        @TraceEnable()
         @RuntimeTypeCheckEnable()
         def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
             """Get all system features affected by a specific system feature.
@@ -203,6 +207,7 @@ class Vimba:
             """
             return filter_affected_features(self.__feats, feat)
 
+        @TraceEnable()
         @RuntimeTypeCheckEnable()
         def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
             """Get all system features selected by a specific system feature.
@@ -323,19 +328,21 @@ class Vimba:
                 if handler in self.__inters_handlers:
                     self.__inters_handlers.remove(handler)
 
+        @TraceEnable()
         def _startup(self):
             call_vimba_c_func('VmbStartup')
 
             self.__feats = discover_features(G_VIMBA_HANDLE)
-
             self.__inters = discover_interfaces()
+            self.__cams = discover_cameras(self.__cams_access_mode, self.__nw_discover)
+
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
             feat.register_change_handler(self.__inter_handler)
 
-            self.__cams = discover_cameras(self.__cams_access_mode, self.__nw_discover)
             feat = self.get_feature_by_name('DiscoveryCameraEvent')
             feat.register_change_handler(self.__cam_handler)
 
+        @TraceEnable()
         def _shutdown(self):
             self.unregister_all_camera_change_handlers()
             self.unregister_all_interface_change_handlers()
@@ -416,6 +423,7 @@ class Vimba:
     __instance = __Impl()
 
     @staticmethod
+    @TraceEnable()
     def get_instance() -> '__Impl':
         """Get VimbaSystem Singleton."""
         return Vimba.__instance

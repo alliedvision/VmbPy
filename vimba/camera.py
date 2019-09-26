@@ -14,7 +14,7 @@ from vimba.c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE,
 from vimba.feature import discover_features, discover_feature, filter_features_by_name, \
                           filter_features_by_type, filter_affected_features, \
                           filter_selected_features, FeatureTypes, FeaturesTuple
-from vimba.util import RuntimeTypeCheckEnable
+from vimba.util import TraceEnable, RuntimeTypeCheckEnable
 from vimba.error import VimbaSystemError
 
 
@@ -53,6 +53,7 @@ class Camera:
     Basic Camera properties like Name and Model can be access outside of the context.
     """
 
+    @TraceEnable()
     def __init__(self, info: VmbCameraInfo, access_mode: AccessMode):
         """Do not call directly. Access Cameras via vimba.System instead."""
         self.__handle: VmbHandle = VmbHandle(0)
@@ -61,6 +62,7 @@ class Camera:
         self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
 
+    @TraceEnable()
     def __enter__(self):
         if not self.__context_cnt:
             self._open()
@@ -68,6 +70,7 @@ class Camera:
         self.__context_cnt += 1
         return self
 
+    @TraceEnable()
     def __exit__(self, exc_type, exc_value, exc_traceback):
         self.__context_cnt -= 1
 
@@ -138,6 +141,7 @@ class Camera:
         """
         return self.__feats
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features affected by a specific camera feature.
@@ -155,6 +159,7 @@ class Camera:
         """
         return filter_affected_features(self.__feats, feat)
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific camera feature.
@@ -207,6 +212,7 @@ class Camera:
         """
         return filter_features_by_name(self.__feats, feat_name)
 
+    @TraceEnable()
     def _open(self):
         exc = None
 
@@ -232,6 +238,7 @@ class Camera:
 
         self.__feats = discover_features(self.__handle)
 
+    @TraceEnable()
     def _close(self):
         for feat in self.__feats:
             feat.unregister_all_change_handlers()
@@ -254,6 +261,7 @@ CamerasTuple = Tuple[Camera, ...]
 CamerasList = List[Camera]
 
 
+@TraceEnable()
 def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> CamerasList:
     """Do not call directly. Access Cameras via vimba.Vimba instead."""
 
@@ -278,6 +286,7 @@ def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> Camera
     return result
 
 
+@TraceEnable()
 def discover_camera(id_: str, access_mode: AccessMode) -> Camera:
     """Do not call directly. Access Cameras via vimba.Vimba instead."""
 

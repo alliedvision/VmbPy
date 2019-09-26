@@ -506,7 +506,7 @@ class TlFloatFeatureTest(unittest.TestCase):
             self.feat_rw.register_change_handler(handler)
 
             # Trigger change handler and wait for callback execution.
-            self.feat_rw.set( self.feat_rw.get())
+            self.feat_rw.set(self.feat_rw.get())
             handler.event.wait()
 
             self.assertTrue(handler.raised)
@@ -614,7 +614,7 @@ class TlIntFeatureTest(unittest.TestCase):
             self.feat_rw.register_change_handler(handler)
 
             # Trigger change handler and wait for callback execution.
-            self.feat_rw.set(self.feat_rw.get())
+            self.feat_rw.set(self.feat_rw.get() + 1)
             handler.event.wait()
 
             self.assertTrue(handler.raised)

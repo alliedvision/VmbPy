@@ -16,9 +16,9 @@ __all__ = [
 ]
 
 
-_FMT_MSG_ENTRY: str = 'Enter         | {}'
-_FMT_MSG_LEAVE: str = 'Leave(normal) | {}'
-_FMT_MSG_RAISE: str = 'Leave(except) | {}, {}'
+_FMT_MSG_ENTRY: str = 'Enter | {}'
+_FMT_MSG_LEAVE: str = 'Leave | {}'
+_FMT_MSG_RAISE: str = 'Raise | {}, {}'
 _FMT_ERROR: str = 'ErrorType: {}, ErrorValue: {}'
 _INDENT_PER_LEVEL: str = '  '
 
@@ -46,7 +46,7 @@ def _args_to_str(func, *args) -> str:
             is_method = False
 
     def fold(args_as_str: str, arg: Any):
-        return '{}{}, '.format(args_as_str, arg)
+        return '{}{}, '.format(args_as_str, str(arg))
 
     # If this is no method: Expand all args and return
     if not is_method:
@@ -85,8 +85,8 @@ class _Tracer:
     __level: int = 0
 
     @staticmethod
-    def get_logger():
-        return _Tracer.__log
+    def is_log_enabled() -> bool:
+        return bool(_Tracer.__log)
 
     def __init__(self, func: Callable[..., Any], *args: Tuple[Any, ...]):
         self.__full_name: str = '{}.{}'.format(func.__module__, func.__qualname__)
@@ -118,7 +118,7 @@ class TraceEnable:
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Tuple[Any, ...]):
-            if _Tracer.get_logger():
+            if _Tracer.is_log_enabled():
                 with _Tracer(func, *args):
                     result = func(*args)
 
