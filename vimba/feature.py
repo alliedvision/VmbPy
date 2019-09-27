@@ -12,14 +12,14 @@ import itertools
 import threading
 
 from typing import Tuple, Union, List, Callable, Type, Optional, cast
-from vimba.c_binding import call_vimba_c_func, byref, sizeof, create_string_buffer, decode_cstr, \
-                            decode_flags
-from vimba.c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
-                            VmbFeatureVisibility, VmbBool, VmbInvalidationCallback, \
-                            VmbFeatureEnumEntry, VmbFeatureData, VmbError, VimbaCError, VmbDouble
+from .c_binding import call_vimba_c_func, byref, sizeof, create_string_buffer, decode_cstr, \
+                       decode_flags
+from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
+                       VmbFeatureVisibility, VmbBool, VmbInvalidationCallback, \
+                       VmbFeatureEnumEntry, VmbFeatureData, VmbError, VimbaCError, VmbDouble
 
-from vimba.util import Log, TraceEnable, RuntimeTypeCheckEnable
-from vimba.error import VimbaFeatureError
+from .util import Log, TraceEnable, RuntimeTypeCheckEnable
+from .error import VimbaFeatureError
 
 __all__ = [
     'ChangeHandler',
@@ -1150,6 +1150,7 @@ class StringFeature(_BaseFeature):
 
         return VimbaFeatureError(msg.format(caller_name, self.get_name(), val_as_bytes, max_len))
 
+
 FeatureTypes = Union[IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature,
                      CommandFeature, RawFeature]
 
@@ -1184,6 +1185,7 @@ def _build_feature(handle: VmbHandle, info: VmbFeatureInfo) -> FeatureTypes:
     # However the static type checker will not accept None as an return.
     raise VimbaFeatureError('Unhandled feature type.')
 
+
 @TraceEnable()
 def discover_features(handle: VmbHandle) -> FeaturesTuple:
     """Discover all features associated with the given handle.
@@ -1212,6 +1214,7 @@ def discover_features(handle: VmbHandle) -> FeaturesTuple:
             result.append(_build_feature(handle, info))
 
     return tuple(result)
+
 
 @TraceEnable()
 def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:

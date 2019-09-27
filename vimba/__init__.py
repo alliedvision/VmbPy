@@ -14,6 +14,7 @@ __all__ = [
     'Vimba',
     'CameraChangeHandler',
     'InterfaceChangeHandler',
+    'FrameHandler',
 
     'AccessMode',
     'VimbaSystemError',
@@ -55,7 +56,7 @@ __all__ = [
 
 from .vimba import Vimba
 
-from .camera import AccessMode, CameraChangeHandler
+from .camera import AccessMode, CameraChangeHandler, FrameHandler
 
 from .interface import InterfaceChangeHandler
 

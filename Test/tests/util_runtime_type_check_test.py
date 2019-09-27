@@ -10,7 +10,7 @@ class RuntimeTypeCheckTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_func_no_hints_no_return(self):
+    def test_func_no_hints(self):
         """ Expectation: Functions without type hints
             should not throw any type errors
         """
@@ -20,21 +20,7 @@ class RuntimeTypeCheckTest(unittest.TestCase):
 
         self.assertNoRaise(test_func, 'str', 0)
 
-
-    def test_func_no_hints_and_return(self):
-        """ Expectation: Functions with a return hint must enforce it. """
-        @RuntimeTypeCheckEnable()
-        def test_func_valid(arg1, arg2) -> str:
-            return str()
-
-        @RuntimeTypeCheckEnable()
-        def test_func_invalid(arg1, arg2) -> str:
-            return int()
-
-        self.assertNoRaise(test_func_valid, 'str', 0)
-        self.assertRaises(TypeError, test_func_invalid, 'str', 0)
-
-    def test_func_some_hints_no_return(self):
+    def test_func_some_hints(self):
         """ Expectation: Type checks are only enforced on Arguments with hint.
             Argument without hints should be accepted
         """
@@ -45,24 +31,6 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(test_func, 'str', 0)
         self.assertNoRaise(test_func, 0.5, 0)
         self.assertRaises(TypeError, test_func, 'str', 0.0)
-
-    def test_func_some_hints_and_return(self):
-        """ Expectation: Type checks are only enforced on Arguments with hint.
-            Argument without hints should be accepted. Additionally
-            Return types must be checked if specified.
-        """
-
-        @RuntimeTypeCheckEnable()
-        def test_func_valid(arg1: str, arg2) -> str:
-            return 'str'
-
-        @RuntimeTypeCheckEnable()
-        def test_func_invalid(arg1: str, arg2) -> int:
-            return 'str'
-
-        self.assertNoRaise(test_func_valid, 'str', 0)
-        self.assertRaises(TypeError, test_func_valid, 0, 0)
-        self.assertRaises(TypeError, test_func_invalid, 'str', 0.0)
 
 
     def test_object(self):
@@ -75,22 +43,17 @@ class RuntimeTypeCheckTest(unittest.TestCase):
                 pass
 
             @RuntimeTypeCheckEnable()
-            def ok(self, arg: str) -> str:
+            def __call__(self, arg: str) -> str:
                 return arg
 
-            @RuntimeTypeCheckEnable()
-            def err(self, arg: str) -> int:
-                return arg
 
         # Invalid construction
         self.assertRaises(TypeError, TestObject, 0.0, 0)
 
         obj = TestObject('str', 0)
-        self.assertNoRaise(obj.ok, 'arg')
+        self.assertNoRaise(obj, 'arg')
 
-        self.assertRaises(TypeError, obj.ok, 0.0)
-        self.assertRaises(TypeError, obj.err, 'str')
-        self.assertRaises(TypeError, obj.err, 0)
+        self.assertRaises(TypeError, obj, 0.0)
 
     def test_union(self):
         """ Expectation: int and string are valid parameters. Everything else must throw """
@@ -143,3 +106,29 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(func, (1, 2, 3, 4, 5, 6))
         self.assertRaises(TypeError, func, ('str', ))
         self.assertRaises(TypeError, func, (1, 'str'))
+
+    def test_tuple_empty(self):
+        """ Empty Tuples must satisfy the requirements to Tuple types as argument and results """
+        @RuntimeTypeCheckEnable()
+        def func(arg: Tuple[int, ...]) -> Tuple[int, ...]:
+            return ()
+
+        self.assertNoRaise(func, ())
+        self.assertEqual(func(()), ())
+
+    @unittest.skip('Fix me')
+    def test_tuple_union(self):
+        """ Tuples of union types must be detected correctly """
+        @RuntimeTypeCheckEnable()
+        def func(arg: Tuple[Union[int, str], ...]) -> Tuple[Union[int, str], ...]:
+            return arg
+
+        self.assertNoRaise(func, (0,))
+        self.assertNoRaise(func, ('1',))
+        self.assertNoRaise(func, (2, 3))
+        self.assertNoRaise(func, ('4', '5'))
+        self.assertNoRaise(func, (6, '7'))
+        self.assertNoRaise(func, ('8', 9))
+
+        self.assertEqual(func((10, '11', 12)), (10, '11', 12))
+        self.assertEqual(func(('13', 14, '15')), ('13', 14, '15'))

@@ -8,7 +8,7 @@ All contained error types add a Log entry upon error construction.
 <Insert license here>
 """
 
-from vimba.util import Log
+from .util import Log
 
 __all__ = [
     'VimbaSystemError',

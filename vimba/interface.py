@@ -9,12 +9,12 @@ This module allows access to all detected interfaces.
 
 import enum
 from typing import Tuple, List, Callable
-from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
-from vimba.c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
-from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
-                          filter_affected_features, filter_selected_features, FeatureTypes, \
-                          FeaturesTuple
-from vimba.util import TraceEnable, RuntimeTypeCheckEnable
+from .c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
+from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
+from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
+                     filter_affected_features, filter_selected_features, FeatureTypes, \
+                     FeaturesTuple
+from .util import TraceEnable, RuntimeTypeCheckEnable
 
 
 __all__ = [

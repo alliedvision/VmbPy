@@ -11,8 +11,8 @@ def _assertNoRaise(self, func, *args, **kwargs):
     try:
         func(*args, **kwargs)
 
-    except:
-      self.fail('Function raised')
+    except BaseException as e:
+      self.fail('Function raised: {}'.format(e))
 
 unittest.TestCase.assertNoRaise = _assertNoRaise
 
@@ -30,6 +30,8 @@ import tests.vimba_test
 
 import file_tl_tests.vimba_test
 import file_tl_tests.feature_test
+import file_tl_tests.camera_test
+import file_tl_tests.frame_test
 
 # Assign test cases to test suites
 BASIC_TEST_MODS = [
@@ -43,7 +45,9 @@ BASIC_TEST_MODS = [
 
 FILETL_TEST_MODS = [
     file_tl_tests.vimba_test,
-    file_tl_tests.feature_test
+    file_tl_tests.feature_test,
+    file_tl_tests.camera_test,
+    file_tl_tests.frame_test
 ]
 
 

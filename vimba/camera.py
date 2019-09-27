@@ -7,15 +7,16 @@ This module allows access to a detected camera.
 <Insert license here>
 """
 import enum
-from typing import Tuple, List, Callable, cast
-from vimba.c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
-from vimba.c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
-                            VimbaCError, VmbError
-from vimba.feature import discover_features, discover_feature, filter_features_by_name, \
-                          filter_features_by_type, filter_affected_features, \
-                          filter_selected_features, FeatureTypes, FeaturesTuple
-from vimba.util import TraceEnable, RuntimeTypeCheckEnable
-from vimba.error import VimbaSystemError
+from typing import Tuple, List, Callable, cast, Optional, Type
+from .c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
+from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
+                       VimbaCError, VmbError
+from .feature import discover_features, discover_feature, filter_features_by_name, \
+                     filter_features_by_type, filter_affected_features, \
+                     filter_selected_features, FeatureTypes, FeaturesTuple
+from .frame import Frame, FrameTuple
+from .util import TraceEnable, RuntimeTypeCheckEnable
+from .error import VimbaSystemError
 
 
 __all__ = [
@@ -25,9 +26,11 @@ __all__ = [
     'CamerasTuple',
     'CamerasList',
     'discover_cameras',
-    'discover_camera'
+    'discover_camera',
+    'FrameHandler'
 ]
 
+FrameHandler = Callable[[Type['Camera'], Frame], None]
 
 class AccessMode(enum.IntEnum):
     """Enum specifying all available access modes for camera access.
@@ -53,6 +56,19 @@ class Camera:
     Basic Camera properties like Name and Model can be access outside of the context.
     """
 
+    class __FrameFetcher:
+        @TraceEnable()
+        def __init__(self, limit: Optional[int]):
+            self.__limit: Optional[int] = limit
+
+        @TraceEnable()
+        def __iter__(self) -> Type['Camera.__FrameFetcher']:
+            raise NotImplementedError('Impl Me')
+
+        @TraceEnable()
+        def __next__(self) -> Frame:
+            raise NotImplementedError('Impl Me')
+
     @TraceEnable()
     def __init__(self, info: VmbCameraInfo, access_mode: AccessMode):
         """Do not call directly. Access Cameras via vimba.System instead."""
@@ -61,6 +77,8 @@ class Camera:
         self.__access_mode: AccessMode = access_mode
         self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
+        self.__frame_buffers: FrameTuple = ()
+        self.__frame_handler: Optional[FrameHandler] = None
 
     @TraceEnable()
     def __enter__(self):
@@ -211,6 +229,28 @@ class Camera:
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
         return filter_features_by_name(self.__feats, feat_name)
+
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
+    def get_frame_iter(self, limit: Optional[int]) -> Type['Camera.__FrameFetcher']:
+        raise NotImplementedError('Impl Me')
+
+    @TraceEnable()
+    def get_frame(self) -> Frame:
+        raise NotImplementedError('Impl Me')
+
+    @TraceEnable()
+    #@RuntimeTypeCheckEnable()
+    def start_streaming(self, handler: FrameHandler, buffer_count: int = 5):
+        raise NotImplementedError('Impl Me')
+
+    @TraceEnable()
+    def stop_streaming(self):
+        raise NotImplementedError('Impl Me')
+
+    @TraceEnable()
+    def requeue_frame(self):
+        raise NotImplementedError('Impl Me')
 
     @TraceEnable()
     def _open(self):

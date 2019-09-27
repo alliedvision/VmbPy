@@ -36,11 +36,7 @@ class RuntimeTypeCheckEnable:
             for name_hint, type_hint in self.__hints.items():
                 self.__verify_arg(type_hint, name_hint)
 
-            return_value = func(*args)
-
-            self.__verify_result(return_value)
-
-            return return_value
+            return func(*args)
 
         return wrapper
 
@@ -64,23 +60,6 @@ class RuntimeTypeCheckEnable:
         msg += ' Expected type: {},'
         msg += ' Actual type: {}'
         msg = msg.format(self.__func.__qualname__, arg_name, expected, actual)
-
-        RuntimeTypeCheckEnable._log.error(msg)
-        raise TypeError(msg)
-
-    def __verify_result(self, return_value: Any):
-        expected = self.__return_type
-        actual = type(return_value)
-
-        if ((not expected) or self.__matches_base_types(expected, actual) or
-                self.__matches_union_types(expected, actual) or
-                self.__matches_tuple_types(expected, actual, return_value)):
-            return
-
-        msg = '\'{}\' returned unexpected type.'
-        msg += ' Expected type: {},'
-        msg += ' Actual type: {}'
-        msg = msg.format(self.__func.__qualname__, expected, actual)
 
         RuntimeTypeCheckEnable._log.error(msg)
         raise TypeError(msg)
@@ -109,6 +88,9 @@ class RuntimeTypeCheckEnable:
 
         except AttributeError:
             return False
+
+        if arg_tuple is ():
+            return True
 
         if Ellipsis in expected.__args__:
             return self.__matches_var_length_tuple(expected.__args__, arg_tuple)

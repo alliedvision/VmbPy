@@ -9,16 +9,16 @@ for Camera, Interface and system Feature detection and access.
 """
 from threading import Lock
 from typing import List
-from vimba.c_binding import call_vimba_c_func, G_VIMBA_HANDLE
-from vimba.feature import discover_features, filter_features_by_name, filter_features_by_type, \
-                          filter_affected_features, filter_selected_features, FeatureTypes, \
-                          FeaturesTuple
-from vimba.interface import Interface, InterfaceChangeHandler, InterfacesTuple, InterfacesList, \
-                            discover_interfaces, discover_interface
-from vimba.camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, CamerasList, \
-                         discover_cameras, discover_camera
-from vimba.util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
-from vimba.error import VimbaCameraError, VimbaInterfaceError
+from .c_binding import call_vimba_c_func, G_VIMBA_HANDLE
+from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
+                     filter_affected_features, filter_selected_features, FeatureTypes, \
+                     FeaturesTuple
+from .interface import Interface, InterfaceChangeHandler, InterfacesTuple, InterfacesList, \
+                       discover_interfaces, discover_interface
+from .camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, CamerasList, \
+                    discover_cameras, discover_camera
+from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
+from .error import VimbaCameraError, VimbaInterfaceError
 
 __all__ = [
     'Vimba'
@@ -225,7 +225,7 @@ class Vimba:
             """
             return filter_selected_features(self.__feats, feat)
 
-        #@RuntimeTypeCheckEnable()
+        @RuntimeTypeCheckEnable()
         def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
             """Get all system features of a specific feature type.
 
