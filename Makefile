@@ -14,6 +14,7 @@ STATIC_TEST_JUNIT_DIR  := $(STATIC_TEST_REPORT_DIR)/junit
 
 TEST_TMP_FILES         := $(TEST_REPORT_DIR)/temporary_files
 
+
 clean:
 	-rm -r $(TEST_REPORT_DIR)
 

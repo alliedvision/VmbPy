@@ -20,6 +20,7 @@ from .camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, Camer
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaCameraError, VimbaInterfaceError
 
+
 __all__ = [
     'Vimba'
 ]
@@ -46,6 +47,7 @@ class Vimba:
             self.__cams: CamerasList = ()
             self.__cams_lock: Lock = Lock()
             self.__cams_access_mode: AccessMode = AccessMode.Full
+            self.__cams_capture_timeout: int = 2000
             self.__cams_handlers: List[CameraChangeHandler] = []
             self.__cams_handlers_lock: Lock = Lock()
 
@@ -87,6 +89,26 @@ class Vimba:
                 Currently configured camera access mode
             """
             return self.__cams_access_mode
+
+        @RuntimeTypeCheckEnable()
+        def set_camera_capture_timeout(self, millis):
+            """Set default camera frame capture timeout in milliseconds.
+
+            Arguments:
+                millis - The new default capture timeout to use.
+
+            Raises:
+                TypeError if 'millis' is no integer.
+                ValueError if 'millis' is negative
+            """
+            if millis <= 0:
+                raise ValueError('Given Timeout {} must be positive.'.format(millis))
+
+            self.__cams_capture_timeout = millis
+
+        def get_camera_capture_timeout(self) -> int:
+            """Get default camera frame capture timeout in milliseconds"""
+            return self.__cams_capture_timeout
 
         @RuntimeTypeCheckEnable()
         def set_network_discovery(self, enable: bool):
@@ -334,7 +356,8 @@ class Vimba:
 
             self.__feats = discover_features(G_VIMBA_HANDLE)
             self.__inters = discover_interfaces()
-            self.__cams = discover_cameras(self.__cams_access_mode, self.__nw_discover)
+            self.__cams = discover_cameras(self.__cams_access_mode, self.__cams_capture_timeout,
+                                           self.__nw_discover)
 
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
             feat.register_change_handler(self.__inter_handler)
@@ -373,7 +396,7 @@ class Vimba:
             log = Log.get_instance()
 
             if cam_avail:
-                cam = discover_camera(cam_id, self.__cams_access_mode)
+                cam = discover_camera(cam_id, self.__cams_access_mode, self.__cams_capture_timeout)
 
                 with self.__cams_lock:
                     self.__cams.append(cam)

@@ -12,7 +12,7 @@ from vimba.error import VimbaSystemError
 from .util import load_vimba_raw
 from .types import VmbBool, VmbUint32, VmbInt64, VmbUint64, VmbDouble, VmbError, VmbHandle, \
                    VmbFeatureEnumEntry, VmbFeatureInfo, VmbVersionInfo, VmbFrame, \
-                   VmbFrameCallback, VmbInvalidationCallback, VmbAccessMode, VmbInterfaceInfo, \
+                   VmbInvalidationCallback, VmbAccessMode, VmbInterfaceInfo, \
                    VmbCameraInfo, VmbFeaturePersistSettings, VimbaCError
 
 
@@ -71,7 +71,7 @@ _SIGNATURES = {
     'VmbFrameRevokeAll': (VmbError, [VmbHandle]),
     'VmbCaptureStart': (VmbError, [VmbHandle]),
     'VmbCaptureEnd': (VmbError, [VmbHandle]),
-    'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbFrameCallback]),
+    'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), c_void_p]),
     'VmbCaptureFrameWait': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbCaptureQueueFlush': (VmbError, [VmbHandle]),
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501

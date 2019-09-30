@@ -10,13 +10,13 @@ import enum
 from typing import Tuple, List, Callable, cast, Optional, Type
 from .c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
 from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
-                       VimbaCError, VmbError
+                       VimbaCError, VmbError, VmbFrame
 from .feature import discover_features, discover_feature, filter_features_by_name, \
                      filter_features_by_type, filter_affected_features, \
                      filter_selected_features, FeatureTypes, FeaturesTuple
 from .frame import Frame, FrameTuple
 from .util import TraceEnable, RuntimeTypeCheckEnable
-from .error import VimbaSystemError
+from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
 
 
 __all__ = [
@@ -30,7 +30,9 @@ __all__ = [
     'FrameHandler'
 ]
 
+
 FrameHandler = Callable[[Type['Camera'], Frame], None]
+
 
 class AccessMode(enum.IntEnum):
     """Enum specifying all available access modes for camera access.
@@ -49,32 +51,226 @@ class AccessMode(enum.IntEnum):
     Lite = VmbAccessMode.Lite
 
 
+class _CaptureHelper:
+    @TraceEnable()
+    def __init__(self, cam):
+        self.__cam = cam
+        self.__cam_handle = _cam_handle_accessor(self.__cam)
+
+    def build_camera_error(self, orig_exc: VimbaCError):
+        exc = cast(VimbaCameraError, orig_exc)
+        err = orig_exc.get_error_code()
+
+        if err == VmbError.ApiNotStarted:
+            msg = 'System not ready. \'{}\' accessed outside of system context. Abort.'
+            exc = cast(VimbaCameraError, VimbaSystemError(msg.format(self.__cam.get_id())))
+
+        elif err == VmbError.DeviceNotOpen:
+            msg = 'Camera \'{}\' accessed outside of context. Abort.'
+            exc = VimbaCameraError(msg.format(self.__cam.get_id()))
+
+        elif err == VmbError.BadHandle:
+            msg = 'Invalid Camera. \'{}\' might be disconnected. Abort.'
+            exc = VimbaCameraError(msg.format(self.__cam.get_id()))
+
+        elif err == VmbError.InvalidAccess:
+            msg = 'Invalid Access Mode on camera \'{}\'. Abort.'
+            exc = VimbaCameraError(msg.format(self.__cam.get_id()))
+
+        elif err == VmbError.Timeout:
+            msg = 'Frame capturing on Camera \'{}\' timed out.'
+            exc = cast(VimbaCameraError, VimbaTimeout(msg.format(self.__cam.get_id())))
+
+        return exc
+
+    @TraceEnable()
+    def capture_start(self):
+        exc = None
+
+        try:
+            call_vimba_c_func('VmbCaptureStart', self.__cam_handle)
+
+        except VimbaCError as e:
+            exc = self.build_camera_error(e)
+
+        if exc:
+            raise exc
+
+    @TraceEnable()
+    def capture_end(self):
+        exc = None
+
+        try:
+            call_vimba_c_func('VmbCaptureEnd', self.__cam_handle)
+
+        except VimbaCError as e:
+            exc = self.build_camera_error(e)
+
+        if exc:
+            raise exc
+
+    @TraceEnable()
+    def capture_queue_frames(self, frames: FrameTuple, handler: Optional[FrameHandler]):
+        exc = None
+
+        for frame in frames:
+            frame_handle = _frame_handle_accessor(frame)
+
+            try:
+                call_vimba_c_func('VmbCaptureFrameQueue', self.__cam_handle,
+                                  byref(frame_handle), handler)
+
+            except VimbaCError as e:
+                exc = self.build_camera_error(e)
+
+            if exc:
+                raise exc
+
+    @TraceEnable()
+    def capture_queue_flush(self):
+        exc = None
+
+        try:
+            call_vimba_c_func('VmbCaptureQueueFlush', self.__cam_handle)
+
+        except VimbaCError as e:
+            exc = self.build_camera_error(e)
+
+        if exc:
+            raise exc
+
+    @TraceEnable()
+    def capture_frames_wait(self, frames: FrameTuple):
+        exc = None
+
+        for frame in frames:
+            frame_handle = _frame_handle_accessor(frame)
+
+            try:
+                call_vimba_c_func('VmbCaptureFrameWait', self.__cam_handle, byref(frame_handle),
+                                  self.__cam.get_capture_timeout())
+
+            except VimbaCError as e:
+                exc = self.build_camera_error(e)
+
+            if exc:
+                raise exc
+
+    @TraceEnable()
+    def aquisition_start(self):
+        self.__cam.get_feature_by_name('AcquisitionStart').run()
+
+    @TraceEnable()
+    def aquisition_stop(self):
+        self.__cam.get_feature_by_name('AcquisitionStop').run()
+
+    @TraceEnable()
+    def announce_frames(self, frames: FrameTuple):
+        exc = None
+
+        for frame in frames:
+            frame_handle = _frame_handle_accessor(frame)
+
+            try:
+                call_vimba_c_func('VmbFrameAnnounce', self.__cam_handle,
+                                  byref(frame_handle), sizeof(frame_handle))
+
+            except VimbaCError as e:
+                exc = self.build_camera_error(e)
+
+            if exc:
+                raise exc
+
+    @TraceEnable()
+    def revoke_frames(self, frames: FrameTuple):
+        exc = None
+
+        for frame in frames:
+            try:
+                frame_handle = _frame_handle_accessor(frame)
+
+                call_vimba_c_func('VmbFrameRevoke', self.__cam_handle,
+                                  byref(frame_handle))
+
+            except VimbaCError as e:
+                exc = self.build_camera_error(e)
+
+            if exc:
+                raise exc
+
+    @TraceEnable()
+    def revoke_all_frames(self):
+        exc = None
+
+        try:
+            call_vimba_c_func('VmbFrameRevokeAll', self.__cam_handle)
+
+        except VimbaCError as e:
+            exc = self.build_camera_error(e)
+
+        if exc:
+            raise exc
+
+
+class _FrameIter:
+    @TraceEnable()
+    def __init__(self, limit: Optional[int], payload_size: int, capture_helper: _CaptureHelper):
+        self.__limit: Optional[int] = limit
+        self.__payload_size: int = payload_size
+        self.__cap_help: _CaptureHelper = capture_helper
+
+    @TraceEnable()
+    def __iter__(self):
+        return self
+
+    @TraceEnable()
+    def __next__(self):
+        if self.__limit is not None:
+            if self.__limit == 0:
+                raise StopIteration
+
+            else:
+                self.__limit -= 1
+
+        # Allocate Frame, capture it and return
+        frame = Frame(self.__payload_size)
+        frames = (frame, )
+
+        self.__cap_help.announce_frames(frames)
+        try:
+            self.__cap_help.capture_start()
+            try:
+                self.__cap_help.capture_queue_frames(frames, None)
+                try:
+                    self.__cap_help.aquisition_start()
+                    try:
+                        self.__cap_help.capture_frames_wait(frames)
+                    finally:
+                        self.__cap_help.aquisition_stop()
+                finally:
+                    self.__cap_help.capture_end()
+            finally:
+                self.__cap_help.capture_queue_flush()
+        finally:
+            self.__cap_help.revoke_frames(frames)
+
+        return frame
+
+
 class Camera:
     """This class allows access a Camera detected by the Vimba System.
     Camera is meant be used in conjunction with the "with" - Statement. On entering a context
     all Camera features are detected and can be accessed within the context.
     Basic Camera properties like Name and Model can be access outside of the context.
     """
-
-    class __FrameFetcher:
-        @TraceEnable()
-        def __init__(self, limit: Optional[int]):
-            self.__limit: Optional[int] = limit
-
-        @TraceEnable()
-        def __iter__(self) -> Type['Camera.__FrameFetcher']:
-            raise NotImplementedError('Impl Me')
-
-        @TraceEnable()
-        def __next__(self) -> Frame:
-            raise NotImplementedError('Impl Me')
-
     @TraceEnable()
-    def __init__(self, info: VmbCameraInfo, access_mode: AccessMode):
+    def __init__(self, info: VmbCameraInfo, access_mode: AccessMode, capture_timeout: int):
         """Do not call directly. Access Cameras via vimba.System instead."""
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = access_mode
+        self.__capture_timeout = capture_timeout
+
         self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
         self.__frame_buffers: FrameTuple = ()
@@ -119,12 +315,28 @@ class Camera:
         self.__access_mode = access_mode
 
     def get_access_mode(self) -> AccessMode:
-        """Get camera access mode
-
-        Returns:
-            Currently configured camera access mode
-        """
+        """Get current camera access mode"""
         return self.__access_mode
+
+    @RuntimeTypeCheckEnable()
+    def set_capture_timeout(self, millis):
+        """Set camera frame capture timeout in milliseconds.
+
+        Arguments:
+            millis - The new default capture timeout to use.
+
+        Raises:
+            TypeError if 'millis' is no integer.
+            ValueError if 'millis' is negative
+        """
+        if millis <= 0:
+            raise ValueError('Given Timeout {} must be positive.'.format(millis))
+
+        self.__capture_timeout = millis
+
+    def get_capture_timeout(self) -> int:
+        """Get camera frame capture timeout in milliseconds"""
+        return self.__capture_timeout
 
     def get_id(self) -> str:
         """Get Camera Id, e.g. DEV_1AB22C00041B"""
@@ -232,12 +444,46 @@ class Camera:
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
-    def get_frame_iter(self, limit: Optional[int]) -> Type['Camera.__FrameFetcher']:
-        raise NotImplementedError('Impl Me')
+    def get_frame_iter(self, limit: Optional[int] = None) -> _FrameIter:
+        """Construct frame iterator, providing synchronous camera access.
+
+        The Frame iterator acquires a new frame with each iteration.
+
+        Arguments:
+            limit - The number of images the iterator should acquire. If limit is None
+                    the iterator will produce an unlimited amount of images and must be
+                    stopped by the user supplied code.
+
+        Returns:
+            frame_iter object
+
+        Raises:
+            ValueError if a limit is supplied and it is not positive.
+            VimbaCameraError if the camera is outside of its implemented context.
+        """
+        if limit and (limit < 0):
+            raise ValueError('Given Limit {} is not >= 0'.format(limit))
+
+        if not self.__handle:
+            msg = 'Camera \'{}\' not ready for frame acquisition. Open camera via \'with\' .'
+            raise VimbaCameraError(msg)
+
+        payload_size = self.get_feature_by_name('PayloadSize').get()
+        capture_helper = _CaptureHelper(self)
+
+        return _FrameIter(limit, payload_size, capture_helper)
 
     @TraceEnable()
     def get_frame(self) -> Frame:
-        raise NotImplementedError('Impl Me')
+        """Get single frame from camera. Synchronous access.
+
+        Returns:
+            Frame from camera
+
+        Raises:
+            VimbaCameraError if camera is outside of its context.
+        """
+        return self.get_frame_iter(1).__next__()
 
     @TraceEnable()
     #@RuntimeTypeCheckEnable()
@@ -302,7 +548,8 @@ CamerasList = List[Camera]
 
 
 @TraceEnable()
-def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> CamerasList:
+def discover_cameras(access_mode: AccessMode, capture_timeout: int,
+                     network_discovery: bool) -> CamerasList:
     """Do not call directly. Access Cameras via vimba.Vimba instead."""
 
     if network_discovery:
@@ -321,17 +568,25 @@ def discover_cameras(access_mode: AccessMode, network_discovery: bool) -> Camera
                           sizeof(VmbCameraInfo))
 
         for info in cams_infos[:cams_found.value]:
-            result.append(Camera(info, access_mode))
+            result.append(Camera(info, access_mode, capture_timeout))
 
     return result
 
 
 @TraceEnable()
-def discover_camera(id_: str, access_mode: AccessMode) -> Camera:
+def discover_camera(id_: str, access_mode: AccessMode, capture_timeout: int) -> Camera:
     """Do not call directly. Access Cameras via vimba.Vimba instead."""
 
     info = VmbCameraInfo()
 
     call_vimba_c_func('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
 
-    return Camera(info, access_mode)
+    return Camera(info, access_mode, capture_timeout)
+
+
+def _cam_handle_accessor(cam) -> VmbHandle:
+    return cam._Camera__handle
+
+
+def _frame_handle_accessor(frame) -> VmbFrame:
+    return frame._Frame__frame

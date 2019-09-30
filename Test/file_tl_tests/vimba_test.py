@@ -7,7 +7,9 @@ class TlVimbaTest(unittest.TestCase):
         pass
 
     def tearDown(self):
-        pass
+        vimba = Vimba.get_instance()
+        vimba.set_camera_access_mode(AccessMode.Full)
+        vimba.set_camera_capture_timeout(2000)
 
     def test_context_entry_exit(self):
         """ Expected Behavior for FileTL:
@@ -30,6 +32,21 @@ class TlVimbaTest(unittest.TestCase):
         self.assertEqual(vimba.get_all_features(), ())
         self.assertEqual(vimba.get_all_interfaces(), ())
         self.assertEqual(vimba.get_all_cameras(), ())
+
+    def test_global_value_propagation(self):
+        """Expectation: Global Settings in Vimba are passed down to discovered entities"""
+        vimba = Vimba.get_instance()
+        vimba.set_camera_access_mode(AccessMode.Read)
+
+        with vimba:
+            for cam in vimba.get_all_cameras():
+                self.assertEqual(cam.get_access_mode(), vimba.get_camera_access_mode())
+
+        vimba.set_camera_capture_timeout(100)
+
+        with vimba:
+            for cam in vimba.get_all_cameras():
+                self.assertEqual(cam.get_capture_timeout(), vimba.get_camera_capture_timeout())
 
     def test_get_all_interfaces(self):
         """Expected Behavior for FileTL:

@@ -1,6 +1,7 @@
 import unittest
 
 from vimba import *
+from vimba.frame import *
 
 class TlCameraTest(unittest.TestCase):
     def setUp(self):
@@ -9,9 +10,11 @@ class TlCameraTest(unittest.TestCase):
 
         self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
         self.cam.set_access_mode(AccessMode.Full)
+        self.cam.set_capture_timeout(2000)
 
         self.other_cam = self.vimba.get_camera_by_id('DEV_Testimage2')
         self.other_cam.set_access_mode(AccessMode.Full)
+        self.other_cam.set_capture_timeout(2000)
 
     def tearDown(self):
         self.vimba._shutdown()
@@ -58,6 +61,17 @@ class TlCameraTest(unittest.TestCase):
         self.cam.set_access_mode(AccessMode.Read)
         self.assertEqual(self.cam.get_access_mode(), AccessMode.Read)
 
+    def test_capture_timeout(self):
+        """Expectation: set/get access mode"""
+        self.cam.set_capture_timeout(2001)
+        self.assertEqual(self.cam.get_capture_timeout(), 2001)
+
+        self.assertRaises(ValueError, self.cam.set_capture_timeout, 0)
+        self.assertRaises(ValueError, self.cam.set_capture_timeout, -1)
+
+        self.assertEqual(self.cam.get_capture_timeout(), 2001)
+
+
     def test_get_id(self):
         """Expectation: get decoded camera id"""
         self.assertEqual(self.cam.get_id(),'DEV_Testimage1')
@@ -72,7 +86,7 @@ class TlCameraTest(unittest.TestCase):
 
     def test_get_serial(self):
         """Expectation: get decoded camera serial"""
-        self.assertEqual(self.cam.get_serial(),'N/A')
+        self.assertEqual(self.cam.get_serial(), 'N/A')
 
     def test_get_permitted_access_modes(self):
         """Expectation: get currently permitted access modes"""
@@ -135,10 +149,72 @@ class TlCameraTest(unittest.TestCase):
                     self.other_cam.get_feature_by_name('DeviceID')
                 )
 
+    def test_frame_iterator_limit_set(self):
+        """Expectation: The Frame Iterator fetches the given number of images."""
+        with self.cam:
+            self.assertEqual(len([i for i in self.cam.get_frame_iter(0)]), 0)
+            self.assertEqual(len([i for i in self.cam.get_frame_iter(1)]), 1)
+            self.assertEqual(len([i for i in self.cam.get_frame_iter(7)]), 7)
+            self.assertEqual(len([i for i in self.cam.get_frame_iter(11)]), 11)
+
+    def test_frame_iterator_error(self):
+        """Expectation: The Frame Iterator raises a VimbaCameraError on a
+        negative limit and the camera raises an VimbaCameraError
+        if the camera is not opened.
+        """
+        # Check limits
+        self.assertRaises(ValueError, self.cam.get_frame_iter, -1)
+
+        # Usage on closed camera
+        try:
+            [i for i in self.cam.get_frame_iter(1)]
+            self.fail('Generator expression on closed camera must raise')
+
+        except VimbaCameraError:
+            pass
+
+    def test_get_frame(self):
+        """Expectation: Gets single Frame without any exception. Image data must be set"""
+        with self.cam:
+            self.assertNoRaise(self.cam.get_frame)
+            self.assertEqual(type(self.cam.get_frame()), Frame)
+
+
+    def test_capture_error_outside_vimba_scope(self):
+        """Expectation: Camera access outside of Vimba scope must lead to a VimbaSystemError"""
+        frame_iter = None
+
+        with self.cam:
+            frame_iter = self.cam.get_frame_iter(1)
+
+        # Shutdown API
+        self.vimba._shutdown()
+
+        # Access invalid Iterator
+        self.assertRaises(VimbaSystemError, frame_iter.__next__)
+
+    def test_capture_error_outside_camera_scope(self):
+        """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
+        frame_iter = None
+
+        with self.cam:
+            frame_iter = self.cam.get_frame_iter(1)
+
+        self.assertRaises(VimbaCameraError, frame_iter.__next__)
+
+    def test_capture_timeout(self):
+        """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
+        self.cam.set_capture_timeout(1)
+
+        with self.cam:
+            self.assertRaises(VimbaTimeout, self.cam.get_frame)
+
+
     @unittest.skip('Fix me')
     def test_runtime_type_check(self):
         """Expectation: raise TypeError on passing invalid parameters"""
         self.assertRaises(TypeError,  self.cam.set_access_mode, -1)
+        self.assertRaises(TypeError,  self.cam.set_capture_timeout_millisec, 'hi')
         self.assertRaises(TypeError,  self.cam.get_features_affected_by, 'No Feature')
         self.assertRaises(TypeError,  self.cam.get_features_selected_by, 'No Feature')
         self.assertRaises(TypeError,  self.cam.get_features_by_type, 0.0)
