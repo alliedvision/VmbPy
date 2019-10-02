@@ -12,8 +12,11 @@ __version__ = '0.0.1'
 
 __all__ = [
     'Vimba',
+    'Camera',
     'CameraChangeHandler',
+    'Interface',
     'InterfaceChangeHandler',
+    'Frame',
     'FrameHandler',
 
     'AccessMode',
@@ -57,9 +60,11 @@ __all__ = [
 
 from .vimba import Vimba
 
-from .camera import AccessMode, CameraChangeHandler, FrameHandler
+from .camera import AccessMode, Camera, CameraChangeHandler, FrameHandler
 
-from .interface import InterfaceChangeHandler
+from .interface import Interface, InterfaceChangeHandler
+
+from .frame import Frame
 
 from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
                    VimbaTimeout

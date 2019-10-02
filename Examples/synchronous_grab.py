@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from vimba import *
 
-#TODO: Store images
+#TODO: improve this
 
 def main():
     with Vimba.get_instance() as vimba:
@@ -27,19 +27,13 @@ def main():
                     pass
 
                 #4) Get frames until a event occurred
-                class Stop(Exception):
-                    pass
-
                 try:
                     for no, frame in enumerate(cam.get_frame_iter(None)):
                         if no == 9:
-                            raise Stop()
+                            raise StopIteration
 
-                        else:
-                            print('{}'.format(no))
-
-                except Stop:
-                    print('Stopped')
+                except StopIteration:
+                    pass
 
 
 if __name__ == '__main__':

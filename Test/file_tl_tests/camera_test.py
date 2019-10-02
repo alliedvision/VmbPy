@@ -1,7 +1,11 @@
 import unittest
+import threading
 
 from vimba import *
 from vimba.frame import *
+
+def dummy_frame_handler(cam: Camera, frame: Frame):
+    pass
 
 class TlCameraTest(unittest.TestCase):
     def setUp(self):
@@ -173,6 +177,22 @@ class TlCameraTest(unittest.TestCase):
         except VimbaCameraError:
             pass
 
+        # Iterator execution must throw if streaming is enabled
+        with self.cam:
+            self.cam.start_streaming(dummy_frame_handler)
+
+            self.assertRaises(VimbaCameraError, self.cam.get_frame)
+
+            iter_ = self.cam.get_frame_iter(1)
+            self.assertRaises(VimbaCameraError, iter_.__next__)
+
+            # Stop Streaming: Everything should be fine.
+            self.cam.stop_streaming()
+            self.assertNoRaise(self.cam.get_frame)
+
+            iter_ = self.cam.get_frame_iter(1)
+            self.assertNoRaise(iter_.__next__)
+
     def test_get_frame(self):
         """Expectation: Gets single Frame without any exception. Image data must be set"""
         with self.cam:
@@ -181,7 +201,7 @@ class TlCameraTest(unittest.TestCase):
 
 
     def test_capture_error_outside_vimba_scope(self):
-        """Expectation: Camera access outside of Vimba scope must lead to a VimbaSystemError"""
+        """Expectation: Camera access outside of Vimba scope must lead to a VimbaCameraError"""
         frame_iter = None
 
         with self.cam:
@@ -191,7 +211,7 @@ class TlCameraTest(unittest.TestCase):
         self.vimba._shutdown()
 
         # Access invalid Iterator
-        self.assertRaises(VimbaSystemError, frame_iter.__next__)
+        self.assertRaises(VimbaCameraError, frame_iter.__next__)
 
     def test_capture_error_outside_camera_scope(self):
         """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
@@ -209,6 +229,97 @@ class TlCameraTest(unittest.TestCase):
         with self.cam:
             self.assertRaises(VimbaTimeout, self.cam.get_frame)
 
+    def test_is_streaming(self):
+        """Expectation: After start_streaming() is_streaming() must return true. After stop it must
+        return false. If the camera context is left without any stoping the stream, leaving
+        the context must stop streaming.
+        """
+
+        # Normal Operation
+        self.assertEqual(self.cam.is_streaming(), False)
+        with self.cam:
+            self.cam.start_streaming(dummy_frame_handler)
+            self.assertEqual(self.cam.is_streaming(), True)
+
+            self.cam.stop_streaming()
+            self.assertEqual(self.cam.is_streaming(), False)
+
+        # Missing the stream stop. Close must stop streaming
+        with self.cam:
+            self.cam.start_streaming(dummy_frame_handler)
+            self.assertEqual(self.cam.is_streaming(), True)
+
+        self.assertEqual(self.cam.is_streaming(), False)
+
+    def test_streaming_error_frame_count(self):
+        """Expectation: A negative or zero frame_count must lead to an value error"""
+        self.assertRaises(VimbaCameraError, self.cam.start_streaming, 0)
+        self.assertRaises(VimbaCameraError, self.cam.start_streaming, -1)
+
+    def test_streaming(self):
+        """Expectation: A given frame_handler must be executed for each buffered frame. """
+
+        class FrameHandler:
+            def __init__(self, frame_count, test):
+                self.cnt = 0
+                self.frame_count = frame_count
+                self.test = test
+                self.event = threading.Event()
+
+            def __call__(self, cam: Camera, frame: Frame):
+                self.test.assertEqual(self.cnt, frame.get_id())
+                self.cnt += 1
+
+                if self.cnt == self.frame_count:
+                    self.event.set()
+
+        timeout = 5.0
+        frame_count = 10
+        handler = FrameHandler(frame_count, self)
+
+        with self.cam:
+            self.cam.start_streaming(handler, frame_count)
+
+            # Wait until the FrameHandler has been executed for each queued frame
+            self.assertTrue(handler.event.wait(timeout))
+
+            self.cam.stop_streaming()
+
+    def test_streaming_requeue(self):
+        """Expectation: A given frame_handler must be reused if it is enqueued again. """
+
+        self.vimba.enable_log(LOG_CONFIG_INFO_FILE_ONLY)
+
+        class FrameHandler:
+            def __init__(self, frame_count, test):
+                self.cnt = 0
+                self.frame_count = frame_count
+                self.test = test
+                self.event = threading.Event()
+
+            def __call__(self, cam: Camera, frame: Frame):
+                self.test.assertEqual(self.cnt, frame.get_id())
+                self.cnt += 1
+
+                if self.cnt == self.frame_count:
+                    self.event.set()
+
+                cam.requeue_frame(frame)
+
+        timeout = 5.0
+        frame_count = 5
+        frame_reuse = 5
+        handler = FrameHandler(frame_count * frame_reuse, self)
+
+        with self.cam:
+            self.cam.start_streaming(handler, frame_count)
+
+            # Wait until the FrameHandler has been executed for each queued frame
+            self.assertTrue(handler.event.wait(timeout))
+
+            self.cam.stop_streaming()
+
+        self.vimba.disable_log()
 
     @unittest.skip('Fix me')
     def test_runtime_type_check(self):

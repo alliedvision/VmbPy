@@ -5,7 +5,7 @@ from vimba.frame import *
 
 class TlFrameTest(unittest.TestCase):
     def setUp(self):
-        pass
+        self.vimba = Vimba.get_instance()
 
     def tearDown(self):
         pass
@@ -22,4 +22,3 @@ class TlFrameTest(unittest.TestCase):
         """Expectation: Accessing the internal buffer must not create a copy"""
         frame = Frame(10)
         self.assertEqual(id(frame._Frame__buffer), id(frame.get_buffer()))
-

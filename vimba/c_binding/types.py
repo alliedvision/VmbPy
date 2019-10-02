@@ -816,9 +816,7 @@ class VmbFeaturePersistSettings(ctypes.Structure):
 
 VmbInvalidationCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.c_char_p,
                                            ctypes.c_void_p)
-
 VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
-
 
 G_VIMBA_HANDLE = VmbHandle(1)
 

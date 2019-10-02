@@ -28,6 +28,12 @@ __all__ = [
 ]
 
 
+# Forward declarations
+InterfaceChangeHandler = Callable[['Interface', bool], None]
+InterfacesTuple = Tuple['Interface', ...]
+InterfacesList = List['Interface']
+
+
 class InterfaceType(enum.IntEnum):
     """Enum specifying all interface types.
 
@@ -199,11 +205,6 @@ class Interface:
         call_vimba_c_func('VmbInterfaceClose', self.__handle)
 
         self.__handle = VmbHandle(0)
-
-
-InterfaceChangeHandler = Callable[[Interface, bool], None]
-InterfacesTuple = Tuple[Interface, ...]
-InterfacesList = List[Interface]
 
 
 @TraceEnable()

@@ -360,10 +360,10 @@ class Vimba:
                                            self.__nw_discover)
 
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
-            feat.register_change_handler(self.__inter_handler)
+            feat.register_change_handler(self.__cam_cb_wrapper)
 
             feat = self.get_feature_by_name('DiscoveryCameraEvent')
-            feat.register_change_handler(self.__cam_handler)
+            feat.register_change_handler(self.__inter_cb_wrapper)
 
         @TraceEnable()
         def _shutdown(self):
@@ -381,7 +381,7 @@ class Vimba:
 
             call_vimba_c_func('VmbShutdown')
 
-        def __cam_handler(self, cam_event):   # coverage: skip
+        def __cam_cb_wrapper(self, cam_event):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
 
             # Early return for 'Unrechable', 'Reachable'. These value are triggered on
@@ -414,9 +414,18 @@ class Vimba:
 
             with self.__cams_handlers_lock:
                 for handler in self.__cams_handlers:
-                    handler(cam, cam_avail)
+                    try:
+                        handler(cam, cam_avail)
 
-        def __inter_handler(self, inter_event):   # coverage: skip
+                    except BaseException as e:
+                        msg = 'Caught Exception in handler: '
+                        msg += 'Type: {}, '.format(type(e))
+                        msg += 'Value: {}, '.format(e)
+                        msg += 'raised by: {}'.format(handler)
+
+                        Log.get_instance().error(msg)
+
+        def __inter_cb_wrapper(self, inter_event):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
             inter_avail = True if str(inter_event.get()) == 'Available' else False
             inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
@@ -441,7 +450,16 @@ class Vimba:
 
             with self.__inters_handlers_lock:
                 for handler in self.__inters_handlers:
-                    handler(inter, inter_avail)
+                    try:
+                        handler(inter, inter_avail)
+
+                    except BaseException as e:
+                        msg = 'Caught Exception in handler: '
+                        msg += 'Type: {}, '.format(type(e))
+                        msg += 'Value: {}, '.format(e)
+                        msg += 'raised by: {}'.format(handler)
+
+                        Log.get_instance().error(msg)
 
     __instance = __Impl()
 

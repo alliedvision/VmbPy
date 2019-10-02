@@ -60,7 +60,8 @@ from .types import VmbInt8,  VmbUint8,  VmbInt16,  VmbUint16,  VmbInt32, VmbUint
                    VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, VmbFrameFlags, \
                    VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
-                   VmbInvalidationCallback, VmbFrameCallback, G_VIMBA_HANDLE, VimbaCError
+                   VmbInvalidationCallback, VmbFrameCallback, \
+                   G_VIMBA_HANDLE, VimbaCError
 
 from .api import EXPECTED_VIMBA_C_VERSION, call_vimba_c_func
 

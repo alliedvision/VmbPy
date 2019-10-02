@@ -9,7 +9,7 @@ This module contains all functionality regarding Frame and Image data.
 import enum
 import ctypes
 
-from typing import Type, Optional, Tuple
+from typing import Optional, Tuple
 from .c_binding import create_string_buffer, sizeof, decode_flags
 from .c_binding import VmbFrameStatus, VmbFrameFlags, VmbFrame
 
@@ -21,7 +21,8 @@ __all__ = [
 ]
 
 
-FrameType = Type['Frame']
+# Forward declarations
+FrameTuple = Tuple['Frame', ...]
 
 
 class PixelFormat(enum.IntEnum):
@@ -46,8 +47,11 @@ class Frame:
         self.__frame.buffer = ctypes.cast(self.__buffer, ctypes.c_void_p)
         self.__frame.bufferSize = sizeof(self.__buffer)
 
-    def __deepcopy__(self) -> FrameType:
+    def __deepcopy__(self):
         raise NotImplementedError('Impl Me')
+
+    def __str__(self):
+        return 'Frame(id={})'.format(self.get_id())
 
     def get_buffer(self) -> ctypes.Array:
         return self.__buffer
@@ -94,6 +98,3 @@ class Frame:
 
     def create_opencv_frame(self):
         raise NotImplementedError('Impl Me')
-
-
-FrameTuple = Tuple[Frame, ...]

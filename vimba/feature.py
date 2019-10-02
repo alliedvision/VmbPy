@@ -11,7 +11,7 @@ import ctypes
 import itertools
 import threading
 
-from typing import Tuple, Union, List, Callable, Type, Optional, cast
+from typing import Tuple, Union, List, Callable, Optional, cast, Type
 from .c_binding import call_vimba_c_func, byref, sizeof, create_string_buffer, decode_cstr, \
                        decode_flags
 from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
@@ -97,7 +97,7 @@ class _BaseFeature:
 
         self.__handlers: List[ChangeHandler] = []
         self.__handlers_lock = threading.Lock()
-        self.__callback = VmbInvalidationCallback(self.__callback_impl)
+        self.__feature_callback = VmbInvalidationCallback(self.__feature_cb_wrapper)
 
     def __str__(self):
         return 'Feature(name={}, type={})'.format(self.get_name(), self.get_type())
@@ -265,14 +265,14 @@ class _BaseFeature:
     @TraceEnable()
     def __register_callback(self):
         call_vimba_c_func('VmbFeatureInvalidationRegister', self._handle, self._info.name,
-                          self.__callback, None)
+                          self.__feature_callback, None)
 
     @TraceEnable()
     def __unregister_callback(self):
         call_vimba_c_func('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
-                          self.__callback)
+                          self.__feature_callback)
 
-    def __callback_impl(self, *ignored):   # coverage: skip
+    def __feature_cb_wrapper(self, *ignored):   # coverage: skip
         # Note: This function is executed from the C-Context. This means that:
         # 1) All Exceptions must be fetched since there is no direct caller that could catch a
         #    thrown exception.
