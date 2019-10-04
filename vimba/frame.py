@@ -14,7 +14,7 @@ from .c_binding import create_string_buffer, sizeof, decode_flags
 from .c_binding import VmbFrameStatus, VmbFrameFlags, VmbFrame
 
 __all__ = [
-    'PixelFormat',
+    'VimbaPixelFormat',
     'FrameStatus',
     'Frame',
     'FrameTuple'
@@ -25,7 +25,7 @@ __all__ = [
 FrameTuple = Tuple['Frame', ...]
 
 
-class PixelFormat(enum.IntEnum):
+class VimbaPixelFormat(enum.IntEnum):
     pass
 
 
@@ -47,11 +47,11 @@ class Frame:
         self.__frame.buffer = ctypes.cast(self.__buffer, ctypes.c_void_p)
         self.__frame.bufferSize = sizeof(self.__buffer)
 
-    def __deepcopy__(self):
-        raise NotImplementedError('Impl Me')
-
     def __str__(self):
         return 'Frame(id={})'.format(self.get_id())
+
+    def __deepcopy__(self):
+        raise NotImplementedError('Impl Me')
 
     def get_buffer(self) -> ctypes.Array:
         return self.__buffer
@@ -68,7 +68,7 @@ class Frame:
     def get_status(self) -> FrameStatus:
         return FrameStatus(self.__frame.receiveStatus)
 
-    def get_pixel_format(self) -> PixelFormat:
+    def get_pixel_format(self) -> VimbaPixelFormat:
         raise NotImplementedError('Impl Me')
 
     def get_width(self) -> Optional[int]:
@@ -90,10 +90,10 @@ class Frame:
     def get_timestamp(self) -> Optional[int]:
         raise NotImplementedError('Impl Me')
 
-    def convert_pixel_format(self, format: PixelFormat):
+    def convert_pixel_format(self, format: VimbaPixelFormat):
         raise NotImplementedError('Impl Me')
 
-    def store(self, filename: str, directory: Optional[str] = None) -> Optional[int]:
+    def store(self, filename: str, directory: Optional[str] = None):
         raise NotImplementedError('Impl Me')
 
     def create_opencv_frame(self):

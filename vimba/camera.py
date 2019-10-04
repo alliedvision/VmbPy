@@ -73,7 +73,7 @@ class _State:
         self.context = context
 
 
-class _StateEnter(_State):
+class _StateInit(_State):
     @TraceEnable()
     def forward(self) -> Union[_State, VimbaCameraError]:
         # Init -> Announced: Announce frames
@@ -88,11 +88,6 @@ class _StateEnter(_State):
                 return _build_camera_error(self.context.cam, e)
 
         return _StateAnounced(self.context)
-
-    @TraceEnable()
-    def backward(self):
-        # Init -> Init: Stop Iterating
-        raise StopIteration
 
 
 class _StateAnounced(_State):
@@ -121,7 +116,7 @@ class _StateAnounced(_State):
                 except VimbaCError as e:
                     return _build_camera_error(self.context.cam, e)
 
-        return _StateEnter(self.context)
+        return _StateInit(self.context)
 
 
 class _StateCapturing(_State):
@@ -178,11 +173,6 @@ class _StateQueued(_State):
 
 class _StateAcquiring(_State):
     @TraceEnable()
-    def forward(self):
-        # Acquiring -> Acquiring: Stop Iterating
-        raise StopIteration
-
-    @TraceEnable()
     def backward(self) -> Union[_State, VimbaCameraError]:
         # Acquiring -> Queued: Stop acquiring
         try:
@@ -220,10 +210,48 @@ class _StateAcquiring(_State):
 class _CaptureFsm:
     def __init__(self, context: _Context):
         self.__context: _Context = context
-        self.__state: _State = _StateEnter(self.__context)
+        self.__state: _State = _StateInit(self.__context)
 
     def get_context(self) -> _Context:
         return self.__context
+
+    def enter_capturing_mode(self):
+        # Forward state machine until the end or an error occurs
+        exc = None
+
+        while not exc:
+            try:
+                state_or_exc = self.__state.forward()
+
+            except AttributeError:
+                break
+
+            if isinstance(state_or_exc, _State):
+                self.__state = state_or_exc
+
+            else:
+                exc = state_or_exc
+
+        return exc
+
+    def leave_capturing_mode(self):
+        # Revert state machine until the initial state is reached or an error occurs
+        exc = None
+
+        while not exc:
+            try:
+                state_or_exc = self.__state.backward()
+
+            except AttributeError:
+                break
+
+            if isinstance(state_or_exc, _State):
+                self.__state = state_or_exc
+
+            else:
+                exc = state_or_exc
+
+        return exc
 
     def wait_for_frames(self):
         self.__state.wait_for_frames()
@@ -236,43 +264,6 @@ class _CaptureFsm:
 
         except AttributeError:
             pass
-
-    def enter_capturing_mode(self):
-        # Forward state machine until the end or an error occurs
-        exc = None
-        try:
-            while not exc:
-                state_or_exc = self.__state.forward()
-
-                if isinstance(state_or_exc, _State):
-                    self.__state = state_or_exc
-
-                else:
-                    exc = state_or_exc
-
-        except StopIteration:
-            pass
-
-        return exc
-
-    def leave_capturing_mode(self):
-        # Revert state machine until the initial state is reached or an error occurs
-        exc = None
-        try:
-            while not exc:
-                state_or_exc = self.__state.backward()
-
-                if isinstance(state_or_exc, _State):
-                    self.__state = state_or_exc
-
-                else:
-                    exc = state_or_exc
-
-        except StopIteration:
-            pass
-
-        return exc
-
 
 class _FrameIter:
     @TraceEnable()
@@ -356,13 +347,6 @@ class Camera:
     def __str__(self):
         return 'Camera(id={})'.format(self.get_id())
 
-    def __repr__(self):
-        rep = 'Camera'
-        rep += '(__handle=' + repr(self.__handle)
-        rep += ',__info=' + repr(self.__info)
-        rep += ')'
-        return rep
-
     @RuntimeTypeCheckEnable()
     def set_access_mode(self, access_mode: AccessMode):
         """Set camera access mode.
@@ -381,7 +365,7 @@ class Camera:
         return self.__access_mode
 
     @RuntimeTypeCheckEnable()
-    def set_capture_timeout(self, millis):
+    def set_capture_timeout(self, millis: int):
         """Set camera frame capture timeout in milliseconds.
 
         Arguments:
@@ -607,6 +591,11 @@ class Camera:
             self.__capture_fsm = None
 
     @TraceEnable()
+    def is_streaming(self) -> bool:
+        """Returns True if the camera is currently in streaming mode, if not False is returned"""
+        return self.__capture_fsm is not None
+
+    @TraceEnable()
     def requeue_frame(self, frame: Frame):
         """Reuse acquired Frame in streaming mode.
 
@@ -628,11 +617,6 @@ class Camera:
             raise ValueError
 
         self.__capture_fsm.requeue_frame(frame)
-
-    @TraceEnable()
-    def is_streaming(self) -> bool:
-        """Returns True if the camera is currently in streaming mode, if not False is returned"""
-        return self.__capture_fsm is not None
 
     @TraceEnable()
     def _open(self):
@@ -672,7 +656,7 @@ class Camera:
         self.__feats = ()
         self.__handle = VmbHandle(0)
 
-    def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
+    def __frame_cb_wrapper(self, ignore: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
         assert self.__capture_fsm is not None
 

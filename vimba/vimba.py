@@ -12,7 +12,7 @@ from typing import List
 from .c_binding import call_vimba_c_func, G_VIMBA_HANDLE
 from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
                      filter_affected_features, filter_selected_features, FeatureTypes, \
-                     FeaturesTuple
+                     FeaturesTuple, EnumFeature
 from .interface import Interface, InterfaceChangeHandler, InterfacesTuple, InterfacesList, \
                        discover_interfaces, discover_interface
 from .camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, CamerasList, \
@@ -381,7 +381,7 @@ class Vimba:
 
             call_vimba_c_func('VmbShutdown')
 
-        def __cam_cb_wrapper(self, cam_event):   # coverage: skip
+        def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
 
             # Early return for 'Unrechable', 'Reachable'. These value are triggered on
@@ -425,7 +425,7 @@ class Vimba:
 
                         Log.get_instance().error(msg)
 
-        def __inter_cb_wrapper(self, inter_event):   # coverage: skip
+        def __inter_cb_wrapper(self, inter_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
             inter_avail = True if str(inter_event.get()) == 'Available' else False
             inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
