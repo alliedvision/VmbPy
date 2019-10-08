@@ -104,3 +104,11 @@ class TlFrameTest(unittest.TestCase):
                           ctypes.cast(frame_cpy._buffer, ctypes.c_void_p).value)
 
         self.assertEquals(frame._frame.bufferSize, frame_cpy._frame.bufferSize)
+
+    def test_get_pixel_format(self):
+        """Expectation: locally constructed Frames must return None_ everything else not None_"""
+        self.assertEquals(Frame(0).get_pixel_format(), VimbaPixelFormat.None_)
+
+        with self.cam:
+            self.assertNotEquals(self.cam.get_frame().get_pixel_format(), VimbaPixelFormat.None_)
+
