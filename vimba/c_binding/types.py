@@ -9,6 +9,7 @@ For additional details of specific types. See 'VimbaC.h'
 
 import ctypes
 import enum
+import copy
 
 from .util import fmt_repr, fmt_enum_repr, fmt_flags_repr
 
@@ -784,6 +785,27 @@ class VmbFrame(ctypes.Structure):
         rep += fmt_repr(',timestamp={}', self.timestamp)
         rep += ')'
         return rep
+
+    def deepcopy_skip_ptr(self, memo):
+        result = VmbFrame()
+        memo[id(self)] = result
+
+        result.buffer = None
+        result.bufferSize = 0
+        result.context = (None, None, None, None)
+
+        setattr(result, 'receiveStatus', copy.deepcopy(self.receiveStatus, memo))
+        setattr(result, 'receiveFlags', copy.deepcopy(self.receiveFlags, memo))
+        setattr(result, 'imageSize', copy.deepcopy(self.imageSize, memo))
+        setattr(result, 'ancillarySize', copy.deepcopy(self.ancillarySize, memo))
+        setattr(result, 'pixelFormat', copy.deepcopy(self.pixelFormat, memo))
+        setattr(result, 'width', copy.deepcopy(self.width, memo))
+        setattr(result, 'height', copy.deepcopy(self.height, memo))
+        setattr(result, 'offsetX', copy.deepcopy(self.offsetX, memo))
+        setattr(result, 'offsetY', copy.deepcopy(self.offsetY, memo))
+        setattr(result, 'frameID', copy.deepcopy(self.frameID, memo))
+        setattr(result, 'timestamp', copy.deepcopy(self.timestamp, memo))
+        return result
 
 
 class VmbFeaturePersistSettings(ctypes.Structure):

@@ -6,7 +6,6 @@ This module allows access to a detected camera.
 
 <Insert license here>
 """
-import ctypes
 import enum
 from threading import Lock
 
@@ -264,6 +263,7 @@ class _CaptureFsm:
 
         except AttributeError:
             pass
+
 
 class _FrameIter:
     @TraceEnable()
@@ -738,10 +738,7 @@ def _cam_handle_accessor(cam: Camera) -> VmbHandle:
 
 
 def _frame_handle_accessor(frame: Frame) -> VmbFrame:
-    # Supress mypi warning. This access is valid although mypi warns about it.
-    # In this case it is okay to unmangle the name because the raw handle should not be
-    # exposed.
-    return frame._Frame__frame  # type: ignore
+    return frame._frame
 
 
 def _build_camera_error(cam: Camera, orig_exc: VimbaCError) -> VimbaCameraError:
