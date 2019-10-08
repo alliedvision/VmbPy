@@ -8,33 +8,23 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from vimba import *
 
-#TODO: improve this
-
 def main():
     with Vimba.get_instance() as vimba:
+        cams = vimba.get_all_cameras()
 
-        # Get a few frames from all detected cameras
-        for cam in vimba.get_all_cameras():
-            with cam:
-                # 1) Get single Frame
-                frame = cam.get_frame()
+        # Use first detected camera.
+        if cams:
+            with cams[0] as cam:
 
-                #2) Get a sequence of 5 Frames
-                frame = [f for f in cam.get_frame_iter(5)]
+                # Enable Logging for capturing prints
+                vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
+                log = Log.get_instance()
 
-                #3) Get 5 frames frame by frame
-                for frame in cam.get_frame_iter(5):
-                    pass
+                # Acquire 10 Frames synchronously.
+                for frame in cam.get_frame_iter(10):
+                    log.info('Got {}'.format(frame))
 
-                #4) Get frames until a event occurred
-                try:
-                    for no, frame in enumerate(cam.get_frame_iter(None)):
-                        if no == 9:
-                            raise StopIteration
-
-                except StopIteration:
-                    pass
-
+                vimba.disable_log()
 
 if __name__ == '__main__':
     main()

@@ -11,7 +11,7 @@ from vimba import *
 
 def frame_handler(cam: Camera, frame: Frame):
     log = Log.get_instance()
-    log.info('Got {} from {}'.format(frame, cam))
+    log.info('{} acquired {}'.format(cam, frame))
 
     cam.requeue_frame(frame)
 
@@ -29,7 +29,7 @@ def main():
 
                 # Start Streaming, wait for five seconds, stop streaming
                 cam.start_streaming(frame_handler)
-                time.sleep(5)
+                time.sleep(1)
                 cam.stop_streaming()
 
                 # Disable Logging

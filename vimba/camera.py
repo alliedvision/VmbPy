@@ -12,7 +12,7 @@ from threading import Lock
 from typing import Tuple, List, Callable, cast, Optional, Union
 from .c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
 from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
-                       VimbaCError, VmbError, VmbFrame, VmbFrameCallback
+                       VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFrameCallback
 from .feature import discover_features, discover_feature, filter_features_by_name, \
                      filter_features_by_type, filter_affected_features, \
                      filter_selected_features, FeatureTypes, FeaturesTuple
@@ -271,9 +271,11 @@ class _FrameIter:
         self.__cam: 'Camera' = cam
         self.__limit: Optional[int] = limit
         self.__payload_size: int = self.__cam.get_feature_by_name('PayloadSize').get()
+        self.__frame_id = 0
 
     @TraceEnable()
     def __iter__(self):
+        self.__frame_id = 0
         return self
 
     @TraceEnable()
@@ -308,7 +310,12 @@ class _FrameIter:
         if exc:
             raise exc
 
-        # Everything went well. Return Frame.
+        # Everything went well. Inject Frame No and return Frame.
+        handle = _frame_handle_accessor(frame)
+        handle.receiveFlags |= VmbFrameFlags.FrameID
+        handle.frameID = self.__frame_id
+
+        self.__frame_id += 1
         return frame
 
 
@@ -526,7 +533,7 @@ class Camera:
         Raises:
             VimbaCameraError if camera is outside of its context.
         """
-        return self.get_frame_iter(1).__next__()
+        return self.get_frame_iter(1).__iter__().__next__()
 
     @TraceEnable()
     #@RuntimeTypeCheckEnable()

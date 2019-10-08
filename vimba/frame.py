@@ -46,11 +46,11 @@ class Frame:
         self._frame: VmbFrame = VmbFrame()
 
         # Setup underlaying Frame
-        self._frame.buffer = ctypes.cast(self.get_buffer(), ctypes.c_void_p)
-        self._frame.bufferSize = self.get_buffer_size()
+        self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
+        self._frame.bufferSize = sizeof(self._buffer)
 
     def __str__(self):
-        return 'Frame(buffer_id={})'.format(hex(id(self.__buffer)))
+        return 'Frame(id={}, buffer={})'.format(self._frame.frameID, hex(self._frame.buffer))
 
     def __deepcopy__(self, memo):
         cls = self.__class__
@@ -63,8 +63,8 @@ class Frame:
         setattr(result, '_buffer', copy.deepcopy(self._buffer, memo))
         setattr(result, '_frame', self._frame.deepcopy_skip_ptr(memo))
 
-        result._frame.buffer = ctypes.cast(result.get_buffer(), ctypes.c_void_p)
-        result._frame.bufferSize = result.get_buffer_size()
+        result._frame.buffer = ctypes.cast(result._buffer, ctypes.c_void_p)
+        result._frame.bufferSize = sizeof(result._buffer)
 
         return result
 
@@ -150,9 +150,6 @@ class Frame:
 
     def get_id(self) -> Optional[int]:
         """Get Frame ID.
-
-        Get ID of this Frame. The Frame ID is reseted on entering image acquisition.
-        Only asynchronously acquired frames will have an ID other than 0.
 
         Returns:
             Frame ID if the id is provided by the camera.
