@@ -231,7 +231,7 @@ class TlCameraTest(unittest.TestCase):
 
     def test_is_streaming(self):
         """Expectation: After start_streaming() is_streaming() must return true. After stop it must
-        return false. If the camera context is left without any stoping the stream, leaving
+        return false. If the camera context is left without stop_streaming(), leaving
         the context must stop streaming.
         """
 
@@ -253,8 +253,11 @@ class TlCameraTest(unittest.TestCase):
 
     def test_streaming_error_frame_count(self):
         """Expectation: A negative or zero frame_count must lead to an value error"""
-        self.assertRaises(VimbaCameraError, self.cam.start_streaming, 0)
-        self.assertRaises(VimbaCameraError, self.cam.start_streaming, -1)
+        def dummy_handler(_1: Camera, _2: Frame):
+            pass
+
+        self.assertRaises(ValueError, self.cam.start_streaming, dummy_handler, 0)
+        self.assertRaises(ValueError, self.cam.start_streaming, dummy_handler, -1)
 
     def test_streaming(self):
         """Expectation: A given frame_handler must be executed for each buffered frame. """

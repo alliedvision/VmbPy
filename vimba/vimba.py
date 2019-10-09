@@ -9,7 +9,7 @@ for Camera, Interface and system Feature detection and access.
 """
 from threading import Lock
 from typing import List
-from .c_binding import call_vimba_c_func, G_VIMBA_HANDLE
+from .c_binding import call_vimba_c_func, G_VIMBA_C_HANDLE
 from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
                      filter_affected_features, filter_selected_features, FeatureTypes, \
                      FeaturesTuple, EnumFeature
@@ -354,7 +354,7 @@ class Vimba:
         def _startup(self):
             call_vimba_c_func('VmbStartup')
 
-            self.__feats = discover_features(G_VIMBA_HANDLE)
+            self.__feats = discover_features(G_VIMBA_C_HANDLE)
             self.__inters = discover_interfaces()
             self.__cams = discover_cameras(self.__cams_access_mode, self.__cams_capture_timeout,
                                            self.__nw_discover)

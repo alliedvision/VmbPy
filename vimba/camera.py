@@ -11,7 +11,7 @@ from threading import Lock
 
 from typing import Tuple, List, Callable, cast, Optional, Union
 from .c_binding import call_vimba_c_func, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_HANDLE, VmbAccessMode, \
+from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, VmbAccessMode, \
                        VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFrameCallback
 from .feature import discover_features, discover_feature, filter_features_by_name, \
                      filter_features_by_type, filter_affected_features, \
@@ -695,9 +695,9 @@ class Camera:
 
 
 def _setup_network_discovery():
-    if discover_feature(G_VIMBA_HANDLE, 'GeVTLIsPresent').get():
-        discover_feature(G_VIMBA_HANDLE, 'GeVDiscoveryAllDuration').set(250)
-        discover_feature(G_VIMBA_HANDLE, 'GeVDiscoveryAllOnce').run()
+    if discover_feature(G_VIMBA_C_HANDLE, 'GeVTLIsPresent').get():
+        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
+        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllOnce').run()
 
 
 @TraceEnable()

@@ -21,9 +21,7 @@ from vimba import Vimba
 Vimba.get_instance().set_network_discovery(False)
 
 # import tests cases
-import tests.c_binding_api_test
-import tests.c_binding_types_test
-import tests.c_binding_util_test
+import tests.c_binding_test
 import tests.util_runtime_type_check_test
 import tests.util_tracer_test
 import tests.vimba_test
@@ -35,9 +33,7 @@ import file_tl_tests.frame_test
 
 # Assign test cases to test suites
 BASIC_TEST_MODS = [
-    tests.c_binding_api_test,
-    tests.c_binding_types_test,
-    tests.c_binding_util_test,
+    tests.c_binding_test,
     tests.util_runtime_type_check_test,
     tests.util_tracer_test,
     tests.vimba_test

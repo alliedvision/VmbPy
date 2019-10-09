@@ -1,32 +1,23 @@
-"""Implementation of all VimbaC interface Types.
-
-For additional details of specific types. See 'VimbaC.h'
+"""Submodule encapsulating the VimbaC access.
 
 (C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
 
 <Insert license here>
 """
-
-import ctypes
-import enum
+import os
+import sys
 import copy
-
-from .util import fmt_repr, fmt_enum_repr, fmt_flags_repr
+import ctypes
+from typing import Callable, Any, Tuple
+from ctypes import CDLL, c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
+from ..util import TraceEnable
+from ..error import VimbaSystemError
+from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
+                          VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, decode_cstr, \
+                          decode_flags, fmt_enum_repr, fmt_repr, fmt_flags_repr, get_vimba_home, \
+                          is_arch_64_bit
 
 __all__ = [
-    'VmbInt8',
-    'VmbUint8',
-    'VmbInt16',
-    'VmbUint16',
-    'VmbInt32',
-    'VmbUint32',
-    'VmbInt64',
-    'VmbUint64',
-    'VmbHandle',
-    'VmbBool',
-    'VmbUchar',
-    'VmbDouble',
-    'VmbError',
     'VmbPixelFormat',
     'VmbInterface',
     'VmbAccessMode',
@@ -45,29 +36,21 @@ __all__ = [
     'VmbFeaturePersistSettings',
     'VmbInvalidationCallback',
     'VmbFrameCallback',
-    'G_VIMBA_HANDLE',
-    'VimbaCError'
+    'G_VIMBA_C_HANDLE',
+    'EXPECTED_VIMBA_C_VERSION',
+    'call_vimba_c_func',
+    'decode_cstr',
+    'decode_flags'
 ]
 
 
-class _Int32Enum(enum.IntEnum):
-    @classmethod
-    def from_param(cls, obj):
-        return ctypes.c_int(obj)
-
-
-class _Uint32Enum(enum.IntEnum):
-    @classmethod
-    def from_param(cls, obj):
-        return ctypes.c_uint(obj)
-
-
-class _VmbPixel(_Uint32Enum):
+# Types
+class _VmbPixel(Uint32Enum):
     Mono = 0x01000000
     Color = 0x02000000
 
 
-class _VmbPixelOccupy(_Uint32Enum):
+class _VmbPixelOccupy(Uint32Enum):
     Bit8 = 0x00080000
     Bit10 = 0x000A0000
     Bit12 = 0x000C0000
@@ -79,80 +62,7 @@ class _VmbPixelOccupy(_Uint32Enum):
     Bit64 = 0x00400000
 
 
-# Aliases for vmb base types
-VmbInt8 = ctypes.c_byte
-VmbUint8 = ctypes.c_ubyte
-VmbInt16 = ctypes.c_short
-VmbUint16 = ctypes.c_ushort
-VmbInt32 = ctypes.c_int
-VmbUint32 = ctypes.c_uint
-VmbInt64 = ctypes.c_longlong
-VmbUint64 = ctypes.c_ulonglong
-VmbHandle = ctypes.c_void_p
-VmbBool = ctypes.c_bool
-VmbUchar = ctypes.c_char
-VmbDouble = ctypes.c_double
-
-
-class VmbError(_Int32Enum):
-    """
-    Enum containing error types returned
-        Success         - No error
-        InternalFault   - Unexpected fault in VimbaC or driver
-        ApiNotStarted   - VmbStartup() was not called before the current
-                          command
-        NotFound        - The designated instance (camera, feature etc.)
-                          cannot be found
-        BadHandle       - The given handle is not valid
-        DeviceNotOpen   - Device was not opened for usage
-        InvalidAccess   - Operation is invalid with the current access mode
-        BadParameter    - One of the parameters is invalid (usually an illegal
-                          pointer)
-        StructSize      - The given struct size is not valid for this version
-                          of the API
-        MoreData        - More data available in a string/list than space is
-                          provided
-        WrongType       - Wrong feature type for this access function
-        InvalidValue    - The value is not valid; Either out of bounds or not
-                          an increment of the minimum
-        Timeout         - Timeout during wait
-        Other           - Other error
-        Resources       - Resources not available (e.g. memory)
-        InvalidCall     - Call is invalid in the current context (callback)
-        NoTL            - No transport layers are found
-        NotImplemented_ - API feature is not implemented
-        NotSupported    - API feature is not supported
-        Incomplete      - A multiple registers read or write is partially
-                          completed
-        IO              - low level IO error in transport layer
-    """
-    Success = 0
-    InternalFault = -1
-    ApiNotStarted = -2
-    NotFound = -3
-    BadHandle = -4
-    DeviceNotOpen = -5
-    InvalidAccess = -6
-    BadParameter = -7
-    StructSize = -8
-    MoreData = -9
-    WrongType = -10
-    InvalidValue = -11
-    Timeout = -12
-    Other = -13
-    Resources = -14
-    InvalidCall = -15
-    NoTL = -16
-    NotImplemented_ = -17
-    NotSupported = -18
-    Incomplete = -19
-    IO = -20
-
-    def __str__(self):
-        return self._name_
-
-
-class VmbPixelFormat(_Uint32Enum):
+class VmbPixelFormat(Uint32Enum):
     """
     Enum containing Pixelformats
     Mono formats:
@@ -330,7 +240,7 @@ class VmbPixelFormat(_Uint32Enum):
         return self._name_
 
 
-class VmbInterface(_Uint32Enum):
+class VmbInterface(Uint32Enum):
     """
     Camera Interface Types:
         Unknown  - Interface is not known to this version of the API
@@ -351,7 +261,7 @@ class VmbInterface(_Uint32Enum):
         return self._name_
 
 
-class VmbAccessMode(_Uint32Enum):
+class VmbAccessMode(Uint32Enum):
     """
     Camera Access Mode:
         None_  - No access
@@ -370,7 +280,7 @@ class VmbAccessMode(_Uint32Enum):
         return self._name_
 
 
-class VmbFeatureData(_Uint32Enum):
+class VmbFeatureData(Uint32Enum):
     """
     Feature Data Types
         Unknown - Unknown feature type
@@ -397,7 +307,7 @@ class VmbFeatureData(_Uint32Enum):
         return self._name_
 
 
-class VmbFeaturePersist(_Uint32Enum):
+class VmbFeaturePersist(Uint32Enum):
     """
     Type of features that are to be saved (persisted) to the XML file
     when using VmbCameraSettingsSave
@@ -415,7 +325,7 @@ class VmbFeaturePersist(_Uint32Enum):
         return self._name_
 
 
-class VmbFeatureVisibility(_Uint32Enum):
+class VmbFeatureVisibility(Uint32Enum):
     """
     Feature Visibility
         Unknown   - Feature visibility is not known
@@ -434,7 +344,7 @@ class VmbFeatureVisibility(_Uint32Enum):
         return self._name_
 
 
-class VmbFeatureFlags(_Uint32Enum):
+class VmbFeatureFlags(Uint32Enum):
     """
     Feature Flags
         None_       - No additional information is provided
@@ -458,7 +368,7 @@ class VmbFeatureFlags(_Uint32Enum):
         return self._name_
 
 
-class VmbFrameStatus(_Int32Enum):
+class VmbFrameStatus(Int32Enum):
     """
     Frame transfer status
         Complete   - Frame has been completed without errors
@@ -475,7 +385,7 @@ class VmbFrameStatus(_Int32Enum):
         return self._name_
 
 
-class VmbFrameFlags(_Uint32Enum):
+class VmbFrameFlags(Uint32Enum):
     """
     Frame Flags
         None_     - No additional information is provided
@@ -536,10 +446,10 @@ class VmbInterfaceInfo(ctypes.Structure):
                                 Info: Used access mode, see VmbAccessMode
     """
     _fields_ = [
-        ("interfaceIdString", ctypes.c_char_p),
+        ("interfaceIdString", c_char_p),
         ("interfaceType", VmbUint32),
-        ("interfaceName", ctypes.c_char_p),
-        ("serialString", ctypes.c_char_p),
+        ("interfaceName", c_char_p),
+        ("serialString", c_char_p),
         ("permittedAccess", VmbUint32)
     ]
 
@@ -572,12 +482,12 @@ class VmbCameraInfo(ctypes.Structure):
                                 Info: Unique value for each interface or bus
     """
     _fields_ = [
-        ("cameraIdString", ctypes.c_char_p),
-        ("cameraName", ctypes.c_char_p),
-        ("modelName", ctypes.c_char_p),
-        ("serialString", ctypes.c_char_p),
+        ("cameraIdString", c_char_p),
+        ("cameraName", c_char_p),
+        ("modelName", c_char_p),
+        ("serialString", c_char_p),
         ("permittedAccess", VmbUint32),
-        ("interfaceIdString", ctypes.c_char_p)
+        ("interfaceIdString", c_char_p)
     ]
 
     def __repr__(self):
@@ -632,18 +542,18 @@ class VmbFeatureInfo(ctypes.Structure):
                                         features
     """
     _fields_ = [
-        ("name", ctypes.c_char_p),
+        ("name", c_char_p),
         ("featureDataType", VmbUint32),
         ("featureFlags", VmbUint32),
-        ("category", ctypes.c_char_p),
-        ("displayName", ctypes.c_char_p),
+        ("category", c_char_p),
+        ("displayName", c_char_p),
         ("pollingTime", VmbUint32),
-        ("unit", ctypes.c_char_p),
-        ("representation", ctypes.c_char_p),
+        ("unit", c_char_p),
+        ("representation", c_char_p),
         ("visibility", VmbUint32),
-        ("tooltip", ctypes.c_char_p),
-        ("description", ctypes.c_char_p),
-        ("sfncNamespace", ctypes.c_char_p),
+        ("tooltip", c_char_p),
+        ("description", c_char_p),
+        ("sfncNamespace", c_char_p),
         ("isStreamable", VmbBool),
         ("hasAffectedFeatures", VmbBool),
         ("hasSelectedFeatures", VmbBool)
@@ -690,12 +600,12 @@ class VmbFeatureEnumEntry(ctypes.Structure):
                             Info: Integer value of this enumeration entry
     """
     _fields_ = [
-        ("name", ctypes.c_char_p),
-        ("displayName", ctypes.c_char_p),
+        ("name", c_char_p),
+        ("displayName", c_char_p),
         ("visibility", VmbUint32),
-        ("tooltip", ctypes.c_char_p),
-        ("description", ctypes.c_char_p),
-        ("sfncNamespace", ctypes.c_char_p),
+        ("tooltip", c_char_p),
+        ("description", c_char_p),
+        ("sfncNamespace", c_char_p),
         ("intValue", VmbInt64)
     ]
 
@@ -751,9 +661,9 @@ class VmbFrame(ctypes.Structure):
                             Info: Timestamp set by the camera
     """
     _fields_ = [
-        ("buffer", ctypes.c_void_p),
+        ("buffer", c_void_p),
         ("bufferSize", VmbUint32),
-        ("context", ctypes.c_void_p * 4),
+        ("context", c_void_p * 4),
         ("receiveStatus", VmbInt32),
         ("receiveFlags", VmbUint32),
         ("imageSize", VmbUint32),
@@ -836,29 +746,211 @@ class VmbFeaturePersistSettings(ctypes.Structure):
         return rep
 
 
-VmbInvalidationCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.c_char_p,
-                                           ctypes.c_void_p)
+VmbInvalidationCallback = ctypes.CFUNCTYPE(None, VmbHandle, c_char_p, c_void_p)
 VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
 
-G_VIMBA_HANDLE = VmbHandle(1)
+G_VIMBA_C_HANDLE = VmbHandle(1)
+
+# API
+EXPECTED_VIMBA_C_VERSION = '1.8.0'
+
+# For detailed information on the signatures see "VimbaC.h"
+# To improve readability, suppress 'E501 line too long (> 100 characters)'
+# check of flake8
+_SIGNATURES = {
+    'VmbVersionQuery': (VmbError, [c_ptr(VmbVersionInfo), VmbUint32]),
+    'VmbStartup': (VmbError, None),
+    'VmbShutdown': (None, None),
+    'VmbCamerasList': (VmbError, [c_ptr(VmbCameraInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),
+    'VmbCameraInfoQuery': (VmbError, [c_str, c_ptr(VmbCameraInfo), VmbUint32]),
+    'VmbCameraOpen': (VmbError, [c_str, VmbAccessMode, c_ptr(VmbHandle)]),
+    'VmbCameraClose': (VmbError, [VmbHandle]),
+    'VmbFeaturesList': (VmbError, [VmbHandle, c_ptr(VmbFeatureInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                # noqa: E501
+    'VmbFeatureInfoQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeatureInfo), VmbUint32]),
+    'VmbFeatureListAffected': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeatureInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),  # noqa: E501
+    'VmbFeatureListSelected': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeatureInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),  # noqa: E501
+    'VmbFeatureAccessQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool), c_ptr(VmbBool)]),
+    'VmbFeatureIntGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
+    'VmbFeatureIntSet': (VmbError, [VmbHandle, c_str, VmbInt64]),
+    'VmbFeatureIntRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64), c_ptr(VmbInt64)]),                              # noqa: E501
+    'VmbFeatureIntIncrementQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
+    'VmbFeatureFloatGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbDouble)]),
+    'VmbFeatureFloatSet': (VmbError, [VmbHandle, c_str, VmbDouble]),
+    'VmbFeatureFloatRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbDouble), c_ptr(VmbDouble)]),
+    'VmbFeatureFloatIncrementQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool), c_ptr(VmbDouble)]),                        # noqa: E501
+    'VmbFeatureEnumGet': (VmbError, [VmbHandle, c_str, c_ptr(c_str)]),
+    'VmbFeatureEnumSet': (VmbError, [VmbHandle, c_str, c_str]),
+    'VmbFeatureEnumRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(c_str), VmbUint32, c_ptr(VmbUint32)]),                    # noqa: E501
+    'VmbFeatureEnumIsAvailable': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbBool)]),
+    'VmbFeatureEnumAsInt': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbInt64)]),
+    'VmbFeatureEnumAsString': (VmbError, [VmbHandle, c_str, VmbInt64, c_ptr(c_str)]),
+    'VmbFeatureEnumEntryGet': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbFeatureEnumEntry)]),                              # noqa: E501
+    'VmbFeatureStringGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),                                # noqa: E501
+    'VmbFeatureStringSet': (VmbError, [VmbHandle, c_str, c_str]),
+    'VmbFeatureStringMaxlengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
+    'VmbFeatureBoolGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool)]),
+    'VmbFeatureBoolSet': (VmbError, [VmbHandle, c_str, VmbBool]),
+    'VmbFeatureCommandRun': (VmbError, [VmbHandle, c_str]),
+    'VmbFeatureCommandIsDone': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool)]),
+    'VmbFeatureRawGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),
+    'VmbFeatureRawSet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32]),
+    'VmbFeatureRawLengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
+    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, VmbInvalidationCallback, c_void_p]),                      # noqa: E501
+    'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, VmbInvalidationCallback]),
+    'VmbFrameAnnounce': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
+    'VmbFrameRevoke': (VmbError, [VmbHandle, c_ptr(VmbFrame)]),
+    'VmbFrameRevokeAll': (VmbError, [VmbHandle]),
+    'VmbCaptureStart': (VmbError, [VmbHandle]),
+    'VmbCaptureEnd': (VmbError, [VmbHandle]),
+    'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), c_void_p]),
+    'VmbCaptureFrameWait': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
+    'VmbCaptureQueueFlush': (VmbError, [VmbHandle]),
+    'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
+    'VmbInterfaceOpen': (VmbError, [c_str, c_ptr(VmbHandle)]),
+    'VmbInterfaceClose': (VmbError, [VmbHandle]),
+    'VmbAncillaryDataOpen': (VmbError, [c_ptr(VmbFrame), c_ptr(VmbHandle)]),
+    'VmbAncillaryDataClose': (VmbError, [VmbHandle]),
+    'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
+    'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
+    'VmbRegistersRead': (VmbError, [VmbHandle, VmbUint32, c_ptr(VmbUint64), c_ptr(VmbUint64), c_ptr(VmbUint32)]),             # noqa: E501
+    'VmbRegistersWrite': (VmbError, [VmbHandle, VmbUint32, c_ptr(VmbUint64), c_ptr(VmbUint64), c_ptr(VmbUint32)]),            # noqa: E501
+    'VmbCameraSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
+    'VmbCameraSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32])                      # noqa: E501
+}
 
 
-class VimbaCError(Exception):
-    """Error Type containing an error code from the C-Layer. This error code is highly context
-       sensitive. All wrapped C-Functions that do not return VmbError.Success or None must
-       raise a VimbaCError and the surrounding code must deal if the Error is possible.
+def _load_vimba_c_raw() -> CDLL:
+    platform_handlers = {
+        'linux': _load_under_linux,
+        'win32': _load_under_windows
+    }
+
+    if sys.platform not in platform_handlers:
+        raise VimbaSystemError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
+
+    return platform_handlers[sys.platform]()
+
+
+def _load_under_linux() -> CDLL:
+    raise NotImplementedError('Loading of libVimbaC.so')
+
+
+def _load_under_windows() -> CDLL:
+    vimba_home = get_vimba_home()
+
+    if vimba_home:
+        arch = 'Win64' if is_arch_64_bit() else 'Win32'
+        lib_path = os.path.join(vimba_home, 'VimbaC', 'Bin', arch, 'VimbaC.dll')
+
+    else:
+        # TODO: Clarify if additional search is required
+        raise NotImplementedError('Loading of VimbaC.dll')
+
+    return ctypes.cdll.LoadLibrary(lib_path)
+
+
+def _attach_signatures(vimba_c_handle: CDLL) -> CDLL:
+    for function_name, signature in _SIGNATURES.items():
+        fn = getattr(vimba_c_handle, function_name)
+        fn.restype, fn.argtypes = signature
+        fn.errcheck = _eval_vmberror
+
+    return vimba_c_handle
+
+
+def _check_version(vimba_c_handle: CDLL) -> CDLL:
+    ver = VmbVersionInfo()
+    vimba_c_handle.VmbVersionQuery(byref(ver), sizeof(ver))
+
+    if (str(ver) != EXPECTED_VIMBA_C_VERSION):
+        msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
+        raise VimbaSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, str(ver)))
+
+    return vimba_c_handle
+
+
+def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any, ...]):
+    if result not in (VmbError.Success, None):
+        raise VimbaCError(result)
+
+
+_vimba_c_instance: CDLL = _check_version(_attach_signatures(_load_vimba_c_raw()))
+
+
+@TraceEnable()
+def call_vimba_c_func(func_name: str, *args):
+    """This function encapsulates the entire VimbaC access.
+
+    For Details on valid function signatures see the 'VimbaC.h'.
+
+    Arguments:
+        func_name: The function name from VimbaC to be called.
+        args: Varargs passed directly to the underlaying C-Function.
+
+    Raises:
+        TypeError if given are do not match the signature of the function.
+        AttributeError if func with name 'func_name' does not exist.
+        VimbaCError if the function call is valid but neither None or VmbError.Success was returned.
+
+    The following functions of VimbaC can be executed:
+        VmbVersionQuery
+        VmbStartup
+        VmbShutdown
+        VmbCamerasList
+        VmbCameraInfoQuery
+        VmbCameraOpen
+        VmbCameraClose
+        VmbFeaturesList
+        VmbFeatureInfoQuery
+        VmbFeatureListAffected
+        VmbFeatureListSelected
+        VmbFeatureAccessQuery
+        VmbFeatureIntGet
+        VmbFeatureIntSet
+        VmbFeatureIntRangeQuery
+        VmbFeatureIntIncrementQuery
+        VmbFeatureFloatGet
+        VmbFeatureFloatSet
+        VmbFeatureFloatRangeQuery
+        VmbFeatureFloatIncrementQuery
+        VmbFeatureEnumGet
+        VmbFeatureEnumSet
+        VmbFeatureEnumRangeQuery
+        VmbFeatureEnumIsAvailable
+        VmbFeatureEnumAsInt
+        VmbFeatureEnumAsString
+        VmbFeatureEnumEntryGet
+        VmbFeatureStringGet
+        VmbFeatureStringSet
+        VmbFeatureStringMaxlengthQuery
+        VmbFeatureBoolGet
+        VmbFeatureBoolSet
+        VmbFeatureCommandRun
+        VmbFeatureCommandIsDone
+        VmbFeatureRawGet
+        VmbFeatureRawSet
+        VmbFeatureRawLengthQuery
+        VmbFeatureInvalidationRegister
+        VmbFeatureInvalidationUnregister
+        VmbFrameAnnounce
+        VmbFrameRevoke
+        VmbFrameRevokeAll
+        VmbCaptureStart
+        VmbCaptureEnd
+        VmbCaptureFrameQueue
+        VmbCaptureFrameWait
+        VmbCaptureQueueFlush
+        VmbInterfacesList
+        VmbInterfaceOpen
+        VmbInterfaceClose
+        VmbAncillaryDataOpen
+        VmbAncillaryDataClose
+        VmbMemoryRead
+        VmbMemoryWrite
+        VmbRegistersRead
+        VmbRegistersWrite
+        VmbCameraSettingsSave
+        VmbCameraSettingsLoad
     """
-
-    def __init__(self, c_error: VmbError):
-        super().__init__(repr(c_error))
-        self.__c_error = c_error
-
-    def __str__(self):
-        return repr(self)
-
-    def __repr__(self):
-        return 'VimbaCError({})'.format(repr(self.__c_error))
-
-    def get_error_code(self) -> VmbError:
-        """ Get contained Error Code """
-        return self.__c_error
+    global _vimba_c_instance
+    getattr(_vimba_c_instance, func_name)(*args)
