@@ -9,7 +9,7 @@ This module allows access to all detected interfaces.
 
 import enum
 from typing import Tuple, List, Callable
-from .c_binding import call_vimba_c_func, byref, sizeof, decode_cstr
+from .c_binding import call_vimba_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
                      filter_affected_features, filter_selected_features, FeatureTypes, \
@@ -191,7 +191,7 @@ class Interface:
 
     @TraceEnable()
     def _open(self):
-        call_vimba_c_func('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
+        call_vimba_c('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
 
         self.__feats = discover_features(self.__handle)
 
@@ -202,7 +202,7 @@ class Interface:
 
         self.__feats = ()
 
-        call_vimba_c_func('VmbInterfaceClose', self.__handle)
+        call_vimba_c('VmbInterfaceClose', self.__handle)
 
         self.__handle = VmbHandle(0)
 
@@ -214,14 +214,14 @@ def discover_interfaces() -> InterfacesList:
     result = []
     inters_count = VmbUint32(0)
 
-    call_vimba_c_func('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
+    call_vimba_c('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
 
     if inters_count:
         inters_found = VmbUint32(0)
         inters_infos = (VmbInterfaceInfo * inters_count.value)()
 
-        call_vimba_c_func('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
-                          sizeof(VmbInterfaceInfo))
+        call_vimba_c('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
+                     sizeof(VmbInterfaceInfo))
 
         for info in inters_infos[:inters_found.value]:
             result.append(Interface(info))

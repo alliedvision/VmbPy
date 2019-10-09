@@ -9,7 +9,7 @@ for Camera, Interface and system Feature detection and access.
 """
 from threading import Lock
 from typing import List
-from .c_binding import call_vimba_c_func, G_VIMBA_C_HANDLE
+from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
 from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
                      filter_affected_features, filter_selected_features, FeatureTypes, \
                      FeaturesTuple, EnumFeature
@@ -352,7 +352,7 @@ class Vimba:
 
         @TraceEnable()
         def _startup(self):
-            call_vimba_c_func('VmbStartup')
+            call_vimba_c('VmbStartup')
 
             self.__feats = discover_features(G_VIMBA_C_HANDLE)
             self.__inters = discover_interfaces()
@@ -379,7 +379,7 @@ class Vimba:
             self.__inters = ()
             self.__feats = ()
 
-            call_vimba_c_func('VmbShutdown')
+            call_vimba_c('VmbShutdown')
 
         def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context

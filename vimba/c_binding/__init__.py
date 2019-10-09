@@ -48,9 +48,10 @@ __all__ = [
     'VmbFrameCallback',
     'G_VIMBA_C_HANDLE',
     'EXPECTED_VIMBA_C_VERSION',
-    'call_vimba_c_func',
+    'call_vimba_c',
 
     # Exports from vimba_image_tranform
+    'call_vimba_image_transform',
 
     # Exports from ctypes
     'byref',
@@ -67,6 +68,8 @@ from .vimba_c import VmbPixelFormat, VmbInterface, VmbAccessMode, VmbFeatureData
                    VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
                    VmbInvalidationCallback, VmbFrameCallback, G_VIMBA_C_HANDLE, \
-                   EXPECTED_VIMBA_C_VERSION, call_vimba_c_func
+                   EXPECTED_VIMBA_C_VERSION, call_vimba_c
+
+from .vimba_image_transform import call_vimba_image_transform
 
 from ctypes import byref, sizeof, create_string_buffer

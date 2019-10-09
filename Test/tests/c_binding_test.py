@@ -4,7 +4,60 @@ import ctypes
 from vimba.c_binding import *
 
 
-class CBindingTypesTest(unittest.TestCase):
+class CBindingVimbaCommonTest(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_decode_cstr_behavior(self):
+        """ Expected Behavior:
+            c_char_p() == ''
+            c_char_p(b'foo') == 'foo'
+        """
+
+        expected = ''
+        actual = decode_cstr(ctypes.c_char_p())
+        self.assertEqual(expected, actual)
+
+        expected = 'test'
+        actual = decode_cstr(ctypes.c_char_p(b'test').value)
+        self.assertEqual(expected, actual)
+
+    def test_decode_flags_zero(self):
+        """ Expected Behavior: In case no bytes are set the
+            zero value of the Flag Enum must be returned
+        """
+
+        expected = (VmbFeatureFlags.None_,)
+        actual = decode_flags(VmbFeatureFlags, 0)
+        self.assertEqual(expected, actual)
+
+    def test_decode_flags_some(self):
+        """ Expected Behavior: Given Integer must be decided correctly.
+            the order of the fields does not matter for this test.
+        """
+        expected = (
+            VmbFeatureFlags.Write,
+            VmbFeatureFlags.Read,
+            VmbFeatureFlags.ModifyWrite
+        )
+
+        input_data = 0
+
+        for val in expected:
+            input_data |= int(val)
+
+        actual = decode_flags(VmbFeatureFlags, input_data)
+
+        # Convert both collections into a list and sort it.
+        # That way order doesn't matter. It is only important that values are
+        # decoded correctly.
+        self.assertEqual(list(expected).sort(), list(actual).sort())
+
+
+class CBindingVimbaCTypesTest(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -159,7 +212,7 @@ class CBindingTypesTest(unittest.TestCase):
         self.assertEqual(VmbFrameFlags.Timestamp, 8)
 
 
-class CBindingApiTest(unittest.TestCase):
+class CBindingVimbaCApiTest(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -171,7 +224,7 @@ class CBindingApiTest(unittest.TestCase):
         expected_ver_info = (1, 8, 0)
         ver_info = VmbVersionInfo()
 
-        call_vimba_c_func('VmbVersionQuery', byref(ver_info), sizeof(ver_info))
+        call_vimba_c('VmbVersionQuery', byref(ver_info), sizeof(ver_info))
 
         ver_info = (ver_info.major, ver_info.minor, ver_info.patch)
 
@@ -181,7 +234,7 @@ class CBindingApiTest(unittest.TestCase):
         """ Expectation: An invalid function name must throw an AttributeError """
 
         ver_info = VmbVersionInfo()
-        self.assertRaises(AttributeError, call_vimba_c_func, 'VmbVersionQuer', byref(ver_info), sizeof(ver_info))
+        self.assertRaises(AttributeError, call_vimba_c, 'VmbVersionQuer', byref(ver_info), sizeof(ver_info))
 
     def test_call_vimba_c_invalid_arg_number(self):
         """ Expectation: Invalid number of arguments with sane types.
@@ -189,17 +242,17 @@ class CBindingApiTest(unittest.TestCase):
         """
 
         ver_info = VmbVersionInfo()
-        self.assertRaises(TypeError, call_vimba_c_func, 'VmbVersionQuery', byref(ver_info))
+        self.assertRaises(TypeError, call_vimba_c, 'VmbVersionQuery', byref(ver_info))
 
     def test_call_vimba_c_invalid_arg_type(self):
         """ Expectation: Arguments with invalid types must lead to TypeErrors """
 
         # Call with unexpected base types
-        self.assertRaises(ctypes.ArgumentError, call_vimba_c_func, 'VmbVersionQuery', 0, 'hi')
+        self.assertRaises(ctypes.ArgumentError, call_vimba_c, 'VmbVersionQuery', 0, 'hi')
 
         # Call with valid ctypes used wrongly
         ver_info = VmbVersionInfo()
-        self.assertRaises(ctypes.ArgumentError, call_vimba_c_func, 'VmbVersionQuery', byref(ver_info), ver_info)
+        self.assertRaises(ctypes.ArgumentError, call_vimba_c, 'VmbVersionQuery', byref(ver_info), ver_info)
 
     def test_call_vimba_c_exception(self):
         """ Expectation: Errors returned from the C-Layer must be mapped
@@ -214,72 +267,65 @@ class CBindingApiTest(unittest.TestCase):
         ver_info = VmbVersionInfo()
 
         try:
-            call_vimba_c_func('VmbVersionQuery', byref(ver_info), sizeof(ver_info) - 1)
+            call_vimba_c('VmbVersionQuery', byref(ver_info), sizeof(ver_info) - 1)
             self.fail("Previous call must raise Exception.")
 
         except VimbaCError as e:
             self.assertEqual(e.get_error_code(), VmbError.StructSize)
 
         try:
-            call_vimba_c_func('VmbVersionQuery', None, sizeof(ver_info))
+            call_vimba_c('VmbVersionQuery', None, sizeof(ver_info))
             self.fail("Previous call must raise Exception.")
 
         except VimbaCError as e:
             self.assertEqual(e.get_error_code(), VmbError.BadParameter)
 
 
-class CBindingUtilTest(unittest.TestCase):
+class CBindingVimbaImageTransformTest(unittest.TestCase):
     def setUp(self):
         pass
 
     def tearDown(self):
         pass
 
-    def test_decode_cstr_behavior(self):
-        """ Expected Behavior:
-            c_char_p() == ''
-            c_char_p(b'foo') == 'foo'
-        """
+    def test_call_vimba_image_transform_valid(self):
+        """ Expectation for valid call: No exceptions, no errors """
+        expected_ver_info = (1, 6)
+        v = VmbUint32()
 
-        expected = ''
-        actual = decode_cstr(ctypes.c_char_p())
-        self.assertEqual(expected, actual)
+        call_vimba_image_transform('VmbGetVersion', byref(v))
 
-        expected = 'test'
-        actual = decode_cstr(ctypes.c_char_p(b'test').value)
-        self.assertEqual(expected, actual)
+        ver_info = ((v.value >> 24 & 0xff), (v.value >> 16 & 0xff))
 
-    def test_decode_flags_zero(self):
-        """ Expected Behavior: In case no bytes are set the
-            zero value of the Flag Enum must be returned
-        """
+        self.assertEqual(expected_ver_info, ver_info)
 
-        expected = (VmbFeatureFlags.None_,)
-        actual = decode_flags(VmbFeatureFlags, 0)
-        self.assertEqual(expected, actual)
+    def test_call_vimba_image_transform_valid(self):
+        """ Expectation for valid call: No exceptions, no errors """
+        expected_ver_info = (1, 6)
+        v = VmbUint32()
 
-    def test_decode_flags_some(self):
-        """ Expected Behavior: Given Integer must be decided correctly.
-            the order of the fields does not matter for this test.
-        """
-        expected = (
-            VmbFeatureFlags.Write,
-            VmbFeatureFlags.Read,
-            VmbFeatureFlags.ModifyWrite
-        )
+        call_vimba_image_transform('VmbGetVersion', byref(v))
 
-        input_data = 0
+        ver_info = ((v.value >> 24 & 0xff), (v.value >> 16 & 0xff))
 
-        for val in expected:
-            input_data |= int(val)
+        self.assertEqual(expected_ver_info, ver_info)
 
-        actual = decode_flags(VmbFeatureFlags, input_data)
+    def test_call_vimba_c_invalid_func_name(self):
+        """ Expectation: An invalid function name must throw an AttributeError """
+        v = VmbUint32()
+        self.assertRaises(AttributeError, call_vimba_image_transform, 'VmbGetVersio', byref(v))
 
-        # Convert both collections into a list and sort it.
-        # That way order doesn't matter. It is only important that values are
-        # decoded correctly.
-        self.assertEqual(list(expected).sort(), list(actual).sort())
+    def test_call_vimba_c_invalid_arg_number(self):
+        """ Expectation: Invalid number of arguments with sane types must lead to TypeErrors """
+        self.assertRaises(TypeError, call_vimba_image_transform, 'VmbGetVersion')
 
+    def test_call_vimba_c_invalid_arg_type(self):
+        """ Expectation: Arguments with invalid types must lead to TypeErrors """
+        self.assertRaises(ctypes.ArgumentError, call_vimba_image_transform, 'VmbGetVersion', VmbDouble())
+        self.assertRaises(ctypes.ArgumentError, call_vimba_image_transform, 'VmbGetVersion', 0)
+        self.assertRaises(ctypes.ArgumentError, call_vimba_image_transform, 'VmbGetVersion', 'invalid')
 
-
+    def test_call_vimba_c_exception(self):
+        """ Expectation: Failed operations must raise a VimbaCError"""
+        self.assertRaises(VimbaCError, call_vimba_image_transform, 'VmbGetVersion', None)
 

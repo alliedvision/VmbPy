@@ -4,8 +4,6 @@
 
 <Insert license here>
 """
-import os
-import sys
 import copy
 import ctypes
 from typing import Callable, Any, Tuple
@@ -14,8 +12,7 @@ from ..util import TraceEnable
 from ..error import VimbaSystemError
 from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
                           VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, decode_cstr, \
-                          decode_flags, fmt_enum_repr, fmt_repr, fmt_flags_repr, get_vimba_home, \
-                          is_arch_64_bit
+                          decode_flags, fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
 
 __all__ = [
     'VmbPixelFormat',
@@ -38,7 +35,7 @@ __all__ = [
     'VmbFrameCallback',
     'G_VIMBA_C_HANDLE',
     'EXPECTED_VIMBA_C_VERSION',
-    'call_vimba_c_func',
+    'call_vimba_c',
     'decode_cstr',
     'decode_flags'
 ]
@@ -819,54 +816,31 @@ _SIGNATURES = {
 }
 
 
-def _load_vimba_c_raw() -> CDLL:
-    platform_handlers = {
-        'linux': _load_under_linux,
-        'win32': _load_under_windows
-    }
+def _attach_signatures(lib_handle: CDLL) -> CDLL:
+    global _SIGNATURES
 
-    if sys.platform not in platform_handlers:
-        raise VimbaSystemError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
-
-    return platform_handlers[sys.platform]()
-
-
-def _load_under_linux() -> CDLL:
-    raise NotImplementedError('Loading of libVimbaC.so')
-
-
-def _load_under_windows() -> CDLL:
-    vimba_home = get_vimba_home()
-
-    if vimba_home:
-        arch = 'Win64' if is_arch_64_bit() else 'Win32'
-        lib_path = os.path.join(vimba_home, 'VimbaC', 'Bin', arch, 'VimbaC.dll')
-
-    else:
-        # TODO: Clarify if additional search is required
-        raise NotImplementedError('Loading of VimbaC.dll')
-
-    return ctypes.cdll.LoadLibrary(lib_path)
-
-
-def _attach_signatures(vimba_c_handle: CDLL) -> CDLL:
     for function_name, signature in _SIGNATURES.items():
-        fn = getattr(vimba_c_handle, function_name)
+        fn = getattr(lib_handle, function_name)
         fn.restype, fn.argtypes = signature
         fn.errcheck = _eval_vmberror
 
-    return vimba_c_handle
+    return lib_handle
 
 
-def _check_version(vimba_c_handle: CDLL) -> CDLL:
-    ver = VmbVersionInfo()
-    vimba_c_handle.VmbVersionQuery(byref(ver), sizeof(ver))
+def _check_version(lib_handle: CDLL) -> CDLL:
+    global EXPECTED_VIMBA_C_VERSION
 
-    if (str(ver) != EXPECTED_VIMBA_C_VERSION):
+    v = VmbVersionInfo()
+    lib_handle.VmbVersionQuery(byref(v), sizeof(v))
+
+    ver = str(v)
+    expected_ver = EXPECTED_VIMBA_C_VERSION
+
+    if (ver != expected_ver):
         msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
-        raise VimbaSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, str(ver)))
+        raise VimbaSystemError(msg.format(expected_ver, ver))
 
-    return vimba_c_handle
+    return lib_handle
 
 
 def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any, ...]):
@@ -874,11 +848,11 @@ def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any,
         raise VimbaCError(result)
 
 
-_vimba_c_instance: CDLL = _check_version(_attach_signatures(_load_vimba_c_raw()))
+_lib_instance: CDLL = _check_version(_attach_signatures(load_vimba_lib('VimbaC')))
 
 
 @TraceEnable()
-def call_vimba_c_func(func_name: str, *args):
+def call_vimba_c(func_name: str, *args):
     """This function encapsulates the entire VimbaC access.
 
     For Details on valid function signatures see the 'VimbaC.h'.
@@ -952,5 +926,5 @@ def call_vimba_c_func(func_name: str, *args):
         VmbCameraSettingsSave
         VmbCameraSettingsLoad
     """
-    global _vimba_c_instance
-    getattr(_vimba_c_instance, func_name)(*args)
+    global _lib_instance
+    getattr(_lib_instance, func_name)(*args)

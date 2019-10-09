@@ -253,11 +253,8 @@ class TlCameraTest(unittest.TestCase):
 
     def test_streaming_error_frame_count(self):
         """Expectation: A negative or zero frame_count must lead to an value error"""
-        def dummy_handler(_1: Camera, _2: Frame):
-            pass
-
-        self.assertRaises(ValueError, self.cam.start_streaming, dummy_handler, 0)
-        self.assertRaises(ValueError, self.cam.start_streaming, dummy_handler, -1)
+        self.assertRaises(ValueError, self.cam.start_streaming, dummy_frame_handler, 0)
+        self.assertRaises(ValueError, self.cam.start_streaming, dummy_frame_handler, -1)
 
     def test_streaming(self):
         """Expectation: A given frame_handler must be executed for each buffered frame. """

@@ -12,7 +12,7 @@ import copy
 
 from typing import Optional, Tuple
 from .c_binding import create_string_buffer, byref, sizeof, decode_flags
-from .c_binding import call_vimba_c_func, VmbFrameStatus, VmbFrameFlags, VmbFrame, VmbHandle, \
+from .c_binding import call_vimba_c, VmbFrameStatus, VmbFrameFlags, VmbFrame, VmbHandle, \
                        VmbPixelFormat
 from .feature import FeaturesTuple, FeatureTypes, discover_features, filter_features_by_name
 from .util import TraceEnable, RuntimeTypeCheckEnable
@@ -140,13 +140,13 @@ class AncillaryData:
 
     @TraceEnable()
     def _open(self):
-        call_vimba_c_func('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
+        call_vimba_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
         self.__feats = discover_features(self.__data_handle)
 
     @TraceEnable()
     def _close(self):
-        call_vimba_c_func('VmbAncillaryDataClose', self.__data_handle)
+        call_vimba_c('VmbAncillaryDataClose', self.__data_handle)
 
         self.__data_handle = VmbHandle()
         self.__feats = ()

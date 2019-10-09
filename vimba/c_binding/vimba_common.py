@@ -8,9 +8,11 @@
 import ctypes
 import enum
 import os
+import sys
 import platform
 import functools
 from typing import Tuple, Optional
+from ..error import VimbaSystemError
 
 __all__ = [
     'Int32Enum',
@@ -34,8 +36,7 @@ __all__ = [
     'fmt_repr',
     'fmt_enum_repr',
     'fmt_flags_repr',
-    'get_vimba_home',
-    'is_arch_64_bit'
+    'load_vimba_lib'
 ]
 
 
@@ -239,11 +240,43 @@ def fmt_flags_repr(fmt: str, enum_type, enum_val):
     return fmt.format(_repr_flags_list(enum_type, enum_val))
 
 
-def get_vimba_home() -> Optional[str]:
+def load_vimba_lib(vimba_project: str) -> ctypes.CDLL:
+    platform_handlers = {
+        'linux': _load_under_linux,
+        'win32': _load_under_windows
+    }
+
+    if sys.platform not in platform_handlers:
+        raise VimbaSystemError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
+
+    return platform_handlers[sys.platform](vimba_project)
+
+
+def _load_under_linux(vimba_project: str) -> ctypes.CDLL:
+    lib_name = 'lib{}.so'.format(vimba_project)
+    raise NotImplementedError('Loading of {}'.format(lib_name))
+
+
+def _load_under_windows(vimba_project: str) -> ctypes.CDLL:
+    vimba_home = _get_vimba_home()
+    lib_name = '{}.dll'.format(vimba_project)
+
+    if vimba_home:
+        arch = 'Win64' if _is_arch_64_bit() else 'Win32'
+        lib_path = os.path.join(vimba_home, vimba_project, 'Bin', arch, lib_name)
+
+    else:
+        # TODO: Clarify if additional search is required
+        raise NotImplementedError('Loading of {}'.format(lib_name))
+
+    return ctypes.cdll.LoadLibrary(lib_path)
+
+
+def _get_vimba_home() -> Optional[str]:
     """Get Vimba home directory of None is not found"""
     return os.environ.get('VIMBA_HOME')
 
 
-def is_arch_64_bit() -> bool:
+def _is_arch_64_bit() -> bool:
     """True if Host system is a 64 Bit Architecture, False if not."""
     return True if platform.machine() == 'AMD64' else False
