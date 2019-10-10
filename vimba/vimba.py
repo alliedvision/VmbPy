@@ -13,10 +13,10 @@ from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
 from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
                      filter_affected_features, filter_selected_features, FeatureTypes, \
                      FeaturesTuple, EnumFeature
-from .interface import Interface, InterfaceChangeHandler, InterfacesTuple, InterfacesList, \
-                       discover_interfaces, discover_interface
-from .camera import AccessMode, Camera, CameraChangeHandler, CamerasTuple, CamerasList, \
-                    discover_cameras, discover_camera
+from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
+                       InterfacesList, discover_interfaces, discover_interface
+from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, CamerasTuple, \
+                    CamerasList, discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaCameraError, VimbaInterfaceError
 
@@ -360,10 +360,10 @@ class Vimba:
                                            self.__nw_discover)
 
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
-            feat.register_change_handler(self.__cam_cb_wrapper)
+            feat.register_change_handler(self.__inter_cb_wrapper)
 
             feat = self.get_feature_by_name('DiscoveryCameraEvent')
-            feat.register_change_handler(self.__inter_cb_wrapper)
+            feat.register_change_handler(self.__cam_cb_wrapper)
 
         @TraceEnable()
         def _shutdown(self):
@@ -383,39 +383,35 @@ class Vimba:
 
         def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-
-            # Early return for 'Unrechable', 'Reachable'. These value are triggered on
-            # camera open/camera close. This handler is for detection of new cameras only.
-            event = str(cam_event.get())
-
-            if event in ('Unreachable', 'Reachable'):
-                return
-
-            cam_avail = True if event == 'Detected' else False
+            event = CameraEvent(cam_event.get().as_int())
+            cam = None
             cam_id = self.get_feature_by_name('DiscoveryCameraIdent').get()
             log = Log.get_instance()
 
-            if cam_avail:
+            # New camera found: Add it to camera list
+            if event == CameraEvent.Detected:
                 cam = discover_camera(cam_id, self.__cams_access_mode, self.__cams_capture_timeout)
 
                 with self.__cams_lock:
                     self.__cams.append(cam)
 
-                msg = 'Added camera \"{}\" to active cameras'
+                log.info('Added camera \"{}\" to active cameras'.format(cam_id))
 
-            else:
+            # Existing camera lost. Remove it from active cameras
+            elif event == CameraEvent.Missing:
                 with self.__cams_lock:
                     cam = [c for c in self.__cams if cam_id == c.get_id()].pop()
                     self.__cams.remove(cam)
 
-                msg = 'Removed camera \"{}\" from active cameras'
+                log.info('Removed camera \"{}\" from active cameras'.format(cam_id))
 
-            log.info(msg.format(cam_id))
+            else:
+                cam = self.get_camera_by_id(cam_id)
 
             with self.__cams_handlers_lock:
                 for handler in self.__cams_handlers:
                     try:
-                        handler(cam, cam_avail)
+                        handler(cam, event)
 
                     except BaseException as e:
                         msg = 'Caught Exception in handler: '
@@ -427,31 +423,35 @@ class Vimba:
 
         def __inter_cb_wrapper(self, inter_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-            inter_avail = True if str(inter_event.get()) == 'Available' else False
+            event = InterfaceEvent(inter_event.get().as_int())
+            inter = None
             inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
             log = Log.get_instance()
-
-            if inter_avail:
+            log.info('called')
+            # New interface found: Add it to interface list
+            if event == InterfaceEvent.Detected:
                 inter = discover_interface(inter_id)
 
                 with self.__inters_lock:
                     self.__inters.append(inter)
 
-                msg = 'Added interface \"{}\" to active interfaces'
+                log.info('Added interface \"{}\" to active interfaces')
 
-            else:
+            # Existing interface lost. Remove it from active interfaces
+            elif event == InterfaceEvent.Missing:
                 with self.__inters_lock:
                     inter = [i for i in self.__inters if inter_id == i.get_id()].pop()
                     self.__inters.remove(inter)
 
-                msg = 'Removed interface \"{}\" from active interfaces'
+                log.info('Removed interface \"{}\" from active interfaces')
 
-            log.info(msg.format(inter_id))
+            else:
+                inter = self.get_interface_by_id(inter_id)
 
             with self.__inters_handlers_lock:
                 for handler in self.__inters_handlers:
                     try:
-                        handler(inter, inter_avail)
+                        handler(inter, event)
 
                     except BaseException as e:
                         msg = 'Caught Exception in handler: '

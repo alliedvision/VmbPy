@@ -14,8 +14,10 @@ __all__ = [
     'Vimba',
     'Camera',
     'CameraChangeHandler',
+    'CameraEvent',
     'Interface',
     'InterfaceChangeHandler',
+    'InterfaceEvent',
     'Frame',
     'FrameHandler',
 
@@ -30,6 +32,7 @@ __all__ = [
     'FloatFeature',
     'StringFeature',
     'BoolFeature',
+    'EnumEntry',
     'EnumFeature',
     'CommandFeature',
     'RawFeature',
@@ -60,16 +63,16 @@ __all__ = [
 
 from .vimba import Vimba
 
-from .camera import AccessMode, Camera, CameraChangeHandler, FrameHandler
+from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
-from .interface import Interface, InterfaceChangeHandler
+from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 
 from .frame import Frame
 
 from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
                    VimbaTimeout
 
-from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature, \
+from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature
 
 from .util import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \

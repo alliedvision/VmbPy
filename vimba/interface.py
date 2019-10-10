@@ -20,6 +20,7 @@ from .util import TraceEnable, RuntimeTypeCheckEnable
 __all__ = [
     'InterfaceType',
     'Interface',
+    'InterfaceEvent',
     'InterfaceChangeHandler',
     'InterfacesTuple',
     'InterfacesList',
@@ -29,7 +30,7 @@ __all__ = [
 
 
 # Forward declarations
-InterfaceChangeHandler = Callable[['Interface', bool], None]
+InterfaceChangeHandler = Callable[['Interface', 'InterfaceEvent'], None]
 InterfacesTuple = Tuple['Interface', ...]
 InterfacesList = List['Interface']
 
@@ -51,6 +52,21 @@ class InterfaceType(enum.IntEnum):
     Usb = VmbInterface.Usb
     CL = VmbInterface.CL
     CSI2 = VmbInterface.CSI2
+
+
+class InterfaceEvent(enum.IntEnum):
+    """Enum specifying a Interface Event
+
+    Enum values:
+        Missing     - A known Interface disappeared from the bus
+        Detected    - A new Interface was discovered
+        Reachable   - A known Interface can be accessed
+        Unreachable - A known Interface cannot be accessed anymore
+    """
+    Missing = 0
+    Detected = 1
+    Rechable = 2
+    Unreachable = 3
 
 
 class Interface:

@@ -25,6 +25,7 @@ __all__ = [
     'AccessMode',
     'FrameHandler',
     'Camera',
+    'CameraEvent',
     'CamerasTuple',
     'CamerasList',
     'CameraChangeHandler',
@@ -34,7 +35,7 @@ __all__ = [
 
 
 # Type Forward declarations
-CameraChangeHandler = Callable[['Camera', bool], None]
+CameraChangeHandler = Callable[['Camera', 'CameraEvent'], None]
 CamerasTuple = Tuple['Camera', ...]
 CamerasList = List['Camera']
 FrameHandler = Callable[['Camera', Frame], None]
@@ -55,6 +56,21 @@ class AccessMode(enum.IntEnum):
     Read = VmbAccessMode.Read
     Config = VmbAccessMode.Config
     Lite = VmbAccessMode.Lite
+
+
+class CameraEvent(enum.IntEnum):
+    """Enum specifying a Camera Event
+
+    Enum values:
+        Missing    - A known camera disappeared from the bus
+        Detected     - A new camera was discovered
+        Reachable   - A known camera can be accessed
+        Unreachable - A known camera cannot be accessed anymore
+    """
+    Missing = 0
+    Detected = 1
+    Rechable = 2
+    Unreachable = 3
 
 
 class _Context:
