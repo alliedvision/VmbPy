@@ -328,4 +328,3 @@ class CBindingVimbaImageTransformTest(unittest.TestCase):
     def test_call_vimba_c_exception(self):
         """ Expectation: Failed operations must raise a VimbaCError"""
         self.assertRaises(VimbaCError, call_vimba_image_transform, 'VmbGetVersion', None)
-

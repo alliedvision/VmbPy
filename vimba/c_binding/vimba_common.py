@@ -28,9 +28,11 @@ __all__ = [
     'VmbHandle',
     'VmbBool',
     'VmbUchar',
+    'VmbFloat',
     'VmbDouble',
     'VmbError',
     'VimbaCError',
+    'VmbPixelFormat',
     'decode_cstr',
     'decode_flags',
     'fmt_repr',
@@ -65,6 +67,7 @@ VmbUint64 = ctypes.c_ulonglong
 VmbHandle = ctypes.c_void_p
 VmbBool = ctypes.c_bool
 VmbUchar = ctypes.c_char
+VmbFloat = ctypes.c_float
 VmbDouble = ctypes.c_double
 
 
@@ -121,6 +124,201 @@ class VmbError(Int32Enum):
     NotSupported = -18
     Incomplete = -19
     IO = -20
+
+    def __str__(self):
+        return self._name_
+
+
+class _VmbPixel(Uint32Enum):
+    Mono = 0x01000000
+    Color = 0x02000000
+
+
+class _VmbPixelOccupy(Uint32Enum):
+    Bit8 = 0x00080000
+    Bit10 = 0x000A0000
+    Bit12 = 0x000C0000
+    Bit14 = 0x000E0000
+    Bit16 = 0x00100000
+    Bit24 = 0x00180000
+    Bit32 = 0x00200000
+    Bit48 = 0x00300000
+    Bit64 = 0x00400000
+
+
+class VmbPixelFormat(Uint32Enum):
+    """
+    Enum containing Pixelformats
+    Mono formats:
+        Mono8        - Monochrome, 8 bits (PFNC:Mono8)
+        Mono10       - Monochrome, 10 bits in 16 bits (PFNC:Mono10)
+        Mono10p      - Monochrome, 4x10 bits continuously packed in 40 bits
+                       (PFNC:Mono10p)
+        Mono12       - Monochrome, 12 bits in 16 bits (PFNC:Mono12)
+        Mono12Packed - Monochrome, 2x12 bits in 24 bits (GEV:Mono12Packed)
+        Mono12p      - Monochrome, 2x12 bits continuously packed in 24 bits
+                       (PFNC:Mono12p)
+        Mono14       - Monochrome, 14 bits in 16 bits (PFNC:Mono14)
+        Mono16       - Monochrome, 16 bits (PFNC:Mono16)
+
+    Bayer formats:
+        BayerGR8        - Bayer-color, 8 bits, starting with GR line
+                          (PFNC:BayerGR8)
+        BayerRG8        - Bayer-color, 8 bits, starting with RG line
+                          (PFNC:BayerRG8)
+        BayerGB8        - Bayer-color, 8 bits, starting with GB line
+                          (PFNC:BayerGB8)
+        BayerBG8        - Bayer-color, 8 bits, starting with BG line
+                          (PFNC:BayerBG8)
+        BayerGR10       - Bayer-color, 10 bits in 16 bits, starting with GR
+                          line (PFNC:BayerGR10)
+        BayerRG10       - Bayer-color, 10 bits in 16 bits, starting with RG
+                          line (PFNC:BayerRG10)
+        BayerGB10       - Bayer-color, 10 bits in 16 bits, starting with GB
+                          line (PFNC:BayerGB10)
+        BayerBG10       - Bayer-color, 10 bits in 16 bits, starting with BG
+                          line (PFNC:BayerBG10)
+        BayerGR12       - Bayer-color, 12 bits in 16 bits, starting with GR
+                          line (PFNC:BayerGR12)
+        BayerRG12       - Bayer-color, 12 bits in 16 bits, starting with RG
+                          line (PFNC:BayerRG12)
+        BayerGB12       - Bayer-color, 12 bits in 16 bits, starting with GB
+                          line (PFNC:BayerGB12)
+        BayerBG12       - Bayer-color, 12 bits in 16 bits, starting with BG
+                          line (PFNC:BayerBG12)
+        BayerGR12Packed - Bayer-color, 2x12 bits in 24 bits, starting with GR
+                          line (GEV:BayerGR12Packed)
+        BayerRG12Packed - Bayer-color, 2x12 bits in 24 bits, starting with RG
+                          line (GEV:BayerRG12Packed)
+        BayerGB12Packed - Bayer-color, 2x12 bits in 24 bits, starting with GB
+                          line (GEV:BayerGB12Packed)
+        BayerBG12Packed - Bayer-color, 2x12 bits in 24 bits, starting with BG
+                          line (GEV:BayerBG12Packed)
+        BayerGR10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with GR line (PFNC:BayerGR10p)
+        BayerRG10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with RG line (PFNC:BayerRG10p)
+        BayerGB10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with GB line (PFNC:BayerGB10p)
+        BayerBG10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with BG line (PFNC:BayerBG10p)
+        BayerGR12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with GR line (PFNC:BayerGR12p)
+        BayerRG12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with RG line (PFNC:BayerRG12p)
+        BayerGB12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with GB line (PFNC:BayerGB12p)
+        BayerBG12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with BG line (PFNC:BayerBG12p)
+        BayerGR16       - Bayer-color, 16 bits, starting with GR line
+                          (PFNC:BayerGR16)
+        BayerRG16       - Bayer-color, 16 bits, starting with RG line
+                          (PFNC:BayerRG16)
+        BayerGB16       - Bayer-color, 16 bits, starting with GB line
+                          (PFNC:BayerGB16)
+        BayerBG16       - Bayer-color, 16 bits, starting with BG line
+                          (PFNC:BayerBG16)
+
+    RGB formats:
+        Rgb8  - RGB, 8 bits x 3 (PFNC:RGB8)
+        Bgr8  - BGR, 8 bits x 3 (PFNC:Bgr8)
+        Rgb10 - RGB, 10 bits in 16 bits x 3 (PFNC:RGB10)
+        Bgr10 - BGR, 10 bits in 16 bits x 3 (PFNC:BGR10)
+        Rgb12 - RGB, 12 bits in 16 bits x 3 (PFNC:RGB12)
+        Bgr12 - BGR, 12 bits in 16 bits x 3 (PFNC:BGR12)
+        Rgb14 - RGB, 14 bits in 16 bits x 3 (PFNC:RGB14)
+        Bgr14 - BGR, 14 bits in 16 bits x 3 (PFNC:BGR14)
+        Rgb16 - RGB, 16 bits x 3 (PFNC:RGB16)
+        Bgr16 - BGR, 16 bits x 3 (PFNC:BGR16)
+
+    RGBA formats:
+        Argb8  - ARGB, 8 bits x 4 (PFNC:RGBa8)
+        Rgba8  - RGBA, 8 bits x 4, legacy name
+        Bgra8  - BGRA, 8 bits x 4 (PFNC:BGRa8)
+        Rgba10 - RGBA, 10 bits in 16 bits x 4
+        Bgra10 - BGRA, 10 bits in 16 bits x 4
+        Rgba12 - RGBA, 12 bits in 16 bits x 4
+        Bgra12 - BGRA, 12 bits in 16 bits x 4
+        Rgba14 - RGBA, 14 bits in 16 bits x 4
+        Bgra14 - BGRA, 14 bits in 16 bits x 4
+        Rgba16 - RGBA, 16 bits x 4
+        Bgra16 - BGRA, 16 bits x 4
+
+    YUV/YCbCr formats:
+        Yuv411              -  YUV 411 with 8 bits (GEV:YUV411Packed)
+        Yuv422              -  YUV 422 with 8 bits (GEV:YUV422Packed)
+        Yuv444              -  YUV 444 with 8 bits (GEV:YUV444Packed)
+        YCbCr411_8_CbYYCrYY -  Y´CbCr 411 with 8 bits
+                               (PFNC:YCbCr411_8_CbYYCrYY) - identical to Yuv411
+        YCbCr422_8_CbYCrY   -  Y´CbCr 422 with 8 bits
+                               (PFNC:YCbCr422_8_CbYCrY) - identical to Yuv422
+        YCbCr8_CbYCr        -  Y´CbCr 444 with 8 bits
+                               (PFNC:YCbCr8_CbYCr) - identical to Yuv444
+    """
+    None_ = 0
+    Mono8 = _VmbPixel.Mono | _VmbPixelOccupy.Bit8 | 0x0001
+    Mono10 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0003
+    Mono10p = _VmbPixel.Mono | _VmbPixelOccupy.Bit10 | 0x0046
+    Mono12 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0005
+    Mono12Packed = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x0006
+    Mono12p = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x0047
+    Mono14 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0025
+    Mono16 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0007
+    BayerGR8 = _VmbPixel.Mono | _VmbPixelOccupy.Bit8 | 0x0008
+    BayerRG8 = _VmbPixel.Mono | _VmbPixelOccupy.Bit8 | 0x0009
+    BayerGB8 = _VmbPixel.Mono | _VmbPixelOccupy.Bit8 | 0x000A
+    BayerBG8 = _VmbPixel.Mono | _VmbPixelOccupy.Bit8 | 0x000B
+    BayerGR10 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x000C
+    BayerRG10 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x000D
+    BayerGB10 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x000E
+    BayerBG10 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x000F
+    BayerGR12 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0010
+    BayerRG12 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0011
+    BayerGB12 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0012
+    BayerBG12 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0013
+    BayerGR12Packed = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x002A
+    BayerRG12Packed = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x002B
+    BayerGB12Packed = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x002C
+    BayerBG12Packed = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x002D
+    BayerGR10p = _VmbPixel.Mono | _VmbPixelOccupy.Bit10 | 0x0056
+    BayerRG10p = _VmbPixel.Mono | _VmbPixelOccupy.Bit10 | 0x0058
+    BayerGB10p = _VmbPixel.Mono | _VmbPixelOccupy.Bit10 | 0x0054
+    BayerBG10p = _VmbPixel.Mono | _VmbPixelOccupy.Bit10 | 0x0052
+    BayerGR12p = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x0057
+    BayerRG12p = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x0059
+    BayerGB12p = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x0055
+    BayerBG12p = _VmbPixel.Mono | _VmbPixelOccupy.Bit12 | 0x0053
+    BayerGR16 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x002E
+    BayerRG16 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x002F
+    BayerGB16 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0030
+    BayerBG16 = _VmbPixel.Mono | _VmbPixelOccupy.Bit16 | 0x0031
+    Rgb8 = _VmbPixel.Color | _VmbPixelOccupy.Bit24 | 0x0014
+    Bgr8 = _VmbPixel.Color | _VmbPixelOccupy.Bit24 | 0x0015
+    Rgb10 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x0018
+    Bgr10 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x0019
+    Rgb12 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x001A
+    Bgr12 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x001B
+    Rgb14 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x005E
+    Bgr14 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x004A
+    Rgb16 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x0033
+    Bgr16 = _VmbPixel.Color | _VmbPixelOccupy.Bit48 | 0x004B
+    Argb8 = _VmbPixel.Color | _VmbPixelOccupy.Bit32 | 0x0016
+    Rgba8 = Argb8
+    Bgra8 = _VmbPixel.Color | _VmbPixelOccupy.Bit32 | 0x0017
+    Rgba10 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x005F
+    Bgra10 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x004C
+    Rgba12 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x0061
+    Bgra12 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x004E
+    Rgba14 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x0063
+    Bgra14 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x0050
+    Rgba16 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x0064
+    Bgra16 = _VmbPixel.Color | _VmbPixelOccupy.Bit64 | 0x0051
+    Yuv411 = _VmbPixel.Color | _VmbPixelOccupy.Bit12 | 0x001E
+    Yuv422 = _VmbPixel.Color | _VmbPixelOccupy.Bit16 | 0x001F
+    Yuv444 = _VmbPixel.Color | _VmbPixelOccupy.Bit24 | 0x0020
+    YCbCr411_8_CbYYCrYY = _VmbPixel.Color | _VmbPixelOccupy.Bit12 | 0x003C
+    YCbCr422_8_CbYCrY = _VmbPixel.Color | _VmbPixelOccupy.Bit16 | 0x0043
+    YCbCr8_CbYCr = _VmbPixel.Color | _VmbPixelOccupy.Bit24 | 0x003A
 
     def __str__(self):
         return self._name_
