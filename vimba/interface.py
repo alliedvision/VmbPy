@@ -170,7 +170,7 @@ class Interface:
         """
         return filter_selected_features(self.__feats, feat)
 
-    #@RuntimeTypeCheckEnable()
+    @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
         """Get all interface features of a specific feature type.
 

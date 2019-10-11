@@ -91,7 +91,7 @@ class Vimba:
             return self.__cams_access_mode
 
         @RuntimeTypeCheckEnable()
-        def set_camera_capture_timeout(self, millis):
+        def set_camera_capture_timeout(self, millis: int):
             """Set default camera frame capture timeout in milliseconds.
 
             Arguments:
@@ -282,7 +282,7 @@ class Vimba:
             """
             return filter_features_by_name(self.__feats, feat_name)
 
-        #@RuntimeTypeCheckEnable()
+        @RuntimeTypeCheckEnable()
         def register_camera_change_handler(self, handler: CameraChangeHandler):
             """Add Callable what is executed on camera connect/disconnect
 
@@ -302,7 +302,7 @@ class Vimba:
                 if self.__cams_handlers:
                     self.__cams_handlers.clear()
 
-        #@RuntimeTypeCheckEnable()
+        @RuntimeTypeCheckEnable()
         def unregister_camera_change_handler(self, handler: CameraChangeHandler):
             """Remove previously registered camera change handler
 
@@ -316,7 +316,7 @@ class Vimba:
                 if handler in self.__cams_handlers:
                     self.__cams_handlers.remove(handler)
 
-        # @RuntimeTypeCheckEnable()
+        @RuntimeTypeCheckEnable()
         def register_interface_change_handler(self, handler: InterfaceChangeHandler):
             """Add Callable what is executed on interface connect/disconnect
 
@@ -336,7 +336,7 @@ class Vimba:
                 if self.__inters_handlers:
                     self.__inters_handlers.clear()
 
-        # @RuntimeTypeCheckEnable()
+        @RuntimeTypeCheckEnable()
         def unregister_interface_change_handler(self, handler: InterfaceChangeHandler):
             """Remove previously registered interface change handler
 
@@ -413,7 +413,7 @@ class Vimba:
                     try:
                         handler(cam, event)
 
-                    except BaseException as e:
+                    except Exception as e:
                         msg = 'Caught Exception in handler: '
                         msg += 'Type: {}, '.format(type(e))
                         msg += 'Value: {}, '.format(e)
@@ -453,7 +453,7 @@ class Vimba:
                     try:
                         handler(inter, event)
 
-                    except BaseException as e:
+                    except Exception as e:
                         msg = 'Caught Exception in handler: '
                         msg += 'Type: {}, '.format(type(e))
                         msg += 'Value: {}, '.format(e)

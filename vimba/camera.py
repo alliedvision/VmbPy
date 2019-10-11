@@ -271,7 +271,7 @@ class _CaptureFsm:
         self.__state.wait_for_frames()
 
     def requeue_frame(self, frame):
-        # Swallow AttribeErrors: Those are caused by callback execution while leaving
+        # Swallow AttributeErrors: Those are caused by callback execution while leaving
         # capturing mode. Those are expected here.
         try:
             self.__state.requeue_frame(frame)
@@ -475,7 +475,7 @@ class Camera:
         """
         return filter_selected_features(self.__feats, feat)
 
-    #@RuntimeTypeCheckEnable()
+    @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
         """Get all camera features of a specific feature type.
 
@@ -551,8 +551,8 @@ class Camera:
         return self.get_frame_iter(1).__iter__().__next__()
 
     @TraceEnable()
-    #@RuntimeTypeCheckEnable()
-    def start_streaming(self, handler: FrameHandler, buffer_count: int = 5):
+    @RuntimeTypeCheckEnable()
+    def start_streaming(self, handler: FrameHandler, buffer_count: int):
         """Enter streaming mode
 
         Enter streaming mode also known as asynchronous frame acquisition.
@@ -701,7 +701,7 @@ class Camera:
             try:
                 context.frames_handler(self, frame)
 
-            except BaseException as e:
+            except Exception as e:
                 msg = 'Caught Exception in handler: '
                 msg += 'Type: {}, '.format(type(e))
                 msg += 'Value: {}, '.format(e)

@@ -46,7 +46,7 @@ __all__ = [
 ]
 
 
-ChangeHandler = Callable[[Type['_BaseFeature']], None]
+ChangeHandler = Callable[['FeatureTypes'], None]
 
 
 class FeatureFlags(enum.IntEnum):
@@ -213,7 +213,7 @@ class _BaseFeature:
         _, w = self.get_access_mode()
         return w
 
-    # RuntimeCheckEnable()
+    @RuntimeTypeCheckEnable()
     def register_change_handler(self, handler: ChangeHandler):
         """Register Callable on the Feature.
 
@@ -241,7 +241,7 @@ class _BaseFeature:
                 self.__unregister_callback()
                 self.__handlers.clear()
 
-    # RuntimeCheckEnable()
+    @RuntimeTypeCheckEnable()
     def unregister_change_handler(self, handler: ChangeHandler):
         """Remove registered Callable from the Feature.
 
@@ -284,7 +284,7 @@ class _BaseFeature:
                 try:
                     handler(self)
 
-                except BaseException as e:
+                except Exception as e:
                     msg = 'Caught Exception in handler: '
                     msg += 'Type: {}, '.format(type(e))
                     msg += 'Value: {}, '.format(e)

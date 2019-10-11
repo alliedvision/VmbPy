@@ -179,7 +179,7 @@ class TlCameraTest(unittest.TestCase):
 
         # Iterator execution must throw if streaming is enabled
         with self.cam:
-            self.cam.start_streaming(dummy_frame_handler)
+            self.cam.start_streaming(dummy_frame_handler, 5)
 
             self.assertRaises(VimbaCameraError, self.cam.get_frame)
 
@@ -238,7 +238,7 @@ class TlCameraTest(unittest.TestCase):
         # Normal Operation
         self.assertEqual(self.cam.is_streaming(), False)
         with self.cam:
-            self.cam.start_streaming(dummy_frame_handler)
+            self.cam.start_streaming(dummy_frame_handler, 5)
             self.assertEqual(self.cam.is_streaming(), True)
 
             self.cam.stop_streaming()
@@ -246,7 +246,7 @@ class TlCameraTest(unittest.TestCase):
 
         # Missing the stream stop. Close must stop streaming
         with self.cam:
-            self.cam.start_streaming(dummy_frame_handler)
+            self.cam.start_streaming(dummy_frame_handler, 5)
             self.assertEqual(self.cam.is_streaming(), True)
 
         self.assertEqual(self.cam.is_streaming(), False)
@@ -321,11 +321,10 @@ class TlCameraTest(unittest.TestCase):
 
         self.vimba.disable_log()
 
-    @unittest.skip('Fix me')
     def test_runtime_type_check(self):
         """Expectation: raise TypeError on passing invalid parameters"""
         self.assertRaises(TypeError,  self.cam.set_access_mode, -1)
-        self.assertRaises(TypeError,  self.cam.set_capture_timeout_millisec, 'hi')
+        self.assertRaises(TypeError,  self.cam.set_capture_timeout, 'hi')
         self.assertRaises(TypeError,  self.cam.get_features_affected_by, 'No Feature')
         self.assertRaises(TypeError,  self.cam.get_features_selected_by, 'No Feature')
         self.assertRaises(TypeError,  self.cam.get_features_by_type, 0.0)
@@ -338,5 +337,6 @@ class TlCameraTest(unittest.TestCase):
         def func_ok(cam: Camera,  frame: Frame):
             pass
 
+        # TODO: Works only if Hints on Callables are verified
         self.assertRaises(TypeError,  self.cam.start_streaming, func_err, 3)
         self.assertRaises(TypeError,  self.cam.start_streaming, func_ok, 'no int')

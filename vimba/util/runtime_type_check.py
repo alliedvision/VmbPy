@@ -5,7 +5,9 @@
 <Insert license here>
 """
 
-from inspect import getfullargspec
+import collections
+
+from inspect import getfullargspec, isfunction, ismethod, signature
 from functools import wraps
 from typing import get_type_hints, Any, Callable, Tuple, Union
 from .log import Log
@@ -46,75 +48,120 @@ class RuntimeTypeCheckEnable:
         self.__hints = get_type_hints(func)
         self.__return_type = self.__hints.pop('return', None)
 
-    def __verify_arg(self, expected: Any, arg_name: str):
+    def __verify_arg(self, type_hint: Any, arg_name: str):
         arg = self.__kwargs.get(arg_name)
-        actual = type(arg)
 
-        if (self.__matches_base_types(expected, actual) or
-                self.__matches_union_types(expected, actual) or
-                self.__matches_tuple_types(expected, actual, arg)):
+        if (self.__matches(type_hint, arg)):
             return
 
         msg = '\'{}\' called with unexpected argument type.'
         msg += ' Argument\'{}\'.'
         msg += ' Expected type: {},'
-        msg += ' Actual type: {}'
-        msg = msg.format(self.__func.__qualname__, arg_name, expected, actual)
+        msg = msg.format(self.__func.__qualname__, arg_name, type_hint, type(arg))
 
         RuntimeTypeCheckEnable._log.error(msg)
         raise TypeError(msg)
 
-    def __matches_base_types(self, expected: Any, actual: Any) -> bool:
-        return expected == actual
+    def __matches(self, type_hint: Any, arg: Any) -> bool:
+        if self.__matches_base_types(type_hint, arg):
+            return True
 
-    def __matches_union_types(self, expected: Any, actual: Any) -> bool:
+        if self.__matches_union_types(type_hint, arg):
+            return True
+
+        if self.__matches_tuple_types(type_hint, arg):
+            return True
+
+        return self.__matches_callable(type_hint, arg)
+
+    def __matches_base_types(self, type_hint: Any, arg: Any) -> bool:
+        return type_hint == type(arg)
+
+    def __matches_union_types(self, type_hint: Any, arg: Any) -> bool:
         try:
-            if not expected.__origin__ == Union:
+            if not type_hint.__origin__ == Union:
                 return False
 
         except AttributeError:
             return False
 
-        if actual in expected.__args__:
-            return True
+        return type(arg) in type_hint.__args__
 
-        else:
-            return False
-
-    def __matches_tuple_types(self, expected: Any, actual: Any, arg_tuple: Any) -> bool:
+    def __matches_tuple_types(self, type_hint: Any, arg: Any) -> bool:
         try:
-            if not (expected.__origin__ == tuple and actual == tuple):
+            if not (type_hint.__origin__ == tuple and type(arg) == tuple):
                 return False
 
         except AttributeError:
             return False
 
-        if arg_tuple is ():
+        if arg is ():
             return True
 
-        if Ellipsis in expected.__args__:
-            return self.__matches_var_length_tuple(expected.__args__, arg_tuple)
+        if Ellipsis in type_hint.__args__:
+            fn = self.__matches_var_length_tuple
 
         else:
-            return self.__matches_fixed_size_tuple(expected.__args__, arg_tuple)
+            fn = self.__matches_fixed_size_tuple
 
-    def __matches_fixed_size_tuple(self, expected_tuple_types: Any, arg_tuple: Any) -> bool:
+        return fn(type_hint, arg)
+
+    def __matches_fixed_size_tuple(self, type_hint: Any, arg: Any) -> bool:
         # To pass, the entire tuple must match in length and all types
-        if len(expected_tuple_types) != len(arg_tuple):
+        expand_hint = type_hint.__args__
+
+        if len(expand_hint) != len(arg):
             return False
 
-        for expected_type, arg in zip(expected_tuple_types, arg_tuple):
-            if not expected_type == type(arg):
+        for hint, value in zip(expand_hint, arg):
+            if not self.__matches(hint, value):
                 return False
 
         return True
 
-    def __matches_var_length_tuple(self, expected_types: Any, arg_tuple: Any) -> bool:
+    def __matches_var_length_tuple(self, type_hint: Any, arg: Any) -> bool:
         # To pass a tuple can be empty or all contents must match the given type.
-        expected_type, _ = expected_types
+        hint, _ = type_hint.__args__
 
-        for arg in arg_tuple:
-            if not expected_type == type(arg):
+        for value in arg:
+            if not self.__matches(hint, value):
                 return False
+
+        return True
+
+    def __matches_callable(self, type_hint: Any, arg: Any) -> bool:
+        # Return if the given hint is no callable
+        try:
+            if not type_hint.__origin__ == collections.abc.Callable:
+                return False
+
+        except AttributeError:
+            return False
+
+        # Verify that are is some form of callable.:
+        # 1) Check if it is either a function or a method
+        # 2) If it is an object, check if it has a __call__ method. If so use call for checks.
+        if not (isfunction(arg) or ismethod(arg)):
+
+            try:
+                fn = getattr(arg, '__call__')
+
+            except AttributeError:
+                return False
+
+            arg = fn
+
+        # Examine signature of given callable
+        sig_args = list(signature(arg).parameters.values())
+        hint_args = list(type_hint.__args__)
+        hint_return = hint_args.pop()
+
+        if len(sig_args) != len(hint_args):
+            return False
+
+        # TODO: Verify hints if they are specified
+        #  print(sig_args)
+        #  print(hint_args)
+        #  print(hint_return)
 
         return True

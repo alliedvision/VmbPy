@@ -52,7 +52,6 @@ class VimbaTest(unittest.TestCase):
 
         self.assertRaises(VimbaFeatureError, vimba.get_feature_by_name, 'Invalid ID')
 
-    @unittest.skip('Fix me')
     def test_runtime_check_failure(self):
         """All functions with RuntimeTypeCheckEnable must return a TypeError on Failure"""
         vimba = Vimba.get_instance()
