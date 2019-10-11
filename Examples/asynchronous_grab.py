@@ -28,7 +28,7 @@ def main():
                 vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
 
                 # Start Streaming, wait for five seconds, stop streaming
-                cam.start_streaming(frame_handler, 5)
+                cam.start_streaming(frame_handler)
                 time.sleep(5)
                 cam.stop_streaming()
 

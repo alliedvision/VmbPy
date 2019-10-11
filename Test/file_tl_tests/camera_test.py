@@ -238,7 +238,7 @@ class TlCameraTest(unittest.TestCase):
         # Normal Operation
         self.assertEqual(self.cam.is_streaming(), False)
         with self.cam:
-            self.cam.start_streaming(dummy_frame_handler, 5)
+            self.cam.start_streaming(dummy_frame_handler)
             self.assertEqual(self.cam.is_streaming(), True)
 
             self.cam.stop_streaming()

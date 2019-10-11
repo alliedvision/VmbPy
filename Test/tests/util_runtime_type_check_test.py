@@ -10,6 +10,24 @@ class RuntimeTypeCheckTest(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_func_mixed_args_kwargs_and_defaults(self):
+        """Expectation: The typecheck must be able to deal with a valid mixture of args, kwargs
+        and default values.
+        """
+
+        @RuntimeTypeCheckEnable()
+        def test_func(a: int, b: str, c:float = 11.0/7.0):
+            pass
+
+        self.assertNoRaise(test_func, 1, '2', 0.0)
+        self.assertNoRaise(test_func, c=0.0, b='str', a=1)
+        self.assertNoRaise(test_func, 1, c=0.0, b='str')
+        self.assertNoRaise(test_func, 1, b='str')
+        self.assertNoRaise(test_func, 1, 'str')
+
+        self.assertRaises(TypeError, test_func, c=0.0, b='str', a=0.0)
+        self.assertRaises(TypeError, test_func, c='invalid type', b='str', a=0.0)
+
     def test_func_no_hints(self):
         """ Expectation: Functions without type hints
             should not throw any type errors
@@ -182,45 +200,3 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(func, Ok(), 'str')
         self.assertRaises(TypeError, func, Err1(), 'str')
         self.assertRaises(TypeError, func, Err2(), 'str')
-
-#    def test_callable_no_arg(self):
-#        """Expectation: The Callable verification shall fail if given Parameter is no callable."""
-#        @RuntimeTypeCheckEnable()
-#        def func(fn: Callable[[], int]):
-#            return fn()
-
-#        def ok() -> int:
-#            return 23
-
-#        def err() -> None:
-#            return None
-
-#        #self.assertNoRaise(func, ok)
-#        #self.assertRaises(TypeError, func, err)
-
-#    def test_callable(self):
-#        """ Verify Signature of given callable:
-#        Callable Verfication shall Fail if:
-#        """
-
-#        @RuntimeTypeCheckEnable()
-#        def func(fn: Callable[[str, float], int], arg1: str, arg2: float) -> int:
-#            return fn(arg1, arg2)
-
-#        def no_fail_func(arg1: str, arg2: float) -> int:
-#            return 23
-
-#        def fail_func_1(arg1: int, arg2: float) -> int:
-#            return 23
-
-#        def fail_func_2(arg1: str, arg2: int) -> int:
-#            return 23
-
-#        def fail_func_3(arg1: str, arg2: float) -> float:
-#            return 23
-
-
-        #self.assertNoRaise(func, no_fail_func, 'str', 1.0)
-        #self.assertRaises(TypeError, func, fail_func_1, 1, 1.0)
-        #self.assertRaises(TypeError, func, fail_func_2, 'str', 1)
-        #self.assertRaises(TypeError, func, fail_func_3, 'str', 1.0)

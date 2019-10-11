@@ -7,9 +7,9 @@
 
 import collections
 
-from inspect import getfullargspec, isfunction, ismethod, signature
+from inspect import isfunction, ismethod, signature
 from functools import wraps
-from typing import get_type_hints, Any, Callable, Tuple, Union
+from typing import get_type_hints, Union
 from .log import Log
 
 
@@ -30,39 +30,42 @@ class RuntimeTypeCheckEnable:
     """
     _log = Log.get_instance()
 
-    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
+    def __call__(self, func):
         @wraps(func)
-        def wrapper(*args: Tuple[Any, ...]):
-            self.__dismantle_sig(func, *args)
+        def wrapper(*args, **kwargs):
+            full_args, hints = self.__dismantle_sig(func, *args, **kwargs)
 
-            for name_hint, type_hint in self.__hints.items():
-                self.__verify_arg(type_hint, name_hint)
+            for arg_name in hints:
+                self.__verify_arg(func, hints[arg_name], (arg_name, full_args[arg_name]))
 
-            return func(*args)
+            return func(*args, **kwargs)
 
         return wrapper
 
-    def __dismantle_sig(self, func: Callable[..., Any], *args: Tuple[Any, ...]):
-        self.__func = func
-        self.__kwargs = dict(zip(getfullargspec(func)[0], args))
-        self.__hints = get_type_hints(func)
-        self.__return_type = self.__hints.pop('return', None)
+    def __dismantle_sig(self, func, *args, **kwargs):
+        # Get merge args, kwargs and defaults to complete argument list.
+        full_args = signature(func).bind(*args, **kwargs)
+        full_args.apply_defaults()
 
-    def __verify_arg(self, type_hint: Any, arg_name: str):
-        arg = self.__kwargs.get(arg_name)
+        # Get available type hints, remove return value.
+        hints = get_type_hints(func)
+        hints.pop('return', None)
+
+        return (full_args.arguments, hints)
+
+    def __verify_arg(self, func, type_hint, arg_spec):
+        arg_name, arg = arg_spec
 
         if (self.__matches(type_hint, arg)):
             return
 
-        msg = '\'{}\' called with unexpected argument type.'
-        msg += ' Argument\'{}\'.'
-        msg += ' Expected type: {},'
-        msg = msg.format(self.__func.__qualname__, arg_name, type_hint, type(arg))
+        msg = '\'{}\' called with unexpected argument type. Argument\'{}\'. Expected type: {}.'
+        msg = msg.format(func.__qualname__, arg_name, type_hint)
 
         RuntimeTypeCheckEnable._log.error(msg)
         raise TypeError(msg)
 
-    def __matches(self, type_hint: Any, arg: Any) -> bool:
+    def __matches(self, type_hint, arg) -> bool:
         if self.__matches_base_types(type_hint, arg):
             return True
 
@@ -74,10 +77,10 @@ class RuntimeTypeCheckEnable:
 
         return self.__matches_callable(type_hint, arg)
 
-    def __matches_base_types(self, type_hint: Any, arg: Any) -> bool:
+    def __matches_base_types(self, type_hint, arg) -> bool:
         return type_hint == type(arg)
 
-    def __matches_union_types(self, type_hint: Any, arg: Any) -> bool:
+    def __matches_union_types(self, type_hint, arg) -> bool:
         try:
             if not type_hint.__origin__ == Union:
                 return False
@@ -87,7 +90,7 @@ class RuntimeTypeCheckEnable:
 
         return type(arg) in type_hint.__args__
 
-    def __matches_tuple_types(self, type_hint: Any, arg: Any) -> bool:
+    def __matches_tuple_types(self, type_hint, arg) -> bool:
         try:
             if not (type_hint.__origin__ == tuple and type(arg) == tuple):
                 return False
@@ -106,7 +109,7 @@ class RuntimeTypeCheckEnable:
 
         return fn(type_hint, arg)
 
-    def __matches_fixed_size_tuple(self, type_hint: Any, arg: Any) -> bool:
+    def __matches_fixed_size_tuple(self, type_hint, arg) -> bool:
         # To pass, the entire tuple must match in length and all types
         expand_hint = type_hint.__args__
 
@@ -119,7 +122,7 @@ class RuntimeTypeCheckEnable:
 
         return True
 
-    def __matches_var_length_tuple(self, type_hint: Any, arg: Any) -> bool:
+    def __matches_var_length_tuple(self, type_hint, arg) -> bool:
         # To pass a tuple can be empty or all contents must match the given type.
         hint, _ = type_hint.__args__
 
@@ -129,7 +132,7 @@ class RuntimeTypeCheckEnable:
 
         return True
 
-    def __matches_callable(self, type_hint: Any, arg: Any) -> bool:
+    def __matches_callable(self, type_hint, arg) -> bool:
         # Return if the given hint is no callable
         try:
             if not type_hint.__origin__ == collections.abc.Callable:
@@ -154,14 +157,12 @@ class RuntimeTypeCheckEnable:
         # Examine signature of given callable
         sig_args = list(signature(arg).parameters.values())
         hint_args = list(type_hint.__args__)
-        hint_return = hint_args.pop()
+
+        # Remove return value
+        hint_args.pop()
 
         if len(sig_args) != len(hint_args):
             return False
 
         # TODO: Verify hints if they are specified
-        #  print(sig_args)
-        #  print(hint_args)
-        #  print(hint_return)
-
         return True

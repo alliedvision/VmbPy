@@ -552,7 +552,7 @@ class Camera:
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
-    def start_streaming(self, handler: FrameHandler, buffer_count: int):
+    def start_streaming(self, handler: FrameHandler, buffer_count: int = 5):
         """Enter streaming mode
 
         Enter streaming mode also known as asynchronous frame acquisition.
