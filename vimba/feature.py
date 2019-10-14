@@ -273,11 +273,7 @@ class _BaseFeature:
                      self.__feature_callback)
 
     def __feature_cb_wrapper(self, *_):   # coverage: skip
-        # Note: This function is executed from the C-Context. This means that:
-        # 1) All Exceptions must be fetched since there is no direct caller that could catch a
-        #    thrown exception.
-        # 2) Coverage is disabled, because it can't track execution from the C-Context.
-
+        # Skip coverage because it can't be measured. This is called from C-Context.
         with self.__handlers_lock:
             for handler in self.__handlers:
 
