@@ -418,8 +418,8 @@ class Vimba:
                         msg += 'Type: {}, '.format(type(e))
                         msg += 'Value: {}, '.format(e)
                         msg += 'raised by: {}'.format(handler)
-
                         Log.get_instance().error(msg)
+                        raise e
 
         def __inter_cb_wrapper(self, inter_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
@@ -427,7 +427,7 @@ class Vimba:
             inter = None
             inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
             log = Log.get_instance()
-            log.info('called')
+
             # New interface found: Add it to interface list
             if event == InterfaceEvent.Detected:
                 inter = discover_interface(inter_id)
@@ -458,8 +458,8 @@ class Vimba:
                         msg += 'Type: {}, '.format(type(e))
                         msg += 'Value: {}, '.format(e)
                         msg += 'raised by: {}'.format(handler)
-
                         Log.get_instance().error(msg)
+                        raise e
 
     __instance = __Impl()
 

@@ -154,9 +154,9 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         def func(fn: Callable[[], None]):
             fn()
 
-        #self.assertRaises(TypeError, func, 'no_callable')
+        self.assertRaises(TypeError, func, 'no_callable')
 
-    def test_callable_no_hints(self):
+    def test_callable_func(self):
         """Expectation: A Callable without any hints must comply as long as the number of parameters
         matches to given hints. The Return Type doesn't matter if not given.
         """
@@ -173,13 +173,12 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         def err2(arg1, arg2, arg3):
             return 23
 
-        #self.assertNoRaise(func, ok, 'str', 0.0)
-        #self.assertRaises(TypeError, func, err1, 'str', 0.0)
-        #self.assertRaises(TypeError, func, err2, 'str', 0.0)
+        self.assertNoRaise(func, ok, 'str', 0.0)
+        self.assertRaises(TypeError, func, err1, 'str', 0.0)
+        self.assertRaises(TypeError, func, err2, 'str', 0.0)
 
     def test_callable_obj(self):
-        """Expectation: A Object that is callable must pass the runtime check
-        """
+        """Expectation: A Object that is callable must pass the runtime check"""
         @RuntimeTypeCheckEnable()
         def func(fn: Callable[[str], None], arg: str) -> str:
             return fn(arg)
@@ -196,7 +195,17 @@ class RuntimeTypeCheckTest(unittest.TestCase):
             def __call__(self, arg1: str, arg2: str) -> str:
                 return arg1 + arg2
 
-
         self.assertNoRaise(func, Ok(), 'str')
         self.assertRaises(TypeError, func, Err1(), 'str')
         self.assertRaises(TypeError, func, Err2(), 'str')
+
+    def test_callable_lambda(self):
+        """Expectation: RuntimeTypeCheck must behave with lambas as with functions"""
+
+        @RuntimeTypeCheckEnable()
+        def func(fn: Callable[[str, float], int], arg1: str, arg2: float) -> int:
+            return fn(arg1, arg2)
+
+        self.assertNoRaise(func, lambda a1, a2: 0.0, 'str', 0.0)
+        self.assertRaises(TypeError, func, lambda a1: 'foo', 'str', 0.0)
+        self.assertRaises(TypeError, func, lambda a1, a2, a3: 23, 'str', 0.0)

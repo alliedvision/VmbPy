@@ -272,7 +272,7 @@ class _BaseFeature:
         call_vimba_c('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
                      self.__feature_callback)
 
-    def __feature_cb_wrapper(self, *ignored):   # coverage: skip
+    def __feature_cb_wrapper(self, *_):   # coverage: skip
         # Note: This function is executed from the C-Context. This means that:
         # 1) All Exceptions must be fetched since there is no direct caller that could catch a
         #    thrown exception.
@@ -289,8 +289,8 @@ class _BaseFeature:
                     msg += 'Type: {}, '.format(type(e))
                     msg += 'Value: {}, '.format(e)
                     msg += 'raised by: {}'.format(handler)
-
                     Log.get_instance().error(msg)
+                    raise e
 
     def _build_access_error(self) -> VimbaFeatureError:
         caller_name = inspect.stack()[1][3]

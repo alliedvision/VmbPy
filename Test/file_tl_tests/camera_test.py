@@ -323,20 +323,23 @@ class TlCameraTest(unittest.TestCase):
 
     def test_runtime_type_check(self):
         """Expectation: raise TypeError on passing invalid parameters"""
-        self.assertRaises(TypeError,  self.cam.set_access_mode, -1)
-        self.assertRaises(TypeError,  self.cam.set_capture_timeout, 'hi')
-        self.assertRaises(TypeError,  self.cam.get_features_affected_by, 'No Feature')
-        self.assertRaises(TypeError,  self.cam.get_features_selected_by, 'No Feature')
-        self.assertRaises(TypeError,  self.cam.get_features_by_type, 0.0)
-        self.assertRaises(TypeError,  self.cam.get_feature_by_name, 0)
-        self.assertRaises(TypeError,  self.cam.get_frame_iter, '3')
+        self.assertRaises(TypeError, self.cam.set_access_mode, -1)
+        self.assertRaises(TypeError, self.cam.set_capture_timeout, 'hi')
+        self.assertRaises(TypeError, self.cam.get_features_affected_by, 'No Feature')
+        self.assertRaises(TypeError, self.cam.get_features_selected_by, 'No Feature')
+        self.assertRaises(TypeError, self.cam.get_features_by_type, 0.0)
+        self.assertRaises(TypeError, self.cam.get_feature_by_name, 0)
+        self.assertRaises(TypeError, self.cam.get_frame_iter, '3')
 
-        def func_err(no_cam: Frame,  no_frame: Camera):
+        def valid_handler(cam, frame):
             pass
 
-        def func_ok(cam: Camera,  frame: Frame):
+        def invalid_handler_1(cam):
             pass
 
-        # TODO: Works only if Hints on Callables are verified
-        self.assertRaises(TypeError,  self.cam.start_streaming, func_err, 3)
-        self.assertRaises(TypeError,  self.cam.start_streaming, func_ok, 'no int')
+        def invalid_handler_2(cam, frame, extra):
+            pass
+
+        self.assertRaises(TypeError, self.cam.start_streaming, valid_handler, 'no int')
+        self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_1)
+        self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_2)

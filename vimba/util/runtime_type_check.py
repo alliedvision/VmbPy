@@ -147,22 +147,17 @@ class RuntimeTypeCheckEnable:
         if not (isfunction(arg) or ismethod(arg)):
 
             try:
-                fn = getattr(arg, '__call__')
+                arg = getattr(arg, '__call__')
 
             except AttributeError:
                 return False
 
-            arg = fn
-
         # Examine signature of given callable
-        sig_args = list(signature(arg).parameters.values())
-        hint_args = list(type_hint.__args__)
+        sig_args = signature(arg).parameters
+        hint_args = type_hint.__args__
 
-        # Remove return value
-        hint_args.pop()
-
-        if len(sig_args) != len(hint_args):
+        # Verify Parameter list length
+        if len(sig_args) != len(hint_args[:-1]):
             return False
 
-        # TODO: Verify hints if they are specified
         return True

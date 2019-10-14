@@ -679,7 +679,7 @@ class Camera:
         self.__feats = ()
         self.__handle = VmbHandle(0)
 
-    def __frame_cb_wrapper(self, ignore: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
+    def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
         assert self.__capture_fsm is not None
 
@@ -706,8 +706,8 @@ class Camera:
                 msg += 'Type: {}, '.format(type(e))
                 msg += 'Value: {}, '.format(e)
                 msg += 'raised by: {}'.format(context.frames_handler)
-
                 Log.get_instance().error(msg)
+                raise e
 
 
 def _setup_network_discovery():
