@@ -106,9 +106,45 @@ class TlFrameTest(unittest.TestCase):
         self.assertEquals(frame._frame.bufferSize, frame_cpy._frame.bufferSize)
 
     def test_get_pixel_format(self):
-        """Expectation: locally constructed Frames must return None_ everything else not None_"""
-        self.assertEquals(Frame(0).get_pixel_format(), VimbaPixelFormat.None_)
+        """Expectation: Frames have an image format set after acquisition"""
+        with self.cam:
+            self.assertNotEquals(self.cam.get_frame().get_pixel_format(), 0)
+
+    def test_incompatible_formats_value_error(self):
+        """Expectation: Conversion into incompatible formats must lead to an value error """
+        with self.cam:
+            frame = self.cam.get_frame()
+
+        convertable_fmt = frame.get_pixel_format().get_convertible_formats()
+        for fmt in VimbaPixelFormat.__members__.values():
+            if fmt not in convertable_fmt:
+                self.assertRaises(ValueError, frame.convert_pixel_format, fmt)
+
+
+    def test_convert_to_all_given_formats(self):
+        """Expectation: A Series of Frame, each acquired with a different Pixel format
+        Must be convertible to all formats the given format claims its convertible to without any
+        errors.
+        """
+        test_frames = []
 
         with self.cam:
-            self.assertNotEquals(self.cam.get_frame().get_pixel_format(), VimbaPixelFormat.None_)
+            pixel_format = self.cam.get_feature_by_name('PixelFormat')
+
+            for fmt in pixel_format.get_available_entries():
+                pixel_format.set(fmt)
+
+                test_frames.append(self.cam.get_frame())
+
+
+        for frame in test_frames:
+
+            # The test shall work on a copy to keep the original Frame untouched
+            cpy_frame = copy.deepcopy(frame)
+
+            for expected_fmt in frame.get_pixel_format().get_convertible_formats():
+                cpy_frame.convert_pixel_format(expected_fmt)
+
+                self.assertEquals(expected_fmt, cpy_frame.get_pixel_format())
+
 

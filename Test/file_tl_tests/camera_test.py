@@ -285,8 +285,8 @@ class TlCameraTest(unittest.TestCase):
 
             self.cam.stop_streaming()
 
-    def test_streaming_requeue(self):
-        """Expectation: A given frame_handler must be reused if it is enqueued again. """
+    def test_streaming_queue(self):
+        """Expectation: A given frame must be reused if it is enqueued again. """
 
         self.vimba.enable_log(LOG_CONFIG_INFO_FILE_ONLY)
 
@@ -304,7 +304,7 @@ class TlCameraTest(unittest.TestCase):
                 if self.cnt == self.frame_count:
                     self.event.set()
 
-                cam.requeue_frame(frame)
+                cam.queue_frame(frame)
 
         timeout = 5.0
         frame_count = 5

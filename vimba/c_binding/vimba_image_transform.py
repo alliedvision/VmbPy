@@ -6,8 +6,8 @@
 """
 import ctypes
 
-from ctypes import byref, c_char_p, POINTER as c_ptr
-from typing import Callable, Any, Tuple
+from ctypes import byref, sizeof, c_char_p, POINTER as c_ptr
+from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VimbaSystemError
 from ..util import TraceEnable
@@ -24,8 +24,13 @@ __all__ = [
     'Vmb12BitPackedPair',
     'VmbSupportState',
     'VmbTechInfo',
+    'VmbImage',
+    'VmbImageInfo',
     'EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION',
-    'call_vimba_image_transform'
+    'call_vimba_image_transform',
+    'PIXEL_FORMAT_TO_LAYOUT',
+    'LAYOUT_TO_PIXEL_FORMAT',
+    'PIXEL_FORMAT_CONVERTIBILTY_MAP'
 ]
 
 
@@ -252,6 +257,7 @@ class VmbPixelInfo(ctypes.Structure):
         ('BitsUsed', VmbUint32),
         ('Alignment', VmbUint32),
         ('Endianess', VmbUint32),
+        ('PixelLayout', VmbUint32),
         ('BayerPattern', VmbUint32),
         ('Reserved', VmbUint32)
     ]
@@ -262,6 +268,7 @@ class VmbPixelInfo(ctypes.Structure):
         rep += fmt_repr(',BitsUsed={}', self.BitsUsed)
         rep += fmt_enum_repr(',Alignment={}', VmbAligment, self.Alignment)
         rep += fmt_enum_repr(',Endianess={}', VmbEndianness, self.Endianess)
+        rep += fmt_enum_repr(',PixelLayout={}', VmbPixelLayout, self.PixelLayout)
         rep += fmt_enum_repr(',BayerPattern={}', VmbBayerPattern, self.BayerPattern)
         rep += fmt_enum_repr(',Reserved={}', VmbColorSpace, self.Reserved)
         rep += ')'
@@ -449,3 +456,129 @@ def call_vimba_image_transform(func_name: str, *args):
 
     global _lib_instance
     getattr(_lib_instance, func_name)(*args)
+
+
+PIXEL_FORMAT_TO_LAYOUT: Dict[VmbPixelFormat, Tuple[VmbPixelLayout, int]] = {
+    VmbPixelFormat.Mono8: (VmbPixelLayout.Mono, 8),
+    VmbPixelFormat.Mono16: (VmbPixelLayout.Mono, 16),
+    VmbPixelFormat.Rgb8: (VmbPixelLayout.RGB, 8),
+    VmbPixelFormat.Rgb16: (VmbPixelLayout.RGB, 16),
+    VmbPixelFormat.Bgr8: (VmbPixelLayout.BGR, 8),
+    VmbPixelFormat.Bgr16: (VmbPixelLayout.BGR, 16),
+    VmbPixelFormat.Rgba8: (VmbPixelLayout.RGBA, 8),
+    VmbPixelFormat.Rgba16: (VmbPixelLayout.RGBA, 16),
+    VmbPixelFormat.Bgra8: (VmbPixelLayout.BGRA, 8),
+    VmbPixelFormat.Bgra16: (VmbPixelLayout.BGRA, 16)
+}
+
+LAYOUT_TO_PIXEL_FORMAT = dict([(v, k) for k, v in PIXEL_FORMAT_TO_LAYOUT.items()])
+
+
+def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, ...]:
+    global LAYOUT_TO_PIXEL_FORMAT
+
+    # Query compatible formats from ImageTransform
+    output_pixel_layouts = (VmbPixelLayout.Mono, VmbPixelLayout.MonoPacked, VmbPixelLayout.Raw,
+                            VmbPixelLayout.RawPacked, VmbPixelLayout.RGB, VmbPixelLayout.BGR,
+                            VmbPixelLayout.RGBA, VmbPixelLayout.BGRA)
+
+    output_bits_per_pixel = (8, 16)
+    output_layouts = tuple([(l, b) for l in output_pixel_layouts for b in output_bits_per_pixel])
+
+    result: List[VmbPixelFormat] = []
+
+    src_image = VmbImage()
+    src_image.Size = sizeof(src_image)
+
+    call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', pixel_format, 0, 0,
+                               byref(src_image))
+
+    dst_image = VmbImage()
+    dst_image.Size = sizeof(dst_image)
+
+    for layout, bits in output_layouts:
+
+        try:
+            call_vimba_image_transform('VmbSetImageInfoFromInputImage', byref(src_image), layout,
+                                       bits, byref(dst_image))
+
+            fmt = LAYOUT_TO_PIXEL_FORMAT[(layout, bits)]
+
+            if fmt not in result:
+                result.append(fmt)
+
+        except VimbaCError as e:
+            if e.get_error_code() not in (VmbError.NotImplemented_, VmbError.BadParameter):
+                raise e
+
+    return tuple(result)
+
+
+PIXEL_FORMAT_CONVERTIBILTY_MAP: Dict[VmbPixelFormat, Tuple[VmbPixelFormat, ...]] = {
+    VmbPixelFormat.Mono8: _query_compatibility(VmbPixelFormat.Mono8),
+    VmbPixelFormat.Mono10: _query_compatibility(VmbPixelFormat.Mono10),
+    VmbPixelFormat.Mono10p: _query_compatibility(VmbPixelFormat.Mono10p),
+    VmbPixelFormat.Mono12: _query_compatibility(VmbPixelFormat.Mono12),
+    VmbPixelFormat.Mono12Packed: _query_compatibility(VmbPixelFormat.Mono12Packed),
+    VmbPixelFormat.Mono12p: _query_compatibility(VmbPixelFormat.Mono12p),
+    VmbPixelFormat.Mono14: _query_compatibility(VmbPixelFormat.Mono14),
+    VmbPixelFormat.Mono16: _query_compatibility(VmbPixelFormat.Mono16),
+
+    VmbPixelFormat.BayerGR8: _query_compatibility(VmbPixelFormat.BayerGR8),
+    VmbPixelFormat.BayerRG8: _query_compatibility(VmbPixelFormat.BayerRG8),
+    VmbPixelFormat.BayerGB8: _query_compatibility(VmbPixelFormat.BayerGB8),
+    VmbPixelFormat.BayerBG8: _query_compatibility(VmbPixelFormat.BayerBG8),
+    VmbPixelFormat.BayerGR10: _query_compatibility(VmbPixelFormat.BayerGR10),
+    VmbPixelFormat.BayerRG10: _query_compatibility(VmbPixelFormat.BayerRG10),
+    VmbPixelFormat.BayerGB10: _query_compatibility(VmbPixelFormat.BayerGB10),
+    VmbPixelFormat.BayerBG10: _query_compatibility(VmbPixelFormat.BayerBG10),
+    VmbPixelFormat.BayerGR12: _query_compatibility(VmbPixelFormat.BayerGR12),
+    VmbPixelFormat.BayerRG12: _query_compatibility(VmbPixelFormat.BayerRG12),
+    VmbPixelFormat.BayerGB12: _query_compatibility(VmbPixelFormat.BayerGB12),
+    VmbPixelFormat.BayerBG12: _query_compatibility(VmbPixelFormat.BayerBG12),
+    VmbPixelFormat.BayerGR12Packed: _query_compatibility(VmbPixelFormat.BayerGR12Packed),
+    VmbPixelFormat.BayerRG12Packed: _query_compatibility(VmbPixelFormat.BayerRG12Packed),
+    VmbPixelFormat.BayerGB12Packed: _query_compatibility(VmbPixelFormat.BayerGB12Packed),
+    VmbPixelFormat.BayerBG12Packed: _query_compatibility(VmbPixelFormat.BayerBG12Packed),
+    VmbPixelFormat.BayerGR10p: _query_compatibility(VmbPixelFormat.BayerGR10p),
+    VmbPixelFormat.BayerRG10p: _query_compatibility(VmbPixelFormat.BayerRG10p),
+    VmbPixelFormat.BayerGB10p: _query_compatibility(VmbPixelFormat.BayerGB10p),
+    VmbPixelFormat.BayerBG10p: _query_compatibility(VmbPixelFormat.BayerBG10p),
+    VmbPixelFormat.BayerGR12p: _query_compatibility(VmbPixelFormat.BayerGR12p),
+    VmbPixelFormat.BayerRG12p: _query_compatibility(VmbPixelFormat.BayerRG12p),
+    VmbPixelFormat.BayerGB12p: _query_compatibility(VmbPixelFormat.BayerGB12p),
+    VmbPixelFormat.BayerBG12p: _query_compatibility(VmbPixelFormat.BayerBG12p),
+    VmbPixelFormat.BayerGR16: _query_compatibility(VmbPixelFormat.BayerGR16),
+    VmbPixelFormat.BayerRG16: _query_compatibility(VmbPixelFormat.BayerRG16),
+    VmbPixelFormat.BayerGB16: _query_compatibility(VmbPixelFormat.BayerGB16),
+    VmbPixelFormat.BayerBG16: _query_compatibility(VmbPixelFormat.BayerBG16),
+
+    VmbPixelFormat.Rgb8: _query_compatibility(VmbPixelFormat.Rgb8),
+    VmbPixelFormat.Bgr8: _query_compatibility(VmbPixelFormat.Bgr8),
+    VmbPixelFormat.Rgb10: _query_compatibility(VmbPixelFormat.Rgb10),
+    VmbPixelFormat.Bgr10: _query_compatibility(VmbPixelFormat.Bgr10),
+    VmbPixelFormat.Rgb12: _query_compatibility(VmbPixelFormat.Rgb12),
+    VmbPixelFormat.Bgr12: _query_compatibility(VmbPixelFormat.Bgr12),
+    VmbPixelFormat.Rgb14: _query_compatibility(VmbPixelFormat.Rgb14),
+    VmbPixelFormat.Bgr14: _query_compatibility(VmbPixelFormat.Bgr14),
+    VmbPixelFormat.Rgb16: _query_compatibility(VmbPixelFormat.Rgb16),
+    VmbPixelFormat.Bgr16: _query_compatibility(VmbPixelFormat.Bgr16),
+    VmbPixelFormat.Argb8: _query_compatibility(VmbPixelFormat.Argb8),
+    VmbPixelFormat.Rgba8: _query_compatibility(VmbPixelFormat.Rgba8),
+    VmbPixelFormat.Bgra8: _query_compatibility(VmbPixelFormat.Bgra8),
+    VmbPixelFormat.Rgba10: _query_compatibility(VmbPixelFormat.Rgba10),
+    VmbPixelFormat.Bgra10: _query_compatibility(VmbPixelFormat.Bgra10),
+    VmbPixelFormat.Rgba12: _query_compatibility(VmbPixelFormat.Rgba12),
+    VmbPixelFormat.Bgra12: _query_compatibility(VmbPixelFormat.Bgra12),
+    VmbPixelFormat.Rgba14: _query_compatibility(VmbPixelFormat.Rgba14),
+    VmbPixelFormat.Bgra14: _query_compatibility(VmbPixelFormat.Bgra14),
+    VmbPixelFormat.Rgba16: _query_compatibility(VmbPixelFormat.Rgba16),
+    VmbPixelFormat.Bgra16: _query_compatibility(VmbPixelFormat.Bgra16),
+
+    VmbPixelFormat.Yuv411: _query_compatibility(VmbPixelFormat.Yuv411),
+    VmbPixelFormat.Yuv422: _query_compatibility(VmbPixelFormat.Yuv422),
+    VmbPixelFormat.Yuv444: _query_compatibility(VmbPixelFormat.Yuv444),
+    VmbPixelFormat.YCbCr411_8_CbYYCrYY: _query_compatibility(VmbPixelFormat.YCbCr411_8_CbYYCrYY),
+    VmbPixelFormat.YCbCr422_8_CbYCrY: _query_compatibility(VmbPixelFormat.YCbCr422_8_CbYCrY),
+    VmbPixelFormat.YCbCr8_CbYCr: _query_compatibility(VmbPixelFormat.YCbCr8_CbYCr)
+}

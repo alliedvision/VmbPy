@@ -210,7 +210,7 @@ class _StateAcquiring(_State):
                 raise _build_camera_error(self.context.cam, e)
 
     @TraceEnable()
-    def requeue_frame(self, frame):
+    def queue_frame(self, frame):
         frame_handle = _frame_handle_accessor(frame)
 
         try:
@@ -270,11 +270,11 @@ class _CaptureFsm:
     def wait_for_frames(self):
         self.__state.wait_for_frames()
 
-    def requeue_frame(self, frame):
+    def queue_frame(self, frame):
         # Swallow AttributeErrors: Those are caused by callback execution while leaving
         # capturing mode. Those are expected here.
         try:
-            self.__state.requeue_frame(frame)
+            self.__state.queue_frame(frame)
 
         except AttributeError:
             pass
@@ -618,7 +618,7 @@ class Camera:
         return self.__capture_fsm is not None
 
     @TraceEnable()
-    def requeue_frame(self, frame: Frame):
+    def queue_frame(self, frame: Frame):
         """Reuse acquired Frame in streaming mode.
 
         Add given frame back into the Frame queue used in streaming mode. This
@@ -638,7 +638,7 @@ class Camera:
         if frame not in self.__capture_fsm.get_context().frames:
             raise ValueError
 
-        self.__capture_fsm.requeue_frame(frame)
+        self.__capture_fsm.queue_frame(frame)
 
     @TraceEnable()
     def _open(self):

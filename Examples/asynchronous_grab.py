@@ -13,7 +13,7 @@ def frame_handler(cam: Camera, frame: Frame):
     log = Log.get_instance()
     log.info('{} acquired {}'.format(cam, frame))
 
-    cam.requeue_frame(frame)
+    cam.queue_frame(frame)
 
 
 def main():

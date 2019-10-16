@@ -50,10 +50,15 @@ __all__ = [
     'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c',
 
-    # Exports from vimba_image_tranform
+    # Exports from vimba_image_transform
     'VmbTechInfo',
+    'VmbImage',
+    'VmbImageInfo',
     'EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION',
     'call_vimba_image_transform',
+    'PIXEL_FORMAT_TO_LAYOUT',
+    'LAYOUT_TO_PIXEL_FORMAT',
+    'PIXEL_FORMAT_CONVERTIBILTY_MAP',
 
     # Exports from ctypes
     'byref',
@@ -72,7 +77,9 @@ from .vimba_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
                    VmbInvalidationCallback, VmbFrameCallback, G_VIMBA_C_HANDLE, \
                    EXPECTED_VIMBA_C_VERSION, call_vimba_c
 
-from .vimba_image_transform import VmbTechInfo, EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION, \
-                                   call_vimba_image_transform
+from .vimba_image_transform import VmbTechInfo, VmbImage, VmbImageInfo, \
+                                   EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION, \
+                                   call_vimba_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
+                                   LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILTY_MAP
 
 from ctypes import byref, sizeof, create_string_buffer

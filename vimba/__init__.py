@@ -18,6 +18,7 @@ __all__ = [
     'Interface',
     'InterfaceChangeHandler',
     'InterfaceEvent',
+    'VimbaPixelFormat',
     'Frame',
     'FrameHandler',
 
@@ -67,7 +68,7 @@ from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, FrameH
 
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 
-from .frame import Frame
+from .frame import VimbaPixelFormat, Frame
 
 from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
                    VimbaTimeout

@@ -12,8 +12,9 @@ import copy
 
 from typing import Optional, Tuple
 from .c_binding import create_string_buffer, byref, sizeof, decode_flags
-from .c_binding import call_vimba_c, VmbFrameStatus, VmbFrameFlags, VmbFrame, VmbHandle, \
-                       VmbPixelFormat
+from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus, VmbFrameFlags, \
+                       VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, \
+                       PIXEL_FORMAT_CONVERTIBILTY_MAP, PIXEL_FORMAT_TO_LAYOUT
 from .feature import FeaturesTuple, FeatureTypes, discover_features, filter_features_by_name
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
@@ -31,7 +32,7 @@ FrameTuple = Tuple['Frame', ...]
 
 
 class VimbaPixelFormat(enum.IntEnum):
-    None_ = VmbPixelFormat.None_
+    # Mono Formats
     Mono8 = VmbPixelFormat.Mono8
     Mono10 = VmbPixelFormat.Mono10
     Mono10p = VmbPixelFormat.Mono10p
@@ -40,6 +41,8 @@ class VimbaPixelFormat(enum.IntEnum):
     Mono12p = VmbPixelFormat.Mono12p
     Mono14 = VmbPixelFormat.Mono14
     Mono16 = VmbPixelFormat.Mono16
+
+    # Bayer Formats
     BayerGR8 = VmbPixelFormat.BayerGR8
     BayerRG8 = VmbPixelFormat.BayerRG8
     BayerGB8 = VmbPixelFormat.BayerGB8
@@ -68,6 +71,8 @@ class VimbaPixelFormat(enum.IntEnum):
     BayerRG16 = VmbPixelFormat.BayerRG16
     BayerGB16 = VmbPixelFormat.BayerGB16
     BayerBG16 = VmbPixelFormat.BayerBG16
+
+    # RGB Formats
     Rgb8 = VmbPixelFormat.Rgb8
     Bgr8 = VmbPixelFormat.Bgr8
     Rgb10 = VmbPixelFormat.Rgb10
@@ -78,9 +83,11 @@ class VimbaPixelFormat(enum.IntEnum):
     Bgr14 = VmbPixelFormat.Bgr14
     Rgb16 = VmbPixelFormat.Rgb16
     Bgr16 = VmbPixelFormat.Bgr16
-    Argb8 = VmbPixelFormat.Argb8
+
+    # RGBA Formats
     Rgba8 = VmbPixelFormat.Rgba8
     Bgra8 = VmbPixelFormat.Bgra8
+    Argb8 = VmbPixelFormat.Argb8
     Rgba10 = VmbPixelFormat.Rgba10
     Bgra10 = VmbPixelFormat.Bgra10
     Rgba12 = VmbPixelFormat.Rgba12
@@ -92,9 +99,21 @@ class VimbaPixelFormat(enum.IntEnum):
     Yuv411 = VmbPixelFormat.Yuv411
     Yuv422 = VmbPixelFormat.Yuv422
     Yuv444 = VmbPixelFormat.Yuv444
+
+    # YCbCr Formats
     YCbCr411_8_CbYYCrYY = VmbPixelFormat.YCbCr411_8_CbYYCrYY
     YCbCr422_8_CbYCrY = VmbPixelFormat.YCbCr422_8_CbYCrY
     YCbCr8_CbYCr = VmbPixelFormat.YCbCr8_CbYCr
+
+    def __str__(self):
+        return 'VimbaPixelFormat.{}'.format(self._name_)
+
+    def __repr__(self):
+        return str(self)
+
+    def get_convertible_formats(self) -> Tuple['VimbaPixelFormat', ...]:
+        formats = PIXEL_FORMAT_CONVERTIBILTY_MAP[VmbPixelFormat(self)]
+        return tuple([VimbaPixelFormat(fmt) for fmt in formats])
 
 
 class FrameStatus(enum.IntEnum):
@@ -190,7 +209,7 @@ class Frame:
 
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
-        return sizeof(self._buffer)
+        return self._frame.bufferSize
 
     def get_image_size(self) -> int:
         """Get byte size of image data stored in buffer."""
@@ -303,10 +322,80 @@ class Frame:
 
         return self._frame.timestamp
 
-    def convert_pixel_format(self, format: VimbaPixelFormat):
-        """TODO: Implement me"""
-        raise NotImplementedError('TODO: Implement me')
+    @RuntimeTypeCheckEnable()
+    def convert_pixel_format(self, target_fmt: VimbaPixelFormat):
+        """Convert internal pixel format to given format.
 
+        Note: This method allocates a new buffer for internal image data leading to some
+        runtime overhead. For Performance Reasons, it might be better to set the value
+        of the cameras 'PixelFormat' -Feature instead.
+
+        Arguments:
+            target_fmt - VimbaPixelFormat to convert to.
+
+        Raises:
+            ValueError if current format can't be converted into 'target_fmt'. Convertible
+                Formats can be queried via get_convertible_formats() of VimbaPixelFormat.
+            AssertionError if Image width or height can't be determined.
+        """
+
+        # 1) Perform sanity checking
+        fmt = self.get_pixel_format()
+        height = self.get_height()
+        width = self.get_width()
+
+        assert height is not None
+        assert width is not None
+
+        if fmt == target_fmt:
+            return
+
+        if target_fmt not in fmt.get_convertible_formats():
+            raise ValueError('Current PixelFormat can\'t be converted into given format.')
+
+        # 2) Specify Transformation Input Image
+        c_src_image = VmbImage()
+        c_src_image.Size = sizeof(c_src_image)
+        c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
+
+        call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+                                   byref(c_src_image))
+
+        # 3) Specify Transformation Output Image
+        c_dst_image = VmbImage()
+        c_dst_image.Size = sizeof(c_dst_image)
+
+        layout, bits = PIXEL_FORMAT_TO_LAYOUT[VmbPixelFormat(target_fmt)]
+
+        call_vimba_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
+                                   bits, byref(c_dst_image))
+
+        # 4) Allocate Buffer and perform transformation
+        img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
+        anc_size = self._frame.ancillarySize
+
+        buf = create_string_buffer(img_size + anc_size)
+        c_dst_image.Data = ctypes.cast(buf, ctypes.c_void_p)
+
+        # 5) Perform Transformation
+        call_vimba_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
+                                   None, 0)
+
+        # 6) Copy ancillary data if existing
+        if anc_size:
+            src = ctypes.addressof(self._buffer) + self._frame.imageSize
+            dst = ctypes.addressof(buf) + img_size
+
+            ctypes.memmove(dst, src, anc_size)
+
+        # 7) Update frame metadata
+        self._buffer = buf
+        self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
+        self._frame.bufferSize = sizeof(self._buffer)
+        self._frame.imageSize = img_size
+        self._frame.pixelFormat = target_fmt
+
+    @RuntimeTypeCheckEnable()
     def store(self, filename: str, directory: Optional[str] = None):
         """TODO: Implement me"""
         raise NotImplementedError('TODO: Implement me')
