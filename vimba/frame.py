@@ -18,6 +18,12 @@ from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus,
 from .feature import FeaturesTuple, FeatureTypes, discover_features, filter_features_by_name
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
+try:
+    import numpy
+
+except ModuleNotFoundError:
+    numpy = None
+
 
 __all__ = [
     'VimbaPixelFormat',
@@ -341,11 +347,6 @@ class Frame:
 
         # 1) Perform sanity checking
         fmt = self.get_pixel_format()
-        height = self.get_height()
-        width = self.get_width()
-
-        assert height is not None
-        assert width is not None
 
         if fmt == target_fmt:
             return
@@ -354,6 +355,9 @@ class Frame:
             raise ValueError('Current PixelFormat can\'t be converted into given format.')
 
         # 2) Specify Transformation Input Image
+        height = self._frame.height
+        width = self._frame.width
+
         c_src_image = VmbImage()
         c_src_image.Size = sizeof(c_src_image)
         c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
@@ -395,11 +399,35 @@ class Frame:
         self._frame.imageSize = img_size
         self._frame.pixelFormat = target_fmt
 
+    def as_opencv_image(self) -> 'numpy.ndarray':
+        """ TODO: Document me, select fitting
+
+        Raises:
+            ImportError if numpy is not installed.
+        """
+        if numpy is None:
+            raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
+
+        # Query pixel size via Image Transform
+        fmt = self._frame.pixelFormat
+        height = self._frame.height
+        width = self._frame.width
+
+        c_image = VmbImage()
+        c_image.Size = sizeof(c_image)
+
+        call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+                                   byref(c_image))
+
+        _, bits_per_cell = PIXEL_FORMAT_TO_LAYOUT[fmt]
+
+        # Construct numpy overlay on underlaying image buffer
+        cells_per_pixel = int(c_image.ImageInfo.PixelInfo.BitsPerPixel / bits_per_cell)
+
+        return numpy.ndarray(shape=(height, width, cells_per_pixel), buffer=self._buffer,
+                             dtype=numpy.uint8 if bits_per_cell == 8 else numpy.uint16)
+
     @RuntimeTypeCheckEnable()
     def store(self, filename: str, directory: Optional[str] = None):
-        """TODO: Implement me"""
-        raise NotImplementedError('TODO: Implement me')
-
-    def create_opencv_frame(self):
         """TODO: Implement me"""
         raise NotImplementedError('TODO: Implement me')
