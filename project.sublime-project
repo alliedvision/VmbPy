@@ -52,6 +52,11 @@
             "shell_cmd": "python Examples/sandbox.py"
         },
         {
+            "name": "exec Examples/edge_detection",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/edge_detection.py"
+        },
+        {
             "name": "exec Examples/list_cameras",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/list_cameras.py"
