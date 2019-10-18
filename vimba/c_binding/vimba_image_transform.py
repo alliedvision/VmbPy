@@ -24,8 +24,10 @@ __all__ = [
     'Vmb12BitPackedPair',
     'VmbSupportState',
     'VmbTechInfo',
+    'VmbDebayerMode',
     'VmbImage',
     'VmbImageInfo',
+    'VmbTransformInfo',
     'EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION',
     'call_vimba_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
@@ -359,7 +361,7 @@ class VmbTransformParameter(ctypes.Union):
 
 class VmbTransformInfo(ctypes.Structure):
     """Struct holding transformation information"""
-    _field_ = [
+    _fields_ = [
         ('TransformType', VmbUint32),
         ('Parameter', VmbTransformParameter)
     ]

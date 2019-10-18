@@ -13,13 +13,13 @@ import copy
 from typing import Optional, Tuple
 from .c_binding import create_string_buffer, byref, sizeof, decode_flags
 from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus, VmbFrameFlags, \
-                       VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, \
-                       PIXEL_FORMAT_CONVERTIBILTY_MAP, PIXEL_FORMAT_TO_LAYOUT
+                       VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
+                       VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILTY_MAP, PIXEL_FORMAT_TO_LAYOUT
 from .feature import FeaturesTuple, FeatureTypes, discover_features, filter_features_by_name
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 try:
-    import numpy
+    import numpy  # type: ignore   Suppress mypi warning. We don't want to use a stub here.
 
 except ModuleNotFoundError:
     numpy = None
@@ -27,9 +27,12 @@ except ModuleNotFoundError:
 
 __all__ = [
     'VimbaPixelFormat',
+    'BAYER_PIXEL_FORMATS',
+    'OPENCV_PIXEL_FORMATS',
     'FrameStatus',
+    'Debayer',
     'Frame',
-    'FrameTuple'
+    'FrameTuple',
 ]
 
 
@@ -120,6 +123,67 @@ class VimbaPixelFormat(enum.IntEnum):
     def get_convertible_formats(self) -> Tuple['VimbaPixelFormat', ...]:
         formats = PIXEL_FORMAT_CONVERTIBILTY_MAP[VmbPixelFormat(self)]
         return tuple([VimbaPixelFormat(fmt) for fmt in formats])
+
+
+BAYER_PIXEL_FORMATS = (
+    VimbaPixelFormat.BayerGR8,
+    VimbaPixelFormat.BayerRG8,
+    VimbaPixelFormat.BayerGB8,
+    VimbaPixelFormat.BayerBG8,
+    VimbaPixelFormat.BayerGR10,
+    VimbaPixelFormat.BayerRG10,
+    VimbaPixelFormat.BayerGB10,
+    VimbaPixelFormat.BayerBG10,
+    VimbaPixelFormat.BayerGR12,
+    VimbaPixelFormat.BayerRG12,
+    VimbaPixelFormat.BayerGB12,
+    VimbaPixelFormat.BayerBG12,
+    VimbaPixelFormat.BayerGR12Packed,
+    VimbaPixelFormat.BayerRG12Packed,
+    VimbaPixelFormat.BayerGB12Packed,
+    VimbaPixelFormat.BayerBG12Packed,
+    VimbaPixelFormat.BayerGR10p,
+    VimbaPixelFormat.BayerRG10p,
+    VimbaPixelFormat.BayerGB10p,
+    VimbaPixelFormat.BayerBG10p,
+    VimbaPixelFormat.BayerGR12p,
+    VimbaPixelFormat.BayerRG12p,
+    VimbaPixelFormat.BayerGB12p,
+    VimbaPixelFormat.BayerBG12p,
+    VimbaPixelFormat.BayerGR16,
+    VimbaPixelFormat.BayerRG16,
+    VimbaPixelFormat.BayerGB16,
+    VimbaPixelFormat.BayerBG16
+)
+
+
+OPENCV_PIXEL_FORMATS = (
+    VimbaPixelFormat.Mono8,
+    VimbaPixelFormat.Mono16,
+    VimbaPixelFormat.Argb8,
+    VimbaPixelFormat.Rgb8,
+    VimbaPixelFormat.Rgba8,
+    VimbaPixelFormat.Rgb16,
+    VimbaPixelFormat.Rgba16,
+    VimbaPixelFormat.Bgr8,
+    VimbaPixelFormat.Bgra8,
+    VimbaPixelFormat.Bgr16,
+    VimbaPixelFormat.Bgra16
+)
+
+
+class Debayer(enum.IntEnum):
+    Mode2x2 = VmbDebayerMode.Mode_2x2
+    Mode3x3 = VmbDebayerMode.Mode_3x3
+    ModeLCAA = VmbDebayerMode.Mode_LCAA
+    ModeLCAAV = VmbDebayerMode.Mode_LCAAV
+    ModeYuv422 = VmbDebayerMode.Mode_YUV422
+
+    def __str__(self):
+        return 'DebayerMode.{}'.format(self._name_)
+
+    def __repr__(self):
+        return str(self)
 
 
 class FrameStatus(enum.IntEnum):
@@ -329,21 +393,29 @@ class Frame:
         return self._frame.timestamp
 
     @RuntimeTypeCheckEnable()
-    def convert_pixel_format(self, target_fmt: VimbaPixelFormat):
+    def convert_pixel_format(self, target_fmt: VimbaPixelFormat,
+                             debayer_mode: Optional[Debayer] = None):
         """Convert internal pixel format to given format.
 
         Note: This method allocates a new buffer for internal image data leading to some
         runtime overhead. For Performance Reasons, it might be better to set the value
-        of the cameras 'PixelFormat' -Feature instead.
+        of the cameras 'PixelFormat' -Feature instead. In addition a non-default debayer mode
+        can be specified.
 
         Arguments:
             target_fmt - VimbaPixelFormat to convert to.
+            debayer_mode - Non-default Algorithm used to debayer Images in Bayer Formats. If
+                           no mode is specified, debayering mode 'Mode2x2' is used. In the
+                           current format is no Bayer format, this parameter will be silently
+                           ignored.
 
         Raises:
             ValueError if current format can't be converted into 'target_fmt'. Convertible
                 Formats can be queried via get_convertible_formats() of VimbaPixelFormat.
             AssertionError if Image width or height can't be determined.
         """
+
+        global BAYER_PIXEL_FORMATS
 
         # 1) Perform sanity checking
         fmt = self.get_pixel_format()
@@ -381,18 +453,24 @@ class Frame:
         buf = create_string_buffer(img_size + anc_size)
         c_dst_image.Data = ctypes.cast(buf, ctypes.c_void_p)
 
-        # 5) Perform Transformation
-        call_vimba_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
-                                   None, 0)
+        # 5) Setup Debayering mode if given.
+        transform_info = VmbTransformInfo()
+        if debayer_mode and (fmt in BAYER_PIXEL_FORMATS):
+            call_vimba_image_transform('VmbSetDebayerMode', VmbDebayerMode(debayer_mode),
+                                       byref(transform_info))
 
-        # 6) Copy ancillary data if existing
+        # 6) Perform Transformation
+        call_vimba_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
+                                   byref(transform_info), 1)
+
+        # 7) Copy ancillary data if existing
         if anc_size:
             src = ctypes.addressof(self._buffer) + self._frame.imageSize
             dst = ctypes.addressof(buf) + img_size
 
             ctypes.memmove(dst, src, anc_size)
 
-        # 7) Update frame metadata
+        # 8) Update frame metadata
         self._buffer = buf
         self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
         self._frame.bufferSize = sizeof(self._buffer)
@@ -400,16 +478,27 @@ class Frame:
         self._frame.pixelFormat = target_fmt
 
     def as_opencv_image(self) -> 'numpy.ndarray':
-        """ TODO: Document me, select fitting
+        """ Construct OpenCV compatible view on VimbaFrame.
+
+        Returns:
+            OpenCV compatible numpy.ndarray
 
         Raises:
             ImportError if numpy is not installed.
+            ValueError if current pixel format is not compatible to with opencv. Compatible
+                       formats are in OPENCV_PIXEL_FORMATS
         """
+        global OPENCV_PIXEL_FORMATS
+
         if numpy is None:
             raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
 
-        # Query pixel size via Image Transform
         fmt = self._frame.pixelFormat
+
+        if fmt not in OPENCV_PIXEL_FORMATS:
+            raise ValueError('Current PixelFormat is not in OPENCV_PIXEL_FORMATS')
+
+        # Construct numpy overlay on underlaying image buffer
         height = self._frame.height
         width = self._frame.width
 
@@ -419,15 +508,16 @@ class Frame:
         call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                    byref(c_image))
 
-        _, bits_per_cell = PIXEL_FORMAT_TO_LAYOUT[fmt]
+        _, bits_per_channel = PIXEL_FORMAT_TO_LAYOUT[fmt]
 
-        # Construct numpy overlay on underlaying image buffer
-        cells_per_pixel = int(c_image.ImageInfo.PixelInfo.BitsPerPixel / bits_per_cell)
+        channels_per_pixel = int(c_image.ImageInfo.PixelInfo.BitsPerPixel / bits_per_channel)
 
-        return numpy.ndarray(shape=(height, width, cells_per_pixel), buffer=self._buffer,
-                             dtype=numpy.uint8 if bits_per_cell == 8 else numpy.uint16)
+        return numpy.ndarray(shape=(height, width, channels_per_pixel), buffer=self._buffer,
+                             dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
 
     @RuntimeTypeCheckEnable()
     def store(self, filename: str, directory: Optional[str] = None):
         """TODO: Implement me"""
+        # Easiest Format without external dependencies might be 'Portable Anymap'.
+
         raise NotImplementedError('TODO: Implement me')

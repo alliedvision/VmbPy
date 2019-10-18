@@ -21,6 +21,9 @@ __all__ = [
     'VimbaPixelFormat',
     'Frame',
     'FrameHandler',
+    'Debayer',
+    'BAYER_PIXEL_FORMATS',
+    'OPENCV_PIXEL_FORMATS',
 
     'AccessMode',
     'VimbaSystemError',
@@ -68,7 +71,7 @@ from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, FrameH
 
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 
-from .frame import VimbaPixelFormat, Frame
+from .frame import VimbaPixelFormat, Frame, Debayer, BAYER_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS
 
 from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
                    VimbaTimeout
