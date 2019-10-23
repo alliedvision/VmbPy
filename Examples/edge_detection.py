@@ -28,16 +28,22 @@ class StreamHandler:
             self.shutdown_event.set()
             return
 
-        # Apply Edge Detection on Frame
-        orig = frame.as_opencv_image()
-        edge = cv2.Canny(orig, 50, 100)
-        edge = edge[..., numpy.newaxis]
+        try:
+            # Apply Edge Detection on Frame
+            orig = frame.as_opencv_image()
+            edge = cv2.Canny(orig, 50, 100)
+            edge = edge[..., numpy.newaxis]
+            edge = edge[..., [0] * len(orig[0][0])]
 
-        # Merge and show images
-        image = numpy.concatenate((orig, edge), axis=1)
-        cv2.imshow('Original, Edge Detect: ESC=Quit', image)
+            # Merge and show images
+            image = numpy.concatenate((orig, edge), axis=1)
+            cv2.imshow('Original, Edge Detect: ESC=Quit', image)
+            cam.queue_frame(frame)
 
-        cam.queue_frame(frame)
+        except Exception as e:
+            # Log and shutdown on error
+            log.error(str(e))
+            self.shutdown_event.set()
 
 
 def main():
@@ -50,9 +56,10 @@ def main():
 
                 # Setup Camera
                 cam.get_feature_by_name('ExposureAuto').set('Continuous')
-                cam.get_feature_by_name('PixelFormat').set('Mono8')
-                cam.get_feature_by_name('Height').set(864)
-                cam.get_feature_by_name('Width').set(864)
+                cam.get_feature_by_name('BalanceWhiteAuto').set('Continuous')
+                cam.get_feature_by_name('PixelFormat').set('BGR8')
+                cam.get_feature_by_name('Height').set(608)
+                cam.get_feature_by_name('Width').set(608)
 
                 # Enable Logging for capturing messages from the frame handler
                 vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)

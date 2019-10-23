@@ -159,16 +159,8 @@ BAYER_PIXEL_FORMATS = (
 
 OPENCV_PIXEL_FORMATS = (
     VimbaPixelFormat.Mono8,
-    VimbaPixelFormat.Mono16,
-    VimbaPixelFormat.Argb8,
-    VimbaPixelFormat.Rgb8,
-    VimbaPixelFormat.Rgba8,
-    VimbaPixelFormat.Rgb16,
-    VimbaPixelFormat.Rgba16,
     VimbaPixelFormat.Bgr8,
-    VimbaPixelFormat.Bgra8,
-    VimbaPixelFormat.Bgr16,
-    VimbaPixelFormat.Bgra16
+    VimbaPixelFormat.Bgra8
 )
 
 
@@ -496,7 +488,8 @@ class Frame:
         fmt = self._frame.pixelFormat
 
         if fmt not in OPENCV_PIXEL_FORMATS:
-            raise ValueError('Current PixelFormat is not in OPENCV_PIXEL_FORMATS')
+            raise ValueError('Current Format \'{}\' is not in OPENCV_PIXEL_FORMATS'.format(
+                             str(VimbaPixelFormat(self._frame.pixelFormat))))
 
         # Construct numpy overlay on underlaying image buffer
         height = self._frame.height
@@ -514,10 +507,3 @@ class Frame:
 
         return numpy.ndarray(shape=(height, width, channels_per_pixel), buffer=self._buffer,
                              dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
-
-    @RuntimeTypeCheckEnable()
-    def store(self, filename: str, directory: Optional[str] = None):
-        """TODO: Implement me"""
-        # Easiest Format without external dependencies might be 'Portable Anymap'.
-
-        raise NotImplementedError('TODO: Implement me')
