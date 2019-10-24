@@ -445,36 +445,41 @@ def load_vimba_lib(vimba_project: str) -> ctypes.CDLL:
     }
 
     if sys.platform not in platform_handlers:
-        raise VimbaSystemError('Abort. Unsupported Platform ({}) detected.'.format(sys.platform))
+        msg = 'Abort. Unsupported Platform ({}) detected.'
+        raise VimbaSystemError(msg.format(sys.platform))
 
-    return platform_handlers[sys.platform](vimba_project)
+    lib = platform_handlers[sys.platform](vimba_project)
+
+    if lib is None:
+        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        raise VimbaSystemError(msg.format(vimba_project))
+
+    else:
+        return lib
 
 
-def _load_under_linux(vimba_project: str) -> ctypes.CDLL:
+def _load_under_linux(vimba_project: str) -> Optional[ctypes.CDLL]:
     lib_name = 'lib{}.so'.format(vimba_project)
     raise NotImplementedError('Loading of {}'.format(lib_name))
 
 
-def _load_under_windows(vimba_project: str) -> ctypes.CDLL:
-    vimba_home = _get_vimba_home()
+def _load_under_windows(vimba_project: str) -> Optional[ctypes.CDLL]:
+    vimba_home = os.environ.get('VIMBA_HOME')
+
+    if vimba_home is None:
+        return None
+
     lib_name = '{}.dll'.format(vimba_project)
+    lib_path = os.path.join(vimba_home, vimba_project, 'Bin', 'Win64' if _is_arch_64() else 'Win32',
+                            lib_name)
 
-    if vimba_home:
-        arch = 'Win64' if _is_arch_64_bit() else 'Win32'
-        lib_path = os.path.join(vimba_home, vimba_project, 'Bin', arch, lib_name)
+    try:
+        return ctypes.cdll.LoadLibrary(lib_path)
 
-    else:
-        # TODO: Clarify if additional search is required
-        raise NotImplementedError('Loading of {}'.format(lib_name))
-
-    return ctypes.cdll.LoadLibrary(lib_path)
+    except OSError:
+        return None
 
 
-def _get_vimba_home() -> Optional[str]:
-    """Get Vimba home directory of None is not found"""
-    return os.environ.get('VIMBA_HOME')
-
-
-def _is_arch_64_bit() -> bool:
+def _is_arch_64() -> bool:
     """True if Host system is a 64 Bit Architecture, False if not."""
     return True if platform.machine() == 'AMD64' else False
