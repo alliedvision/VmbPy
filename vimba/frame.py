@@ -27,17 +27,28 @@ except ModuleNotFoundError:
 
 __all__ = [
     'VimbaPixelFormat',
+    'MONO_PIXEL_FORMATS',
     'BAYER_PIXEL_FORMATS',
+    'RGB_PIXEL_FORMATS',
+    'RGBA_PIXEL_FORMATS',
+    'BGR_PIXEL_FORMATS',
+    'BGRA_PIXEL_FORMATS',
+    'YUV_PIXEL_FORMATS',
+    'YCBCR_PIXEL_FORMATS',
+    'COLOR_PIXEL_FORMATS',
     'OPENCV_PIXEL_FORMATS',
     'FrameStatus',
     'Debayer',
     'Frame',
     'FrameTuple',
+    'FormatTuple',
+    'intersect_pixel_formats'
 ]
 
 
 # Forward declarations
 FrameTuple = Tuple['Frame', ...]
+FormatTuple = Tuple['VimbaPixelFormat', ...]
 
 
 class VimbaPixelFormat(enum.IntEnum):
@@ -115,14 +126,26 @@ class VimbaPixelFormat(enum.IntEnum):
     YCbCr8_CbYCr = VmbPixelFormat.YCbCr8_CbYCr
 
     def __str__(self):
-        return 'VimbaPixelFormat.{}'.format(self._name_)
+        return self._name_
 
     def __repr__(self):
-        return str(self)
+        return 'VimbaPixelFormat.{}'.format(str(self))
 
     def get_convertible_formats(self) -> Tuple['VimbaPixelFormat', ...]:
         formats = PIXEL_FORMAT_CONVERTIBILTY_MAP[VmbPixelFormat(self)]
         return tuple([VimbaPixelFormat(fmt) for fmt in formats])
+
+
+MONO_PIXEL_FORMATS = (
+    VimbaPixelFormat.Mono8,
+    VimbaPixelFormat.Mono10,
+    VimbaPixelFormat.Mono10p,
+    VimbaPixelFormat.Mono12,
+    VimbaPixelFormat.Mono12Packed,
+    VimbaPixelFormat.Mono12p,
+    VimbaPixelFormat.Mono14,
+    VimbaPixelFormat.Mono16
+)
 
 
 BAYER_PIXEL_FORMATS = (
@@ -155,6 +178,62 @@ BAYER_PIXEL_FORMATS = (
     VimbaPixelFormat.BayerGB16,
     VimbaPixelFormat.BayerBG16
 )
+
+
+RGB_PIXEL_FORMATS = (
+    VimbaPixelFormat.Rgb8,
+    VimbaPixelFormat.Rgb10,
+    VimbaPixelFormat.Rgb12,
+    VimbaPixelFormat.Rgb14,
+    VimbaPixelFormat.Rgb16
+)
+
+
+RGBA_PIXEL_FORMATS = (
+    VimbaPixelFormat.Rgba8,
+    VimbaPixelFormat.Argb8,
+    VimbaPixelFormat.Rgba10,
+    VimbaPixelFormat.Rgba12,
+    VimbaPixelFormat.Rgba14,
+    VimbaPixelFormat.Rgba16
+)
+
+
+BGR_PIXEL_FORMATS = (
+    VimbaPixelFormat.Bgr8,
+    VimbaPixelFormat.Bgr10,
+    VimbaPixelFormat.Bgr12,
+    VimbaPixelFormat.Bgr14,
+    VimbaPixelFormat.Bgr16
+)
+
+
+BGRA_PIXEL_FORMATS = (
+    VimbaPixelFormat.Bgra8,
+    VimbaPixelFormat.Bgra10,
+    VimbaPixelFormat.Bgra12,
+    VimbaPixelFormat.Bgra14,
+    VimbaPixelFormat.Bgra16
+)
+
+
+YUV_PIXEL_FORMATS = (
+    VimbaPixelFormat.Yuv411,
+    VimbaPixelFormat.Yuv422,
+    VimbaPixelFormat.Yuv444
+)
+
+
+YCBCR_PIXEL_FORMATS = (
+    VimbaPixelFormat.YCbCr411_8_CbYYCrYY,
+    VimbaPixelFormat.YCbCr422_8_CbYCrY,
+    VimbaPixelFormat.YCbCr8_CbYCr
+)
+
+
+COLOR_PIXEL_FORMATS = BAYER_PIXEL_FORMATS + RGB_PIXEL_FORMATS + RGBA_PIXEL_FORMATS + \
+                      BGR_PIXEL_FORMATS + BGRA_PIXEL_FORMATS + YUV_PIXEL_FORMATS + \
+                      YCBCR_PIXEL_FORMATS
 
 
 OPENCV_PIXEL_FORMATS = (
@@ -469,6 +548,36 @@ class Frame:
         self._frame.imageSize = img_size
         self._frame.pixelFormat = target_fmt
 
+    def as_numpy_ndarray(self) -> 'numpy.ndarray':
+        """ Construct numpy.ndarray view on VimbaFrame
+
+        Returns:
+            numpy.ndarray on internal image buffer.
+
+        Raises:
+            ImportError if numpy is not installed
+        """
+        if numpy is None:
+            raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
+
+        # Construct numpy overlay on underlaying image buffer
+        height = self._frame.height
+        width = self._frame.width
+        fmt = self._frame.pixelFormat
+
+        c_image = VmbImage()
+        c_image.Size = sizeof(c_image)
+
+        call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+                                   byref(c_image))
+
+        _, bits_per_channel = PIXEL_FORMAT_TO_LAYOUT[fmt]
+
+        channels_per_pixel = int(c_image.ImageInfo.PixelInfo.BitsPerPixel / bits_per_channel)
+
+        return numpy.ndarray(shape=(height, width, channels_per_pixel), buffer=self._buffer,
+                             dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
+
     def as_opencv_image(self) -> 'numpy.ndarray':
         """ Construct OpenCV compatible view on VimbaFrame.
 
@@ -491,19 +600,10 @@ class Frame:
             raise ValueError('Current Format \'{}\' is not in OPENCV_PIXEL_FORMATS'.format(
                              str(VimbaPixelFormat(self._frame.pixelFormat))))
 
-        # Construct numpy overlay on underlaying image buffer
-        height = self._frame.height
-        width = self._frame.width
+        return self.as_numpy_ndarray()
 
-        c_image = VmbImage()
-        c_image.Size = sizeof(c_image)
 
-        call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
-                                   byref(c_image))
-
-        _, bits_per_channel = PIXEL_FORMAT_TO_LAYOUT[fmt]
-
-        channels_per_pixel = int(c_image.ImageInfo.PixelInfo.BitsPerPixel / bits_per_channel)
-
-        return numpy.ndarray(shape=(height, width, channels_per_pixel), buffer=self._buffer,
-                             dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
+@TraceEnable()
+@RuntimeTypeCheckEnable()
+def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTuple:
+    return tuple(set(fmts1).intersection(set(fmts2)))

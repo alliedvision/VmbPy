@@ -16,7 +16,7 @@ from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, Vm
 from .feature import discover_features, discover_feature, filter_features_by_name, \
                      filter_features_by_type, filter_affected_features, \
                      filter_selected_features, FeatureTypes, FeaturesTuple
-from .frame import Frame, FrameTuple
+from .frame import Frame, FrameTuple, FormatTuple, VimbaPixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
 
@@ -639,6 +639,55 @@ class Camera:
             raise ValueError
 
         self.__capture_fsm.queue_frame(frame)
+
+    @TraceEnable()
+    def get_pixel_formats(self) -> FormatTuple:
+        """ Get supported pixel formats from Camera"""
+        result = []
+        feat = self.get_feature_by_name('PixelFormat')
+
+        # Build intersection between PixelFormat Enum Values and VimbaPixelFormat
+        # Note: The Mapping is a bit complicated due to different writing styles within
+        #       Feature EnumEntries and VimbaPixelFormats
+        all_fmts = set([k.upper() for k in VimbaPixelFormat.__members__])
+        all_enum_fmts = set([str(k).upper() for k in feat.get_available_entries()])
+        fmts = all_fmts.intersection(all_enum_fmts)
+
+        for k in VimbaPixelFormat.__members__:
+            if k.upper() in fmts:
+                result.append(VimbaPixelFormat[k])
+
+        return tuple(result)
+
+    @TraceEnable()
+    def get_pixel_format(self):
+        """Get current pixel format."""
+        enum_value = str(self.get_feature_by_name('PixelFormat').get()).upper()
+
+        for k in VimbaPixelFormat.__members__:
+            if k.upper() == enum_value:
+                return VimbaPixelFormat[k]
+
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
+    def set_pixel_format(self, fmt: VimbaPixelFormat):
+        """ Set current pixel format.
+
+        Arguments:
+            fmt - Default pixel format to set.
+
+        Raises:
+            ValueError is given format in not in cameras supported PixelFormats.
+        """
+        if fmt not in self.get_pixel_formats():
+            raise ValueError('Camera does not support PixelFormat \'{}\''.format(str(fmt)))
+
+        feat = self.get_feature_by_name('PixelFormat')
+        fmt_str = str(fmt).upper()
+
+        for entry in feat.get_available_entries():
+            if str(entry).upper() == fmt_str:
+                feat.set(entry)
 
     @TraceEnable()
     def _open(self):
