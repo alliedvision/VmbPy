@@ -75,6 +75,11 @@
             "name": "exec Examples/asynchronous_grab.py",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/asynchronous_grab.py"
+        },
+        {
+            "name": "exec Examples/asynchronous_grab_opencv.py",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/asynchronous_grab_opencv.py"
         }
     ]
 }
