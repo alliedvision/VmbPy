@@ -5,6 +5,7 @@
 <Insert license here>
 """
 import ctypes
+import sys
 
 from ctypes import byref, sizeof, c_char_p, POINTER as c_ptr
 from typing import Callable, Any, Tuple, Dict, List
@@ -368,7 +369,11 @@ class VmbTransformInfo(ctypes.Structure):
 
 
 # API
-EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.6'
+if sys.platform == 'linux':
+    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.0'
+
+else:
+    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.6'
 
 # For detailed information on the signatures see "VimbaImageTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'

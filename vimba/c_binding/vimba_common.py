@@ -11,7 +11,7 @@ import os
 import sys
 import platform
 import functools
-from typing import Tuple, Optional
+from typing import Tuple, List
 from ..error import VimbaSystemError
 
 __all__ = [
@@ -439,6 +439,18 @@ def fmt_flags_repr(fmt: str, enum_type, enum_val):
 
 
 def load_vimba_lib(vimba_project: str) -> ctypes.CDLL:
+    """ Load shared library shipped with the Vimba installation
+
+    Arguments:
+        vimba_project - Library name without prefix or extension
+
+    Return:
+        CDLL Handle on loaded library
+
+    Raises:
+        VimbaSystemError if given library could not be loaded.
+    """
+
     platform_handlers = {
         'linux': _load_under_linux,
         'win32': _load_under_windows
@@ -448,38 +460,94 @@ def load_vimba_lib(vimba_project: str) -> ctypes.CDLL:
         msg = 'Abort. Unsupported Platform ({}) detected.'
         raise VimbaSystemError(msg.format(sys.platform))
 
-    lib = platform_handlers[sys.platform](vimba_project)
+    return platform_handlers[sys.platform](vimba_project)
 
-    if lib is None:
-        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
-        raise VimbaSystemError(msg.format(vimba_project))
+
+def _load_under_linux(vimba_project: str) -> ctypes.CDLL:
+    # Construct VimbaHome based on TL installation paths
+    tl_paths = os.environ.get('GENICAM_GENTL32_PATH', "")
+    tl_paths += os.environ.get('GENICAM_GENTL64_PATH', "")
+
+    # Early return if required variables are not set.
+    if not tl_paths:
+        raise VimbaSystemError('No TL detected. Please verify Vimba installation.')
+
+    # Extract potential project installations
+    path_list = tl_paths.split(':')
+    path_list = [path for path in path_list if path]
+
+    vimba_homes: List[str] = []
+    for path in path_list:
+        vimba_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
+
+        if vimba_home not in vimba_homes:
+            vimba_homes.append(vimba_home)
+
+    # Ensure that Vimba Installation is not ambiguous
+    if len(vimba_homes) > 1:
+        raise VimbaSystemError('TL from multiple Vimba installations detected. Abort.')
+
+    vimba_home = vimba_homes[0]
+
+    arch = platform.machine()
+
+    # Linux x86 64 Bit
+    if arch == 'x86_64':
+        dir_ = 'x86_64bit'
+
+    # Linux x86 32 Bit
+    elif arch == 'i386':
+        dir_ = 'x86_32bit'
+
+    # Linux arm 64 Bit:
+    elif arch == 'aarch64':
+        dir_ = 'arm_64bit'
+
+    # Linux arm 32 Bit:
+    elif arch == 'arm':
+        dir_ = 'arm_32bit'
 
     else:
-        return lib
+        raise VimbaSystemError('Unknown Architecture \'{}\'. Abort'.format(arch))
 
-
-def _load_under_linux(vimba_project: str) -> Optional[ctypes.CDLL]:
     lib_name = 'lib{}.so'.format(vimba_project)
-    raise NotImplementedError('Loading of {}'.format(lib_name))
+    lib_path = os.path.join(vimba_home, vimba_project, 'DynamicLib', dir_, lib_name)
+
+    failed = False
+
+    try:
+        lib = ctypes.cdll.LoadLibrary(lib_path)
+
+    except OSError:
+        failed = True
+
+    if failed:
+        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        raise VimbaSystemError(msg.format(lib_path))
+
+    return lib
 
 
-def _load_under_windows(vimba_project: str) -> Optional[ctypes.CDLL]:
+def _load_under_windows(vimba_project: str) -> ctypes.CDLL:
     vimba_home = os.environ.get('VIMBA_HOME')
 
     if vimba_home is None:
-        return None
+        raise VimbaSystemError('Variable VIMBA_HOME not set. Please verify Vimba installation.')
 
+    dir_ = 'Win64' if platform.machine() == 'AMD64' else 'Win32'
     lib_name = '{}.dll'.format(vimba_project)
-    lib_path = os.path.join(vimba_home, vimba_project, 'Bin', 'Win64' if _is_arch_64() else 'Win32',
-                            lib_name)
+    lib_path = os.path.join(vimba_home, vimba_project, 'Bin', dir_, lib_name)
+
+    failed = False
 
     try:
-        return ctypes.cdll.LoadLibrary(lib_path)
+        lib = ctypes.cdll.LoadLibrary(lib_path)
 
     except OSError:
-        return None
+        failed = True
 
+    if failed:
+        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        raise VimbaSystemError(msg.format(lib_path))
 
-def _is_arch_64() -> bool:
-    """True if Host system is a 64 Bit Architecture, False if not."""
-    return True if platform.machine() == 'AMD64' else False
+    return lib
