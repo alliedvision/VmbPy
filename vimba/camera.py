@@ -7,6 +7,7 @@ This module allows access to a detected camera.
 <Insert license here>
 """
 import enum
+import os
 from threading import Lock
 
 from typing import Tuple, List, Callable, cast, Optional, Union
@@ -706,16 +707,15 @@ class Camera:
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def save_settings(self, file: str, persist_type: PersistType):
-        """Save current camera settings in an XML - File
+        """Save camera settings to XML - File
 
         Arguments:
             file - The location used to store the current settings. The given
                    file must be a file ending with ".xml".
-
             persist_type - Parameter specifying which setting types to store.
 
         Raises:
-            ValueError if argument path is no "xml"- File.
+            ValueError if argument path is no ".xml"- File.
          """
 
         if not file.endswith('.xml'):
@@ -728,14 +728,25 @@ class Camera:
                      sizeof(settings))
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def load_settings(self, file: str, persist_type: PersistType):
-        """Load camera settings from given File.
+        """Load camera settings from XML - File
 
         Arguments:
-            file -
+            file - The location used to load current settings. The given
+                   file must be a file ending with ".xml".
+            persist_type - Parameter specifying which setting types to load.
 
         Raises:
-        """
+            ValueError if argument path is no ".xml"- File.
+         """
+
+        if not file.endswith('.xml'):
+            raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file))
+
+        if not os.path.exists(file):
+            raise ValueError('Given file \'{}\' does not exist.'.format(file))
+
         settings = VmbFeaturePersistSettings()
         settings.persistType = VmbFeaturePersist(persist_type)
 
