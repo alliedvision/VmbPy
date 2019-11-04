@@ -75,6 +75,17 @@ __all__ = [
     'RuntimeTypeCheckEnable'
 ]
 
+# Verify Python Interpreter
+import platform
+
+REQUIRED_PYTHON_VERSION = "3.7"
+PYTHON_VERSION = platform.python_version()
+
+if PYTHON_VERSION < REQUIRED_PYTHON_VERSION:
+    msg = 'VimbaPython requires at least python version {}, current version is {}.'
+    raise Exception(msg.format(REQUIRED_PYTHON_VERSION, PYTHON_VERSION))
+
+# Import everything exported from the top level module
 from .vimba import Vimba
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
