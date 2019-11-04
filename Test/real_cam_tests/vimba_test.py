@@ -2,7 +2,7 @@ import unittest
 
 from vimba import *
 
-class TlVimbaTest(unittest.TestCase):
+class RealCamTestsVimbaTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
 
@@ -11,7 +11,7 @@ class TlVimbaTest(unittest.TestCase):
         self.vimba.set_camera_capture_timeout(2000)
 
     def test_context_entry_exit(self):
-        """ Expected Behavior for FileTL:
+        """ Expected Behavior:
         Before context entry Vimba shall have no detected features, no detected cameras and
         no detected Interfaces. On entering the context features, cameras and interfaces shall
         be detected and after leaving the context, everything should be reverted.
@@ -44,53 +44,45 @@ class TlVimbaTest(unittest.TestCase):
                 self.assertEqual(cam.get_capture_timeout(), self.vimba.get_camera_capture_timeout())
 
     def test_get_all_interfaces(self):
-        """Expected Behavior for FileTL:
-
-        get_all_interfaces() must contains an interface with id 'VimbaFileInterface_0'.
+        """Expected Behavior: get_all_interfaces() must be empty in closed state and
+           non-empty then opened.
         """
-        expected = 'VimbaFileInterface_0'
+        self.assertFalse(self.vimba.get_all_interfaces())
 
         with self.vimba:
-            inters = [i for i in self.vimba.get_all_interfaces() if i.get_id() in expected]
-            self.assertEqual(len(inters), 1)
+            self.assertTrue(self.vimba.get_all_interfaces())
 
     def test_get_interface_by_id(self):
-        """Expected Behavior for FileTL:
+        """Expected Behavior: All detected Interfaces must be lookupable by their Id.
 
-        get_interface_by_id() returns interface 'VimbaFileInterface_0' inside scope.
+        If outside of given scope, an errpr must be returned
         """
-        expected = 'VimbaFileInterface_0'
-
-        self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, 'VimbaFileInterface_0')
 
         with self.vimba:
-            self.assertNoRaise(self.vimba.get_interface_by_id, 'VimbaFileInterface_0')
+            ids = [inter.get_id() for inter in self.vimba.get_all_interfaces()]
 
-        self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, 'VimbaFileInterface_0')
+            for id_ in ids:
+                self.assertNoRaise(self.vimba.get_interface_by_id, id_)
+
+        for id_ in ids:
+            self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, id_)
 
 
     def test_get_all_cameras(self):
-        """Expected Behavior for FileTL:
-
-        get_all_cameras() contains cameras with Id: 'DEV_Testimage1' and 'DEV_Testimage2'.
+        """Expected Behavior: get_all_cameras() must only return camera handles on a open camera.
         """
-        expected = ('DEV_Testimage1', 'DEV_Testimage2')
+        self.assertFalse(self.vimba.get_all_cameras())
 
         with self.vimba:
-            cams = [c for c in self.vimba.get_all_cameras() if c.get_id() in expected]
-            self.assertEqual(len(cams), 2)
+            self.assertTrue(self.vimba.get_all_cameras())
 
     def test_get_camera_by_id(self):
-        """Expected Behavior for FileTL:
-
-        get_camera_by_id() returns cameras 'DEV_Testimage1' and 'DEV_Testimage2' inside scope.
-        """
-        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, 'DEV_Testimage1')
-        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, 'DEV_Testimage2')
+        """Expected Behavior: Lookup of test camera must not fail after system opening """
+        camera_id = self.get_test_camera_id()
+        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, camera_id)
 
         with self.vimba:
-            self.assertNoRaise(self.vimba.get_camera_by_id, 'DEV_Testimage1')
-            self.assertNoRaise(self.vimba.get_camera_by_id, 'DEV_Testimage2')
+            self.assertNoRaise(self.vimba.get_camera_by_id, camera_id)
 
-        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, 'DEV_Testimage1')
-        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, 'DEV_Testimage2')
+        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, camera_id)
+

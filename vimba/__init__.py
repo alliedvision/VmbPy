@@ -15,6 +15,8 @@ __all__ = [
     'Camera',
     'CameraChangeHandler',
     'CameraEvent',
+    'AccessMode',
+    'PersistType',
     'Interface',
     'InterfaceChangeHandler',
     'InterfaceEvent',
@@ -34,7 +36,6 @@ __all__ = [
     'COLOR_PIXEL_FORMATS',
     'OPENCV_PIXEL_FORMATS',
 
-    'AccessMode',
     'VimbaSystemError',
     'VimbaCameraError',
     'VimbaInterfaceError',
@@ -76,7 +77,7 @@ __all__ = [
 
 from .vimba import Vimba
 
-from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, FrameHandler
+from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 

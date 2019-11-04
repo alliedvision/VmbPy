@@ -4,16 +4,15 @@ import threading
 from vimba import *
 from vimba.feature import *
 
-class TlBaseFeatureTest(unittest.TestCase):
+class RealCamTestsBaseFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
+        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
         self.cam._open()
 
         self.height = self.cam.get_feature_by_name('Height')
-        self.device_id = self.cam.get_feature_by_name('DeviceID')
 
     def tearDown(self):
         self.cam._close()
@@ -22,90 +21,72 @@ class TlBaseFeatureTest(unittest.TestCase):
     def test_get_name(self):
         """Expectation: Return decoded FeatureName """
         self.assertEqual(self.height.get_name(), 'Height')
-        self.assertEqual(self.device_id.get_name(), 'DeviceID')
 
     def test_get_flags(self):
         """Expectation: Return decoded FeatureFlags """
         self.assertEqual(self.height.get_flags(), (FeatureFlags.Read, FeatureFlags.Write))
-        self.assertEqual(self.device_id.get_flags(), (FeatureFlags.Read,))
 
     def test_get_category(self):
         """Expectation: Return decoded category"""
         self.assertEqual(self.height.get_category(), '/ImageFormatControl')
-        self.assertEqual(self.device_id.get_category(), '/DeviceControl')
 
     def test_get_display_name(self):
         """Expectation: Return decoded category"""
         self.assertEqual(self.height.get_display_name(), 'Height')
-        self.assertEqual(self.device_id.get_display_name(), 'Device ID')
 
     def test_get_polling_time(self):
         """Expectation: Return polling time. Only volatile features return
         anything other than zero.
         """
         self.assertEqual(self.height.get_polling_time(), 0)
-        self.assertEqual(self.device_id.get_polling_time(), 0)
 
     def test_get_unit(self):
         """Expectation: If Unit exists, return unit else return ''"""
         self.assertEqual(self.height.get_unit(), '')
-        self.assertEqual(self.device_id.get_unit(), '')
-        self.assertEqual(self.cam.get_feature_by_name('ExposureTime').get_unit(), 'us')
 
     def test_get_representation(self):
         """Expectation: Get numeric representation if existing else ''"""
         self.assertEqual(self.height.get_representation(), '')
-        self.assertEqual(self.device_id.get_representation(), '')
 
     def test_get_visibility(self):
         """Expectation: Get UI Visibility"""
         self.assertEqual(self.height.get_visibility(), FeatureVisibility.Beginner)
-        self.assertEqual(self.device_id.get_visibility(), FeatureVisibility.Expert)
 
     def test_get_tooltip(self):
         """Expectation: Get decoded UI tooltip"""
         self.assertEqual(self.height.get_tooltip(), 'Height of the image provided by the device (in pixels).')
-        self.assertEqual(self.device_id.get_tooltip(), 'Device Identifier (string).')
 
     def test_get_description(self):
         """Expectation: Get decoded description"""
         self.assertEqual(self.height.get_description(), 'Height of the image provided by the device (in pixels).')
-        self.assertEqual(self.device_id.get_description(), 'Device Identifier (string).')
 
     def test_get_sfnc_namespace(self):
         """Expectation: Get decoded sfnc namespace"""
         self.assertEqual(self.height.get_sfnc_namespace(), 'Standard')
-        self.assertEqual(self.device_id.get_sfnc_namespace(), 'Standard')
 
     def test_is_streamable(self):
         """Expectation: Streamable features shall return True, others False"""
-        self.assertFalse(self.height.is_streamable())
-        self.assertFalse(self.device_id.is_streamable())
+        self.assertNoRaise(self.height.is_streamable)
 
     def test_has_affected_features(self):
         """Expectation:Features that affect features shall return True, others False"""
         self.assertTrue(self.height.has_affected_features())
-        self.assertFalse(self.device_id.has_affected_features())
 
     def test_has_selected_features(self):
         """Expectation:Features that select features shall return True, others False"""
         self.assertFalse(self.height.has_selected_features())
-        self.assertFalse(self.device_id.has_selected_features())
 
     def test_get_access_mode(self):
         """Expectation: Read/Write Features return (True, True), ReadOnly return (True, False)"""
         self.assertEqual(self.height.get_access_mode(), (True, True))
-        self.assertEqual(self.device_id.get_access_mode(), (True, False))
 
     def test_is_readable(self):
         """Expectation: True if feature grant read access else False"""
         self.assertTrue(self.height.is_readable())
-        self.assertTrue(self.device_id.is_readable())
 
     def test_is_writeable(self):
         """Expectation: True if feature grant write access else False"""
         self.assertTrue(self.height.is_writeable())
-        self.assertFalse(self.device_id.is_writeable())
 
     def test_change_handler(self):
         """Expectation: A given change handler is executed on value change.
@@ -127,7 +108,7 @@ class TlBaseFeatureTest(unittest.TestCase):
         self.height.register_change_handler(handler)
 
         tmp = self.height.get()
-        self.height.set(tmp + 1)
+        self.height.set(tmp - self.height.get_increment())
 
         handler.event.wait()
 
@@ -139,7 +120,7 @@ class TlBaseFeatureTest(unittest.TestCase):
         self.assertEqual(handler.call_cnt, 1)
 
 
-class TlBoolFeatureTest(unittest.TestCase):
+class RealCamTestsBoolFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -155,19 +136,17 @@ class TlBoolFeatureTest(unittest.TestCase):
 
     def test_get(self):
         """Expectation: returns current boolean value."""
-        self.assertTrue(self.feat.get())
+        self.assertNoRaise(self.feat.get)
 
     def test_set(self):
-        """Expectation: Raises invalid Access on non-writeable features.
-        Everything else is not testable from FileTL.
-        """
+        """Expectation: Raises invalid Access on non-writeable features. """
         self.assertRaises(VimbaFeatureError, self.feat.set, True)
 
     def test_runtime_check_failure(self):
         """Expectation: Set must throw TypeError on non-boolean input."""
         self.assertRaises(TypeError, self.feat.set, 'Hi')
 
-class TlCommandFeatureTest(unittest.TestCase):
+class RealCamTestsCommandFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -182,12 +161,12 @@ class TlCommandFeatureTest(unittest.TestCase):
         self.assertEqual(self.feat.get_type(), CommandFeature)
 
 
-class TlEnumFeatureTest(unittest.TestCase):
+class RealCamTestsEnumFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
+        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
         self.cam._open()
 
         self.feat_r = self.cam.get_feature_by_name('DeviceScanType')
@@ -204,36 +183,28 @@ class TlEnumFeatureTest(unittest.TestCase):
 
     def test_entry_as_bytes(self):
         """Expectation: Get EnumEntry as encoded byte sequence """
-        expected = 'MultiFrame'.encode('utf-8')
+        expected = b'MultiFrame'
         entry = self.feat_rw.get_entry('MultiFrame')
 
         self.assertEqual(entry.as_bytes(), expected)
 
     def test_entry_as_int(self):
         """Expectation: Get EnumEntry as int """
-        expected = 2
         entry = self.feat_rw.get_entry('MultiFrame')
 
-        self.assertEqual(entry.as_int(), expected)
-        self.assertEqual(int(entry), expected)
+        self.assertEqual(entry.as_int(), int(entry))
 
     def test_entry_as_str(self):
         """Expectation: Get EnumEntry as str """
         expected = 'MultiFrame'
         entry = self.feat_rw.get_entry('MultiFrame')
 
-        self.assertEqual(entry.as_string(), expected)
-        self.assertEqual(str(entry), expected)
+        self.assertEqual(entry.as_string(), str(entry))
 
     def test_entry_as_tuple(self):
         """Expectation: Get EnumEntry as (str, int) """
-        expected = ('MultiFrame', 2)
-
         entry = self.feat_rw.get_entry('MultiFrame')
-        self.assertEqual(entry.as_tuple(), expected)
-
-        entry = self.feat_rw.get_entry(2)
-        self.assertEqual(entry.as_tuple(), expected)
+        self.assertEqual(entry.as_tuple(), self.feat_rw.get_entry(int(entry)).as_tuple())
 
     def test_get_all_entries(self):
         """Expectation: Get all possible enum entries regardless of the availability"""
@@ -408,14 +379,14 @@ class TlEnumFeatureTest(unittest.TestCase):
         self.assertRaises(TypeError, self.feat_rw.get_entry, b'bytes')
 
 
-class TlFloatFeatureTest(unittest.TestCase):
+class RealCamTestsFloatFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
         self.feat_r = self.vimba.get_feature_by_name('Elapsed')
 
-        self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
+        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
         self.cam._open()
 
         self.feat_rw = self.cam.get_feature_by_name('ExposureTime')
@@ -430,27 +401,25 @@ class TlFloatFeatureTest(unittest.TestCase):
         self.assertEqual(self.feat_rw.get_type(), FloatFeature)
 
     def test_get(self):
-        """Expectation: Get current value. Raise VimbaFeatureError on non-read access.
-        Error is not testable on FileTL.
+        """Expectation: Get current value.
         """
-
-        # Can't use self.feat_r because its a running counter. Hard to compare
-        self.assertEqual(self.feat_rw.get(), 40000.0)
+        self.assertNoRaise(self.feat_r.get)
+        self.assertNoRaise(self.feat_rw.get)
 
     def test_get_range(self):
         """Expectation: Get value range. Raise VimbaFeatureError on non-read access.
         Error is not testable on FileTL.
         """
-        self.assertEqual(self.feat_r.get_range(), (0.0, 1.7976931348623157e+308))
-        self.assertEqual(self.feat_rw.get_range(), (1.0, 4294967295.0))
+        self.assertNoRaise(self.feat_r.get_range)
+        self.assertNoRaise(self.feat_rw.get_range)
 
     def test_get_increment(self):
         """Expectation: Get value increment if existing. If this Feature has no
         increment, None is returned. Raise VimbaFeatureError on non-read access.
         Error is not testable on FileTL.
         """
-        self.assertEqual(self.feat_r.get_increment(), None)
-        self.assertEqual(self.feat_rw.get_increment(), None)
+        self.assertNoRaise(self.feat_r.get_increment)
+        self.assertNoRaise(self.feat_rw.get_increment)
 
     def test_set(self):
         """Expectation: Set value. Errors:
@@ -520,11 +489,11 @@ class TlFloatFeatureTest(unittest.TestCase):
         self.assertRaises(TypeError, self.feat_r.set, 'str')
         self.assertRaises(TypeError, self.feat_rw.set, 0)
 
-class TlIntFeatureTest(unittest.TestCase):
+class RealCamTestsIntFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
-        self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
+        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
         self.cam._open()
 
         self.feat_r = self.cam.get_feature_by_name('HeightMax')
@@ -540,25 +509,20 @@ class TlIntFeatureTest(unittest.TestCase):
         self.assertEqual(self.feat_rw.get_type(), IntFeature)
 
     def test_get(self):
-        """Expectation: Get current value or Raise VimbaFeatureError if access right are
-        not sufficient. FileTL has no features with invalid access rights. Therefore not testable.
-        """
-        self.assertEqual(self.feat_r.get(), 4096)
-        self.assertEqual(self.feat_rw.get(), 768)
+        """Expectation: Get current value """
+
+        self.assertNoRaise(self.feat_r.get)
+        self.assertNoRaise(self.feat_rw.get)
 
     def test_get_range(self):
-        """Expectation: Get range of accepted values or Raise VimbaFeatureError if access right are
-        not sufficient. FileTL has no features with invalid access rights. Therefore not testable.
-        """
-        self.assertEqual(self.feat_r.get_range(), (0, 4294967295))
-        self.assertEqual(self.feat_rw.get_range(), (1, 4096))
+        """Expectation: Get range of accepted values"""
+        self.assertNoRaise(self.feat_r.get_range)
+        self.assertNoRaise(self.feat_rw.get_range)
 
     def test_get_increment(self):
-        """Expectation: Get step between valid values or Raise VimbaFeatureError if access right are
-        not sufficient. FileTL has no features with invalid access rights. Therefore not testable.
-        """
-        self.assertEqual(self.feat_r.get_increment(), 1)
-        self.assertEqual(self.feat_rw.get_increment(), 1)
+        """Expectation: Get step between valid values """
+        self.assertNoRaise(self.feat_r.get_increment)
+        self.assertNoRaise(self.feat_rw.get_increment)
 
     def test_set(self):
         """Expectation: Set value or raise VimbaFeatureError under the following conditions.
@@ -614,7 +578,7 @@ class TlIntFeatureTest(unittest.TestCase):
             self.feat_rw.register_change_handler(handler)
 
             # Trigger change handler and wait for callback execution.
-            self.feat_rw.set(self.feat_rw.get() + 1)
+            self.feat_rw.set(self.feat_rw.get() - self.feat_rw.get_increment())
             handler.event.wait()
 
             self.assertTrue(handler.raised)

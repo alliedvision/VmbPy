@@ -446,7 +446,7 @@ def call_vimba_image_transform(func_name: str, *args):
         AttributeError if func with name 'func_name' does not exist.
         VimbaCError if the function call is valid but neither None or VmbError.Success was returned.
 
-    The following functions of VimbaC can be executed:
+    The following functions of VimbaImageTransform can be executed:
         VmbGetVersion
         VmbGetTechnoInfo
         VmbGetErrorInfo

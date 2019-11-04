@@ -3,6 +3,7 @@
 
 UNIT_TEST_TEST_SUITE   := all
 
+TEST_CAMERA            := DEV_1AB22D01C0E9
 TEST_REPORT_DIR        := Test_Reports
 
 UNIT_TEST_REPORT_DIR   := $(TEST_REPORT_DIR)/unit_test
@@ -40,7 +41,7 @@ static_test:
 	@echo
 
 unit_test:
-	coverage run Test/runner.py $(UNIT_TEST_TEST_SUITE) console
+	coverage run Test/runner.py $(UNIT_TEST_TEST_SUITE) console $(TEST_CAMERA)
 	coverage report -m
 	-rm .coverage
 
@@ -53,7 +54,7 @@ static_test_junit_export:
 	-mypy vimba --junit-xml $(STATIC_TEST_JUNIT_DIR)/mypy_junit.xml
 
 unit_test_junit_export:
-	coverage run Test/runner.py $(UNIT_TEST_TEST_SUITE) junit_xml $(UNIT_TEST_JUNIT_DIR)
+	coverage run Test/runner.py $(UNIT_TEST_TEST_SUITE) junit_xml $(UNIT_TEST_JUNIT_DIR) $(TEST_CAMERA)
 	coverage xml -o $(UNIT_TEST_COVERAGE_DIR)/coverage.xml
 	coverage html -d $(UNIT_TEST_COVERAGE_DIR)/html
 

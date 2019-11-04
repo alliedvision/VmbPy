@@ -12,7 +12,8 @@ from threading import Lock
 from typing import Tuple, List, Callable, cast, Optional, Union
 from .c_binding import call_vimba_c, byref, sizeof, decode_cstr, decode_flags
 from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, VmbAccessMode, \
-                       VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFrameCallback
+                       VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFrameCallback, \
+                       VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, discover_feature, filter_features_by_name, \
                      filter_features_by_type, filter_affected_features, \
                      filter_selected_features, FeatureTypes, FeaturesTuple
@@ -23,6 +24,7 @@ from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
 
 __all__ = [
     'AccessMode',
+    'PersistType',
     'FrameHandler',
     'Camera',
     'CameraEvent',
@@ -62,8 +64,8 @@ class CameraEvent(enum.IntEnum):
     """Enum specifying a Camera Event
 
     Enum values:
-        Missing    - A known camera disappeared from the bus
-        Detected     - A new camera was discovered
+        Missing     - A known camera disappeared from the bus
+        Detected    - A new camera was discovered
         Reachable   - A known camera can be accessed
         Unreachable - A known camera cannot be accessed anymore
     """
@@ -71,6 +73,18 @@ class CameraEvent(enum.IntEnum):
     Detected = 1
     Rechable = 2
     Unreachable = 3
+
+
+class PersistType(enum.IntEnum):
+    """Persistence Type used for camera configuration storing and loading.
+    Enum values:
+        All        - Save all features including lookup tables
+        Streamable - Save only Features tagged with Streamable
+        NoLUT      - Save all features except lookup tables.
+    """
+    All = VmbFeaturePersist.All
+    Streamable = VmbFeaturePersist.Streamable
+    NoLUT = VmbFeaturePersist.NoLUT
 
 
 class _Context:
@@ -690,6 +704,45 @@ class Camera:
                 feat.set(entry)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
+    def save_settings(self, file: str, persist_type: PersistType):
+        """Save current camera settings in an XML - File
+
+        Arguments:
+            file - The location used to store the current settings. The given
+                   file must be a file ending with ".xml".
+
+            persist_type - Parameter specifying which setting types to store.
+
+        Raises:
+            ValueError if argument path is no "xml"- File.
+         """
+
+        if not file.endswith('.xml'):
+            raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file))
+
+        settings = VmbFeaturePersistSettings()
+        settings.persistType = VmbFeaturePersist(persist_type)
+
+        call_vimba_c('VmbCameraSettingsSave', self.__handle, file.encode('utf-8'), byref(settings),
+                     sizeof(settings))
+
+    @TraceEnable()
+    def load_settings(self, file: str, persist_type: PersistType):
+        """Load camera settings from given File.
+
+        Arguments:
+            file -
+
+        Raises:
+        """
+        settings = VmbFeaturePersistSettings()
+        settings.persistType = VmbFeaturePersist(persist_type)
+
+        call_vimba_c('VmbCameraSettingsLoad', self.__handle, file.encode('utf-8'), byref(settings),
+                     sizeof(settings))
+
+    @TraceEnable()
     def _open(self):
         exc = None
 
@@ -698,7 +751,7 @@ class Camera:
                          byref(self.__handle))
 
         except VimbaCError as e:
-            exc = cast(VimbaSystemError, e)
+            exc = cast(VimbaCameraError, e)
             err = e.get_error_code()
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
@@ -708,7 +761,7 @@ class Camera:
                 msg = msg.format(self.get_id(), str(self.__access_mode),
                                  self.get_permitted_access_modes())
 
-                exc = VimbaSystemError(msg)
+                exc = VimbaCameraError(msg)
 
         if exc:
             raise exc

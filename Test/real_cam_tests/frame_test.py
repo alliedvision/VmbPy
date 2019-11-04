@@ -5,11 +5,11 @@ import ctypes
 from vimba import *
 from vimba.frame import *
 
-class TlFrameTest(unittest.TestCase):
+class RealCamTestsFrameTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
-        self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
+        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
     def tearDown(self):
         self.vimba._shutdown()
@@ -115,9 +115,11 @@ class TlFrameTest(unittest.TestCase):
         with self.cam:
             frame = self.cam.get_frame()
 
-        convertable_fmt = frame.get_pixel_format().get_convertible_formats()
+        current_fmt = frame.get_pixel_format()
+        convertable_fmt = current_fmt.get_convertible_formats()
+
         for fmt in VimbaPixelFormat.__members__.values():
-            if fmt not in convertable_fmt:
+            if (fmt != current_fmt) and (fmt not in convertable_fmt):
                 self.assertRaises(ValueError, frame.convert_pixel_format, fmt)
 
 
@@ -129,49 +131,18 @@ class TlFrameTest(unittest.TestCase):
         test_frames = []
 
         with self.cam:
-            pixel_format = self.cam.get_feature_by_name('PixelFormat')
+            for fmt in self.cam.get_pixel_formats():
+                self.cam.set_pixel_format(fmt)
 
-            for fmt in pixel_format.get_available_entries():
-                pixel_format.set(fmt)
-
-                test_frames.append(self.cam.get_frame())
-
+                frame = self.cam.get_frame()
+                self.assertEqual(fmt, frame.get_pixel_format())
+                test_frames.append(frame)
 
         for frame in test_frames:
 
             # The test shall work on a copy to keep the original Frame untouched
-            cpy_frame = copy.deepcopy(frame)
-
             for expected_fmt in frame.get_pixel_format().get_convertible_formats():
+                cpy_frame = copy.deepcopy(frame)
                 cpy_frame.convert_pixel_format(expected_fmt)
 
                 self.assertEquals(expected_fmt, cpy_frame.get_pixel_format())
-
-
-    def test_convert_to_all_given_formats_with_debayer(self):
-        """Expectation: A Series of Frame, each acquired with a different Pixel format
-        Must be convertible to all formats the given format claims its convertible to without any
-        errors.
-        """
-        test_frames = []
-
-        with self.cam:
-            pixel_format = self.cam.get_feature_by_name('PixelFormat')
-
-            for fmt in pixel_format.get_available_entries():
-                pixel_format.set(fmt)
-
-                test_frames.append(self.cam.get_frame())
-
-
-        for frame in test_frames:
-
-            # The test shall work on a copy to keep the original Frame untouched
-            cpy_frame = copy.deepcopy(frame)
-
-            for expected_fmt in frame.get_pixel_format().get_convertible_formats():
-
-                for debayer_mode in Debayer.__members__.values():
-                    cpy_frame.convert_pixel_format(expected_fmt, debayer_mode)
-
-                    self.assertEquals(expected_fmt, cpy_frame.get_pixel_format())

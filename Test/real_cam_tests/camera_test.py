@@ -7,18 +7,14 @@ from vimba.frame import *
 def dummy_frame_handler(cam: Camera, frame: Frame):
     pass
 
-class TlCameraTest(unittest.TestCase):
+class RealCamTestsCameraTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.cam = self.vimba.get_camera_by_id('DEV_Testimage1')
+        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
         self.cam.set_access_mode(AccessMode.Full)
         self.cam.set_capture_timeout(2000)
-
-        self.other_cam = self.vimba.get_camera_by_id('DEV_Testimage2')
-        self.other_cam.set_access_mode(AccessMode.Full)
-        self.other_cam.set_capture_timeout(2000)
 
     def tearDown(self):
         self.vimba._shutdown()
@@ -27,7 +23,6 @@ class TlCameraTest(unittest.TestCase):
         """Expectation: Entering Context must not throw in cases where the current access mode is
         within get_permitted_access_modes()
         """
-
         permitted_modes = self.cam.get_permitted_access_modes()
 
         # There are some known Issues regarding permissions from the underlaying C-Layer.
@@ -78,19 +73,19 @@ class TlCameraTest(unittest.TestCase):
 
     def test_get_id(self):
         """Expectation: get decoded camera id"""
-        self.assertEqual(self.cam.get_id(),'DEV_Testimage1')
+        self.assertTrue(self.cam.get_id())
 
     def test_get_name(self):
         """Expectation: get decoded camera name"""
-        self.assertEqual(self.cam.get_name(),'AVT Testimage1')
+        self.assertTrue(self.cam.get_name())
 
     def test_get_model(self):
         """Expectation: get decoded camera model"""
-        self.assertEqual(self.cam.get_model(),'Testimage1')
+        self.assertTrue(self.cam.get_model())
 
     def test_get_serial(self):
         """Expectation: get decoded camera serial"""
-        self.assertEqual(self.cam.get_serial(), 'N/A')
+        self.assertTrue(self.cam.get_serial())
 
     def test_get_permitted_access_modes(self):
         """Expectation: get currently permitted access modes"""
@@ -99,7 +94,7 @@ class TlCameraTest(unittest.TestCase):
 
     def test_get_interface_id(self):
         """Expectation: get interface Id this camera is connected to"""
-        self.assertEqual(self.cam.get_interface_id(), 'VimbaFileInterface_0')
+        self.assertTrue(self.cam.get_interface_id())
 
     def test_get_features_affected(self):
         """Expectation: Features that affect other features shall return a set of affected feature
@@ -113,45 +108,13 @@ class TlCameraTest(unittest.TestCase):
             self.assertEqual(self.cam.get_features_affected_by(not_affect), ())
 
             expected = (
-                self.cam.get_feature_by_name('PacketSize'),
-                self.cam.get_feature_by_name('PayloadSize')
+                self.cam.get_feature_by_name('PayloadSize'),
             )
 
-            for feat in self.cam.get_features_affected_by(affect):
-                self.assertIn(feat, expected)
+            feats = self.cam.get_features_affected_by(affect)
 
-            with self.other_cam:
-
-                self.assertRaises(
-                    VimbaFeatureError,
-                    self.cam.get_features_affected_by,
-                    self.other_cam.get_feature_by_name('Height')
-                )
-
-                self.assertRaises(
-                    VimbaFeatureError,
-                    self.cam.get_features_affected_by,
-                    self.other_cam.get_feature_by_name('AcquisitionFrameCount')
-                )
-
-    def test_get_features_selected(self):
-        """Expectation: Features that select other features shall return a set of select feature
-        Features that don't select other features shall return (). If a Feature is supplied that
-        is not associated with that camera, a TypeError must be raised.
-        Note: FileTL offers no selected Features. All so most of it is not testable.
-        """
-        with self.cam:
-            not_select = self.cam.get_feature_by_name('DeviceID')
-
-            self.assertEqual(self.cam.get_features_selected_by(not_select), ())
-
-            with self.other_cam:
-
-                self.assertRaises(
-                    VimbaFeatureError,
-                    self.cam.get_features_selected_by,
-                    self.other_cam.get_feature_by_name('DeviceID')
-                )
+            for expected_feat in expected:
+                self.assertIn(expected_feat, feats)
 
     def test_frame_iterator_limit_set(self):
         """Expectation: The Frame Iterator fetches the given number of images."""
@@ -343,3 +306,17 @@ class TlCameraTest(unittest.TestCase):
         self.assertRaises(TypeError, self.cam.start_streaming, valid_handler, 'no int')
         self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_1)
         self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_2)
+        self.assertRaises(TypeError, self.cam.save_settings, 0, PersistType.All)
+        self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
+
+    def test_save_load_settings(self):
+        """Expectation: Save settings must create a settings file. If path doesn't end with
+        .xml a value error must be raised.
+        """
+
+        self.assertRaises(ValueError, self.cam.save_settings, 'inval.xm', PersistType.All)
+
+        #with self.cam:
+        #    self.cam.save_settings('settings_all.xml', PersistType.All)
+        #    self.cam.save_settings('settings_nolut.xml', PersistType.NoLUT)
+
