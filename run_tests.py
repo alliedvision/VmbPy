@@ -1,4 +1,4 @@
-"""VimbaPython setup script
+"""VimbaPython test execution script
 
 (C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
 
@@ -128,7 +128,6 @@ def main():
         raise Exception(msg.format(stringify_list(arg_to_func.keys())))
 
     for arg in args:
-
         func = arg_to_func.get(arg)
 
         if func:
