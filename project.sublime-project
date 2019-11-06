@@ -27,44 +27,14 @@
     "build_systems":
     [
         {
-            "name": "make install full",
+            "name": "run_tests.py test",
             "working_dir": "$project_path",
-            "shell_cmd": "make install_full"
+            "shell_cmd": "python run_tests.py test"
         },
         {
-            "name": "make uninstall",
+            "name": "run_tests.py test_junit",
             "working_dir": "$project_path",
-            "shell_cmd": "make uninstall"
-        },
-        {
-            "name": "make test",
-            "working_dir": "$project_path",
-            "shell_cmd": "make test"
-        },
-        {
-            "name": "make static_test",
-            "working_dir": "$project_path",
-            "shell_cmd": "make static_test"
-        },
-        {
-            "name": "make test (output=junit)",
-            "working_dir": "$project_path",
-            "shell_cmd": "make test_junit_export"
-        },
-        {
-            "name": "make clean",
-            "working_dir": "$project_path",
-            "shell_cmd": "make clean"
-        },
-        {
-            "name": "exec Examples/sandbox",
-            "working_dir": "$project_path",
-            "shell_cmd": "python Examples/sandbox.py"
-        },
-        {
-            "name": "exec Examples/edge_detection",
-            "working_dir": "$project_path",
-            "shell_cmd": "python Examples/edge_detection.py"
+            "shell_cmd": "python run_tests.py test_junit"
         },
         {
             "name": "exec Examples/list_cameras",

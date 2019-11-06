@@ -60,16 +60,16 @@ python Test/runner.py
 ```
 
 shows all available options for running the commandline interface. In addition the unittests
-and static test tools are tied together with a simple makefile. By executing
+and static test tools are tied together with a python script. By executing
 
 ```
-make test
+python run_tests.py test
 ```
 
-all tests are executed any print the test results to the commandline. If you execute
+all tests are executed any the test results are printed to the commandline. If you execute
 
 ```
-make test_junit_export
+python run_tests.py test_junit
 ```
 
 instead the unit tests and static tests generate test results in the junit format.
