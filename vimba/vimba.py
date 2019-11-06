@@ -10,9 +10,9 @@ for Camera, Interface and system Feature detection and access.
 from threading import Lock
 from typing import List
 from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
-from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
-                     filter_affected_features, filter_selected_features, FeatureTypes, \
-                     FeaturesTuple, EnumFeature
+from .feature import discover_features, FeatureTypes, FeaturesTuple, EnumFeature
+from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
+                    filter_selected_features
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesList, discover_interfaces, discover_interface
 from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, CamerasTuple, \

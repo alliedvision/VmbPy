@@ -290,23 +290,12 @@ class CBindingVimbaImageTransformTest(unittest.TestCase):
 
     def test_call_vimba_image_transform_valid(self):
         """ Expectation for valid call: No exceptions, no errors """
-        expected_ver_info = (1, 6)
+        expected_ver_info = EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION
         v = VmbUint32()
 
         call_vimba_image_transform('VmbGetVersion', byref(v))
 
-        ver_info = ((v.value >> 24 & 0xff), (v.value >> 16 & 0xff))
-
-        self.assertEqual(expected_ver_info, ver_info)
-
-    def test_call_vimba_image_transform_valid(self):
-        """ Expectation for valid call: No exceptions, no errors """
-        expected_ver_info = (1, 6)
-        v = VmbUint32()
-
-        call_vimba_image_transform('VmbGetVersion', byref(v))
-
-        ver_info = ((v.value >> 24 & 0xff), (v.value >> 16 & 0xff))
+        ver_info = str(v.value >> 24 & 0xff) + '.' + str(v.value >> 16 & 0xff)
 
         self.assertEqual(expected_ver_info, ver_info)
 

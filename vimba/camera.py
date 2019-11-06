@@ -15,9 +15,9 @@ from .c_binding import call_vimba_c, byref, sizeof, decode_cstr, decode_flags
 from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, VmbAccessMode, \
                        VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFrameCallback, \
                        VmbFeaturePersist, VmbFeaturePersistSettings
-from .feature import discover_features, discover_feature, filter_features_by_name, \
-                     filter_features_by_type, filter_affected_features, \
-                     filter_selected_features, FeatureTypes, FeaturesTuple
+from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple
+from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
+                     filter_selected_features
 from .frame import Frame, FrameTuple, FormatTuple, VimbaPixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
@@ -585,7 +585,7 @@ class Camera:
             VimbaCameraError if the anything gone wrong on entering streaming mode.
         """
         if buffer_count <= 0:
-            raise ValueError('Given buffer_count must be positive'.format(buffer_count))
+            raise ValueError('Given buffer_count {} must be positive'.format(buffer_count))
 
         if self.is_streaming():
             msg = 'Camera \'{}\' already streaming.'

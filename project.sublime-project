@@ -27,6 +27,16 @@
     "build_systems":
     [
         {
+            "name": "make install full",
+            "working_dir": "$project_path",
+            "shell_cmd": "make install_full"
+        },
+        {
+            "name": "make uninstall",
+            "working_dir": "$project_path",
+            "shell_cmd": "make uninstall"
+        },
+        {
             "name": "make test",
             "working_dir": "$project_path",
             "shell_cmd": "make test"

@@ -1,10 +1,6 @@
 import os
 import sys
 import unittest
-import xmlrunner
-
-# Add relative location to vimba to search path.
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 test_cam_id: str = ''
 
@@ -107,7 +103,7 @@ def parse_args():
     return result
 
 def setup_file_tl():
-    if sys.platform == 'win32':
+    if sys.platform != 'win32':
         raise Exception('Using FileTL on non-Windows Platform. Use real camera instead.')
 
     file_tl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'real_cam_data')
@@ -133,6 +129,7 @@ def main():
         runner = unittest.TextTestRunner(verbosity=1)
 
     else:
+        import xmlrunner
         runner = xmlrunner.XMLTestRunner(output=args['ReportDirectory'])
 
     # Prepare TestSuites

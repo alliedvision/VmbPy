@@ -8,7 +8,6 @@
 import inspect
 import enum
 import ctypes
-import itertools
 import threading
 
 from typing import Tuple, Union, List, Callable, Optional, cast, Type
@@ -39,10 +38,6 @@ __all__ = [
     'FeaturesTuple',
     'discover_features',
     'discover_feature',
-    'filter_affected_features',
-    'filter_selected_features',
-    'filter_features_by_name',
-    'filter_features_by_type'
 ]
 
 
@@ -1224,123 +1219,3 @@ def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
                  sizeof(VmbFeatureInfo))
 
     return _build_feature(handle, info)
-
-
-@TraceEnable()
-def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
-    """Search for all Features affected by a given feature within a feature set.
-
-    Arguments:
-        feats: Feature set to search in.
-        feat: Feature that might affect Features within 'feats'.
-
-    Returns:
-        A set of all features that are affected by 'feat'.
-
-    Raises:
-        VimbaFeatureError if 'feat' is not stored within 'feats'.
-    """
-
-    if feat not in feats:
-        raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
-
-    result = []
-
-    if feat.has_affected_features():
-        feats_count = VmbUint32()
-        feats_handle = feat._handle
-        feats_name = feat._info.name
-
-        # Query affected features from given Feature
-        call_vimba_c('VmbFeatureListAffected', feats_handle, feats_name, None, 0,
-                     byref(feats_count), sizeof(VmbFeatureInfo))
-
-        feats_found = VmbUint32(0)
-        feats_infos = (VmbFeatureInfo * feats_count.value)()
-
-        call_vimba_c('VmbFeatureListAffected', feats_handle, feats_name, feats_infos, feats_count,
-                     byref(feats_found), sizeof(VmbFeatureInfo))
-
-        # Search affected features in given feature set
-        for info, feature in itertools.product(feats_infos[:feats_found.value], feats):
-            if info.name == feature._info.name:
-                result.append(feature)
-
-    return tuple(result)
-
-
-@TraceEnable()
-def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
-    """Search for all Features selected by a given feature within a feature set.
-
-    Arguments:
-        feats: Feature set to search in.
-        feat: Feature that might select Features within 'feats'.
-
-    Returns:
-        A set of all features that are selected by 'feat'.
-
-    Raises:
-        VimbaFeatureError if 'feat' is not stored within 'feats'.
-    """
-    if feat not in feats:
-        raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
-
-    result = []
-
-    if feat.has_selected_features():
-        feats_count = VmbUint32()
-        feats_handle = feat._handle
-        feats_name = feat._info.name
-
-        # Query selected features from given feature
-        call_vimba_c('VmbFeatureListSelected', feats_handle, feats_name, None, 0,
-                     byref(feats_count), sizeof(VmbFeatureInfo))
-
-        feats_found = VmbUint32(0)
-        feats_infos = (VmbFeatureInfo * feats_count.value)()
-
-        call_vimba_c('VmbFeatureListSelected', feats_handle, feats_name, feats_infos, feats_count,
-                     byref(feats_found), sizeof(VmbFeatureInfo))
-
-        # Search selected features in given feature set
-        for info, feature in itertools.product(feats_infos[:feats_found.value], feats):
-            if info.name == feature._info.name:
-                result.append(feature)
-
-    return tuple(result)
-
-
-def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureTypes:
-    """Search for a feature with a specific name within a feature set.
-
-    Arguments:
-        feats: Feature set to search in.
-        feat_name: Feature name to look for.
-
-    Returns:
-        The Feature with the name 'feat_name'
-
-    Raises:
-        VimbaFeatureError if feature with name 'feat_name' can't be found in 'feats'.
-    """
-    filtered = [feat for feat in feats if feat_name == feat.get_name()]
-
-    if not filtered:
-        raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
-
-    return filtered.pop()
-
-
-def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypes) -> FeaturesTuple:
-    """Search for all features with a specific type within a given feature set.
-
-    Arguments:
-        feats: Feature set to search in.
-        feat_type: Feature Type to search for
-
-    Returns:
-        A set of all features of type 'feat_type' in 'feats'. If no matching type is found an
-        empty set is returned.
-    """
-    return tuple([feat for feat in feats if type(feat) == feat_type])

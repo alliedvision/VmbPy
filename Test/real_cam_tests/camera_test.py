@@ -188,7 +188,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
     def test_capture_timeout(self):
         """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
-        self.cam.set_capture_timeout(10)
+        self.cam.set_capture_timeout(1)
 
         with self.cam:
             self.assertRaises(VimbaTimeout, self.cam.get_frame)

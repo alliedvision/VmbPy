@@ -2,14 +2,8 @@
 # TODO: Add Copywrite Note
 # TODA: Add Contact Info (clarify if this is required...)
 
-import os
-import sys
 import time
 import cv2
-
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from vimba import *
 
 

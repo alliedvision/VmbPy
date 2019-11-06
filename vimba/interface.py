@@ -11,9 +11,9 @@ import enum
 from typing import Tuple, List, Callable
 from .c_binding import call_vimba_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
-from .feature import discover_features, filter_features_by_name, filter_features_by_type, \
-                     filter_affected_features, filter_selected_features, FeatureTypes, \
-                     FeaturesTuple
+from .feature import discover_features, FeatureTypes, FeaturesTuple
+from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
+                     filter_selected_features
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 

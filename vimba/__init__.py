@@ -8,7 +8,7 @@
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
 
-__version__ = '0.0.1'
+__version__ = '0.1.0'
 
 __all__ = [
     'Vimba',
@@ -74,16 +74,6 @@ __all__ = [
     'ScopedLogEnable',
     'RuntimeTypeCheckEnable'
 ]
-
-# Verify Python Interpreter
-import platform
-
-REQUIRED_PYTHON_VERSION = "3.7"
-PYTHON_VERSION = platform.python_version()
-
-if PYTHON_VERSION < REQUIRED_PYTHON_VERSION:
-    msg = 'VimbaPython requires at least python version {}, current version is {}.'
-    raise Exception(msg.format(REQUIRED_PYTHON_VERSION, PYTHON_VERSION))
 
 # Import everything exported from the top level module
 from .vimba import Vimba

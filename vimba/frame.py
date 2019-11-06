@@ -15,11 +15,12 @@ from .c_binding import create_string_buffer, byref, sizeof, decode_flags
 from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
                        VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILTY_MAP, PIXEL_FORMAT_TO_LAYOUT
-from .feature import FeaturesTuple, FeatureTypes, discover_features, filter_features_by_name
+from .feature import FeaturesTuple, FeatureTypes, discover_features
+from .shared import filter_features_by_name
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 try:
-    import numpy  # type: ignore   Suppress mypi warning. We don't want to use a stub here.
+    import numpy  # type: ignore
 
 except ModuleNotFoundError:
     numpy = None
