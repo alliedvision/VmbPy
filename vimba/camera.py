@@ -704,6 +704,7 @@ class Camera:
             if k.upper() == enum_value:
                 return VimbaPixelFormat[k]
 
+
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def set_pixel_format(self, fmt: VimbaPixelFormat):
@@ -787,8 +788,8 @@ class Camera:
             err = e.get_error_code()
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
-            # In reality VmbError.NotImplemented_ is returned.
-            if err == VmbError.InvalidAccess or err == VmbError.NotImplemented_:
+            # In reality VmbError.NotImplemented_ is sometimes returned.
+            if (err == VmbError.InvalidAccess) or (err == VmbError.NotImplemented_):
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
                                  self.get_permitted_access_modes())
