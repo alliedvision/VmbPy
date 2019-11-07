@@ -13,7 +13,8 @@ from .c_binding import call_vimba_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                     filter_selected_features
+                    filter_selected_features, read_memory_impl, write_memory_impl, \
+                    read_registers_impl, write_registers_impl
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 
@@ -124,6 +125,26 @@ class Interface:
     def get_serial(self) -> str:
         """Get Interface Serial or '' if not set."""
         return decode_cstr(self.__info.serialString)
+
+    @TraceEnable()
+    def read_memory(self, addr: int, max_bytes: int) -> bytes:
+        """TODO: Implement stub"""
+        return read_memory_impl(self.__handle, addr, max_bytes)
+
+    @TraceEnable()
+    def write_memory(self, addr: int, data: bytes):
+        """TODO: Implement stub"""
+        return write_memory_impl(self.__handle, addr, data)
+
+    @TraceEnable()
+    def read_registers(self, addr: int, max_bytes: int) -> bytes:
+        """TODO: Implement stub"""
+        return read_registers_impl(self.__handle, addr, max_bytes)
+
+    @TraceEnable()
+    def write_registers(self, addr: int, data: bytes):
+        """TODO: Implement stub"""
+        return write_registers_impl(self.__handle, addr, data)
 
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this Interface:

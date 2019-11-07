@@ -17,7 +17,8 @@ from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, Vm
                        VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                     filter_selected_features
+                    filter_selected_features, read_memory_impl, write_memory_impl, \
+                    read_registers_impl, write_registers_impl
 from .frame import Frame, FrameTuple, FormatTuple, VimbaPixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
@@ -444,6 +445,26 @@ class Camera:
     def get_interface_id(self) -> str:
         """Get ID of the Interface this camera is connected to, e.g. VimbaUSBInterface_0x0"""
         return decode_cstr(self.__info.interfaceIdString)
+
+    @TraceEnable()
+    def read_memory(self, addr: int, max_bytes: int) -> bytes:
+        """TODO: Implement stub"""
+        return read_memory_impl(self.__handle, addr, max_bytes)
+
+    @TraceEnable()
+    def write_memory(self, addr: int, data: bytes):
+        """TODO: Implement stub"""
+        return write_memory_impl(self.__handle, addr, data)
+
+    @TraceEnable()
+    def read_registers(self, addr: int, max_bytes: int) -> bytes:
+        """TODO: Implement stub"""
+        return read_registers_impl(self.__handle, addr, max_bytes)
+
+    @TraceEnable()
+    def write_registers(self, addr: int, data: bytes):
+        """TODO: Implement stub"""
+        return write_registers_impl(self.__handle, addr, data)
 
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this camera:

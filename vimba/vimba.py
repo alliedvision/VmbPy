@@ -12,7 +12,8 @@ from typing import List
 from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features
+                    filter_selected_features, read_memory_impl, write_memory_impl, \
+                    read_registers_impl, write_registers_impl
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesList, discover_interfaces, discover_interface
 from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, CamerasTuple, \
@@ -139,6 +140,26 @@ class Vimba:
         def disable_log(self):
             """Disable VimbaPython's logging mechanism."""
             Log.get_instance().disable()
+
+        @TraceEnable()
+        def read_memory(self, addr: int, max_bytes: int) -> bytes:
+            """TODO: Implement stub"""
+            return read_memory_impl(G_VIMBA_C_HANDLE, addr, max_bytes)
+
+        @TraceEnable()
+        def write_memory(self, addr: int, data: bytes):
+            """TODO: Implement stub"""
+            return write_memory_impl(G_VIMBA_C_HANDLE, addr, data)
+
+        @TraceEnable()
+        def read_registers(self, addr: int, max_bytes: int) -> bytes:
+            """TODO: Implement stub"""
+            return read_registers_impl(G_VIMBA_C_HANDLE, addr, max_bytes)
+
+        @TraceEnable()
+        def write_registers(self, addr: int, data: bytes):
+            """TODO: Implement stub"""
+            return write_registers_impl(G_VIMBA_C_HANDLE, addr, data)
 
         def get_all_interfaces(self) -> InterfacesTuple:
             """Get access to all discovered Interfaces:
