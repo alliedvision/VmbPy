@@ -27,11 +27,11 @@ def stringify_list(l):
 
 def static_test():
     fprint('Execute Static Test: flake8')
-    subprocess.run(['flake8', 'vimba'], shell=True)
+    subprocess.run('flake8 vimba', shell=True)
     fprint('')
 
     fprint('Execute Static Test: mypy')
-    subprocess.run(['mypy', 'vimba'], shell=True)
+    subprocess.run('mypy vimba', shell=True)
     fprint('')
 
 
@@ -40,12 +40,12 @@ def unit_test():
     global UNITTEST_CAMERA
 
     fprint('Execute Unit tests and measure coverage:')
-    cmd = ['coverage', 'run', 'Test/runner.py', UNITTEST_SUITE, 'console', UNITTEST_CAMERA]
+    cmd = 'coverage run Test/runner.py ' + UNITTEST_SUITE + ' console ' + UNITTEST_CAMERA
     subprocess.run(cmd, shell=True)
     fprint('')
 
     fprint('Coverage during test execution:')
-    subprocess.run(['coverage', 'report', '-m'], shell=True)
+    subprocess.run('coverage report -m', shell=True)
     fprint('')
 
     coverage_file = '.coverage'
@@ -67,14 +67,14 @@ def static_test_junit():
     global REPORT_DIR
 
     fprint('Execute Static Test: flake8')
-    cmd = ['flake8', 'vimba', '--output-file=' + REPORT_DIR + '/flake8.txt']
+    cmd = 'flake8 vimba --output-file=' + REPORT_DIR + '/flake8.txt'
     subprocess.run(cmd, shell=True)
-    cmd = ['flake8_junit', REPORT_DIR + '/flake8.txt', REPORT_DIR + '/flake8_junit.xml']
+    cmd = 'flake8_junit ' + REPORT_DIR + '/flake8.txt ' + REPORT_DIR + '/flake8_junit.xml'
     subprocess.run(cmd, shell=True)
     fprint('')
 
     fprint('Execute Static Test: mypy')
-    cmd = ['mypy', 'vimba', '--junit-xml', REPORT_DIR + '/mypy_junit.xml']
+    cmd = 'mypy vimba --junit-xml ' + REPORT_DIR + '/mypy_junit.xml'
     subprocess.run(cmd, shell=True)
     fprint('')
 
@@ -85,13 +85,13 @@ def unit_test_junit():
     global UNITTEST_CAMERA
 
     fprint('Execute Unit tests and measure coverage:')
-    cmd = ['coverage', 'run', 'Test/runner.py', UNITTEST_SUITE, 'junit_xml', REPORT_DIR, UNITTEST_CAMERA]
+    cmd = 'coverage run Test/runner.py ' + UNITTEST_SUITE + ' junit_xml ' + REPORT_DIR + ' ' + UNITTEST_CAMERA
     subprocess.run(cmd, shell=True)
     fprint('')
 
     fprint('Generate Coverage reports:')
-    subprocess.run(['coverage', 'xml', '-o', REPORT_DIR + '/coverage.xml'], shell=True)
-    subprocess.run(['coverage', 'html', '-d', REPORT_DIR + '/coverage_html'], shell=True)
+    subprocess.run('coverage xml -o ' + REPORT_DIR + '/coverage.xml', shell=True)
+    subprocess.run('coverage html -d ' + REPORT_DIR + '/coverage_html', shell=True)
     fprint('')
 
     coverage_file = '.coverage'
