@@ -296,7 +296,7 @@ class _CaptureFsm:
             pass
 
 
-class _FrameIter:
+class FrameIter:
     @TraceEnable()
     def __init__(self, cam, limit: Optional[int]):
         self.__cam: 'Camera' = cam
@@ -548,7 +548,7 @@ class Camera:
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
-    def get_frame_iter(self, limit: Optional[int] = None) -> _FrameIter:
+    def get_frame_iter(self, limit: Optional[int] = None) -> FrameIter:
         """Construct frame iterator, providing synchronous camera access.
 
         The Frame iterator acquires a new frame with each iteration.
@@ -572,7 +572,7 @@ class Camera:
             msg = 'Camera \'{}\' not ready for frame acquisition. Open camera via \'with\' .'
             raise VimbaCameraError(msg)
 
-        return _FrameIter(self, limit)
+        return FrameIter(self, limit)
 
     @TraceEnable()
     def get_frame(self) -> Frame:
@@ -703,7 +703,6 @@ class Camera:
         for k in VimbaPixelFormat.__members__:
             if k.upper() == enum_value:
                 return VimbaPixelFormat[k]
-
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()

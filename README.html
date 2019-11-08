@@ -5,21 +5,24 @@ On Linux platforms, the default python interpreter might be some python 2 versio
 If this is the case use 'python3' command instead of 'python'. Verify the interpreter version by executing:</p>
 <p><code>python --version</code></p>
 <p>2) Install pip. On Windows, ensure that pip was installed along with the python interpreter.
-On Linux install pip via the distributions packet manager. On Linux systems with different
-coexisting python version, pip for the installed python3 interpreter is often executed by
-calling 'pip3'. If this is the case on your system, use the 'pip3' command instead of 'pip'.</p>
+On Linux install pip via the distributions packet manager. On some Linux Distributions, pip does
+install binaries to a location not covered by the PATH variable. If you want to run the tests
+shipped with VimbaPython, please verify that binaries installed via pip can be executed from the
+command line.</p>
 <p>3) Install VimbaSDK. On Windows install a Vimba including ImageTransform. On Linux install at
 least a single TransportLayer (this sets the GENICAM Environment Variables that is required to
 locate Vimba).</p>
 <h3>Installation via pip</h3>
 <p>VimbaPython has several, optional dependencies. All installations start by opening a terminal
-and navigating to the VimbyPython root directory (containing setup.py).</p>
+and navigating to the VimbyPython root directory (containing setup.py). Depending on the host
+system, not all dependencies might be available via pip. If pip can't install all dependencies
+try to install the missing packages manually.</p>
 <p>For a minimal installation, execute:</p>
-<p><code>pip install .</code></p>
+<p><code>python -m pip install .</code></p>
 <p>For a installation with OpenCV/Numpy - support, execute:</p>
-<p><code>pip install .[numpy-export,opencv-export]</code></p>
+<p><code>python -m pip install .[numpy-export,opencv-export]</code></p>
 <p>For a installation with Unittest - support, execute:</p>
-<p><code>pip install .[test]</code></p>
+<p><code>python -m pip install .[test]</code></p>
 <p>If you want to execute the unittests, ensure that binaries installed by pip can be
 called from the terminal directly. On some systems pip installs to locations that are not
 covered by Environments 'PATH' - variable, ensure that tools like 'coverage' can be called from
@@ -33,7 +36,7 @@ following example prints basic information on all currently detected cameras:</p
 execution of the script 'run_tests.py'. Executing</p>
 <p><code>python run_tests.py test</code></p>
 <p>executes all static tests (flake8, mypy) and executes all unit tests. The output is printed to
-command line. Executing</p>
+the command line. Executing</p>
 <p><code>python run_tests.py test_junit</code></p>
 <p>executes all tests as well but the output of each tool export in junit-format to the
 Test_Reports - Directory.</p>

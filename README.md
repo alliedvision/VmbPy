@@ -9,9 +9,10 @@ python --version
 ```
 
 2) Install pip. On Windows, ensure that pip was installed along with the python interpreter.
-On Linux install pip via the distributions packet manager. On Linux systems with different
-coexisting python version, pip for the installed python3 interpreter is often executed by
-calling 'pip3'. If this is the case on your system, use the 'pip3' command instead of 'pip'.
+On Linux install pip via the distributions packet manager. On some Linux Distributions, pip does
+install binaries to a location not covered by the PATH variable. If you want to run the tests
+shipped with VimbaPython, please verify that binaries installed via pip can be executed from the
+command line.
 
 3) Install VimbaSDK. On Windows install a Vimba including ImageTransform. On Linux install at
 least a single TransportLayer (this sets the GENICAM Environment Variables that is required to
@@ -19,24 +20,26 @@ locate Vimba).
 
 ### Installation via pip
 VimbaPython has several, optional dependencies. All installations start by opening a terminal
-and navigating to the VimbyPython root directory (containing setup.py).
+and navigating to the VimbyPython root directory (containing setup.py). Depending on the host
+system, not all dependencies might be available via pip. If pip can't install all dependencies
+try to install the missing packages manually.
 
 For a minimal installation, execute:
 
 ```
-pip install .
+python -m pip install .
 ```
 
 For a installation with OpenCV/Numpy - support, execute:
 
 ```
-pip install .[numpy-export,opencv-export]
+python -m pip install .[numpy-export,opencv-export]
 ```
 
 For a installation with Unittest - support, execute:
 
 ```
-pip install .[test]
+python -m pip install .[test]
 ```
 
 If you want to execute the unittests, ensure that binaries installed by pip can be
@@ -61,7 +64,7 @@ python run_tests.py test
 ```
 
 executes all static tests (flake8, mypy) and executes all unit tests. The output is printed to
-command line. Executing
+the command line. Executing
 
 ```
 python run_tests.py test_junit
