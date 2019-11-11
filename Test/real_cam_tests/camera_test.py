@@ -310,6 +310,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertRaises(TypeError, self.cam.save_settings, 0, PersistType.All)
         self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
 
+    @unittest.skipIf(unittest.TestCase.uses_file_tl_cam(), 'No FileTL support')
     def test_save_load_settings(self):
         """Expectation: After settings export a settings change must be reverted by loading a
         Previously saved configuration.
@@ -333,6 +334,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
             self.assertEqual(old_val, feat_height.get())
 
+    @unittest.skipIf(unittest.TestCase.uses_file_tl_cam(), 'No FileTL support')
     def test_save_settings_verify_path(self):
         """Expectation: Valid files end with .xml and can be either a absolute path or relative
         path to the given File. Everything else is a ValueError.
@@ -351,6 +353,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 self.assertNoRaise(self.cam.save_settings, path, PersistType.All)
                 os.remove(path)
 
+    @unittest.skipIf(unittest.TestCase.uses_file_tl_cam(), 'No FileTL support')
     def test_load_settings_verify_path(self):
         """Expectation: Valid files end with .xml and must exist before before any execution. """
         valid_paths = (

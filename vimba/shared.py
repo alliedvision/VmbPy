@@ -8,7 +8,7 @@
 import itertools
 
 from .c_binding import VmbUint32, VmbHandle, VmbFeatureInfo
-from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer
+from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
 from .feature import FeaturesTuple, FeatureTypes
 from .error import VimbaFeatureError
 from .util import TraceEnable
@@ -149,37 +149,78 @@ def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypes) -> Fe
 
 @TraceEnable()
 def read_memory_impl(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:
-    """Read a sequence of bytes from a given address.
+    """Read a byte sequence from a given memory address.
+
+    Arguments:
+        handle: Handle on entity that allows raw memory access.
+        addr: Starting address to read from.
+        max_bytes: Maximum number of bytes to read from addr.
+
+    Returns:
+        Read memory contents as bytes.
 
     Raises:
         ValueError if addr is negative
+        ValueError if max_bytes is negative.
+        ValueError if the memory access was invalid.
     """
     _verify_addr(addr)
+    _verify_size(max_bytes)
 
+    exc = None
     buf = create_string_buffer(max_bytes)
     bytesRead = VmbUint32()
 
-    # TODO: Try/catch
-    call_vimba_c('VmbMemoryRead', handle, addr, max_bytes, buf, byref(bytesRead))
+    try:
+        call_vimba_c('VmbMemoryRead', handle, addr, max_bytes, buf, byref(bytesRead))
+
+    except VimbaCError as e:
+        msg = 'Memory read access at {} failed with C-Error: {}.'
+        exc = ValueError(msg.format(hex(addr), repr(e.get_error_code())))
+
+    if exc:
+        raise exc
 
     return buf.value[:bytesRead.value]
 
 
 @TraceEnable()
 def write_memory_impl(handle: VmbHandle, addr: int, data: bytes):
-    """ TODO: Document me """
+    """ Write a byte sequence to a given memory address.
+
+    Arguments:
+        handle: Handle on entity that allows raw memory access.
+        addr: Address to write the content of 'data' too.
+        data: Byte sequence to write at address 'addr'.
+
+    Raises:
+        ValueError if addr is negative.
+    """
     _verify_addr(addr)
 
+    exc = None
     bytesWrite = VmbUint32()
 
-    # TODO: Try/catch
-    call_vimba_c('VmbMemoryWrite', handle, addr, len(data), data, byref(bytesWrite))
+    try:
+        call_vimba_c('VmbMemoryWrite', handle, addr, len(data), data, byref(bytesWrite))
 
+    except VimbaCError as e:
+        msg = 'Memory write access at {} failed with C-Error: {}.'
+        exc = ValueError(msg.format(hex(addr), repr(e.get_error_code())))
+
+    if exc:
+        raise exc
 
 @TraceEnable()
 def read_registers_impl(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:
-    """ TODO: Document me """
+    """Read a sequence of bytes from a given register address.
+
+    Raises:
+        ValueError if addr is negative
+        ValueError if max_bytes is negative
+    """
     _verify_addr(addr)
+    _verify_size(max_bytes)
 
     #  VmbRegistersRead ( const VmbHandle_t   handle,
     #                     VmbUint32_t         readCount,
@@ -204,6 +245,11 @@ def write_registers_impl(handle: VmbHandle, addr: int, data: bytes):
     raise NotImplementedError('impl me')
 
 
-def _verify_addr(addr):
+def _verify_addr(addr: int):
     if addr < 0:
         raise ValueError('Given Address {} is negative'.format(addr))
+
+
+def _verify_size(size: int):
+    if size < 0:
+        raise ValueError('Given size {} is negative'.format(size))

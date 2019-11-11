@@ -2,8 +2,6 @@ import os
 import sys
 import unittest
 
-test_cam_id: str = ''
-
 # Inject 'assertNotRaise' to default test module. Tests are derived from this class.
 def _assertNoRaise(self, func, *args, **kwargs):
     try:
@@ -16,42 +14,19 @@ def _assertNoRaise(self, func, *args, **kwargs):
 def _get_test_camera_id(self) -> str:
     return unittest.TestCase.test_cam_id
 
+
 def _set_test_camera_id(test_cam_id) -> str:
     unittest.TestCase.test_cam_id = test_cam_id
+
+
+def _uses_file_tl_cam() -> bool:
+    return (unittest.TestCase.test_cam_id == 'DEV_Testimage1')
+
 
 unittest.TestCase.assertNoRaise = _assertNoRaise
 unittest.TestCase.set_test_camera_id = _set_test_camera_id
 unittest.TestCase.get_test_camera_id = _get_test_camera_id
-
-# Disable Vimba network discovery to speedup tests.
-from vimba import Vimba
-Vimba.get_instance().set_network_discovery(False)
-
-# import tests cases
-import tests.c_binding_test
-import tests.util_runtime_type_check_test
-import tests.util_tracer_test
-import tests.vimba_test
-
-import real_cam_tests.vimba_test
-import real_cam_tests.feature_test
-import real_cam_tests.camera_test
-import real_cam_tests.frame_test
-
-# Assign test cases to test suites
-BASIC_TEST_MODS = [
-    tests.c_binding_test,
-    tests.util_runtime_type_check_test,
-    tests.util_tracer_test,
-    tests.vimba_test
-]
-
-REAL_CAM_TEST_MODS = [
-    real_cam_tests.vimba_test,
-    real_cam_tests.feature_test,
-    real_cam_tests.camera_test,
-    real_cam_tests.frame_test
-]
+unittest.TestCase.uses_file_tl_cam = _uses_file_tl_cam
 
 
 def usage(fail_msg):
@@ -131,6 +106,36 @@ def main():
     else:
         import xmlrunner
         runner = xmlrunner.XMLTestRunner(output=args['ReportDirectory'])
+
+    # Disable Vimba network discovery to speedup tests.
+    from vimba import Vimba
+    Vimba.get_instance().set_network_discovery(False)
+
+    # Import tests cases
+    import tests.c_binding_test
+    import tests.util_runtime_type_check_test
+    import tests.util_tracer_test
+    import tests.vimba_test
+
+    import real_cam_tests.vimba_test
+    import real_cam_tests.feature_test
+    import real_cam_tests.camera_test
+    import real_cam_tests.frame_test
+
+    # Assign test cases to test suites
+    BASIC_TEST_MODS = [
+        tests.c_binding_test,
+        tests.util_runtime_type_check_test,
+        tests.util_tracer_test,
+        tests.vimba_test
+    ]
+
+    REAL_CAM_TEST_MODS = [
+        real_cam_tests.vimba_test,
+        real_cam_tests.feature_test,
+        real_cam_tests.camera_test,
+        real_cam_tests.frame_test
+    ]
 
     # Prepare TestSuites
     suite_basic = unittest.TestSuite()

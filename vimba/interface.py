@@ -128,12 +128,33 @@ class Interface:
 
     @TraceEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:
-        """TODO: Implement stub"""
+        """Read a byte sequence from a given memory address.
+
+        Arguments:
+            addr: Starting address to read from.
+            max_bytes: Maximum number of bytes to read from addr.
+
+        Returns:
+            Read memory contents as bytes.
+
+        Raises:
+            ValueError if addr is negative
+            ValueError if max_bytes is negative.
+            ValueError if the memory access was invalid.
+        """
         return read_memory_impl(self.__handle, addr, max_bytes)
 
     @TraceEnable()
     def write_memory(self, addr: int, data: bytes):
-        """TODO: Implement stub"""
+        """ Write a byte sequence to a given memory address.
+
+        Arguments:
+            addr: Address to write the content of 'data' too.
+            data: Byte sequence to write at address 'addr'.
+
+        Raises:
+            ValueError if addr is negative.
+        """
         return write_memory_impl(self.__handle, addr, data)
 
     @TraceEnable()
