@@ -8,7 +8,7 @@ for Camera, Interface and system Feature detection and access.
 <Insert license here>
 """
 from threading import Lock
-from typing import List
+from typing import List, Dict, Tuple
 from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
@@ -173,14 +173,35 @@ class Vimba:
             return write_memory_impl(G_VIMBA_C_HANDLE, addr, data)
 
         @TraceEnable()
-        def read_registers(self, addr: int, max_bytes: int) -> bytes:
-            """TODO: Implement stub"""
-            return read_registers_impl(G_VIMBA_C_HANDLE, addr, max_bytes)
+        def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:
+            """Read contents of multiple registers.
+
+            Arguments:
+                handle: Handle on entity providing registers to access.
+                addrs: Sequence of addresses that should be read iteratively.
+
+            Return:
+                Dictionary containing a mapping from given address to the read register values.
+
+            Raises:
+                ValueError if any address in addrs_values is negative.
+                ValueError if the register access was invalid.
+            """
+            return read_registers_impl(G_VIMBA_C_HANDLE, addrs)
 
         @TraceEnable()
-        def write_registers(self, addr: int, data: bytes):
-            """TODO: Implement stub"""
-            return write_registers_impl(G_VIMBA_C_HANDLE, addr, data)
+        def write_registers(self, addrs_values: Dict[int, int]):
+            """Write data to multiple Registers.
+
+            Arguments:
+                handle: Handle on entity providing registers to access.
+                addrs_values: Mapping between Register addresses and the data to write.
+
+            Raises:
+                ValueError if any address in addrs is negative.
+                ValueError if the register access was invalid.
+            """
+            return write_registers_impl(G_VIMBA_C_HANDLE, addrs_values)
 
         def get_all_interfaces(self) -> InterfacesTuple:
             """Get access to all discovered Interfaces:

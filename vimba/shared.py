@@ -6,8 +6,8 @@
 """
 
 import itertools
-
-from .c_binding import VmbUint32, VmbHandle, VmbFeatureInfo
+from typing import Dict, Tuple
+from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
 from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
 from .feature import FeaturesTuple, FeatureTypes
 from .error import VimbaFeatureError
@@ -195,6 +195,7 @@ def write_memory_impl(handle: VmbHandle, addr: int, data: bytes):
 
     Raises:
         ValueError if addr is negative.
+        ValueError if the memory access was invalid.
     """
     _verify_addr(addr)
 
@@ -212,37 +213,81 @@ def write_memory_impl(handle: VmbHandle, addr: int, data: bytes):
         raise exc
 
 @TraceEnable()
-def read_registers_impl(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:
-    """Read a sequence of bytes from a given register address.
+def read_registers_impl(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, int]:
+    """Read contents of multiple registers.
+
+    Arguments:
+        handle: Handle on entity providing registers to access.
+        addrs: Sequence of addresses that should be read iteratively.
+
+    Return:
+        Dictionary containing a mapping from given address to the read register values.
 
     Raises:
-        ValueError if addr is negative
-        ValueError if max_bytes is negative
+        ValueError if any address in addrs is negative.
+        ValueError if the register access was invalid.
     """
-    _verify_addr(addr)
-    _verify_size(max_bytes)
+    for addr in addrs:
+        _verify_addr(addr)
 
-    #  VmbRegistersRead ( const VmbHandle_t   handle,
-    #                     VmbUint32_t         readCount,
-    #                     const VmbUint64_t*  pAddressArray,
-    #                     VmbUint64_t*        pDataArray,
-    #                     VmbUint32_t*        pNumCompleteReads );
+    exc = None
+    size = len(addrs)
+    valid_reads = VmbUint32()
 
-    raise NotImplementedError('impl me')
+    c_addrs = (VmbUint64 * size)()
+    c_values = (VmbUint64 * size)()
+
+    for i, addr in enumerate(addrs):
+        c_addrs[i] = addr
+
+    try:
+        call_vimba_c('VmbRegistersRead', handle, size, c_addrs, c_values, byref(valid_reads))
+
+    except VimbaCError as e:
+        msg = 'Register read access failed with C-Error: {}.'
+        exc = ValueError(msg.format(repr(e.get_error_code())))
+
+    if exc:
+        raise exc
+
+    return dict(zip(c_addrs, c_values))
 
 
 @TraceEnable()
-def write_registers_impl(handle: VmbHandle, addr: int, data: bytes):
-    """ TODO: Document me """
-    _verify_addr(addr)
+def write_registers_impl(handle: VmbHandle, addrs_values: Dict[int, int]):
+    """Write data to multiple Registers.
 
-    #  VmbRegistersWrite ( const VmbHandle_t   handle,
-    #                      VmbUint32_t         writeCount,
-    #                      const VmbUint64_t*  pAddressArray,
-    #                      const VmbUint64_t*  pDataArray,
-    #                      VmbUint32_t*        pNumCompleteWrites );
+    Arguments:
+        handle: Handle on entity providing registers to access.
+        addrs_values: Mapping between Register addresses and the data to write.
 
-    raise NotImplementedError('impl me')
+    Raises:
+        ValueError if any address in addrs_values is negative.
+        ValueError if the register access was invalid.
+    """
+    for addr in addrs_values:
+        _verify_addr(addr)
+
+    exc = None
+    size = len(addrs_values)
+    valid_writes = VmbUint32()
+
+    addrs = (VmbUint64 * size)()
+    values = (VmbUint64 * size)()
+
+    for i, addr in enumerate(addrs_values):
+        addrs[i] = addr
+        values[i] = addrs_values[addr]
+
+    try:
+        call_vimba_c('VmbRegistersWrite', handle, size, addrs, values, byref(valid_writes))
+
+    except VimbaCError as e:
+        msg = 'Register write access failed with C-Error: {}.'
+        exc = ValueError(msg.format(repr(e.get_error_code())))
+
+    if exc:
+        raise exc
 
 
 def _verify_addr(addr: int):
