@@ -6,13 +6,10 @@
 """
 
 import os
-import sys
 import shutil
 import subprocess
+import docopt
 
-UNITTEST_SUITE = 'all'
-UNITTEST_CAMERA = 'DEV_1AB22D01C0E9'
-REPORT_DIR = 'Test_Reports'
 
 def fprint(line):
     print(line, flush=True)
@@ -25,6 +22,7 @@ def stringify_list(l):
 
     return list_str
 
+
 def static_test():
     fprint('Execute Static Test: flake8')
     subprocess.run('flake8 vimba', shell=True)
@@ -35,17 +33,14 @@ def static_test():
     fprint('')
 
 
-def unit_test():
-    global UNITTEST_SUITE
-    global UNITTEST_CAMERA
-
+def unit_test(testsuite, testcamera):
     fprint('Execute Unit tests and measure coverage:')
-    if UNITTEST_SUITE == 'basic':
+    if testsuite == 'basic':
         cmd = 'coverage run Test/runner.py -s basic -o console'
 
     else:
         cmd = 'coverage run Test/runner.py -s {} -c {} -o console'
-        cmd = cmd.format(UNITTEST_SUITE, UNITTEST_CAMERA)
+        cmd = cmd.format(testsuite, testcamera)
 
     subprocess.run(cmd, shell=True)
     fprint('')
@@ -59,52 +54,43 @@ def unit_test():
         os.remove(coverage_file)
 
 
-def setup_junit():
-    global REPORT_DIR
+def setup_junit(report_dir):
+    if os.path.exists(report_dir):
+        shutil.rmtree(report_dir, ignore_errors=True)
 
-    if os.path.exists(REPORT_DIR):
-        shutil.rmtree(REPORT_DIR, ignore_errors=True)
-
-    os.mkdir(REPORT_DIR)
+    os.mkdir(report_dir)
 
 
-
-def static_test_junit():
-    global REPORT_DIR
-
+def static_test_junit(report_dir):
     fprint('Execute Static Test: flake8')
-    cmd = 'flake8 vimba --output-file=' + REPORT_DIR + '/flake8.txt'
+    cmd = 'flake8 vimba --output-file=' + report_dir + '/flake8.txt'
     subprocess.run(cmd, shell=True)
-    cmd = 'flake8_junit ' + REPORT_DIR + '/flake8.txt ' + REPORT_DIR + '/flake8_junit.xml'
+    cmd = 'flake8_junit ' + report_dir + '/flake8.txt ' + report_dir + '/flake8_junit.xml'
     subprocess.run(cmd, shell=True)
     fprint('')
 
     fprint('Execute Static Test: mypy')
-    cmd = 'mypy vimba --junit-xml ' + REPORT_DIR + '/mypy_junit.xml'
+    cmd = 'mypy vimba --junit-xml ' + report_dir + '/mypy_junit.xml'
     subprocess.run(cmd, shell=True)
     fprint('')
 
 
-def unit_test_junit():
-    global REPORT_DIR
-    global UNITTEST_SUITE
-    global UNITTEST_CAMERA
-
+def unit_test_junit(report_dir, testsuite, testcamera):
     fprint('Execute Unit tests and measure coverage:')
 
-    if UNITTEST_SUITE == 'basic':
-        cmd = 'coverage run Test/runner.py -s basic -o junit_xml {}'.format(REPORT_DIR)
+    if testsuite == 'basic':
+        cmd = 'coverage run Test/runner.py -s basic -o junit_xml {}'.format(report_dir)
 
     else:
         cmd = 'coverage run Test/runner.py -s {} -c {} -o junit_xml {}'
-        cmd = cmd.format(UNITTEST_SUITE, UNITTEST_CAMERA, REPORT_DIR)
+        cmd = cmd.format(testsuite, testcamera, report_dir)
 
     subprocess.run(cmd, shell=True)
     fprint('')
 
     fprint('Generate Coverage reports:')
-    subprocess.run('coverage xml -o ' + REPORT_DIR + '/coverage.xml', shell=True)
-    subprocess.run('coverage html -d ' + REPORT_DIR + '/coverage_html', shell=True)
+    subprocess.run('coverage xml -o ' + report_dir + '/coverage.xml', shell=True)
+    subprocess.run('coverage html -d ' + report_dir + '/coverage_html', shell=True)
     fprint('')
 
     coverage_file = '.coverage'
@@ -112,43 +98,47 @@ def unit_test_junit():
         os.remove(coverage_file)
 
 
-def test():
+def test(testsuite, testcamera):
     static_test()
-    unit_test()
+    unit_test(testsuite, testcamera)
 
 
-def test_junit():
-    setup_junit()
-    static_test_junit()
-    unit_test_junit()
+def test_junit(report_dir, testsuite, testcamera):
+    setup_junit(report_dir)
+    static_test_junit(report_dir)
+    unit_test_junit(report_dir, testsuite, testcamera)
 
 
 def main():
-    arg_to_func = {
-        'static_test': static_test,
-        'unit_test': unit_test,
-        'test': test,
-        'setup_junit': setup_junit,
-        'static_test_junit': static_test_junit,
-        'unit_test_junit': unit_test_junit,
-        'test_junit': test_junit
-    }
+    CLI = """VimbaPython tests script.
+    Usage:
+        run_tests.py -h
+        run_tests.py test -s basic
+        run_tests.py test -s (real_cam | all) -c CAMERA_ID
+        run_tests.py test_junit -s basic
+        run_tests.py test_junit -s (real_cam | all) -c CAMERA_ID
 
-    args = sys.argv[1:]
+    Arguments:
+        CAMERA_ID    Camera Id from Camera that shall be used during testing
 
-    if not args:
-        msg = 'No arguments supplied. Available arguments are: {}'
-        raise Exception(msg.format(stringify_list(arg_to_func.keys())))
+    Options:
+        -h   Show this screen.
+        -s   Unittestsuite. Can be 'basic', 'real_cam' or 'all'. The last two require a
+             Camera Id to test against.
+        -c   Camera Id used in testing.
+    """
 
-    for arg in args:
-        func = arg_to_func.get(arg)
+    args = docopt.docopt(CLI)
 
-        if func:
-            func()
+    suite = 'basic' if args['basic'] else 'real_cam' if args['real_cam'] else 'all'
+    cam = args['CAMERA_ID']
 
-        else:
-            msg = 'Invalid argument supplied. Available arguments are: {}'
-            raise Exception(msg.format(stringify_list(arg_to_func.keys())))
+    if args['test']:
+        test(suite, cam)
+
+    elif args['test_junit']:
+        report_dir = 'Test_Reports'
+        test_junit(report_dir, suite, cam)
 
 
 if __name__ == '__main__':

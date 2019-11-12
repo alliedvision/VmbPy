@@ -29,12 +29,12 @@
         {
             "name": "run_tests.py test",
             "working_dir": "$project_path",
-            "shell_cmd": "python run_tests.py test"
+            "shell_cmd": "python run_tests.py test -s all -c DEV_1AB22D01C0E9",
         },
         {
             "name": "run_tests.py test_junit",
             "working_dir": "$project_path",
-            "shell_cmd": "python run_tests.py test_junit"
+            "shell_cmd": "python run_tests.py test_junit -s all -c DEV_1AB22D01C0E9"
         },
         {
             "name": "exec Examples/list_cameras",

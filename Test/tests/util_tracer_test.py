@@ -2,6 +2,7 @@ import unittest
 
 from vimba.util import *
 
+
 class TracerTest(unittest.TestCase):
     def setUp(self):
         # Enable logging and setup hidden buffer
@@ -89,7 +90,7 @@ class TracerTest(unittest.TestCase):
     def test_trace_lambda(self):
         """Expectation: Lambdas must be traceable """
 
-        test_lambda = TraceEnable()(lambda : 0)
+        test_lambda = TraceEnable()(lambda: 0)
 
         test_lambda()
         self.assertEqual(len(self.log._test_buffer), 2)

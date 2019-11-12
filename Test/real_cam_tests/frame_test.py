@@ -5,6 +5,7 @@ import ctypes
 from vimba import *
 from vimba.frame import *
 
+
 class RealCamTestsFrameTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
@@ -84,7 +85,6 @@ class RealCamTestsFrameTest(unittest.TestCase):
         with self.cam:
             frame = self.cam.get_frame()
 
-
         frame_cpy = copy.deepcopy(frame)
 
         # Ensure frames and their members are not the same object
@@ -121,7 +121,6 @@ class RealCamTestsFrameTest(unittest.TestCase):
         for fmt in VimbaPixelFormat.__members__.values():
             if (fmt != current_fmt) and (fmt not in convertable_fmt):
                 self.assertRaises(ValueError, frame.convert_pixel_format, fmt)
-
 
     def test_convert_to_all_given_formats(self):
         """Expectation: A Series of Frame, each acquired with a different Pixel format

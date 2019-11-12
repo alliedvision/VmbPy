@@ -2,6 +2,7 @@ import unittest
 
 from vimba import *
 
+
 class RealCamTestsVimbaTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
@@ -67,7 +68,6 @@ class RealCamTestsVimbaTest(unittest.TestCase):
         for id_ in ids:
             self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, id_)
 
-
     def test_get_all_cameras(self):
         """Expected Behavior: get_all_cameras() must only return camera handles on a open camera.
         """
@@ -85,4 +85,3 @@ class RealCamTestsVimbaTest(unittest.TestCase):
             self.assertNoRaise(self.vimba.get_camera_by_id, camera_id)
 
         self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, camera_id)
-

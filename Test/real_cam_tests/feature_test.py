@@ -4,6 +4,7 @@ import threading
 from vimba import *
 from vimba.feature import *
 
+
 class RealCamTestsBaseFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
@@ -54,11 +55,13 @@ class RealCamTestsBaseFeatureTest(unittest.TestCase):
 
     def test_get_tooltip(self):
         """Expectation: Get decoded UI tooltip"""
-        self.assertEqual(self.height.get_tooltip(), 'Height of the image provided by the device (in pixels).')
+        self.assertEqual(self.height.get_tooltip(),
+                         'Height of the image provided by the device (in pixels).')
 
     def test_get_description(self):
         """Expectation: Get decoded description"""
-        self.assertEqual(self.height.get_description(), 'Height of the image provided by the device (in pixels).')
+        self.assertEqual(self.height.get_description(),
+                         'Height of the image provided by the device (in pixels).')
 
     def test_get_sfnc_namespace(self):
         """Expectation: Get decoded sfnc namespace"""
@@ -146,6 +149,7 @@ class RealCamTestsBoolFeatureTest(unittest.TestCase):
         """Expectation: Set must throw TypeError on non-boolean input."""
         self.assertRaises(TypeError, self.feat.set, 'Hi')
 
+
 class RealCamTestsCommandFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
@@ -196,7 +200,6 @@ class RealCamTestsEnumFeatureTest(unittest.TestCase):
 
     def test_entry_as_str(self):
         """Expectation: Get EnumEntry as str """
-        expected = 'MultiFrame'
         entry = self.feat_rw.get_entry('MultiFrame')
 
         self.assertEqual(entry.as_string(), str(entry))
@@ -489,6 +492,7 @@ class RealCamTestsFloatFeatureTest(unittest.TestCase):
         self.assertRaises(TypeError, self.feat_r.set, 'str')
         self.assertRaises(TypeError, self.feat_rw.set, 0)
 
+
 class RealCamTestsIntFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
@@ -569,7 +573,6 @@ class RealCamTestsIntFeatureTest(unittest.TestCase):
                     self.raised = True
 
                 self.event.set()
-
 
         old_entry = self.feat_rw.get()
 

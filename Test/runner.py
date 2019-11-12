@@ -1,7 +1,6 @@
-import os
-import sys
 import unittest
 import docopt
+
 
 # Inject 'assertNotRaise' to default test module. Tests are derived from this class.
 def _assertNoRaise(self, func, *args, **kwargs):
@@ -9,7 +8,8 @@ def _assertNoRaise(self, func, *args, **kwargs):
         func(*args, **kwargs)
 
     except BaseException as e:
-      self.fail('Function raised: {}'.format(e))
+        self.fail('Function raised: {}'.format(e))
+
 
 # Inject shared test camera id into the base TestCase
 def _get_test_camera_id(self) -> str:

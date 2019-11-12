@@ -5,6 +5,7 @@ import os
 from vimba import *
 from vimba.frame import *
 
+
 def dummy_frame_handler(cam: Camera, frame: Frame):
     pass
 
@@ -38,7 +39,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 with self.cam:
                     pass
 
-            except BaseException as e:
+            except BaseException:
                 self.fail()
 
     def test_context_manager_feature_discovery(self):
@@ -62,8 +63,8 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.cam.set_access_mode(AccessMode.Read)
         self.assertEqual(self.cam.get_access_mode(), AccessMode.Read)
 
-    def test_capture_timeout(self):
-        """Expectation: set/get access mode"""
+    def test_set_get_capture_timeout(self):
+        """Expectation: set/get capture timeout. Negative values lead to ValueError"""
         self.cam.set_capture_timeout(2001)
         self.assertEqual(self.cam.get_capture_timeout(), 2001)
 
@@ -71,7 +72,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertRaises(ValueError, self.cam.set_capture_timeout, -1)
 
         self.assertEqual(self.cam.get_capture_timeout(), 2001)
-
 
     def test_get_id(self):
         """Expectation: get decoded camera id"""
@@ -163,7 +163,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
         with self.cam:
             self.assertNoRaise(self.cam.get_frame)
             self.assertEqual(type(self.cam.get_frame()), Frame)
-
 
     def test_capture_error_outside_vimba_scope(self):
         """Expectation: Camera access outside of Vimba scope must lead to a VimbaCameraError"""

@@ -1,8 +1,9 @@
 # TODO: Add License
-# TODO: Add Copywrite Note
-# TODA: Add Contact Info (clarify if this is required...)
+
+# (C) 2019 Allied Vision Technologies GmbH - All Rights Reserved
 
 from vimba import *
+
 
 def main():
     with Vimba.get_instance() as vimba:
@@ -22,6 +23,6 @@ def main():
 
                 vimba.disable_log()
 
+
 if __name__ == '__main__':
     main()
-

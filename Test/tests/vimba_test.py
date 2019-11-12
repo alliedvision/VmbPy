@@ -2,6 +2,7 @@ import unittest
 
 from vimba import *
 
+
 class VimbaTest(unittest.TestCase):
     def setUp(self):
         pass

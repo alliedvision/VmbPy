@@ -1,7 +1,7 @@
 import unittest
-from typing import Union, Optional, List, Tuple, Callable
-
+from typing import Union, Optional, Tuple, Callable
 from vimba.util import *
+
 
 class RuntimeTypeCheckTest(unittest.TestCase):
     def setUp(self):
@@ -16,7 +16,7 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         """
 
         @RuntimeTypeCheckEnable()
-        def test_func(a: int, b: str, c:float = 11.0/7.0):
+        def test_func(a: int, b: str, c: float = 11.0 / 7.0):
             pass
 
         self.assertNoRaise(test_func, 1, '2', 0.0)
@@ -50,7 +50,6 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(test_func, 0.5, 0)
         self.assertRaises(TypeError, test_func, 'str', 0.0)
 
-
     def test_object(self):
         """ Expectation: The runtime checker must work on Objects just as on
             functions.
@@ -63,7 +62,6 @@ class RuntimeTypeCheckTest(unittest.TestCase):
             @RuntimeTypeCheckEnable()
             def __call__(self, arg: str) -> str:
                 return arg
-
 
         # Invalid construction
         self.assertRaises(TypeError, TestObject, 0.0, 0)
@@ -82,7 +80,6 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(func, 0)
         self.assertNoRaise(func, 'str')
         self.assertRaises(TypeError, func, 0.0)
-
 
     def test_optional(self):
         """ Expectation: For optionals the check must accept the given type or None.
