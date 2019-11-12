@@ -504,7 +504,7 @@ def _load_under_linux(vimba_project: str) -> ctypes.CDLL:
         dir_ = 'arm_64bit'
 
     # Linux arm 32 Bit:
-    elif arch == 'arm':
+    elif arch == 'armv7l':
         dir_ = 'arm_32bit'
 
     else:
