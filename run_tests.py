@@ -11,7 +11,7 @@ import shutil
 import subprocess
 
 UNITTEST_SUITE = 'all'
-UNITTEST_CAMERA = ''
+UNITTEST_CAMERA = 'DEV_1AB22D01C0E9'
 REPORT_DIR = 'Test_Reports'
 
 def fprint(line):
@@ -40,7 +40,13 @@ def unit_test():
     global UNITTEST_CAMERA
 
     fprint('Execute Unit tests and measure coverage:')
-    cmd = 'coverage run Test/runner.py ' + UNITTEST_SUITE + ' console ' + UNITTEST_CAMERA
+    if UNITTEST_SUITE == 'basic':
+        cmd = 'coverage run Test/runner.py -s basic -o console'
+
+    else:
+        cmd = 'coverage run Test/runner.py -s {} -c {} -o console'
+        cmd = cmd.format(UNITTEST_SUITE, UNITTEST_CAMERA)
+
     subprocess.run(cmd, shell=True)
     fprint('')
 
@@ -85,7 +91,14 @@ def unit_test_junit():
     global UNITTEST_CAMERA
 
     fprint('Execute Unit tests and measure coverage:')
-    cmd = 'coverage run Test/runner.py ' + UNITTEST_SUITE + ' junit_xml ' + REPORT_DIR + ' ' + UNITTEST_CAMERA
+
+    if UNITTEST_SUITE == 'basic':
+        cmd = 'coverage run Test/runner.py -s basic -o junit_xml {}'.format(REPORT_DIR)
+
+    else:
+        cmd = 'coverage run Test/runner.py -s {} -c {} -o junit_xml {}'
+        cmd = cmd.format(UNITTEST_SUITE, UNITTEST_CAMERA, REPORT_DIR)
+
     subprocess.run(cmd, shell=True)
     fprint('')
 

@@ -1,6 +1,7 @@
 import os
 import sys
 import unittest
+import docopt
 
 # Inject 'assertNotRaise' to default test module. Tests are derived from this class.
 def _assertNoRaise(self, func, *args, **kwargs):
@@ -19,97 +20,48 @@ def _set_test_camera_id(test_cam_id) -> str:
     unittest.TestCase.test_cam_id = test_cam_id
 
 
-def _uses_file_tl_cam() -> bool:
-    return (unittest.TestCase.test_cam_id == 'DEV_Testimage1')
-
-
 unittest.TestCase.assertNoRaise = _assertNoRaise
 unittest.TestCase.set_test_camera_id = _set_test_camera_id
 unittest.TestCase.get_test_camera_id = _get_test_camera_id
-unittest.TestCase.uses_file_tl_cam = _uses_file_tl_cam
-
-
-def usage(fail_msg):
-    print(fail_msg, '\n')
-    print('runner.py <TestSuite> <OutputFormat> [ReportDirectory] [CameraId]')
-    print('Options:')
-    print('    TestSuite - Either \'basic\', \'real_cam\', \'all\'')
-    print('    OutputFormat - Either \'console\' or \'junit_xml\'')
-    print('    ReportDirectory - Required if OutputFormat is junit_xml')
-    print('    CameraId - CameraId to use. If not given, FileTL cameras are used while testing.')
-
-    sys.exit(1)
-
-
-def parse_args():
-    result = {'CameraId': 'DEV_Testimage1'}
-
-    args = sys.argv[1:]
-
-    if len(args) not in (2, 3, 4):
-       usage('runner.py invalid argument number. Abort.')
-
-    arg = args[0]
-    if arg not in ('basic', 'real_cam', 'all'):
-        usage('Parameter \'TestSuite\' is not \'basic\', \'real_cam\' or \'all\'. Abort')
-
-    result['TestSuite'] = arg
-
-    arg = args[1]
-    if arg not in ('console', 'junit_xml'):
-        usage('Parameter \'OutputFormat\' is not \'console\' or \'junit_xml\'. Abort')
-
-    result['OutputFormat'] = arg
-
-    if arg == 'junit_xml':
-        if len(args) not in (3, 4):
-            usage('Missing ReportDirectory. Abort.')
-
-        result['ReportDirectory'] = args[2]
-
-        if len(args) == 4:
-            result['CameraId'] = args[3]
-
-    else:
-        # Try to use the last argument as CameraID
-        if len(args) == 3:
-            result['CameraId'] = args[2]
-
-    return result
-
-def setup_file_tl():
-    if sys.platform != 'win32':
-        raise Exception('Using FileTL on non-Windows Platform. Use real camera instead.')
-
-    file_tl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'real_cam_data')
-
-    # TODO: Might require so sanity checking for different Architectures and Operating Systems...
-    tl_path = os.environ.get('GENICAM_GENTL64_PATH')
-
-    if not tl_path:
-        raise Exception('GENICAM_GENTL64_PATH variable is not set')
-
-    # Append FileTL during tests
-    os.environ['GENICAM_GENTL64_PATH'] = tl_path + ';' + file_tl_dir
 
 
 def main():
-    args = parse_args()
+    CLI = """VimbaPython test runner.
+    Usage:
+        runner.py -h
+        runner.py -s basic -o console
+        runner.py -s basic -o junit_xml REPORT_DIR
+        runner.py -s (real_cam | all) -c CAMERA_ID -o console
+        runner.py -s (real_cam | all) -c CAMERA_ID -o junit_xml REPORT_DIR
+
+    Arguments:
+        CAMERA_ID    Camera Id from Camera that shall be used during testing
+        REPORT_DIR   Directory used for junit_export.
+
+    Options:
+        -h   Show this screen.
+        -s   Testsuite to execute. real_cam and all require a camera to
+             run tests against, therefore -c is mandatory.
+        -c   Camera Id used while testing.
+        -o   Test output: Either console or junit_xml.
+    """
+
+    args = docopt.docopt(CLI)
     loader = unittest.TestLoader()
 
-    unittest.TestCase.set_test_camera_id(args['CameraId'])
-
-    # Select TestRunner
-    if args['OutputFormat'] == 'console':
-        runner = unittest.TextTestRunner(verbosity=1)
+    if args['CAMERA_ID']:
+        unittest.TestCase.set_test_camera_id(args['CAMERA_ID'])
 
     else:
-        import xmlrunner
-        runner = xmlrunner.XMLTestRunner(output=args['ReportDirectory'])
+        unittest.TestCase.set_test_camera_id(None)
 
-    # Disable Vimba network discovery to speedup tests.
-    from vimba import Vimba
-    Vimba.get_instance().set_network_discovery(False)
+    # Select TestRunner
+    if args['console']:
+        runner = unittest.TextTestRunner(verbosity=1)
+
+    elif args['junit_xml']:
+        import xmlrunner
+        runner = xmlrunner.XMLTestRunner(output=args['REPORT_DIR'])
 
     # Import tests cases
     import tests.c_binding_test
@@ -147,19 +99,13 @@ def main():
         suite_real_cam.addTests(loader.loadTestsFromModule(mod))
 
     # Execute TestSuites
-    if args['TestSuite'] == 'basic':
+    if args['basic']:
         runner.run(suite_basic)
 
-    elif args['TestSuite'] == 'real_cam':
-        if args['CameraId'] == 'DEV_Testimage1':
-            setup_file_tl()
-
+    elif args['real_cam']:
         runner.run(suite_real_cam)
 
-    elif args['TestSuite'] == 'all':
-        if args['CameraId'] == 'DEV_Testimage1':
-            setup_file_tl()
-
+    elif args['all']:
         runner.run(suite_basic)
         runner.run(suite_real_cam)
 

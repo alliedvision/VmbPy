@@ -25,7 +25,8 @@ tests_require = [
     'flake8',
     'flake8-junit-report',
     'mypy',
-    'coverage'
+    'coverage',
+    'docopt'
 ]
 extras_require = {
     'numpy-export': ['numpy'],
