@@ -212,6 +212,7 @@ def write_memory_impl(handle: VmbHandle, addr: int, data: bytes):
     if exc:
         raise exc
 
+
 @TraceEnable()
 def read_registers_impl(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, int]:
     """Read contents of multiple registers.

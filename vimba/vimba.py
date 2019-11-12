@@ -177,7 +177,6 @@ class Vimba:
             """Read contents of multiple registers.
 
             Arguments:
-                handle: Handle on entity providing registers to access.
                 addrs: Sequence of addresses that should be read iteratively.
 
             Return:
@@ -194,7 +193,6 @@ class Vimba:
             """Write data to multiple Registers.
 
             Arguments:
-                handle: Handle on entity providing registers to access.
                 addrs_values: Mapping between Register addresses and the data to write.
 
             Raises:
