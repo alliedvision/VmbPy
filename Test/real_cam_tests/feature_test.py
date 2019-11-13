@@ -283,9 +283,7 @@ class RealCamTestsEnumFeatureTest(unittest.TestCase):
         self.assertRaises(VimbaFeatureError, self.feat_rw.get_entry, 'Should be invalid')
 
     def test_get(self):
-        """Expectation: Get must return the current value. If Feature is not readable, it
-        Should return InvalidAccess. InvalidAccess is not testable under fileTL
-        """
+        """Expectation: Get must return the current value. """
         self.assertNoRaise(self.feat_r.get)
         self.assertNoRaise(self.feat_rw.get)
 
@@ -437,16 +435,13 @@ class RealCamTestsFloatFeatureTest(unittest.TestCase):
         self.assertNoRaise(self.feat_rw.get)
 
     def test_get_range(self):
-        """Expectation: Get value range. Raise VimbaFeatureError on non-read access.
-        Error is not testable on FileTL.
-        """
+        """Expectation: Get value range. Raise VimbaFeatureError on non-read access. """
         self.assertNoRaise(self.feat_r.get_range)
         self.assertNoRaise(self.feat_rw.get_range)
 
     def test_get_increment(self):
         """Expectation: Get value increment if existing. If this Feature has no
-        increment, None is returned. Raise VimbaFeatureError on non-read access.
-        Error is not testable on FileTL.
+        increment, None is returned.
         """
         self.assertNoRaise(self.feat_r.get_increment)
         self.assertNoRaise(self.feat_rw.get_increment)
@@ -558,7 +553,7 @@ class RealCamTestsIntFeatureTest(unittest.TestCase):
     def test_set(self):
         """Expectation: Set value or raise VimbaFeatureError under the following conditions.
         1) Invalid Access Rights
-        2) Misaligned value: Not Testable in FileTL because all increments are +1
+        2) Misaligned value.
         3) Out-of-bounds Access
         """
         # Read only feature

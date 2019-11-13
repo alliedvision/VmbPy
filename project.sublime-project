@@ -5,6 +5,16 @@
             "name": "VimbaPython",
             "path": ".",
             "follow_symlinks": true
+        },
+        {
+            "name": "VimbaExamples",
+            "path": "C:/Users/sbrummer/Desktop/Vimba_3.0",
+            "follow_symlinks": true
+        },
+        {
+            "name": "VimbaSDK",
+            "path": "C:/Program Files/Allied Vision/Vimba_3.0",
+            "follow_symlinks": true
         }
     ],
 
