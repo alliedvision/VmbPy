@@ -1,80 +1,137 @@
-## VimbaPython
-#### Prerequisites
-1) Install python version 3.7 or above and configure it as default python interpreter.
-On Linux platforms, the default python interpreter might be some python 2 version.
-If this is the case use 'python3' command instead of 'python'. Verify the interpreter version by executing:
+VimbaPython - a python wrapper for AlliedVisions VimbaSDK
+===============
+At first, a word of caution. This early release of VimbaPython is considered a beta version, published to get
+customer feedback early on. Although the API is relatively stable, it should not to be used in production
+code until the official release of VimbaPython.
 
-```
-python --version
-```
+Aside to the VimbaPython source code, we publish our tests as well. If you encounter any issues
+while using VimbaPython, feel free to run the tests and send us the test results. This helps us
+to improve out software.
 
-2) Install pip. On Windows, ensure that pip was installed along with the python interpreter.
-On Linux install pip via the distributions packet manager. On some Linux Distributions, pip does
-install binaries to a location not covered by the PATH variable. If you want to run the tests
-shipped with VimbaPython, please verify that binaries installed via pip can be executed from the
-command line.
+We would like to invite you to try VimbaPython and to give us feedback. Feel free to contact us
+<INSERT CONTACT INFO> if you have any ideas on improving VimbaPython.
 
-3) Install VimbaSDK. On Windows install a Vimba including ImageTransform. On Linux install at
-least a single TransportLayer (this sets the GENICAM Environment Variables that is required to
-locate Vimba).
+Requirements
+===============
+In general, VimbaPython requires python3.7, pip, VimbaC and VimbaImageTransform. Fulfilling the
+requirements is highly platform specific, please refer to the matching installation instructions.
 
-### Installation via pip
-VimbaPython has several, optional dependencies. All installations start by opening a terminal
-and navigating to the VimbyPython root directory (containing setup.py). Depending on the host
-system, not all dependencies might be available via pip. If pip can't install all dependencies
-try to install the missing packages manually.
+Requirements for Windows
+---------------
+The following instructions describe how to install/update python on Windows. If your system requires
+multiple, coexisting python installations, consider using [pyenv-win](https://github.com/pyenv-win/pyenv-win)
+to install and maintain multiple python installations.
 
-For a minimal installation, execute:
+1. Download the latest python release from [python.org](https://www.python.org/downloads/windows/)
+2. Execute the downloaded installer, ensure that pip is installed. After installation verify the installation
+   by typing the following commands into the window command line:
 
-```
-python -m pip install .
-```
+        python --version
+        python -m pip --version
 
-For a installation with OpenCV/Numpy - support, execute:
+    The python version must be above 3.7 and pip must use the python version.
 
-```
-python -m pip install .[numpy-export,opencv-export]
-```
+3. Download the latest [VimbaSDK](https://www.alliedvision.com/de/produkte/software.html) for Windows.
+4. Execute the downloaded Vimba installer. Ensure that VimbaC, VimbaImageTransform and at least one
+   TransportLayer is installed.
 
-For a installation with Unittest - support, execute:
+Requirements for Linux
+---------------
+On Linux, the python installation process depends heavily on the distribution in use. If python3.7
+is not available for your distribution or your system requires multiple python versions
+to coexist, use [pyenv](https://realpython.com/intro-to-pyenv/) instead.
 
-```
-python -m pip install .[test]
-```
+1. Install/Update python3.7 with the packet manager of your distribution.
+2. Install/Update pip with the packet manager of your distribution.
+   Verify your python installation by opening a terminal and entering:
 
-If you want to execute the unittests, ensure that binaries installed by pip can be
-called from the terminal directly. On some systems pip installs to locations that are not
-covered by Environments 'PATH' - variable, ensure that tools like 'coverage' can be called from
-the command line.
+        python --version
+        python -m pip --version
 
-### Running examples
+3. Download the latest [VimbaSDK](https://www.alliedvision.com/de/produkte/software.html) for
+   the underlaying architecture of your host system.
+4. Install at least one TransportLayer by executing the TransportLayers "Install.sh" (this sets the
+   GENICAM_GENTLXX_PATH Variables required to locate VimbaC and VimbaImageTransport). After executing
+   Install.sh, reboot your system to finish the Vimba installation.
+
+Installation
+===============
+After fulfilling the requirements, the installation process of VimbaPython is the same for
+all operating systems:
+
+1. Download the latest version of [VimbaPython](https://ADD_LINK_TO_REPO).
+2. Open a terminal and navigate to the download location of VimbaPython (contains setup.py)
+
+Basic Installation
+---------------
+Execute the following command:
+
+        python -m pip install .
+
+
+Installation with optional Numpy/OpenCV export
+---------------
+Execute the following command:
+
+        python -m pip install .[numpy-export,opencv-export]
+
+For ARM users only: If installation of "opencv-export" fails, pip is not able to install
+"opencv-python" for ARM - Platforms. This is a known issue on embedded ARM-Boards.
+If you are affected by this, install VimbaPython without optional dependencies and try to install
+OpenCV in a different way (e.g. with your operating systems packet manager). The OpenCV installation
+can be verified by running the example "Examples/asychronous_grab_opencv.py".
+
+Installation with optional test support.
+---------------
+Execute the following command:
+
+        python -m pip install .[test]
+
+Running Examples
+===============
 After installing VimbaPython all examples can be directly executed. The
-following example prints basic information on all currently detected cameras:
+following example prints basic information on all connected cameras:
 
-```
-python Examples/list_cameras.py
-```
+        python Examples/list_cameras.py
 
-### Running tests
-VimbaPythons tests are divided into unit and static tests. The tests are configured and executed by
-execution of the script 'run_tests.py'. Executing
+Running Tests
+===============
+VimbaPythons tests are divided into unittests and multiple static test tools.
+These tests are configured and executed by the script 'run_tests.py' in the VimbaPython root
+directory.
 
-```
-python run_tests.py test
-```
+The unittests are divided into three testsuites:
+1. The testsuite 'basic' does not require a connected camera. It can be run on any system.
+2. The testsuite 'real_cam' contains tests that require a connected camera.
+   To execute these tests a camera id must be specified. The Vimbaviewer can be used to obtain
+   the Camera Id of any connected camera.
+3. The testsuite 'all' contains all tests from 'basic' and 'real_cam'. Since 'real_cam' is used,
+   a camera id must be specified.
 
-executes all static tests (flake8, mypy) and executes all unit tests. The output is printed to
-the command line. Executing
+The test results are either printed to the command line or can be exported in junit format.
+If the test results are exported in junit format, the results are stored in 'Test_Reports'
+after test execution. The following examples show to run all possible test configurations.
 
-```
-python run_tests.py test_junit
-```
+Running testssuite 'basic' with console output:
 
-executes all tests as well but the output of each tool export in junit-format to the
-Test_Reports - Directory.
+        python run_tests.py test -s basic
 
-The unit tests are divided into tests that work without a connected camera and tests
-that require a camera. By editing 'UNITTEST_SUITE' in 'run_tests.py', the test suite
-can be selected ('basic', 'real_cam', 'all' are valid options). In addition the Camera Id, that
-should be used for testing can be specified by setting 'UNITTEST_CAMERA'. In case a Camera is
-specified, it is only used if 'UNITTEST_SUITE' is 'real_cam' or 'all'.
+Running testssuite 'basic' with junit export:
+
+        python run_tests.py test_junit -s basic
+
+Running testssuite 'real_cam' with console output:
+
+        python run_tests.py test -s real_cam -c <CAMERA_ID>
+
+Running testssuite 'real_cam' with junit export:
+
+        python run_tests.py test_junit -s real_cam -c <CAMERA_ID>
+
+Running testssuite 'all' with console output:
+
+        python run_tests.py test -s all -c <CAMERA_ID>
+
+Running testssuite 'all' with junit export:
+
+        python run_tests.py test_junit -s all -c <CAMERA_ID>

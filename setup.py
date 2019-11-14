@@ -28,11 +28,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import setuptools
 import vimba
 
+
+def read_file(name):
+    with open(name , 'r') as file:
+        return file.read()
+
+
 name = 'VimbaPython'
 version = vimba.__version__
 author = 'Allied Vision Technologies GmbH'
 description = 'Python Bindings for Allied Visions VimbaSDK'
-long_description = 'TODO: Maybe read from a README.md'
+long_description = read_file('README.md')
+long_description_type = 'text/markdown'
 license = 'BSD-2-Clause'
 packages = [
     'vimba',
@@ -60,6 +67,7 @@ setuptools.setup(
     author=author,
     description=description,
     long_description=long_description,
+    long_description_content_type=long_description_type,
     license=license,
     packages=packages,
     python_requires=python_requires,

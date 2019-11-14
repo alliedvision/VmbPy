@@ -37,6 +37,11 @@
     "build_systems":
     [
         {
+            "name": "README.md -> README.html",
+            "working_dir": "$project_path",
+            "shell_cmd": "python -m markdown README.md > README.html",
+        },
+        {
             "name": "run_tests.py test",
             "working_dir": "$project_path",
             "shell_cmd": "python run_tests.py test -s all -c DEV_1AB22D01C0E9",
