@@ -8,12 +8,12 @@
         },
         {
             "name": "VimbaExamples",
-            "path": "C:/Users/sbrummer/Desktop/Vimba_3.0",
+            "path": "C:/Users/sbrummer/Desktop/Vimba_3.1",
             "follow_symlinks": true
         },
         {
             "name": "VimbaSDK",
-            "path": "C:/Program Files/Allied Vision/Vimba_3.0",
+            "path": "C:/Program Files/Allied Vision/Vimba_3.1",
             "follow_symlinks": true
         }
     ],

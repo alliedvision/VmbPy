@@ -67,7 +67,7 @@ __all__ = [
     'VmbInvalidationCallback',
     'VmbFrameCallback',
     'G_VIMBA_C_HANDLE',
-    'EXPECTED_VIMBA_C_VERSION',
+    'EXPECTED_VIMBA_C_VERSIONS',
     'call_vimba_c',
 
     # Exports from vimba_image_transform
@@ -97,7 +97,7 @@ from .vimba_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
                    VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
                    VmbInvalidationCallback, VmbFrameCallback, G_VIMBA_C_HANDLE, \
-                   EXPECTED_VIMBA_C_VERSION, call_vimba_c
+                   EXPECTED_VIMBA_C_VERSIONS, call_vimba_c
 
 from .vimba_image_transform import VmbTechInfo, VmbImage, VmbImageInfo, VmbDebayerMode, \
                                    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION, VmbTransformInfo, \
