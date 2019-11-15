@@ -8,7 +8,7 @@
         },
         {
             "name": "VimbaExamples",
-            "path": "C:/Users/sbrummer/Desktop/Vimba_3.1",
+            "path": "C:/Users/Public/Documents/Allied Vision/Vimba_3.1",
             "follow_symlinks": true
         },
         {
@@ -75,6 +75,11 @@
             "name": "exec Examples/asynchronous_grab_opencv.py",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/asynchronous_grab_opencv.py"
+        },
+        {
+            "name": "exec Examples/action_command.py",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/action_command.py DEV_1AB22D01C0E9 ALL"
         }
     ]
 }
