@@ -28,12 +28,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
 from vimba import *
 
-def abort(reason: str, return_code: int = 1):
-    print(reason + '\n')
+def print_usage()
     print('Usage: python action_command.py <camera_id> <interface_id>\n');
     print('Parameters:   camera_id         ID of the camera to be used');
     print('              interface_id      ID of network interface to send out Action Command');
     print('                               \'ALL\' enables broadcast on all interfaces\n');
+
+
+def abort(reason: str, return_code: int = 1, usage: bool = False):
+    print(reason + '\n')
+
+    if usage:
+        print_usage()
+
     sys.exit(return_code)
 
 
@@ -41,7 +48,7 @@ def parse_args():
     args = sys.argv[1:]
 
     if len(args) != 2:
-        abort("Invalid number of parameters given!", 2)
+        abort(reason="Invalid number of parameters given!", return_code=2, usage=True)
 
     return (args[0], args[1])
 
@@ -77,7 +84,7 @@ def main():
             cam = vimba.get_camera_by_id(camera_id)
 
         except VimbaCameraError:
-            abort('Failed to lookup Camera {}. Abort.'.format(camera_id))
+            abort('Failed to access Camera {}. Abort.'.format(camera_id))
 
         with cam:
             # Prepare Camera for Software Trigger
