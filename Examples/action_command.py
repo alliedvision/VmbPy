@@ -121,9 +121,6 @@ def main():
         cam = get_camera(camera_id)
         sender = get_command_sender(interface_id)
 
-        for i in vimba.get_all_interfaces():
-            print(i)
-
         with cam, cmd_sender:
             # Prepare Camera for ActionCommand - Trigger
             device_key = 1
