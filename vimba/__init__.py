@@ -38,6 +38,7 @@ __all__ = [
     'AccessMode',
     'PersistType',
     'Interface',
+    'InterfaceType',
     'InterfaceChangeHandler',
     'InterfaceEvent',
     'VimbaPixelFormat',
@@ -101,7 +102,7 @@ from .vimba import Vimba
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
-from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
+from .interface import Interface, InterfaceType, InterfaceChangeHandler, InterfaceEvent
 
 from .frame import VimbaPixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
                    BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \

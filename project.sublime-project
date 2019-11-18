@@ -79,12 +79,12 @@
         {
             "name": "exec Examples/action_command.py",
             "working_dir": "$project_path",
-            "shell_cmd": "python Examples/action_command.py DEV_1AB22D01C0E9 ALL"
+            "shell_cmd": "python Examples/action_command.py DEV_000F314D20B6 ALL"
         },
         {
             "name": "exec Examples/list_ancillary_data.py",
             "working_dir": "$project_path",
-            "shell_cmd": "python Examples/list_ancillary_data.py DEV_1AB22D01C0E9"
+            "shell_cmd": "python Examples/list_ancillary_data.py DEV_000F314C7A89"
         },
         {
             "name": "exec Examples/load_save_settings.py",

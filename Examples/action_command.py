@@ -26,13 +26,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import sys
+from typing import Tuple
 from vimba import *
 
+
 def print_usage():
-    print('Usage: python action_command.py <camera_id> <interface_id>\n');
-    print('Parameters:   camera_id         ID of the camera to be used');
-    print('              interface_id      ID of network interface to send out Action Command');
-    print('                               \'ALL\' enables broadcast on all interfaces\n');
+    print('Usage: python action_command.py <camera_id> <interface_id>\n')
+    print('Parameters:   camera_id         ID of the camera to be used')
+    print('              interface_id      ID of network interface to send out Action Command')
+    print('                               \'ALL\' enables broadcast on all interfaces\n')
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -44,13 +46,49 @@ def abort(reason: str, return_code: int = 1, usage: bool = False):
     sys.exit(return_code)
 
 
-def parse_args():
+def parse_args() -> Tuple[str, str]:
     args = sys.argv[1:]
 
     if len(args) != 2:
         abort(reason="Invalid number of parameters given!", return_code=2, usage=True)
 
     return (args[0], args[1])
+
+
+def get_input() -> str:
+    prompt = 'Press \'a\' to send action command. Press \'q\' to stop example. Enter:'
+    print(prompt, flush=True)
+    return input()
+
+
+def get_camera(camera_id) -> Camera:
+    with Vimba.get_instance() as vimba:
+        try:
+            return vimba.get_camera_by_id(camera_id)
+
+        except VimbaCameraError:
+            abort('Failed to access Camera {}. Abort.'.format(camera_id))
+
+
+def get_command_sender(interface_id):
+    # If given interface_id is ALL, ActionCommand shall be sent from all Ethernet Interfaces.
+    # This is achieved by run ActionCommand on the Vimba instance.
+    if interface_id == 'ALL':
+        return Vimba.get_instance()
+
+    with Vimba.get_instance() as vimba:
+        # A specific Interface was given. Lookup via given Interface id and verify that
+        # it is an Ethernet Interface. Running ActionCommand will be only send from this Interface.
+        try:
+            inter = vimba.get_interface_by_id(interface_id)
+
+        except VimbaInterfaceError:
+            abort('Failed to access Interface {}. Abort.'.format(interface_id))
+
+        if inter.get_type() != InterfaceType.Ethernet:
+            abort('Given Interface {} is no Ethernet Interface. Abort.'.format(interface_id))
+
+    return inter
 
 
 def set_feature(entity, feature_name: str, feature_value):
@@ -80,14 +118,14 @@ def main():
     camera_id, interface_id = parse_args()
 
     with Vimba.get_instance() as vimba:
-        try:
-            cam = vimba.get_camera_by_id(camera_id)
+        cam = get_camera(camera_id)
+        sender = get_command_sender(interface_id)
 
-        except VimbaCameraError:
-            abort('Failed to access Camera {}. Abort.'.format(camera_id))
+        for i in vimba.get_all_interfaces():
+            print(i)
 
-        with cam:
-            # Prepare Camera for Software Trigger
+        with cam, cmd_sender:
+            # Prepare Camera for ActionCommand - Trigger
             device_key = 1
             group_key = 1
             group_mask = 1
@@ -103,18 +141,17 @@ def main():
             try:
                 cam.start_streaming(frame_handler)
 
-                promt = 'Press \'a\' to send action command. Press \'q\' to stop example.\nEnter:'
                 while True:
-                    ch = input(promt)
+                    ch = get_input()
 
                     if ch == 'q':
                         break
 
                     elif ch == 'a':
-                        set_feature(vimba, 'ActionDeviceKey', device_key)
-                        set_feature(vimba, 'ActionGroupKey', group_key)
-                        set_feature(vimba, 'ActionGroupMask', group_mask)
-                        run_command(vimba, 'ActionCommand')
+                        set_feature(sender, 'ActionDeviceKey', device_key)
+                        set_feature(sender, 'ActionGroupKey', group_key)
+                        set_feature(sender, 'ActionGroupMask', group_mask)
+                        run_command(sender, 'ActionCommand')
 
             finally:
                 cam.stop_streaming()
