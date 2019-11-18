@@ -28,7 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
 from vimba import *
 
-def print_usage()
+def print_usage():
     print('Usage: python action_command.py <camera_id> <interface_id>\n');
     print('Parameters:   camera_id         ID of the camera to be used');
     print('              interface_id      ID of network interface to send out Action Command');

@@ -28,9 +28,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
 from vimba import *
 
+
 def print_usage():
-    print('Usage: python list_ancillary_data.py <camera_id>\n');
-    print('Parameters:   camera_id         ID of the camera to be used');
+    print('Usage: python list_ancillary_data.py <camera_id>\n')
+    print('Parameters:   camera_id         ID of the camera to be used')
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -62,7 +63,7 @@ def main():
             abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         with cam:
-            # Enable ChunkMode (ChunkMode appends Ancillary Data to Frames)
+            # Enable ChunkMode (ChunkMode add Ancillary Data to Frame data)
             try:
                 cam.get_feature_by_name('ChunkModeActive').set(True)
 
@@ -74,12 +75,15 @@ def main():
             anc_data = frame.get_ancillary_data()
             if anc_data:
                 with anc_data:
+                    print('Print ancillary data contained in Frame:')
+
                     for feat in anc_data.get_all_features():
-                        print('Feature Name   : '.format(feat.get_name()))
-                        print('Display Name   : '.format(feat.get_display_name()))
-                        print('Tooltip        : '.format(feat.get_tooltip()))
-                        print('Description    : '.format(feat.get_description()))
-                        print('SNFC Namespace : '.format(feat.get_snfc_namespace()))
+                        print('Feature Name   : {}'.format(feat.get_name()))
+                        print('Display Name   : {}'.format(feat.get_display_name()))
+                        print('Tooltip        : {}'.format(feat.get_tooltip()))
+                        print('Description    : {}'.format(feat.get_description()))
+                        print('SFNC Namespace : {}'.format(feat.get_sfnc_namespace()))
+                        print('Value          : {}'.format(feat.get()))
                         print()
 
             else:

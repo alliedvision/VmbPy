@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
 from vimba import *
 
+
 def abort(reason: str, return_code: int = 1):
     print(reason + '\n')
     sys.exit(return_code)
@@ -43,7 +44,6 @@ def main():
 
         # Access camera
         with cams[0] as cam:
-
             # Save camera settings to file.
             settings_file = '{}_settings.xml'.format(cam.get_id())
             cam.save_settings(settings_file, PersistType.All)
@@ -54,6 +54,7 @@ def main():
 
             # Load camera settings from file.
             cam.load_settings(settings_file, PersistType.All)
+
 
 if __name__ == '__main__':
     main()
