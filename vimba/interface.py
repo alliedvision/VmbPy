@@ -31,8 +31,8 @@ from .c_binding import call_vimba_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, read_memory_impl, write_memory_impl, \
-                    read_registers_impl, write_registers_impl
+                    filter_selected_features, filter_features_by_category, \
+                    read_memory_impl, write_memory_impl, read_registers_impl, write_registers_impl
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 
@@ -267,6 +267,19 @@ class Interface:
             TypeError if 'feat_type' is not of any feature Type.
         """
         return filter_features_by_type(self.__feats, feat_type)
+
+    @RuntimeTypeCheckEnable()
+    def get_features_by_category(self, category: str) -> FeaturesTuple:
+        """Get all interface features of a specific category.
+
+        Arguments:
+            category - Category that should be used for filtering.
+
+        Returns:
+            A set of features of category 'category'. Can be an empty set if there is
+            no interface feature of that category.
+        """
+        return filter_features_by_category(self.__feats, category)
 
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:

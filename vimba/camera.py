@@ -36,8 +36,8 @@ from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, Vm
                        VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, read_memory_impl, write_memory_impl, \
-                    read_registers_impl, write_registers_impl
+                    filter_selected_features, filter_features_by_category, read_memory_impl, \
+                    write_memory_impl, read_registers_impl, write_registers_impl
 from .frame import Frame, FrameTuple, FormatTuple, VimbaPixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
@@ -588,6 +588,19 @@ class Camera:
             TypeError if 'feat_type' is not of any feature Type.
         """
         return filter_features_by_type(self.__feats, feat_type)
+
+    @RuntimeTypeCheckEnable()
+    def get_features_by_category(self, category: str) -> FeaturesTuple:
+        """Get all camera features of a specific category.
+
+        Arguments:
+            category - Category that should be used for filtering.
+
+        Returns:
+            A set of features of category 'category'. Can be an empty set if there is
+            no camera feature of that category.
+        """
+        return filter_features_by_category(self.__feats, category)
 
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:

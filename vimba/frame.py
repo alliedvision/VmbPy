@@ -35,7 +35,7 @@ from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus,
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
                        VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILTY_MAP, PIXEL_FORMAT_TO_LAYOUT
 from .feature import FeaturesTuple, FeatureTypes, discover_features
-from .shared import filter_features_by_name
+from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 try:
@@ -312,10 +312,22 @@ class AncillaryData:
             self._close()
 
     def get_all_features(self) -> FeaturesTuple:
+        """ TODO: Document me"""
         return self.__feats
 
     @RuntimeTypeCheckEnable()
+    def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
+        """ TODO: Document me"""
+        return filter_features_by_type(self.__feats, feat_type)
+
+    @RuntimeTypeCheckEnable()
+    def get_features_by_category(self, category: str) -> FeaturesTuple:
+        """ TODO: Document me"""
+        return filter_features_by_category(self.__feats, category)
+
+    @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
+        """ TODO: Document me"""
         return filter_features_by_name(self.__feats, feat_name)
 
     @TraceEnable()

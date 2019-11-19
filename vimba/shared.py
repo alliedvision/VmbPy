@@ -38,6 +38,7 @@ __all__ = [
     'filter_selected_features',
     'filter_features_by_name',
     'filter_features_by_type',
+    'filter_features_by_category',
     'read_memory_impl',
     'write_memory_impl',
     'read_registers_impl',
@@ -165,6 +166,21 @@ def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypes) -> Fe
         empty set is returned.
     """
     return tuple([feat for feat in feats if type(feat) == feat_type])
+
+
+@TraceEnable()
+def filter_features_by_category(feats: FeaturesTuple, category: str) -> FeaturesTuple:
+    """Search for all features of a given category.
+
+    Arguments:
+        feats: Feature set to search in.
+        category: Category to filter for
+
+    Returns:
+        A set of all features of category 'category' in 'feats'. If no matching type is found an
+        empty set is returned.
+    """
+    return tuple([feat for feat in feats if feat.get_category() == category])
 
 
 @TraceEnable()

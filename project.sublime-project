@@ -90,6 +90,11 @@
             "name": "exec Examples/load_save_settings.py",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/load_save_settings.py DEV_1AB22D01C0E9"
+        },
+        {
+            "name": "exec Examples/event_handling.py",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/event_handling.py DEV_000F314C7A89"
         }
     ]
 }
