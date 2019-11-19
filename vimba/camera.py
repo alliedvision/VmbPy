@@ -114,9 +114,11 @@ class PersistType(enum.IntEnum):
 
 
 class _Context:
-    def __init__(self, cam: 'Camera', frames: FrameTuple, handler: FrameHandler, wrapper):
+    def __init__(self, cam: 'Camera', timeout_ms: int, frames: FrameTuple, handler: FrameHandler,
+                 wrapper):
         self.cam: 'Camera' = cam
         self.cam_handle: VmbHandle = _cam_handle_accessor(cam)
+        self.timeout_ms: int = timeout_ms
         self.frames: FrameTuple = frames
         self.frames_lock: Lock = Lock()
         self.frames_handler: FrameHandler = handler
@@ -244,7 +246,7 @@ class _StateAcquiring(_State):
 
             try:
                 call_vimba_c('VmbCaptureFrameWait', self.context.cam_handle, byref(frame_handle),
-                             self.context.cam.get_capture_timeout())
+                             self.context.timeout_ms)
 
             except VimbaCError as e:
                 raise _build_camera_error(self.context.cam, e)
@@ -322,9 +324,10 @@ class _CaptureFsm:
 
 class FrameIter:
     @TraceEnable()
-    def __init__(self, cam, limit: Optional[int]):
+    def __init__(self, cam, limit: Optional[int], timeout_ms: int):
         self.__cam: 'Camera' = cam
         self.__limit: Optional[int] = limit
+        self.__timeout_ms: int = timeout_ms
         self.__payload_size: int = self.__cam.get_feature_by_name('PayloadSize').get()
         self.__frame_id = 0
 
@@ -349,7 +352,7 @@ class FrameIter:
         frame = Frame(self.__payload_size)
         frames = (frame, )
 
-        cap_fsm = _CaptureFsm(_Context(self.__cam, frames, None, None))
+        cap_fsm = _CaptureFsm(_Context(self.__cam, self.__timeout_ms, frames, None, None))
 
         # Try entering capturing mode. If an error occurs, try to report
         # the initial error and try to revert the damage done.
@@ -381,12 +384,11 @@ class Camera:
     Basic Camera properties like Name and Model can be access outside of the context.
     """
     @TraceEnable()
-    def __init__(self, info: VmbCameraInfo, access_mode: AccessMode, capture_timeout: int):
+    def __init__(self, info: VmbCameraInfo):
         """Do not call directly. Access Cameras via vimba.System instead."""
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
-        self.__access_mode: AccessMode = access_mode
-        self.__capture_timeout = capture_timeout
+        self.__access_mode: AccessMode = AccessMode.Full
         self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
         self.__capture_fsm: Optional[_CaptureFsm] = None
@@ -425,26 +427,6 @@ class Camera:
     def get_access_mode(self) -> AccessMode:
         """Get current camera access mode"""
         return self.__access_mode
-
-    @RuntimeTypeCheckEnable()
-    def set_capture_timeout(self, millis: int):
-        """Set camera frame capture timeout in milliseconds.
-
-        Arguments:
-            millis - The new default capture timeout to use.
-
-        Raises:
-            TypeError if 'millis' is no integer.
-            ValueError if 'millis' is negative
-        """
-        if millis <= 0:
-            raise ValueError('Given Timeout {} must be positive.'.format(millis))
-
-        self.__capture_timeout = millis
-
-    def get_capture_timeout(self) -> int:
-        """Get camera frame capture timeout in milliseconds"""
-        return self.__capture_timeout
 
     def get_id(self) -> str:
         """Get Camera Id, e.g. DEV_1AB22C00041B"""
@@ -625,7 +607,7 @@ class Camera:
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
-    def get_frame_iter(self, limit: Optional[int] = None) -> FrameIter:
+    def get_frame_iter(self, limit: Optional[int] = None, timeout_ms: int = 2000) -> FrameIter:
         """Construct frame iterator, providing synchronous camera access.
 
         The Frame iterator acquires a new frame with each iteration.
@@ -634,34 +616,46 @@ class Camera:
             limit - The number of images the iterator should acquire. If limit is None
                     the iterator will produce an unlimited amount of images and must be
                     stopped by the user supplied code.
+            timeout_ms - Timeout in milliseconds of frame acquisition.
 
         Returns:
             frame_iter object
 
         Raises:
-            ValueError if a limit is supplied and it is not positive.
+            ValueError if a limit is supplied and negative.
+            ValueError if a timeout_ms is negative.
             VimbaCameraError if the camera is outside of its implemented context.
+            VimbaTimeout if Frame acquisition timed out.
         """
         if limit and (limit < 0):
             raise ValueError('Given Limit {} is not >= 0'.format(limit))
+
+        if timeout_ms <= 0:
+            raise ValueError('Given Timeout {} is not > 0'.format(timeout_ms))
 
         if not self.__handle:
             msg = 'Camera \'{}\' not ready for frame acquisition. Open camera via \'with\' .'
             raise VimbaCameraError(msg)
 
-        return FrameIter(self, limit)
+        return FrameIter(self, limit, timeout_ms)
 
     @TraceEnable()
-    def get_frame(self) -> Frame:
+    @RuntimeTypeCheckEnable()
+    def get_frame(self, timeout_ms: int = 2000) -> Frame:
         """Get single frame from camera. Synchronous frame acquisition.
+
+        Arguments:
+            timeout_ms - Timeout in milliseconds of frame acquisition.
 
         Returns:
             Frame from camera
 
         Raises:
+            ValueError if a timeout_ms is negative.
             VimbaCameraError if camera is outside of its context.
+            VimbaTimeout if Frame acquisition timed out.
         """
-        return self.get_frame_iter(1).__iter__().__next__()
+        return self.get_frame_iter(1, timeout_ms).__iter__().__next__()
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
@@ -694,7 +688,7 @@ class Camera:
         frames = tuple([Frame(payload_size) for _ in range(buffer_count)])
         wrapper = VmbFrameCallback(self.__frame_cb_wrapper)
 
-        self.__capture_fsm = _CaptureFsm(_Context(self, frames, handler, wrapper))
+        self.__capture_fsm = _CaptureFsm(_Context(self, 0, frames, handler, wrapper))
 
         # Try to enter streaming mode. If this fails perform cleanup and raise error
         exc = self.__capture_fsm.enter_capturing_mode()
@@ -928,8 +922,7 @@ def _setup_network_discovery():
 
 
 @TraceEnable()
-def discover_cameras(access_mode: AccessMode, capture_timeout: int,
-                     network_discovery: bool) -> CamerasList:
+def discover_cameras(network_discovery: bool) -> CamerasList:
     """Do not call directly. Access Cameras via vimba.Vimba instead."""
 
     if network_discovery:
@@ -948,20 +941,20 @@ def discover_cameras(access_mode: AccessMode, capture_timeout: int,
                      sizeof(VmbCameraInfo))
 
         for info in cams_infos[:cams_found.value]:
-            result.append(Camera(info, access_mode, capture_timeout))
+            result.append(Camera(info))
 
     return result
 
 
 @TraceEnable()
-def discover_camera(id_: str, access_mode: AccessMode, capture_timeout: int) -> Camera:
+def discover_camera(id_: str) -> Camera:
     """Do not call directly. Access Cameras via vimba.Vimba instead."""
 
     info = VmbCameraInfo()
 
     call_vimba_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
 
-    return Camera(info, access_mode, capture_timeout)
+    return Camera(info)
 
 
 def _cam_handle_accessor(cam: Camera) -> VmbHandle:

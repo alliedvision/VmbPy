@@ -48,8 +48,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.vimba._startup()
 
         self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
-        self.cam.set_access_mode(AccessMode.Full)
-        self.cam.set_capture_timeout(2000)
 
     def tearDown(self):
         self.vimba._shutdown()
@@ -94,16 +92,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertEqual(self.cam.get_access_mode(), AccessMode.Full)
         self.cam.set_access_mode(AccessMode.Read)
         self.assertEqual(self.cam.get_access_mode(), AccessMode.Read)
-
-    def test_set_get_capture_timeout(self):
-        """Expectation: set/get capture timeout. Negative values lead to ValueError"""
-        self.cam.set_capture_timeout(2001)
-        self.assertEqual(self.cam.get_capture_timeout(), 2001)
-
-        self.assertRaises(ValueError, self.cam.set_capture_timeout, 0)
-        self.assertRaises(ValueError, self.cam.set_capture_timeout, -1)
-
-        self.assertEqual(self.cam.get_capture_timeout(), 2001)
 
     def test_get_id(self):
         """Expectation: get decoded camera id"""
@@ -165,6 +153,8 @@ class RealCamTestsCameraTest(unittest.TestCase):
         """
         # Check limits
         self.assertRaises(ValueError, self.cam.get_frame_iter, -1)
+        self.assertRaises(ValueError, self.cam.get_frame_iter, 1, 0)
+        self.assertRaises(ValueError, self.cam.get_frame_iter, 1, -1)
 
         # Usage on closed camera
         try:
@@ -191,7 +181,13 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertNoRaise(iter_.__next__)
 
     def test_get_frame(self):
-        """Expectation: Gets single Frame without any exception. Image data must be set"""
+        """Expectation: Gets single Frame without any exception. Image data must be set.
+        If a zero or negative timeouts must lead to a ValueError.
+        """
+
+        self.assertRaises(ValueError, self.cam.get_frame, 0)
+        self.assertRaises(ValueError, self.cam.get_frame, -1)
+
         with self.cam:
             self.assertNoRaise(self.cam.get_frame)
             self.assertEqual(type(self.cam.get_frame()), Frame)
@@ -220,10 +216,8 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
     def test_capture_timeout(self):
         """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
-        self.cam.set_capture_timeout(1)
-
         with self.cam:
-            self.assertRaises(VimbaTimeout, self.cam.get_frame)
+            self.assertRaises(VimbaTimeout, self.cam.get_frame, 1)
 
     def test_is_streaming(self):
         """Expectation: After start_streaming() is_streaming() must return true. After stop it must
@@ -320,12 +314,13 @@ class RealCamTestsCameraTest(unittest.TestCase):
     def test_runtime_type_check(self):
         """Expectation: raise TypeError on passing invalid parameters"""
         self.assertRaises(TypeError, self.cam.set_access_mode, -1)
-        self.assertRaises(TypeError, self.cam.set_capture_timeout, 'hi')
+        self.assertRaises(TypeError, self.cam.get_frame, 'hi')
         self.assertRaises(TypeError, self.cam.get_features_affected_by, 'No Feature')
         self.assertRaises(TypeError, self.cam.get_features_selected_by, 'No Feature')
         self.assertRaises(TypeError, self.cam.get_features_by_type, 0.0)
         self.assertRaises(TypeError, self.cam.get_feature_by_name, 0)
         self.assertRaises(TypeError, self.cam.get_frame_iter, '3')
+        self.assertRaises(TypeError, self.cam.get_frame_iter, 0, 'foo')
 
         def valid_handler(cam, frame):
             pass

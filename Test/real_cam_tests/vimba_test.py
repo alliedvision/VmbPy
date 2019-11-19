@@ -40,8 +40,7 @@ class RealCamTestsVimbaTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
 
     def tearDown(self):
-        self.vimba.set_camera_access_mode(AccessMode.Full)
-        self.vimba.set_camera_capture_timeout(2000)
+        pass
 
     def test_context_entry_exit(self):
         """ Expected Behavior:
@@ -62,20 +61,6 @@ class RealCamTestsVimbaTest(unittest.TestCase):
         self.assertEqual(self.vimba.get_all_interfaces(), ())
         self.assertEqual(self.vimba.get_all_cameras(), ())
 
-    def test_global_value_propagation(self):
-        """Expectation: Global Settings in Vimba are passed down to discovered entities"""
-        self.vimba.set_camera_access_mode(AccessMode.Read)
-
-        with self.vimba:
-            for cam in self.vimba.get_all_cameras():
-                self.assertEqual(cam.get_access_mode(), self.vimba.get_camera_access_mode())
-
-        self.vimba.set_camera_capture_timeout(100)
-
-        with self.vimba:
-            for cam in self.vimba.get_all_cameras():
-                self.assertEqual(cam.get_capture_timeout(), self.vimba.get_camera_capture_timeout())
-
     def test_get_all_interfaces(self):
         """Expected Behavior: get_all_interfaces() must be empty in closed state and
            non-empty then opened.
@@ -86,9 +71,8 @@ class RealCamTestsVimbaTest(unittest.TestCase):
             self.assertTrue(self.vimba.get_all_interfaces())
 
     def test_get_interface_by_id(self):
-        """Expected Behavior: All detected Interfaces must be lookupable by their Id.
-
-        If outside of given scope, an errpr must be returned
+        """Expected Behavior: All detected Interfaces must be lookup able by their Id.
+        If outside of given scope, an error must be returned
         """
 
         with self.vimba:

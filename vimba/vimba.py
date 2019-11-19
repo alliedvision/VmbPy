@@ -39,8 +39,8 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     write_memory_impl, read_registers_impl, write_registers_impl
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesList, discover_interfaces, discover_interface
-from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent, CamerasTuple, \
-                    CamerasList, discover_cameras, discover_camera
+from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
+                    discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaCameraError, VimbaInterfaceError
 
@@ -70,8 +70,6 @@ class Vimba:
 
             self.__cams: CamerasList = ()
             self.__cams_lock: Lock = Lock()
-            self.__cams_access_mode: AccessMode = AccessMode.Full
-            self.__cams_capture_timeout: int = 2000
             self.__cams_handlers: List[CameraChangeHandler] = []
             self.__cams_handlers_lock: Lock = Lock()
 
@@ -92,47 +90,6 @@ class Vimba:
 
             if not self.__context_cnt:
                 self._shutdown()
-
-        @RuntimeTypeCheckEnable()
-        def set_camera_access_mode(self, mode: AccessMode):
-            """Set default camera access mode.
-
-            Arguments:
-                mode - AccessMode to use to open a Camera. This method
-                       must be used before entering the Context with the 'with' statement.
-
-            Raises:
-                TypeError if 'mode' is not of type AccessMode.
-            """
-            self.__cams_access_mode = mode
-
-        def get_camera_access_mode(self) -> AccessMode:
-            """Get default camera access mode
-
-            Returns:
-                Currently configured camera access mode
-            """
-            return self.__cams_access_mode
-
-        @RuntimeTypeCheckEnable()
-        def set_camera_capture_timeout(self, millis: int):
-            """Set default camera frame capture timeout in milliseconds.
-
-            Arguments:
-                millis - The new default capture timeout to use.
-
-            Raises:
-                TypeError if 'millis' is no integer.
-                ValueError if 'millis' is negative
-            """
-            if millis <= 0:
-                raise ValueError('Given Timeout {} must be positive.'.format(millis))
-
-            self.__cams_capture_timeout = millis
-
-        def get_camera_capture_timeout(self) -> int:
-            """Get default camera frame capture timeout in milliseconds"""
-            return self.__cams_capture_timeout
 
         @RuntimeTypeCheckEnable()
         def set_network_discovery(self, enable: bool):
@@ -453,8 +410,7 @@ class Vimba:
 
             self.__feats = discover_features(G_VIMBA_C_HANDLE)
             self.__inters = discover_interfaces()
-            self.__cams = discover_cameras(self.__cams_access_mode, self.__cams_capture_timeout,
-                                           self.__nw_discover)
+            self.__cams = discover_cameras(self.__nw_discover)
 
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
             feat.register_change_handler(self.__inter_cb_wrapper)
@@ -487,7 +443,7 @@ class Vimba:
 
             # New camera found: Add it to camera list
             if event == CameraEvent.Detected:
-                cam = discover_camera(cam_id, self.__cams_access_mode, self.__cams_capture_timeout)
+                cam = discover_camera(cam_id)
 
                 with self.__cams_lock:
                     self.__cams.append(cam)

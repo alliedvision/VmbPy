@@ -89,8 +89,6 @@ class VimbaTest(unittest.TestCase):
         """All functions with RuntimeTypeCheckEnable must return a TypeError on Failure"""
         vimba = Vimba.get_instance()
 
-        self.assertRaises(TypeError, vimba.set_camera_access_mode, 'RootAccess')
-        self.assertRaises(TypeError, vimba.set_camera_capture_timeout, 0.0)
         self.assertRaises(TypeError, vimba.set_network_discovery, 0.0)
         self.assertRaises(TypeError, vimba.get_camera_by_id, 0)
         self.assertRaises(TypeError, vimba.get_interface_by_id, 1)
