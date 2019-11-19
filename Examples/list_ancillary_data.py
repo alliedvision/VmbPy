@@ -29,6 +29,12 @@ import sys
 from vimba import *
 
 
+def print_preamble():
+    print('//////////////////////////////////////////////////////')
+    print('/// Vimba API List Ancillary Data Features Example ///')
+    print('//////////////////////////////////////////////////////\n')
+
+
 def print_usage():
     print('Usage: python list_ancillary_data.py <camera_id>\n')
     print('Parameters:   camera_id         ID of the camera to be used')
@@ -53,6 +59,7 @@ def parse_args():
 
 
 def main():
+    print_preamble()
     camera_id = parse_args()
 
     with Vimba.get_instance() as vimba:

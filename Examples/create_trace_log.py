@@ -28,6 +28,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from vimba import *
 
 def main():
+    print('////////////////////////////////////////////')
+    print('/// VimbaPython Create Trace Log Example ///')
+    print('////////////////////////////////////////////\n')
+
     # Enable logging mechanism, creating a trace log. The log file is
     # stored at the location this script was executed from.
     vimba = Vimba.get_instance()

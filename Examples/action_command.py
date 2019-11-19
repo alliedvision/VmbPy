@@ -30,6 +30,12 @@ from typing import Tuple
 from vimba import *
 
 
+def print_preamble():
+    print('/////////////////////////////////////////')
+    print('/// Vimba API Action Commands Example ///')
+    print('/////////////////////////////////////////\n')
+
+
 def print_usage():
     print('Usage: python action_command.py <camera_id> <interface_id>\n')
     print('Parameters:   camera_id         ID of the camera to be used')
@@ -115,6 +121,7 @@ def frame_handler(cam: Camera, frame: Frame):
 
 
 def main():
+    print_preamble()
     camera_id, interface_id = parse_args()
 
     with Vimba.get_instance() as vimba:

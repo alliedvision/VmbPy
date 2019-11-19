@@ -30,6 +30,12 @@ from typing import Optional
 from vimba import *
 
 
+def print_preamble():
+    print('////////////////////////////////////////')
+    print('/// Vimba API Event Handling Example ///')
+    print('////////////////////////////////////////\n')
+
+
 def print_usage():
     print('Usage: python event_handling.py [camera_id]\n')
     print('Parameters:   camera_id    ID of the camera to use (optional)')
@@ -105,6 +111,7 @@ def feature_changed_handler(feature):
 
 
 def main():
+    print_preamble()
     cam_id = parse_args()
 
     with Vimba.get_instance() as vimba:

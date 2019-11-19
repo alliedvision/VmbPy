@@ -30,6 +30,12 @@ import cv2
 from vimba import *
 
 
+def print_preamble():
+    print('///////////////////////////////////////////////////////')
+    print('/// Vimba API Asynchronous Grab with OpenCV Example ///')
+    print('///////////////////////////////////////////////////////\n')
+
+
 def frame_handler(cam: Camera, frame: Frame):
     log = Log.get_instance()
     log.info('{} acquired {}'.format(cam, frame))
@@ -74,6 +80,7 @@ def setup_camera(cam):
 
 
 def main():
+    print_preamble()
     with Vimba.get_instance() as vimba:
         cams = vimba.get_all_cameras()
 

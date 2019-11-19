@@ -24,71 +24,87 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
+import sys
+from typing import Optional
 from vimba import *
 
 
+def print_preamble():
+    print('///////////////////////////////////////')
+    print('/// Vimba API List Features Example ///')
+    print('///////////////////////////////////////\n')
+
+
+def print_usage():
+    print('Usage: python print_usage.py [CameraID]\n')
+    print('Parameters:   CameraID    ID of the camera to use (using first camera if not specified)')
+
+
+def abort(reason: str, return_code: int = 1, usage: bool = False):
+    print(reason + '\n')
+
+    if usage:
+        print_usage()
+
+    sys.exit(return_code)
+
+
+def parse_args() -> Optional[str]:
+    args = sys.argv[1:]
+    argc = len(args)
+
+    if argc > 1:
+        abort(reason="Invalid number of parameters given!", error_code=2, usage=True)
+
+    return None if argc == 0 else args[0]
+
+
 def print_feature(feature):
-    print('    name: {}'.format(feature.get_name()))
-    print('    type: {}'.format(feature.get_type()))
-    print('    flags: {}'.format(feature.get_flags()))
-    print('    category: {}'.format(feature.get_category()))
-    print('    display_name: {}'.format(feature.get_display_name()))
-    print('    polling_time: {}'.format(feature.get_polling_time()))
-    print('    unit: {}'.format(feature.get_unit()))
-    print('    representation: {}'.format(feature.get_representation()))
-    print('    visibility: {}'.format(str(feature.get_visibility())))
-    print('    tooltip: {}'.format(feature.get_tooltip()))
-    print('    description: {}'.format(feature.get_description()))
-    print('    sfnc namespace: {}'.format(feature.get_sfnc_namespace()))
-    print('    streamable: {}'.format(feature.is_streamable()))
-    print('    has affected: {}'.format(feature.has_affected_features()))
-    print('    has selected: {}'.format(feature.has_selected_features()))
-    print('\n')
+    print('/// Feature name   : {}'.format(feature.get_name()))
+    print('/// Display name   : {}'.format(feature.get_display_name()))
+    print('/// Tooltip        : {}'.format(feature.get_tooltip()))
+    print('/// Description    : {}'.format(feature.get_description()))
+    print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
+    print('/// Unit           : {}'.format(feature.get_unit()))
 
+    try:
+        value = feature.get()
 
-def print_interface(interfaces):
-    for inter in interfaces:
-        print('Print interface properties:')
-        print('id: {}'.format(inter.get_id()))
-        print('type: {}'.format(str(inter.get_type())))
-        print('name: {}'.format(inter.get_name()))
-        print('serial: {}'.format(inter.get_serial()))
+    except AttributeError:
+        value = None
 
-        print('Interface features:')
-        with inter:
-            for feat in inter.get_all_features():
-                print_feature(feat)
+    except VimbaFeatureError:
+        value = None
 
-
-def print_camera(cameras):
-    for cam in cameras:
-        print('Print camera properties:')
-        print('id: {}'.format(cam.get_id()))
-        print('name: {}'.format(cam.get_name()))
-        print('model: {}'.format(cam.get_model()))
-        print('serial: {}'.format(cam.get_serial()))
-        print('permitted access modes: {}'.format(cam.get_permitted_access_modes()))
-        print('interface id: {}'.format(cam.get_interface_id()))
-        print('access mode: {}'.format(str(cam.get_access_mode())))
-
-        print('Camera features:')
-        with cam:
-            for feat in cam.get_all_features():
-                print_feature(feat)
+    print('/// Value          : {}\n'.format(str(value)))
 
 
 def main():
+    print_preamble()
+    cam_id = parse_args()
+
     with Vimba.get_instance() as vimba:
-        print('Print system wide properties:')
-        print('camera access mode: {}'.format(str(vimba.get_camera_access_mode())))
 
-        print('Print system features:')
-        for feat in vimba.get_all_features():
-            print_feature(feat)
+        # Determine Camera to use
+        if cam_id:
+            try:
+                cam = vimba.get_camera_by_id(cam_id)
 
-        print_camera(vimba.get_all_cameras())
-        print_interface(vimba.get_all_interfaces())
+            except VimbaCameraError:
+                abort('Unable to access Camera \'{}\'. Abort.'.format(cam_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No cameras connected. Abort.')
+
+            cam = cams[0]
+
+        # Print all Camera features
+        with cam:
+            print('Print all features of camera \'{}\''.format(cam.get_id()))
+            for feature in cam.get_all_features():
+                print_feature(feature)
 
 
 if __name__ == '__main__':

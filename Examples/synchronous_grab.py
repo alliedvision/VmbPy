@@ -28,7 +28,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from vimba import *
 
 
+def print_preamble():
+    print('//////////////////////////////////////////')
+    print('/// Vimba API Synchronous Grab Example ///')
+    print('//////////////////////////////////////////\n')
+
+
 def main():
+    print_preamble()
     with Vimba.get_instance() as vimba:
         cams = vimba.get_all_cameras()
 

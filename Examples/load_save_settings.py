@@ -29,12 +29,19 @@ import sys
 from vimba import *
 
 
+def print_preamble():
+    print('////////////////////////////////////////////')
+    print('/// Vimba API Load Save Settings Example ///')
+    print('////////////////////////////////////////////\n')
+
+
 def abort(reason: str, return_code: int = 1):
     print(reason + '\n')
     sys.exit(return_code)
 
 
 def main():
+    print_preamble()
     with Vimba.get_instance() as vimba:
         # Store configuration of first detected Camera
         cams = vimba.get_all_cameras()
