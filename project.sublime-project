@@ -62,11 +62,6 @@
             "shell_cmd": "python Examples/list_features.py"
         },
         {
-            "name": "exec Examples/synchronous_grab.py",
-            "working_dir": "$project_path",
-            "shell_cmd": "python Examples/synchronous_grab.py"
-        },
-        {
             "name": "exec Examples/asynchronous_grab.py",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/asynchronous_grab.py"
@@ -95,6 +90,11 @@
             "name": "exec Examples/event_handling.py",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/event_handling.py DEV_000F314C7A89"
+        },
+        {
+            "name": "exec Examples/create_trace_log.py",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/create_trace_log.py"
         }
     ]
 }
