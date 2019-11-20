@@ -31,6 +31,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import sys
+from typing import Optional
 from vimba import *
 
 
@@ -40,29 +41,70 @@ def print_preamble():
     print('////////////////////////////////////////////\n')
 
 
-def abort(reason: str, return_code: int = 1):
+def print_usage():
+    print('Usage: python load_save_settings.py [camera_id]\n')
+    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
+
+
+def abort(reason: str, return_code: int = 1, usage: bool = False):
     print(reason + '\n')
+
+    if usage:
+        print_usage()
+
     sys.exit(return_code)
+
+
+def parse_args() -> Optional[str]:
+    args = sys.argv[1:]
+    argc = len(args)
+
+    if argc > 1:
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
+
+    return None if argc == 0 else args[0]
+
+
+def get_camera(camera_id: Optional[str]) -> Camera:
+    with Vimba.get_instance() as vimba:
+        if camera_id:
+            try:
+                return vimba.get_camera_by_id(camera_id)
+
+            except VimbaCameraError:
+                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No Cameras accessible. Abort.')
+
+            return cams[0]
 
 
 def main():
     print_preamble()
-    with Vimba.get_instance() as vimba:
-        # Store configuration of first detected Camera
-        cams = vimba.get_all_cameras()
+    cam_id = parse_args()
 
-        if not cams:
-            abort('No camera is connected. Abort.')
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
 
-        # Access camera
-        with cams[0] as cam:
             # Save camera settings to file.
             settings_file = '{}_settings.xml'.format(cam.get_id())
             cam.save_settings(settings_file, PersistType.All)
 
             # Restore settings to initial value.
-            cam.get_feature_by_name('UserSetSelector').set('Default')
-            cam.get_feature_by_name('UserSetLoad').run()
+            try:
+                cam.get_feature_by_name('UserSetSelector').set('Default')
+
+            except VimbaFeatureError:
+                abort('Failed to set Feature \'UserSetSelector\'')
+
+            try:
+                cam.get_feature_by_name('UserSetLoad').run()
+
+            except VimbaFeatureError:
+                abort('Failed to run Feature \'UserSetLoad\'')
 
             # Load camera settings from file.
             cam.load_settings(settings_file, PersistType.All)

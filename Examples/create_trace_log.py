@@ -30,7 +30,9 @@ A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
+
 from vimba import *
+
 
 def main():
     print('////////////////////////////////////////////')
@@ -48,6 +50,7 @@ def main():
         pass
 
     vimba.disable_log()
+
 
 if __name__ == '__main__':
     main()

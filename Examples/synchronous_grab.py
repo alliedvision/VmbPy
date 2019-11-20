@@ -30,6 +30,8 @@ A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
+import sys
+from typing import Optional
 from vimba import *
 
 
@@ -39,24 +41,57 @@ def print_preamble():
     print('//////////////////////////////////////////\n')
 
 
+def print_usage():
+    print('Usage: python synchronous_grab.py [camera_id]\n')
+    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
+
+
+def abort(reason: str, return_code: int = 1, usage: bool = False):
+    print(reason + '\n')
+
+    if usage:
+        print_usage()
+
+    sys.exit(return_code)
+
+
+def parse_args() -> Optional[str]:
+    args = sys.argv[1:]
+    argc = len(args)
+
+    if argc > 1:
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
+
+    return None if argc == 0 else args[0]
+
+
+def get_camera(camera_id: Optional[str]) -> Camera:
+    with Vimba.get_instance() as vimba:
+        if camera_id:
+            try:
+                return vimba.get_camera_by_id(camera_id)
+
+            except VimbaCameraError:
+                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No Cameras accessible. Abort.')
+
+            return cams[0]
+
+
 def main():
     print_preamble()
-    with Vimba.get_instance() as vimba:
-        cams = vimba.get_all_cameras()
+    cam_id = parse_args()
 
-        # Use first detected camera.
-        if cams:
-            with cams[0] as cam:
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
 
-                # Enable Logging for capturing prints
-                vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
-                log = Log.get_instance()
-
-                # Acquire 10 Frames synchronously.
-                for frame in cam.get_frame_iter(10):
-                    log.info('Got {}'.format(frame))
-
-                vimba.disable_log()
+            # Acquire 10 frame with a custom timeout (default is 2000ms) per frame acquisition.
+            for frame in cam.get_frame_iter(limit=10, timeout_ms=3000):
+                print('Got {}'.format(frame))
 
 
 if __name__ == '__main__':

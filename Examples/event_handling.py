@@ -60,7 +60,7 @@ def parse_args() -> Optional[str]:
     argc = len(args)
 
     if argc not in (0, 1):
-        abort(reason="Invalid number of parameters given!", return_code=2, usage=True)
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
 
     return args[0] if argc == 1 else None
 
@@ -88,7 +88,7 @@ def get_camera(cam_id: Optional[str]):
         inter = vimba.get_interface_by_id(cam.get_interface_id())
 
         if inter.get_type() != InterfaceType.Ethernet:
-            abort('Example supports only GigE Camera. Abort.')
+            abort('Example supports only GigE Cameras. Abort.')
 
         return cam
 
@@ -119,10 +119,9 @@ def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance() as vimba:
-        cam = get_camera(cam_id)
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
 
-        with cam:
             # Disable all events notifications
             feat_event_select = get_feature(cam, 'EventSelector')
             feat_event_notify = get_feature(cam, 'EventNotification')

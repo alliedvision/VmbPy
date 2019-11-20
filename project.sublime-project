@@ -52,11 +52,6 @@
             "shell_cmd": "python run_tests.py test_junit -s all -c DEV_1AB22D01C0E9"
         },
         {
-            "name": "exec Examples/user_set.py",
-            "working_dir": "$project_path",
-            "shell_cmd": "python Examples/user_set.py /i:0u"
-        },
-        {
             "name": "exec Examples/list_cameras",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/list_cameras.py"
@@ -77,9 +72,9 @@
             "shell_cmd": "python Examples/asynchronous_grab_opencv.py"
         },
         {
-            "name": "exec Examples/action_command.py",
+            "name": "exec Examples/action_commands.py",
             "working_dir": "$project_path",
-            "shell_cmd": "python Examples/action_command.py DEV_000F314D20B6 ALL"
+            "shell_cmd": "python Examples/action_commands.py DEV_000F314D20B6 ALL"
         },
         {
             "name": "exec Examples/list_ancillary_data.py",

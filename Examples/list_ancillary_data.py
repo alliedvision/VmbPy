@@ -31,6 +31,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import sys
+from typing import Optional
 from vimba import *
 
 
@@ -41,8 +42,8 @@ def print_preamble():
 
 
 def print_usage():
-    print('Usage: python list_ancillary_data.py <camera_id>\n')
-    print('Parameters:   camera_id         ID of the camera to be used')
+    print('Usage: python list_ancillary_data.py [camera_id]\n')
+    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -54,27 +55,39 @@ def abort(reason: str, return_code: int = 1, usage: bool = False):
     sys.exit(return_code)
 
 
-def parse_args():
+def parse_args() -> Optional[str]:
     args = sys.argv[1:]
+    argc = len(args)
 
     if len(args) != 1:
-        abort(reason="Invalid number of parameters given!", error_code=2, usage=True)
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
 
-    return args[0]
+    return args[0] if argc == 1 else None
+
+
+def get_camera(camera_id: Optional[str]) -> Camera:
+    with Vimba.get_instance() as vimba:
+        if camera_id:
+            try:
+                return vimba.get_camera_by_id(camera_id)
+
+            except VimbaCameraError:
+                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No Cameras accessible. Abort.')
+
+            return cams[0]
 
 
 def main():
     print_preamble()
-    camera_id = parse_args()
+    cam_id = parse_args()
 
-    with Vimba.get_instance() as vimba:
-        try:
-            cam = vimba.get_camera_by_id(camera_id)
-
-        except VimbaCameraError:
-            abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
-
-        with cam:
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
             # Enable ChunkMode (ChunkMode add Ancillary Data to Frame data)
             try:
                 cam.get_feature_by_name('ChunkModeActive').set(True)

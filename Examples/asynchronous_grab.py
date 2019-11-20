@@ -30,7 +30,8 @@ A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
-import time
+import sys
+from typing import Optional
 from vimba import *
 
 
@@ -40,34 +41,68 @@ def print_preamble():
     print('///////////////////////////////////////////\n')
 
 
+def print_usage():
+    print('Usage: python asynchronous_grab.py [camera_id]\n')
+    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
+
+
+def abort(reason: str, return_code: int = 1, usage: bool = False):
+    print(reason + '\n')
+
+    if usage:
+        print_usage()
+
+    sys.exit(return_code)
+
+
+def parse_args() -> Optional[str]:
+    args = sys.argv[1:]
+    argc = len(args)
+
+    if argc > 1:
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
+
+    return None if argc == 0 else args[0]
+
+
+def get_camera(camera_id: Optional[str]) -> Camera:
+    with Vimba.get_instance() as vimba:
+        if camera_id:
+            try:
+                return vimba.get_camera_by_id(camera_id)
+
+            except VimbaCameraError:
+                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No Cameras accessible. Abort.')
+
+            return cams[0]
+
+
 def frame_handler(cam: Camera, frame: Frame):
-    log = Log.get_instance()
-    log.info('{} acquired {}'.format(cam, frame))
+    print('{} acquired {}'.format(cam, frame), flush=True)
 
     cam.queue_frame(frame)
 
 
 def main():
     print_preamble()
-    with Vimba.get_instance() as vimba:
-        cams = vimba.get_all_cameras()
+    cam_id = parse_args()
 
-        # Use first detected camera
-        if cams:
-            with cams[0] as cam:
-                # Enable Logging for capturing messages from the frame handler
-                vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
+            print('Press <enter> to stop Frame acquisition.')
 
-                # Start Streaming, wait for five seconds, stop streaming
-                cam.start_streaming(frame_handler)
-                time.sleep(5)
+            try:
+                # Start Streaming with a custom a buffer of 10 Frames (defaults to 5)
+                cam.start_streaming(handler=frame_handler, buffer_count=10)
+                input()
+
+            finally:
                 cam.stop_streaming()
-
-                # Disable Logging
-                vimba.disable_log()
-
-        else:
-            print('No Cameras detected')
 
 
 if __name__ == '__main__':

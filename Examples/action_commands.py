@@ -42,7 +42,7 @@ def print_preamble():
 
 
 def print_usage():
-    print('Usage: python action_command.py <camera_id> <interface_id>\n')
+    print('Usage: python action_commands.py <camera_id> <interface_id>\n')
     print('Parameters:   camera_id         ID of the camera to be used')
     print('              interface_id      ID of network interface to send out Action Command')
     print('                               \'ALL\' enables broadcast on all interfaces\n')
@@ -61,7 +61,7 @@ def parse_args() -> Tuple[str, str]:
     args = sys.argv[1:]
 
     if len(args) != 2:
-        abort(reason="Invalid number of parameters given!", return_code=2, usage=True)
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
 
     return (args[0], args[1])
 
@@ -129,7 +129,7 @@ def main():
     print_preamble()
     camera_id, interface_id = parse_args()
 
-    with Vimba.get_instance() as vimba:
+    with Vimba.get_instance():
         cam = get_camera(camera_id)
         sender = get_command_sender(interface_id)
 

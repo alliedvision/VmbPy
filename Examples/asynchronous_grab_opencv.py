@@ -29,9 +29,10 @@ IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CO
 A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
-
 import time
+import sys
 import cv2
+from typing import Optional
 from vimba import *
 
 
@@ -41,17 +42,48 @@ def print_preamble():
     print('///////////////////////////////////////////////////////\n')
 
 
-def frame_handler(cam: Camera, frame: Frame):
-    log = Log.get_instance()
-    log.info('{} acquired {}'.format(cam, frame))
-
-    cv2.imshow('Stream from \'{}\''.format(cam.get_name()), frame.as_opencv_image())
-    cv2.waitKey(1)
-
-    cam.queue_frame(frame)
+def print_usage():
+    print('Usage: python asynchronous_grab_opencv.py [camera_id]\n')
+    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
 
 
-def setup_camera(cam):
+def abort(reason: str, return_code: int = 1, usage: bool = False):
+    print(reason + '\n')
+
+    if usage:
+        print_usage()
+
+    sys.exit(return_code)
+
+
+def parse_args() -> Optional[str]:
+    args = sys.argv[1:]
+    argc = len(args)
+
+    if argc > 1:
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
+
+    return None if argc == 0 else args[0]
+
+
+def get_camera(camera_id: Optional[str]) -> Camera:
+    with Vimba.get_instance() as vimba:
+        if camera_id:
+            try:
+                return vimba.get_camera_by_id(camera_id)
+
+            except VimbaCameraError:
+                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No Cameras accessible. Abort.')
+
+            return cams[0]
+
+
+def setup_camera(cam: Camera):
     # Enable auto exposure time setting if camera supports it
     try:
         cam.get_feature_by_name('ExposureAuto').set('Continuous')
@@ -81,31 +113,35 @@ def setup_camera(cam):
             cam.set_pixel_format(mono_fmts[0])
 
         else:
-            raise Exception('Camera does not support a OpenCV compatible format natively.')
+            abort('Camera does not support a OpenCV compatible format natively. Abort.')
+
+
+def frame_handler(cam: Camera, frame: Frame):
+    print('{} acquired {}'.format(cam, frame), flush=True)
+
+    msg = 'Stream from \'{}\'.'
+    cv2.imshow(msg.format(cam.get_name()), frame.as_opencv_image())
+    cv2.waitKey(1)
+
+    cam.queue_frame(frame)
 
 
 def main():
     print_preamble()
-    with Vimba.get_instance() as vimba:
-        cams = vimba.get_all_cameras()
+    cam_id = parse_args()
 
-        # Use first detected camera
-        if cams:
-            with cams[0] as cam:
-                # Enable Logging for capturing messages from the frame handler
-                vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
 
-                # Start Streaming, wait for five seconds, stop streaming
-                setup_camera(cam)
-                cam.start_streaming(frame_handler)
+            # Start Streaming, wait for five seconds, stop streaming
+            setup_camera(cam)
+            try:
+                # Start Streaming with a custom a buffer of 10 Frames (defaults to 5)
+                cam.start_streaming(handler=frame_handler, buffer_count=10)
                 time.sleep(5)
+
+            finally:
                 cam.stop_streaming()
-
-                # Disable Logging
-                vimba.disable_log()
-
-        else:
-            print('No Cameras detected')
 
 
 if __name__ == '__main__':

@@ -42,8 +42,8 @@ def print_preamble():
 
 
 def print_usage():
-    print('Usage: python print_usage.py [CameraID]\n')
-    print('Parameters:   CameraID    ID of the camera to use (using first camera if not specified)')
+    print('Usage: python list_features.py [camera_id]\n')
+    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -60,19 +60,12 @@ def parse_args() -> Optional[str]:
     argc = len(args)
 
     if argc > 1:
-        abort(reason="Invalid number of parameters given!", error_code=2, usage=True)
+        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
 
     return None if argc == 0 else args[0]
 
 
 def print_feature(feature):
-    print('/// Feature name   : {}'.format(feature.get_name()))
-    print('/// Display name   : {}'.format(feature.get_display_name()))
-    print('/// Tooltip        : {}'.format(feature.get_tooltip()))
-    print('/// Description    : {}'.format(feature.get_description()))
-    print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
-    print('/// Unit           : {}'.format(feature.get_unit()))
-
     try:
         value = feature.get()
 
@@ -82,33 +75,40 @@ def print_feature(feature):
     except VimbaFeatureError:
         value = None
 
+    print('/// Feature name   : {}'.format(feature.get_name()))
+    print('/// Display name   : {}'.format(feature.get_display_name()))
+    print('/// Tooltip        : {}'.format(feature.get_tooltip()))
+    print('/// Description    : {}'.format(feature.get_description()))
+    print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
+    print('/// Unit           : {}'.format(feature.get_unit()))
     print('/// Value          : {}\n'.format(str(value)))
+
+
+def get_camera(camera_id: Optional[str]) -> Camera:
+    with Vimba.get_instance() as vimba:
+        if camera_id:
+            try:
+                return vimba.get_camera_by_id(camera_id)
+
+            except VimbaCameraError:
+                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+
+        else:
+            cams = vimba.get_all_cameras()
+            if not cams:
+                abort('No Cameras accessible. Abort.')
+
+            return cams[0]
 
 
 def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance() as vimba:
+    with Vimba.get_instance():
+        with get_camera(cam_id) as cam:
 
-        # Determine Camera to use
-        if cam_id:
-            try:
-                cam = vimba.get_camera_by_id(cam_id)
-
-            except VimbaCameraError:
-                abort('Unable to access Camera \'{}\'. Abort.'.format(cam_id))
-
-        else:
-            cams = vimba.get_all_cameras()
-            if not cams:
-                abort('No cameras connected. Abort.')
-
-            cam = cams[0]
-
-        # Print all Camera features
-        with cam:
-            print('Print all features of camera \'{}\''.format(cam.get_id()))
+            print('Print all features of camera \'{}\':'.format(cam.get_id()))
             for feature in cam.get_all_features():
                 print_feature(feature)
 
