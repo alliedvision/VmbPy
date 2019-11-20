@@ -72,7 +72,7 @@ def get_input() -> str:
     return input()
 
 
-def get_camera(camera_id) -> Camera:
+def get_camera(camera_id: str) -> Camera:
     with Vimba.get_instance() as vimba:
         try:
             return vimba.get_camera_by_id(camera_id)
@@ -112,7 +112,12 @@ def set_feature(entity, feature_name: str, feature_value):
 
 def run_command(entity, feature_name: str):
     try:
-        entity.get_feature_by_name(feature_name).run()
+        cmd_feat = entity.get_feature_by_name(feature_name)
+
+        cmd_feat.run()
+
+        while not cmd_feat.is_done():
+            pass
 
     except VimbaFeatureError:
         abort('Failed to run Feature \'{}\'. Abort.'.format(feature_name))
@@ -133,12 +138,13 @@ def main():
         cam = get_camera(camera_id)
         sender = get_command_sender(interface_id)
 
-        with cam, cmd_sender:
+        with cam, sender:
             # Prepare Camera for ActionCommand - Trigger
             device_key = 1
             group_key = 1
             group_mask = 1
 
+            run_command(cam, 'GVSPAdjustPacketSize')
             set_feature(cam, 'TriggerSelector', 'FrameStart')
             set_feature(cam, 'TriggerSource', 'Action0')
             set_feature(cam, 'TriggerMode', 'On')

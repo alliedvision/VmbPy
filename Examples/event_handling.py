@@ -93,6 +93,25 @@ def get_camera(cam_id: Optional[str]):
         return cam
 
 
+def setup_camera(cam: Camera):
+    with cam:
+        # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
+        try:
+            cmd_feat = cam.get_feature_by_name('GVSPAdjustPacketSize')
+
+            try:
+                cmd_feat.run()
+
+                while not cmd_feat.is_done():
+                    pass
+
+            except VimbaFeatureError:
+                abort('Failed to set Feature \'GVSPAdjustPacketSize\'. Abort.')
+
+        except VimbaFeatureError:
+            pass
+
+
 def get_feature(cam: Camera, feature_name: str):
     with cam:
         try:
@@ -121,6 +140,8 @@ def main():
 
     with Vimba.get_instance():
         with get_camera(cam_id) as cam:
+
+            setup_camera(cam)
 
             # Disable all events notifications
             feat_event_select = get_feature(cam, 'EventSelector')

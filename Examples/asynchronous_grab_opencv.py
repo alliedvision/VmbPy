@@ -84,36 +84,53 @@ def get_camera(camera_id: Optional[str]) -> Camera:
 
 
 def setup_camera(cam: Camera):
-    # Enable auto exposure time setting if camera supports it
-    try:
-        cam.get_feature_by_name('ExposureAuto').set('Continuous')
+    with cam:
+        # Enable auto exposure time setting if camera supports it
+        try:
+            cam.get_feature_by_name('ExposureAuto').set('Continuous')
 
-    except VimbaFeatureError:
-        pass
+        except VimbaFeatureError:
+            pass
 
-    # Enable white balancing if camera supports it
-    try:
-        cam.get_feature_by_name('BalanceWhiteAuto').set('Continuous')
+        # Enable white balancing if camera supports it
+        try:
+            cam.get_feature_by_name('BalanceWhiteAuto').set('Continuous')
 
-    except VimbaFeatureError:
-        pass
+        except VimbaFeatureError:
+            pass
 
-    # Query available, open_cv compatible pixel formats
-    # prefer color formats over monochrome formats
-    cv_fmts = intersect_pixel_formats(cam.get_pixel_formats(), OPENCV_PIXEL_FORMATS)
-    color_fmts = intersect_pixel_formats(cv_fmts, COLOR_PIXEL_FORMATS)
+        # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
+        try:
+            cmd_feat = cam.get_feature_by_name('GVSPAdjustPacketSize')
 
-    if color_fmts:
-        cam.set_pixel_format(color_fmts[0])
+            try:
+                cmd_feat.run()
 
-    else:
-        mono_fmts = intersect_pixel_formats(cv_fmts, MONO_PIXEL_FORMATS)
+                while not cmd_feat.is_done():
+                    pass
 
-        if mono_fmts:
-            cam.set_pixel_format(mono_fmts[0])
+            except VimbaFeatureError:
+                abort('Failed to set Feature \'GVSPAdjustPacketSize\'. Abort.')
+
+        except VimbaFeatureError:
+            pass
+
+        # Query available, open_cv compatible pixel formats
+        # prefer color formats over monochrome formats
+        cv_fmts = intersect_pixel_formats(cam.get_pixel_formats(), OPENCV_PIXEL_FORMATS)
+        color_fmts = intersect_pixel_formats(cv_fmts, COLOR_PIXEL_FORMATS)
+
+        if color_fmts:
+            cam.set_pixel_format(color_fmts[0])
 
         else:
-            abort('Camera does not support a OpenCV compatible format natively. Abort.')
+            mono_fmts = intersect_pixel_formats(cv_fmts, MONO_PIXEL_FORMATS)
+
+            if mono_fmts:
+                cam.set_pixel_format(mono_fmts[0])
+
+            else:
+                abort('Camera does not support a OpenCV compatible format natively. Abort.')
 
 
 def frame_handler(cam: Camera, frame: Frame):

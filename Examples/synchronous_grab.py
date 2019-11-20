@@ -82,12 +82,32 @@ def get_camera(camera_id: Optional[str]) -> Camera:
             return cams[0]
 
 
+def setup_camera(cam: Camera):
+    with cam:
+        # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
+        try:
+            cmd_feat = cam.get_feature_by_name('GVSPAdjustPacketSize')
+
+            try:
+                cmd_feat.run()
+
+                while not cmd_feat.is_done():
+                    pass
+
+            except VimbaFeatureError:
+                abort('Failed to set Feature \'GVSPAdjustPacketSize\'. Abort.')
+
+        except VimbaFeatureError:
+            pass
+
+
 def main():
     print_preamble()
     cam_id = parse_args()
 
     with Vimba.get_instance():
         with get_camera(cam_id) as cam:
+            setup_camera(cam)
 
             # Acquire 10 frame with a custom timeout (default is 2000ms) per frame acquisition.
             for frame in cam.get_frame_iter(limit=10, timeout_ms=3000):
