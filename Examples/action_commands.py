@@ -42,10 +42,15 @@ def print_preamble():
 
 
 def print_usage():
-    print('Usage: python action_commands.py <camera_id> <interface_id>\n')
-    print('Parameters:   camera_id         ID of the camera to be used')
-    print('              interface_id      ID of network interface to send out Action Command')
-    print('                               \'ALL\' enables broadcast on all interfaces\n')
+    print('Usage:')
+    print('    python action_commands.py <camera_id> <interface_id>')
+    print('    python action_commands.py [/h] [-h]')
+    print()
+    print('Parameters:')
+    print('    camera_id      ID of the camera to be used')
+    print('    interface_id   ID of network interface to send out Action Command')
+    print('                   \'ALL\' enables broadcast on all interfaces')
+    print()
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -59,6 +64,11 @@ def abort(reason: str, return_code: int = 1, usage: bool = False):
 
 def parse_args() -> Tuple[str, str]:
     args = sys.argv[1:]
+
+    for arg in args:
+        if arg in ('/h', '-h'):
+            print_usage()
+            sys.exit(0)
 
     if len(args) != 2:
         abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)

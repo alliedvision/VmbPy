@@ -42,8 +42,13 @@ def print_preamble():
 
 
 def print_usage():
-    print('Usage: python list_features.py [camera_id]\n')
-    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
+    print('Usage:')
+    print('    python list_features.py [camera_id]')
+    print('    python list_features.py [/h] [-h]')
+    print()
+    print('Parameters:')
+    print('    camera_id   ID of the camera to use (using first camera if not specified)')
+    print()
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -58,6 +63,11 @@ def abort(reason: str, return_code: int = 1, usage: bool = False):
 def parse_args() -> Optional[str]:
     args = sys.argv[1:]
     argc = len(args)
+
+    for arg in args:
+        if arg in ('/h', '-h'):
+            print_usage()
+            sys.exit(0)
 
     if argc > 1:
         abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)

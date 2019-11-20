@@ -42,8 +42,13 @@ def print_preamble():
 
 
 def print_usage():
-    print('Usage: python list_ancillary_data.py [camera_id]\n')
-    print('Parameters: camera_id    ID of the camera to use (using first camera if not specified)')
+    print('Usage:')
+    print('    python list_ancillary_data.py [camera_id]')
+    print('    python list_ancillary_data.py [/h] [-h]')
+    print()
+    print('Parameters:')
+    print('    camera_id   ID of the camera to use (using first camera if not specified)')
+    print()
 
 
 def abort(reason: str, return_code: int = 1, usage: bool = False):
@@ -59,7 +64,12 @@ def parse_args() -> Optional[str]:
     args = sys.argv[1:]
     argc = len(args)
 
-    if len(args) != 1:
+    for arg in args:
+        if arg in ('/h', '-h'):
+            print_usage()
+            sys.exit(0)
+
+    if len(args) > 1:
         abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
 
     return args[0] if argc == 1 else None
@@ -105,7 +115,7 @@ def setup_camera(cam: Camera):
             cam.get_feature_by_name('ChunkModeActive').set(True)
 
         except VimbaFeatureError:
-            abort('Failed to enable ChunkMode on Camera \'{}\'. Abort.'.format(camera_id))
+            abort('Failed to enable ChunkMode on Camera \'{}\'. Abort.'.format(cam.get_id()))
 
 
 def main():
