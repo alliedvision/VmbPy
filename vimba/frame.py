@@ -289,10 +289,10 @@ class FrameStatus(enum.IntEnum):
     Invalid = VmbFrameStatus.Invalid
 
 
-# TODO: Ancillary Data are basically Features where most functions are not available.
-#       Some kind of protection against undefined behavior might be in order here.
 class AncillaryData:
-    """TODO: Document me """
+    """Ancillary Data are created after enabling a Cameras 'ChunkModeActive' Feature.
+    Ancillary Data are Features stored within a Frame.
+    """
     @TraceEnable()
     def __init__(self, handle: VmbFrame):
         """Do not call directly. Get Object via Frame access method"""
@@ -317,22 +317,60 @@ class AncillaryData:
             self._close()
 
     def get_all_features(self) -> FeaturesTuple:
-        """ TODO: Document me"""
+        """Get all features in ancillary data.
+
+        Returns:
+            A set of all currently features store in Ancillary Data.
+            Returns an empty set then called outside of 'with' - statement.
+        """
         return self.__feats
 
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
-        """ TODO: Document me"""
+        """Get all features in ancillary data of a specific type.
+
+        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
+        EnumFeature, CommandFeature, RawFeature
+
+        Arguments:
+            feat_type - FeatureType used find features of that type.
+
+        Returns:
+            A set of features of type 'feat_type'. Can be an empty set if there is
+            no feature with the given type available.
+
+        Raises:
+            TypeError if 'feat_type' is not of any feature Type.
+        """
         return filter_features_by_type(self.__feats, feat_type)
 
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
-        """ TODO: Document me"""
+        """Get all features in ancillary data of a specific category.
+
+        Arguments:
+            category - Category that should be used for filtering.
+
+        Returns:
+            A set of features of category 'category'. Can be an empty set if there is
+            no feature of that category.
+        """
         return filter_features_by_category(self.__feats, category)
 
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """ TODO: Document me"""
+        """Get a features in ancillary data by its name.
+
+        Arguments:
+            feat_name - Name used to find a feature.
+
+        Returns:
+            Feature with the associated name.
+
+        Raises:
+            TypeError if 'feat_name' is not of type 'str'.
+            VimbaFeatureError if no feature is associated with 'feat_name'.
+        """
         return filter_features_by_name(self.__feats, feat_name)
 
     @TraceEnable()
