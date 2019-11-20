@@ -45,7 +45,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     write_memory_impl, read_registers_impl, write_registers_impl
 from .frame import Frame, FrameTuple, FormatTuple, VimbaPixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
-from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout
+from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout, VimbaFeatureError
 
 
 __all__ = [
@@ -870,6 +870,21 @@ class Camera:
             raise exc
 
         self.__feats = discover_features(self.__handle)
+
+        # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
+        # add a log entry that
+        try:
+            min_ = 1400
+            max_ = 1600
+            size = filter_features_by_name(self.__feats, 'GVSPPacketSize').get()
+
+            if (min_ < size) and (size < max_):
+                msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
+                       'Enable jumbo packets for improved performance.')
+                Log.get_instance().info(msg.format(self.get_id()))
+
+        except VimbaFeatureError:
+            pass
 
     @TraceEnable()
     def _close(self):

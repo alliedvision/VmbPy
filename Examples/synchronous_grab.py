@@ -110,7 +110,6 @@ def setup_camera(cam: Camera):
         except VimbaFeatureError:
             pass
 
-
 def main():
     print_preamble()
     cam_id = parse_args()
