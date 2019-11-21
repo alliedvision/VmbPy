@@ -278,8 +278,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
     def test_streaming_queue(self):
         """Expectation: A given frame must be reused if it is enqueued again. """
 
-        self.vimba.enable_log(LOG_CONFIG_INFO_FILE_ONLY)
-
         class FrameHandler:
             def __init__(self, frame_count, test):
                 self.cnt = 0

@@ -48,6 +48,7 @@ __all__ = [
     'InterfaceEvent',
     'VimbaPixelFormat',
     'Frame',
+    'FeatureTypes',
     'FrameHandler',
     'FrameStatus',
     'Debayer',
@@ -112,7 +113,7 @@ from .interface import Interface, InterfaceType, InterfaceChangeHandler, Interfa
 from .frame import VimbaPixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
                    BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \
                    BGRA_PIXEL_FORMATS, YUV_PIXEL_FORMATS, YCBCR_PIXEL_FORMATS, \
-                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus
+                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, FeatureTypes
 
 from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
                    VimbaTimeout

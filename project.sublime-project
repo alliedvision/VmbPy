@@ -82,9 +82,9 @@
             "shell_cmd": "python Examples/list_ancillary_data.py DEV_000F314C7A89"
         },
         {
-            "name": "exec Examples/load_save_settings.py",
+            "name": "exec Examples/user_set.py",
             "working_dir": "$project_path",
-            "shell_cmd": "python Examples/load_save_settings.py DEV_1AB22D01C0E9"
+            "shell_cmd": "python Examples/user_set.py DEV_1AB22D01C0E9 /i:1 /d"
         },
         {
             "name": "exec Examples/event_handling.py",
