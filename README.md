@@ -6,10 +6,10 @@ Vimba Python API - Beta version for testing purposes only
 You are welcome to give feedback on the beta version of our new Vimba Python API!
 Please note that the usage of beta software is at your own risk.
 
-In addition to the API's source code, this repository also contains our tests.
-If you encounter any issues, feel free to run the tests and send us the test results. This helps us improve the Vimba Python API.
-Please send your feedback to:
-betasoftware@alliedvision.com
+In addition to the API's source code, this repository also contains unittests for VimbaPython.
+If you encounter any issues, feel free to run the test script and create an Issue on github.com
+This helps us improve the Vimba Python API.
+
 
 Prerequisites
 ===============
@@ -33,9 +33,7 @@ to install and maintain multiple Python installations.
         python --version
         python -m pip --version
 
-    Ensure the Python version is 3.7 or higher and pip uses this Python version.
-
-Optionally, install NumPy and opencv-python.
+    Please ensure that the Python version is 3.7 or higher and pip uses this Python version.
 
 
 Installing Python - Linux
@@ -56,7 +54,7 @@ Installing the Vimba Python API
 ===============
 All operating systems:
 
-1. Download the latest version of [VimbaPython](https://ADD_LINK_TO_REPO).
+1. Download the latest version of [VimbaPython](https://github.com/alliedvision/VimbaPython).
 2. Open a terminal and navigate to the download location of VimbaPython (contains setup.py)
 
 Basic Installation
@@ -66,7 +64,7 @@ Execute the following command:
         python -m pip install .
 
 
-Installation with optional Numpy and OpenCV export
+Installation with optional NumPy and OpenCV export
 ---------------
 Execute the following command:
 

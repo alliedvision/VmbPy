@@ -2,10 +2,9 @@
 <p><strong><em>Beta version for testing purposes only </em></strong></p>
 <p>You are welcome to give feedback on the beta version of our new Vimba Python API!
 Please note that the usage of beta software is at your own risk.</p>
-<p>In addition to the API's source code, this repository also contains our tests.
-If you encounter any issues, feel free to run the tests and send us the test results. This helps us improve the Vimba Python API.
-Please send your feedback to:
-betasoftware@alliedvision.com</p>
+<p>In addition to the API's source code, this repository also contains unittests for VimbaPython.
+If you encounter any issues, feel free to run the test script and create an Issue on github.com
+This helps us improve the Vimba Python API.</p>
 <h1>Prerequisites</h1>
 <p>To use this software, you need:</p>
 <ol>
@@ -26,10 +25,9 @@ to install and maintain multiple Python installations.</p>
 <pre><code>python --version
 python -m pip --version
 </code></pre>
-<p>Ensure the Python version is 3.7 or higher and pip uses this Python version.</p>
+<p>Please ensure that the Python version is 3.7 or higher and pip uses this Python version.</p>
 </li>
 </ol>
-<p>Optionally, install NumPy and opencv-python.</p>
 <h2>Installing Python - Linux</h2>
 <p>On Linux systems, the Python installation process depends heavily on the distribution. If python3.7
 is not available for your distribution or your system requires multiple python versions
@@ -45,14 +43,14 @@ python -m pip --version
 <h1>Installing the Vimba Python API</h1>
 <p>All operating systems:</p>
 <ol>
-<li>Download the latest version of <a href="https://ADD_LINK_TO_REPO">VimbaPython</a>.</li>
+<li>Download the latest version of <a href="https://github.com/alliedvision/VimbaPython">VimbaPython</a>.</li>
 <li>Open a terminal and navigate to the download location of VimbaPython (contains setup.py)</li>
 </ol>
 <h2>Basic Installation</h2>
 <p>Execute the following command:</p>
 <pre><code>    python -m pip install .
 </code></pre>
-<h2>Installation with optional Numpy and OpenCV export</h2>
+<h2>Installation with optional NumPy and OpenCV export</h2>
 <p>Execute the following command:</p>
 <pre><code>    python -m pip install .[numpy-export,opencv-export]
 </code></pre>
