@@ -250,43 +250,42 @@ class RealCamTestsCameraTest(unittest.TestCase):
         """Expectation: A given frame_handler must be executed for each buffered frame. """
 
         class FrameHandler:
-            def __init__(self, frame_count, test):
+            def __init__(self, frame_count):
                 self.cnt = 0
                 self.frame_count = frame_count
-                self.test = test
                 self.event = threading.Event()
 
             def __call__(self, cam: Camera, frame: Frame):
-                self.test.assertEqual(self.cnt, frame.get_id())
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
                     self.event.set()
 
+
         timeout = 5.0
         frame_count = 10
-        handler = FrameHandler(frame_count, self)
+        handler = FrameHandler(frame_count)
 
         with self.cam:
-            self.cam.start_streaming(handler, frame_count)
+            try:
+                self.cam.start_streaming(handler, frame_count)
 
-            # Wait until the FrameHandler has been executed for each queued frame
-            self.assertTrue(handler.event.wait(timeout))
+                # Wait until the FrameHandler has been executed for each queued frame
+                self.assertTrue(handler.event.wait(timeout))
 
-            self.cam.stop_streaming()
+            finally:
+                self.cam.stop_streaming()
 
     def test_streaming_queue(self):
         """Expectation: A given frame must be reused if it is enqueued again. """
 
         class FrameHandler:
-            def __init__(self, frame_count, test):
+            def __init__(self, frame_count):
                 self.cnt = 0
                 self.frame_count = frame_count
-                self.test = test
                 self.event = threading.Event()
 
             def __call__(self, cam: Camera, frame: Frame):
-                self.test.assertEqual(self.cnt, frame.get_id())
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
@@ -296,18 +295,19 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
         timeout = 5.0
         frame_count = 5
-        frame_reuse = 5
-        handler = FrameHandler(frame_count * frame_reuse, self)
+        frame_reuse = 2
+        handler = FrameHandler(frame_count * frame_reuse)
 
         with self.cam:
-            self.cam.start_streaming(handler, frame_count)
+            try:
+                self.cam.start_streaming(handler, frame_count)
 
-            # Wait until the FrameHandler has been executed for each queued frame
-            self.assertTrue(handler.event.wait(timeout))
+                # Wait until the FrameHandler has been executed for each queued frame
+                self.assertTrue(handler.event.wait(timeout))
 
-            self.cam.stop_streaming()
+            finally:
+                self.cam.stop_streaming()
 
-        self.vimba.disable_log()
 
     def test_runtime_type_check(self):
         """Expectation: raise TypeError on passing invalid parameters"""

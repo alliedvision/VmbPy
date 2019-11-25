@@ -97,8 +97,9 @@ class RealCamTestsFrameTest(unittest.TestCase):
         self.assertIsNone(Frame(0).get_height())
 
         with self.cam:
-            self.assertIsNotNone(self.cam.get_frame().get_width())
-            self.assertIsNotNone(self.cam.get_frame().get_height())
+            frame = self.cam.get_frame()
+            self.assertIsNotNone(frame.get_width())
+            self.assertIsNotNone(frame.get_height())
 
     def test_get_image_size(self):
         """Expectation: get_image_size() must return 0 if locally constructed
