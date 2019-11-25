@@ -38,7 +38,7 @@ from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VimbaSystemError
 from ..util import TraceEnable
-from .vimba_common import Uint32Enum, VmbBool, VmbUint8, VmbUint32, VmbInt32, VmbError, VmbFloat, \
+from .vimba_common import Uint32Enum, VmbUint8, VmbUint32, VmbInt32, VmbError, VmbFloat, \
                           VimbaCError, VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
 
 
@@ -49,8 +49,6 @@ __all__ = [
     'VmbAPIInfo',
     'VmbPixelLayout',
     'Vmb12BitPackedPair',
-    'VmbSupportState',
-    'VmbTechInfo',
     'VmbDebayerMode',
     'VmbImage',
     'VmbImageInfo',
@@ -229,56 +227,6 @@ class Vmb12BitPackedPair(ctypes.Structure):
         return rep
 
 
-class VmbSupportState(ctypes.Structure):
-    """State indicating if a technology is supported by the host system.
-    Fields:
-        Processor - Is technology supported by the CPU
-        OperatingSystem - Is technology supported by the OS.
-    """
-    _fields_ = [
-        ('Processor', VmbBool),
-        ('OperatingSystem', VmbBool)
-    ]
-
-    def __repr__(self):
-        rep = 'VmbSupportState'
-        rep += fmt_repr('(Processor={}', self.Processor)
-        rep += fmt_repr(',OperatingSystem={}', self.OperatingSystem)
-        rep += ')'
-        return rep
-
-
-class VmbTechInfo(ctypes.Structure):
-    """Holds support state for different technologies.
-    Fields:
-        IntelMMX      - MMX support
-        IntelSSE      - SSE support
-        IntelSSE2     - SSE2 support
-        IntelSSE3     - SSE3 support
-        IntelSSSE3    - SSSE3 support
-        IntelAMD3DNow - AMD3DNow support
-    """
-    _fields_ = [
-        ('IntelMMX', VmbSupportState),
-        ('IntelSSE', VmbSupportState),
-        ('IntelSSE2', VmbSupportState),
-        ('IntelSSE3', VmbSupportState),
-        ('IntelSSSE3', VmbSupportState),
-        ('IntelAMD3DNow', VmbSupportState),
-    ]
-
-    def __repr__(self):
-        rep = 'VmbTechInfo'
-        rep += fmt_repr('(IntelMMX={}', self.IntelMMX)
-        rep += fmt_repr(',IntelSSE={}', self.IntelSSE)
-        rep += fmt_repr(',IntelSSE2={}', self.IntelSSE2)
-        rep += fmt_repr(',IntelSSE3={}', self.IntelSSE3)
-        rep += fmt_repr(',IntelSSSE3={}', self.IntelSSSE3)
-        rep += fmt_repr(',IntelAMD3DNow={}', self.IntelAMD3DNow)
-        rep += ')'
-        return rep
-
-
 class VmbPixelInfo(ctypes.Structure):
     """Structure containing pixel information. Sadly c_header contains no more documentation"""
     _fields_ = [
@@ -406,7 +354,6 @@ else:
 # check of flake8
 _SIGNATURES = {
     'VmbGetVersion': (VmbError, [c_ptr(VmbUint32)]),
-    'VmbGetTechnoInfo': (VmbError, [c_ptr(VmbTechInfo)]),
     'VmbGetErrorInfo': (VmbError, [VmbError, c_char_p, VmbUint32]),
     'VmbGetApiInfoString': (VmbError, [VmbAPIInfo, c_char_p, VmbUint32]),
     'VmbSetDebayerMode': (VmbError, [VmbDebayerMode, c_ptr(VmbTransformInfo)]),

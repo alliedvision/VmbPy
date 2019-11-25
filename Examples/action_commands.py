@@ -120,10 +120,17 @@ def set_feature(entity, feature_name: str, feature_value):
         abort('Could not set Feature \'{}\'. Abort.'.format(feature_name))
 
 
-def run_command(entity, feature_name: str):
+def command_run(entity, feature_name: str):
+    try:
+        entity.get_feature_by_name(feature_name).run()
+
+    except VimbaFeatureError:
+        abort('Failed to run Feature \'{}\'. Abort.'.format(feature_name))
+
+
+def command_run_and_wait(entity, feature_name: str):
     try:
         cmd_feat = entity.get_feature_by_name(feature_name)
-
         cmd_feat.run()
 
         while not cmd_feat.is_done():
@@ -154,7 +161,7 @@ def main():
             group_key = 1
             group_mask = 1
 
-            run_command(cam, 'GVSPAdjustPacketSize')
+            command_run_and_wait(cam, 'GVSPAdjustPacketSize')
             set_feature(cam, 'TriggerSelector', 'FrameStart')
             set_feature(cam, 'TriggerSource', 'Action0')
             set_feature(cam, 'TriggerMode', 'On')
@@ -176,7 +183,7 @@ def main():
                         set_feature(sender, 'ActionDeviceKey', device_key)
                         set_feature(sender, 'ActionGroupKey', group_key)
                         set_feature(sender, 'ActionGroupMask', group_mask)
-                        run_command(sender, 'ActionCommand')
+                        command_run(sender, 'ActionCommand')
 
             finally:
                 cam.stop_streaming()
