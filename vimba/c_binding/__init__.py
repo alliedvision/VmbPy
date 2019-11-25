@@ -28,6 +28,18 @@ THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND
 IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS.
 A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
+
+-------------------------------------------------------------------------
+
+NOTE: Vimba/Vmb naming convention.
+VimbaPython is based heavily on VimbaC, this submodule contains all wrapped types and functions
+of VimbaC. All VimbaC Types and Functions are prefixed with 'Vmb', this convention is kept for
+all python types interfacing with the C - Layer. VimbaC developers should be able to understand
+the interface to VimbaC and keeping the name convention helps a lot in that regard.
+
+However prefixing everything with 'Vmb' is not required in VimbaPython, therefore most Types
+of the public API have no prefix. There are some types like VimbaPixelFormat, that have a Vimba
+prefix highlighting that "this type is a Vimba type".
 """
 
 # Suppress 'imported but unused' - Error from static style checker.
