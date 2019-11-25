@@ -266,7 +266,7 @@ def is_default_user_set(cam: Camera, set_id: int):
         except VimbaFeatureError:
             abort('Failed to get default user set id. Abort.')
 
-        msg = 'User set \'{}\' {} the default user set.'.format()
+        msg = 'User set \'{}\' {} the default user set.'
         print(msg.format(set_id, 'is' if set_id == default_id else 'is not'))
 
 
