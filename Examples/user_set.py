@@ -261,7 +261,7 @@ def is_default_user_set(cam: Camera, set_id: int):
         print('Is user set \'{}\' the default user set?'.format(set_id))
 
         try:
-            default_id = cam.get_feature_by_name('UserSetDefaultSelector').get()
+            default_id = int(cam.get_feature_by_name('UserSetDefaultSelector').get())
 
         except VimbaFeatureError:
             abort('Failed to get default user set id. Abort.')
