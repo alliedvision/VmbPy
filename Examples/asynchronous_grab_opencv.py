@@ -29,7 +29,7 @@ IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CO
 A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
-import time
+import threading
 import sys
 import cv2
 from typing import Optional
@@ -143,14 +143,24 @@ def setup_camera(cam: Camera):
                 abort('Camera does not support a OpenCV compatible format natively. Abort.')
 
 
-def frame_handler(cam: Camera, frame: Frame):
-    print('{} acquired {}'.format(cam, frame), flush=True)
+class FrameHandler:
+    def __init__(self):
+        self.shutdown_event = threading.Event()
 
-    msg = 'Stream from \'{}\'.'
-    cv2.imshow(msg.format(cam.get_name()), frame.as_opencv_image())
-    cv2.waitKey(1)
+    def __call__(self, cam: Camera, frame: Frame):
+        ENTER_KEY_CODE = 13
 
-    cam.queue_frame(frame)
+        key = cv2.waitKey(1)
+        if key == ENTER_KEY_CODE:
+            self.shutdown_event.set()
+            return
+
+        else:
+            print('{} acquired {}'.format(cam, frame), flush=True)
+
+            msg = 'Stream from \'{}\'. Press <Enter> to stop stream.'
+            cv2.imshow(msg.format(cam.get_name()), frame.as_opencv_image())
+            cam.queue_frame(frame)
 
 
 def main():
@@ -162,10 +172,12 @@ def main():
 
             # Start Streaming, wait for five seconds, stop streaming
             setup_camera(cam)
+            handler = FrameHandler()
+
             try:
                 # Start Streaming with a custom a buffer of 10 Frames (defaults to 5)
-                cam.start_streaming(handler=frame_handler, buffer_count=10)
-                time.sleep(5)
+                cam.start_streaming(handler=handler, buffer_count=10)
+                handler.shutdown_event.wait()
 
             finally:
                 cam.stop_streaming()
