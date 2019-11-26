@@ -113,7 +113,7 @@ class Vimba:
                 config - Configuration for the logging mechanism.
 
             Raises:
-                TypeError if 'config' is not of type LogConfig.
+                TypeError if parameters do not match their type hint.
             """
             Log.get_instance().enable(config)
 
@@ -122,6 +122,7 @@ class Vimba:
             Log.get_instance().disable()
 
         @TraceEnable()
+        @RuntimeTypeCheckEnable()
         def read_memory(self, addr: int, max_bytes: int) -> bytes:
             """Read a byte sequence from a given memory address.
 
@@ -133,6 +134,7 @@ class Vimba:
                 Read memory contents as bytes.
 
             Raises:
+                TypeError if parameters do not match their type hint.
                 ValueError if addr is negative
                 ValueError if max_bytes is negative.
                 ValueError if the memory access was invalid.
@@ -140,6 +142,7 @@ class Vimba:
             return read_memory_impl(G_VIMBA_C_HANDLE, addr, max_bytes)
 
         @TraceEnable()
+        @RuntimeTypeCheckEnable()
         def write_memory(self, addr: int, data: bytes):
             """ Write a byte sequence to a given memory address.
 
@@ -148,6 +151,7 @@ class Vimba:
                 data: Byte sequence to write at address 'addr'.
 
             Raises:
+                TypeError if parameters do not match their type hint.
                 ValueError if addr is negative.
             """
             return write_memory_impl(G_VIMBA_C_HANDLE, addr, data)

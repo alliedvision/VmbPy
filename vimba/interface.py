@@ -150,6 +150,7 @@ class Interface:
         return decode_cstr(self.__info.serialString)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:
         """Read a byte sequence from a given memory address.
 
@@ -161,6 +162,7 @@ class Interface:
             Read memory contents as bytes.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if addr is negative
             ValueError if max_bytes is negative.
             ValueError if the memory access was invalid.
@@ -168,6 +170,7 @@ class Interface:
         return read_memory_impl(self.__handle, addr, max_bytes)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):
         """ Write a byte sequence to a given memory address.
 
@@ -176,6 +179,7 @@ class Interface:
             data: Byte sequence to write at address 'addr'.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if addr is negative.
         """
         return write_memory_impl(self.__handle, addr, data)

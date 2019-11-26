@@ -453,6 +453,7 @@ class Camera:
         return decode_cstr(self.__info.interfaceIdString)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:
         """Read a byte sequence from a given memory address.
 
@@ -464,6 +465,7 @@ class Camera:
             Read memory contents as bytes.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if addr is negative
             ValueError if max_bytes is negative.
             ValueError if the memory access was invalid.
@@ -471,6 +473,7 @@ class Camera:
         return read_memory_impl(self.__handle, addr, max_bytes)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):
         """ Write a byte sequence to a given memory address.
 
@@ -479,6 +482,7 @@ class Camera:
             data: Byte sequence to write at address 'addr'.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if addr is negative.
         """
         return write_memory_impl(self.__handle, addr, data)
