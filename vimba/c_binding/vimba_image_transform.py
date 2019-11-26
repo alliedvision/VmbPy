@@ -56,7 +56,7 @@ __all__ = [
     'call_vimba_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
     'LAYOUT_TO_PIXEL_FORMAT',
-    'PIXEL_FORMAT_CONVERTIBILTY_MAP'
+    'PIXEL_FORMAT_CONVERTIBILITY_MAP'
 ]
 
 
@@ -467,7 +467,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
     return tuple(result)
 
 
-PIXEL_FORMAT_CONVERTIBILTY_MAP: Dict[VmbPixelFormat, Tuple[VmbPixelFormat, ...]] = {
+PIXEL_FORMAT_CONVERTIBILITY_MAP: Dict[VmbPixelFormat, Tuple[VmbPixelFormat, ...]] = {
     VmbPixelFormat.Mono8: _query_compatibility(VmbPixelFormat.Mono8),
     VmbPixelFormat.Mono10: _query_compatibility(VmbPixelFormat.Mono10),
     VmbPixelFormat.Mono10p: _query_compatibility(VmbPixelFormat.Mono10p),
