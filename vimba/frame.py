@@ -38,7 +38,7 @@ from typing import Optional, Tuple
 from .c_binding import create_string_buffer, byref, sizeof, decode_flags
 from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
-                       VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILTY_MAP, PIXEL_FORMAT_TO_LAYOUT
+                       VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT
 from .feature import FeaturesTuple, FeatureTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category
 from .util import TraceEnable, RuntimeTypeCheckEnable
@@ -157,7 +157,7 @@ class PixelFormat(enum.IntEnum):
         return 'PixelFormat.{}'.format(str(self))
 
     def get_convertible_formats(self) -> Tuple['PixelFormat', ...]:
-        formats = PIXEL_FORMAT_CONVERTIBILTY_MAP[VmbPixelFormat(self)]
+        formats = PIXEL_FORMAT_CONVERTIBILITY_MAP[VmbPixelFormat(self)]
         return tuple([PixelFormat(fmt) for fmt in formats])
 
 
