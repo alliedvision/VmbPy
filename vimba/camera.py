@@ -144,10 +144,10 @@ class _StateInit(_State):
             except VimbaCError as e:
                 return _build_camera_error(self.context.cam, e)
 
-        return _StateAnounced(self.context)
+        return _StateAnnounced(self.context)
 
 
-class _StateAnounced(_State):
+class _StateAnnounced(_State):
     @TraceEnable()
     def forward(self) -> Union[_State, VimbaCameraError]:
         # Announced -> Capturing: Exec capture start
@@ -200,7 +200,7 @@ class _StateCapturing(_State):
         except VimbaCError as e:
             return _build_camera_error(self.context.cam, e)
 
-        return _StateAnounced(self.context)
+        return _StateAnnounced(self.context)
 
 
 class _StateQueued(_State):
