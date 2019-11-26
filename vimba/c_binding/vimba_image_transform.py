@@ -38,8 +38,8 @@ from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VimbaSystemError
 from ..util import TraceEnable
-from .vimba_common import Uint32Enum, VmbUint8, VmbUint32, VmbInt32, VmbError, VmbFloat, \
-                          VimbaCError, VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
+from .vimba_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VimbaCError, \
+                          VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
 
 
 __all__ = [
@@ -48,7 +48,6 @@ __all__ = [
     'VmbAligment',
     'VmbAPIInfo',
     'VmbPixelLayout',
-    'Vmb12BitPackedPair',
     'VmbDebayerMode',
     'VmbImage',
     'VmbImageInfo',
@@ -199,32 +198,6 @@ class VmbTransformType(Uint32Enum):
 
     def __str__(self):
         return self._name_
-
-
-class Vmb12BitPackedPair(ctypes.Structure):
-    """Data packed in 3 Byte transfer mode, two pixel packed in 3 byte.
-    Fields:
-        m_nVal8_1     - High byte of the first pixel
-        m_nVal8_1_Low - Low nibble of the first pixel
-        m_nVal8_2_Low - Low nibble of the second pixel
-        m_nVal8_2     - High byte of the second pixel
-    """
-
-    _fields_ = [
-        ('m_nVal8_1', VmbUint8),
-        ('m_nVal8_1_Low', VmbUint8, 4),
-        ('m_nVal8_2_Low', VmbUint8, 4),
-        ('m_nVal8_2', VmbUint8)
-    ]
-
-    def __repr__(self):
-        rep = 'Vmb12BitPackedPair'
-        rep += fmt_repr('(m_nVal8_1={}', self.m_nVal8_1)
-        rep += fmt_repr(',m_nVal8_1_Low={}', self.m_nVal8_1_Low)
-        rep += fmt_repr(',m_nVal8_2_Low={}', self.m_nVal8_2_Low)
-        rep += fmt_repr(',m_nVal8_2={}', self.m_nVal8_2)
-        rep += ')'
-        return rep
 
 
 class VmbPixelInfo(ctypes.Structure):
