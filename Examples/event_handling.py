@@ -150,7 +150,6 @@ def main():
 
     with Vimba.get_instance():
         with get_camera(cam_id) as cam:
-
             setup_camera(cam)
 
             # Disable all events notifications

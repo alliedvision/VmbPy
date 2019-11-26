@@ -45,7 +45,7 @@ def main():
     vimba.enable_log(LOG_CONFIG_TRACE_FILE_ONLY)
 
     # While entering this scope, feature, camera and interface discovery occurs.
-    # All function call to VimbaC are capture in the log file.
+    # All function calls to VimbaC are captured in the log file.
     with vimba:
         pass
 
