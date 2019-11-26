@@ -185,6 +185,7 @@ class Interface:
         return write_memory_impl(self.__handle, addr, data)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:
         """Read contents of multiple registers.
 
@@ -195,12 +196,14 @@ class Interface:
             Dictionary containing a mapping from given address to the read register values.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if any address in addrs is negative.
             ValueError if the register access was invalid.
         """
         return read_registers_impl(self.__handle, addrs)
 
     @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def write_registers(self, addrs_values: Dict[int, int]):
         """Write data to multiple Registers.
 
@@ -208,6 +211,7 @@ class Interface:
             addrs_values: Mapping between Register addresses and the data to write.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if any address in addrs_values is negative.
             ValueError if the register access was invalid.
         """

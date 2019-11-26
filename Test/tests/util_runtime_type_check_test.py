@@ -31,7 +31,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import unittest
-from typing import Union, Optional, Tuple, Callable
+from typing import Union, Optional, Tuple, Callable, Dict
 from vimba.util import *
 
 
@@ -176,6 +176,19 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(func, (6, '7'))
         self.assertNoRaise(func, ('8', 9))
         self.assertRaises(TypeError, func, (2, 0.0))
+
+    def test_dict(self):
+        """ Expectation: Dictionaries must be detected correctly."""
+        @RuntimeTypeCheckEnable()
+        def func(arg: Dict[int, str]):
+            pass
+
+        self.assertNoRaise(func, {0: 'ok'})
+        self.assertRaises(TypeError, func, None)
+        self.assertRaises(TypeError, func, 0)
+        self.assertRaises(TypeError, func, 'No Dict')
+        self.assertRaises(TypeError, func, {0.0: 'Err'})
+        self.assertRaises(TypeError, func, {0: b'bytes'})
 
     def test_callable_no_func(self):
         """Expectation: The Callable verification shall fail if given Parameter is no callable."""

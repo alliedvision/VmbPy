@@ -94,13 +94,17 @@ class RuntimeTypeCheckEnable:
         if self.__matches_base_types(type_hint, arg):
             return True
 
-        if self.__matches_union_types(type_hint, arg):
+        elif self.__matches_union_types(type_hint, arg):
             return True
 
-        if self.__matches_tuple_types(type_hint, arg):
+        elif self.__matches_tuple_types(type_hint, arg):
             return True
 
-        return self.__matches_callable(type_hint, arg)
+        elif self.__matches_dict_types(type_hint, arg):
+            return True
+
+        else:
+            return self.__matches_callable(type_hint, arg)
 
     def __matches_base_types(self, type_hint, arg) -> bool:
         return type_hint == type(arg)
@@ -153,6 +157,23 @@ class RuntimeTypeCheckEnable:
 
         for value in arg:
             if not self.__matches(hint, value):
+                return False
+
+        return True
+
+    def __matches_dict_types(self, type_hint, arg) -> bool:
+        # To pass the hint must be a Dictionary and arg must match the given types.
+        try:
+            if not (type_hint.__origin__ == dict and type(arg) == dict):
+                return False
+
+        except AttributeError:
+            return False
+
+        key_type, val_type = type_hint.__args__
+
+        for k, v in arg.items():
+            if type(k) != key_type or type(v) != val_type:
                 return False
 
         return True
