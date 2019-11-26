@@ -96,7 +96,7 @@ class VmbEndianness(Uint32Enum):
         LAST - Indicator for end of defined range
     """
     LITTLE = 0
-    BÍG = 1
+    BIG = 1
     LAST = 255
 
     def __str__(self):
@@ -233,7 +233,7 @@ class VmbPixelInfo(ctypes.Structure):
         ('BitsPerPixel', VmbUint32),
         ('BitsUsed', VmbUint32),
         ('Alignment', VmbUint32),
-        ('Endianess', VmbUint32),
+        ('Endianness', VmbUint32),
         ('PixelLayout', VmbUint32),
         ('BayerPattern', VmbUint32),
         ('Reserved', VmbUint32)
@@ -244,7 +244,7 @@ class VmbPixelInfo(ctypes.Structure):
         rep += fmt_repr('(BitsPerPixel={}', self.BitsPerPixel)
         rep += fmt_repr(',BitsUsed={}', self.BitsUsed)
         rep += fmt_enum_repr(',Alignment={}', VmbAligment, self.Alignment)
-        rep += fmt_enum_repr(',Endianess={}', VmbEndianness, self.Endianess)
+        rep += fmt_enum_repr(',Endianness={}', VmbEndianness, self.Endianness)
         rep += fmt_enum_repr(',PixelLayout={}', VmbPixelLayout, self.PixelLayout)
         rep += fmt_enum_repr(',BayerPattern={}', VmbBayerPattern, self.BayerPattern)
         rep += fmt_enum_repr(',Reserved={}', VmbColorSpace, self.Reserved)

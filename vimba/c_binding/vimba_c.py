@@ -271,7 +271,7 @@ class VmbInterfaceInfo(ctypes.Structure):
                                 Info: Interface name, given by transport layer
             serialString      - Type: c_char_p
                                 Info: Serial number
-            permittenAccess   - Type: VmbAccessMode (VmbUint32)
+            permittedAccess   - Type: VmbAccessMode (VmbUint32)
                                 Info: Used access mode, see VmbAccessMode
     """
     _fields_ = [
