@@ -101,7 +101,7 @@ class Vimba:
                          discover occurs.
 
             Raises:
-                TypeError if 'enable' is not of type bool.
+                TypeError if parameters do not match their type hint.
             """
             self.__nw_discover = enable
 
@@ -202,6 +202,7 @@ class Vimba:
                 Interface associated with given Id
 
             Raises:
+                TypeError if parameters do not match their type hint.
                 VimbaInterfaceError if interface with id_ can't be found.
             """
             with self.__inters_lock:
@@ -233,6 +234,7 @@ class Vimba:
                 Camera associated with given Id
 
             Raises:
+                TypeError if parameters do not match their type hint.
                 VimbaCameraError if camera with id_ can't be found.
             """
             with self.__cams_lock:
@@ -265,7 +267,7 @@ class Vimba:
                 does not affect any features.
 
             Raises:
-                TypeError if 'feat' is not of any feature type.
+                TypeError if parameters do not match their type hint.
                 VimbaFeatureError if 'feat' is not a system feature.
             """
             return filter_affected_features(self.__feats, feat)
@@ -283,7 +285,7 @@ class Vimba:
                 does not select any features.
 
             Raises:
-                TypeError if feat is not of any feature type.
+                TypeError if parameters do not match their type hint.
                 VimbaFeatureError if 'feat' is not a system feature.
             """
             return filter_selected_features(self.__feats, feat)
@@ -303,7 +305,7 @@ class Vimba:
                 no system feature with the given type available.
 
             Raises:
-                TypeError if 'feat_type' is not of any feature Type.
+                TypeError if parameters do not match their type hint.
             """
             return filter_features_by_type(self.__feats, feat_type)
 
@@ -317,6 +319,9 @@ class Vimba:
             Returns:
                 A set of features of category 'category'. Can be an empty set if there is
                 no system feature of that category.
+
+            Returns:
+                TypeError if parameters do not match their type hint.
             """
             return filter_features_by_category(self.__feats, category)
 
@@ -331,7 +336,7 @@ class Vimba:
                 Feature with the associated name.
 
             Raises:
-                TypeError if 'feat_name' is not of type 'str'.
+                TypeError if parameters do not match their type hint.
                 VimbaFeatureError if no feature is associated with 'feat_name'.
             """
             return filter_features_by_name(self.__feats, feat_name)
@@ -344,7 +349,7 @@ class Vimba:
                 handler - The change handler that shall be added.
 
             Raises:
-                TypeError if 'handler' is not of Type Callable[[Camera, bool], None]
+                TypeError if parameters do not match their type hint.
             """
             with self.__cams_handlers_lock:
                 if handler not in self.__cams_handlers:
@@ -364,7 +369,7 @@ class Vimba:
                 handler - The change handler that shall be removed.
 
             Raises:
-                TypeError if 'handler' is not of Type Callable[[Camera, bool], None]
+                TypeError if parameters do not match their type hint.
             """
             with self.__cams_handlers_lock:
                 if handler in self.__cams_handlers:
@@ -378,7 +383,7 @@ class Vimba:
                 handler - The change handler that shall be added.
 
             Raises:
-                TypeError if 'handler' is not of Type Callable[[Interface, bool], None]
+                TypeError if parameters do not match their type hint.
             """
             with self.__inters_handlers_lock:
                 if handler not in self.__inters_handlers:
@@ -398,7 +403,7 @@ class Vimba:
                 handler - The change handler that shall be removed.
 
             Raises:
-                TypeError if 'handler' is not of Type Callable[[Interface, bool], None]
+                TypeError if parameters do not match their type hint.
             """
             with self.__inters_handlers_lock:
                 if handler in self.__inters_handlers:

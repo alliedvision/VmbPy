@@ -97,7 +97,7 @@ class CameraEvent(enum.IntEnum):
     """
     Missing = 0
     Detected = 1
-    Rechable = 2
+    Reachable = 2
     Unreachable = 3
 
 
@@ -420,7 +420,7 @@ class Camera:
                           must be used before entering the Context with the 'with' statement.
 
         Raises:
-           TypeError if 'access_mode' is not of type AccessMode.
+            TypeError if parameters do not match their type hint.
         """
         self.__access_mode = access_mode
 
@@ -534,7 +534,7 @@ class Camera:
             does not affect any features.
 
         Raises:
-            TypeError if 'feat' is not of any feature type.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if 'feat' is not a feature of this camera.
         """
         return filter_affected_features(self.__feats, feat)
@@ -572,7 +572,7 @@ class Camera:
             no camera feature with the given type available.
 
         Raises:
-            TypeError if 'feat_type' is not of any feature Type.
+            TypeError if parameters do not match their type hint.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
@@ -586,6 +586,9 @@ class Camera:
         Returns:
             A set of features of category 'category'. Can be an empty set if there is
             no camera feature of that category.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
         """
         return filter_features_by_category(self.__feats, category)
 
@@ -600,7 +603,7 @@ class Camera:
             Feature with the associated name.
 
         Raises:
-            TypeError if 'feat_name' is not of type 'str'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
         return filter_features_by_name(self.__feats, feat_name)
@@ -651,6 +654,7 @@ class Camera:
             Frame from camera
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if a timeout_ms is negative.
             VimbaCameraError if camera is outside of its context.
             VimbaTimeout if Frame acquisition timed out.
@@ -671,7 +675,7 @@ class Camera:
             buffer_count - Number of frames supplied as internal buffer.
 
         Raises:
-            TypeError if 'hander' or 'buffer_count' does not comply to its type hints.
+            TypeError if parameters do not match their type hint.
             ValueError if buffer is less or equal to zero.
             VimbaCameraError if the camera is already streaming
             VimbaCameraError if the anything gone wrong on entering streaming mode.
@@ -784,6 +788,7 @@ class Camera:
             fmt - Default pixel format to set.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError is given format in not in cameras supported PixelFormats.
         """
         if fmt not in self.get_pixel_formats():
@@ -807,6 +812,7 @@ class Camera:
             persist_type - Parameter specifying which setting types to store.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if argument path is no ".xml"- File.
          """
 
@@ -830,6 +836,7 @@ class Camera:
             persist_type - Parameter specifying which setting types to load.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if argument path is no ".xml"- File.
          """
 

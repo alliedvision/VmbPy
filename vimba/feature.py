@@ -243,6 +243,9 @@ class _BaseFeature:
 
         Arguments:
             handler - The Callable that should be executed on change.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
         """
 
         with self.__handlers_lock:
@@ -271,6 +274,9 @@ class _BaseFeature:
 
         Arguments:
             handler - The Callable that should be removed.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
         """
 
         with self.__handlers_lock:
@@ -369,7 +375,7 @@ class BoolFeature(_BaseFeature):
             val - The boolean value to set.
 
         Raises:
-            TypeError if argument 'val' is not of type 'bool'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if called with an invalid value.
             VimbaFeatureError if executed within a registered change_handler.
@@ -590,7 +596,7 @@ class EnumFeature(_BaseFeature):
             val - The value to set. Can be int or str or EnumEntry.
 
         Raises:
-            TypeError if argument 'val' is not int, str or EunmFeature.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if val is of type int or str and does not match to an EnumEntry.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if executed within a registered change_handler.
@@ -753,7 +759,7 @@ class FloatFeature(_BaseFeature):
             val - The float value to set.
 
         Raises:
-            TypeError if argument 'val' is not of type 'float'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if value is out of bounds.
             VimbaFeatureError if executed within a registered change_handler.
@@ -890,7 +896,7 @@ class IntFeature(_BaseFeature):
             val - The int value to set.
 
         Raises:
-            TypeError if argument 'val' is not of type 'int'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if value is out of bounds or misaligned with regards the increment.
             VimbaFeatureError if executed within a registered change_handler.
@@ -982,7 +988,7 @@ class RawFeature(_BaseFeature):
             val - The value to set.
 
         Raises:
-            TypeError if argument 'val' is not of type 'bytes'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if executed within a registered change_handler.
         """
@@ -1095,7 +1101,7 @@ class StringFeature(_BaseFeature):
             val - The str value to set.
 
         Raises:
-            TypeError if argument 'val' is not of type 'str'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if val exceeds the maximum string length.
             VimbaFeatureError if executed within a registered change_handler.

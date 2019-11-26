@@ -340,7 +340,7 @@ class AncillaryData:
             no feature with the given type available.
 
         Raises:
-            TypeError if 'feat_type' is not of any feature Type.
+            TypeError if parameters do not match their type hint.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
@@ -354,6 +354,9 @@ class AncillaryData:
         Returns:
             A set of features of category 'category'. Can be an empty set if there is
             no feature of that category.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
         """
         return filter_features_by_category(self.__feats, category)
 
@@ -368,7 +371,7 @@ class AncillaryData:
             Feature with the associated name.
 
         Raises:
-            TypeError if 'feat_name' is not of type 'str'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
         return filter_features_by_name(self.__feats, feat_name)
@@ -556,6 +559,7 @@ class Frame:
                            ignored.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if current format can't be converted into 'target_fmt'. Convertible
                 Formats can be queried via get_convertible_formats() of PixelFormat.
             AssertionError if Image width or height can't be determined.
@@ -681,4 +685,16 @@ class Frame:
 @TraceEnable()
 @RuntimeTypeCheckEnable()
 def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTuple:
+    """Build intersection of two sets containing PixelFormat.
+
+    Arguments:
+        fmts1 - PixelFormats to intersect with @p fmts2
+        fmts2 - PixelFormats to intersect with @p fmts1
+
+    Returns:
+        Set of PixelFormats that occur in @p fmts1 and @p fmts2
+
+    Raises:
+            TypeError if parameters do not match their type hint.
+    """
     return tuple(set(fmts1).intersection(set(fmts2)))

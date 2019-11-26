@@ -89,7 +89,7 @@ class InterfaceEvent(enum.IntEnum):
     """
     Missing = 0
     Detected = 1
-    Rechable = 2
+    Reachable = 2
     Unreachable = 3
 
 
@@ -231,7 +231,7 @@ class Interface:
             does not affect any features.
 
         Raises:
-            TypeError if 'feat' is not of any feature type.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_affected_features(self.__feats, feat)
@@ -269,7 +269,7 @@ class Interface:
             no interface feature with the given type available.
 
         Raises:
-            TypeError if 'feat_type' is not of any feature Type.
+            TypeError if parameters do not match their type hint.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
@@ -283,6 +283,9 @@ class Interface:
         Returns:
             A set of features of category 'category'. Can be an empty set if there is
             no interface feature of that category.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
         """
         return filter_features_by_category(self.__feats, category)
 
@@ -297,7 +300,7 @@ class Interface:
             Feature with the associated name.
 
         Raises:
-            TypeError if 'feat_name' is not of type 'str'.
+            TypeError if parameters do not match their type hint.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
         return filter_features_by_name(self.__feats, feat_name)
