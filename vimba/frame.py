@@ -51,7 +51,7 @@ except ModuleNotFoundError:
 
 
 __all__ = [
-    'VimbaPixelFormat',
+    'PixelFormat',
     'MONO_PIXEL_FORMATS',
     'BAYER_PIXEL_FORMATS',
     'RGB_PIXEL_FORMATS',
@@ -73,10 +73,10 @@ __all__ = [
 
 # Forward declarations
 FrameTuple = Tuple['Frame', ...]
-FormatTuple = Tuple['VimbaPixelFormat', ...]
+FormatTuple = Tuple['PixelFormat', ...]
 
 
-class VimbaPixelFormat(enum.IntEnum):
+class PixelFormat(enum.IntEnum):
     # Mono Formats
     Mono8 = VmbPixelFormat.Mono8
     Mono10 = VmbPixelFormat.Mono10
@@ -154,105 +154,105 @@ class VimbaPixelFormat(enum.IntEnum):
         return self._name_
 
     def __repr__(self):
-        return 'VimbaPixelFormat.{}'.format(str(self))
+        return 'PixelFormat.{}'.format(str(self))
 
-    def get_convertible_formats(self) -> Tuple['VimbaPixelFormat', ...]:
+    def get_convertible_formats(self) -> Tuple['PixelFormat', ...]:
         formats = PIXEL_FORMAT_CONVERTIBILTY_MAP[VmbPixelFormat(self)]
-        return tuple([VimbaPixelFormat(fmt) for fmt in formats])
+        return tuple([PixelFormat(fmt) for fmt in formats])
 
 
 MONO_PIXEL_FORMATS = (
-    VimbaPixelFormat.Mono8,
-    VimbaPixelFormat.Mono10,
-    VimbaPixelFormat.Mono10p,
-    VimbaPixelFormat.Mono12,
-    VimbaPixelFormat.Mono12Packed,
-    VimbaPixelFormat.Mono12p,
-    VimbaPixelFormat.Mono14,
-    VimbaPixelFormat.Mono16
+    PixelFormat.Mono8,
+    PixelFormat.Mono10,
+    PixelFormat.Mono10p,
+    PixelFormat.Mono12,
+    PixelFormat.Mono12Packed,
+    PixelFormat.Mono12p,
+    PixelFormat.Mono14,
+    PixelFormat.Mono16
 )
 
 
 BAYER_PIXEL_FORMATS = (
-    VimbaPixelFormat.BayerGR8,
-    VimbaPixelFormat.BayerRG8,
-    VimbaPixelFormat.BayerGB8,
-    VimbaPixelFormat.BayerBG8,
-    VimbaPixelFormat.BayerGR10,
-    VimbaPixelFormat.BayerRG10,
-    VimbaPixelFormat.BayerGB10,
-    VimbaPixelFormat.BayerBG10,
-    VimbaPixelFormat.BayerGR12,
-    VimbaPixelFormat.BayerRG12,
-    VimbaPixelFormat.BayerGB12,
-    VimbaPixelFormat.BayerBG12,
-    VimbaPixelFormat.BayerGR12Packed,
-    VimbaPixelFormat.BayerRG12Packed,
-    VimbaPixelFormat.BayerGB12Packed,
-    VimbaPixelFormat.BayerBG12Packed,
-    VimbaPixelFormat.BayerGR10p,
-    VimbaPixelFormat.BayerRG10p,
-    VimbaPixelFormat.BayerGB10p,
-    VimbaPixelFormat.BayerBG10p,
-    VimbaPixelFormat.BayerGR12p,
-    VimbaPixelFormat.BayerRG12p,
-    VimbaPixelFormat.BayerGB12p,
-    VimbaPixelFormat.BayerBG12p,
-    VimbaPixelFormat.BayerGR16,
-    VimbaPixelFormat.BayerRG16,
-    VimbaPixelFormat.BayerGB16,
-    VimbaPixelFormat.BayerBG16
+    PixelFormat.BayerGR8,
+    PixelFormat.BayerRG8,
+    PixelFormat.BayerGB8,
+    PixelFormat.BayerBG8,
+    PixelFormat.BayerGR10,
+    PixelFormat.BayerRG10,
+    PixelFormat.BayerGB10,
+    PixelFormat.BayerBG10,
+    PixelFormat.BayerGR12,
+    PixelFormat.BayerRG12,
+    PixelFormat.BayerGB12,
+    PixelFormat.BayerBG12,
+    PixelFormat.BayerGR12Packed,
+    PixelFormat.BayerRG12Packed,
+    PixelFormat.BayerGB12Packed,
+    PixelFormat.BayerBG12Packed,
+    PixelFormat.BayerGR10p,
+    PixelFormat.BayerRG10p,
+    PixelFormat.BayerGB10p,
+    PixelFormat.BayerBG10p,
+    PixelFormat.BayerGR12p,
+    PixelFormat.BayerRG12p,
+    PixelFormat.BayerGB12p,
+    PixelFormat.BayerBG12p,
+    PixelFormat.BayerGR16,
+    PixelFormat.BayerRG16,
+    PixelFormat.BayerGB16,
+    PixelFormat.BayerBG16
 )
 
 
 RGB_PIXEL_FORMATS = (
-    VimbaPixelFormat.Rgb8,
-    VimbaPixelFormat.Rgb10,
-    VimbaPixelFormat.Rgb12,
-    VimbaPixelFormat.Rgb14,
-    VimbaPixelFormat.Rgb16
+    PixelFormat.Rgb8,
+    PixelFormat.Rgb10,
+    PixelFormat.Rgb12,
+    PixelFormat.Rgb14,
+    PixelFormat.Rgb16
 )
 
 
 RGBA_PIXEL_FORMATS = (
-    VimbaPixelFormat.Rgba8,
-    VimbaPixelFormat.Argb8,
-    VimbaPixelFormat.Rgba10,
-    VimbaPixelFormat.Rgba12,
-    VimbaPixelFormat.Rgba14,
-    VimbaPixelFormat.Rgba16
+    PixelFormat.Rgba8,
+    PixelFormat.Argb8,
+    PixelFormat.Rgba10,
+    PixelFormat.Rgba12,
+    PixelFormat.Rgba14,
+    PixelFormat.Rgba16
 )
 
 
 BGR_PIXEL_FORMATS = (
-    VimbaPixelFormat.Bgr8,
-    VimbaPixelFormat.Bgr10,
-    VimbaPixelFormat.Bgr12,
-    VimbaPixelFormat.Bgr14,
-    VimbaPixelFormat.Bgr16
+    PixelFormat.Bgr8,
+    PixelFormat.Bgr10,
+    PixelFormat.Bgr12,
+    PixelFormat.Bgr14,
+    PixelFormat.Bgr16
 )
 
 
 BGRA_PIXEL_FORMATS = (
-    VimbaPixelFormat.Bgra8,
-    VimbaPixelFormat.Bgra10,
-    VimbaPixelFormat.Bgra12,
-    VimbaPixelFormat.Bgra14,
-    VimbaPixelFormat.Bgra16
+    PixelFormat.Bgra8,
+    PixelFormat.Bgra10,
+    PixelFormat.Bgra12,
+    PixelFormat.Bgra14,
+    PixelFormat.Bgra16
 )
 
 
 YUV_PIXEL_FORMATS = (
-    VimbaPixelFormat.Yuv411,
-    VimbaPixelFormat.Yuv422,
-    VimbaPixelFormat.Yuv444
+    PixelFormat.Yuv411,
+    PixelFormat.Yuv422,
+    PixelFormat.Yuv444
 )
 
 
 YCBCR_PIXEL_FORMATS = (
-    VimbaPixelFormat.YCbCr411_8_CbYYCrYY,
-    VimbaPixelFormat.YCbCr422_8_CbYCrY,
-    VimbaPixelFormat.YCbCr8_CbYCr
+    PixelFormat.YCbCr411_8_CbYYCrYY,
+    PixelFormat.YCbCr422_8_CbYCrY,
+    PixelFormat.YCbCr8_CbYCr
 )
 
 
@@ -262,9 +262,9 @@ COLOR_PIXEL_FORMATS = BAYER_PIXEL_FORMATS + RGB_PIXEL_FORMATS + RGBA_PIXEL_FORMA
 
 
 OPENCV_PIXEL_FORMATS = (
-    VimbaPixelFormat.Mono8,
-    VimbaPixelFormat.Bgr8,
-    VimbaPixelFormat.Bgra8
+    PixelFormat.Mono8,
+    PixelFormat.Bgr8,
+    PixelFormat.Bgra8
 )
 
 
@@ -450,9 +450,9 @@ class Frame:
         """Returns current frame status."""
         return FrameStatus(self._frame.receiveStatus)
 
-    def get_pixel_format(self) -> VimbaPixelFormat:
+    def get_pixel_format(self) -> PixelFormat:
         """Get format of the acquired image data """
-        return VimbaPixelFormat(self._frame.pixelFormat)
+        return PixelFormat(self._frame.pixelFormat)
 
     def get_height(self) -> Optional[int]:
         """Get image height in pixel.
@@ -539,7 +539,7 @@ class Frame:
         return self._frame.timestamp
 
     @RuntimeTypeCheckEnable()
-    def convert_pixel_format(self, target_fmt: VimbaPixelFormat,
+    def convert_pixel_format(self, target_fmt: PixelFormat,
                              debayer_mode: Optional[Debayer] = None):
         """Convert internal pixel format to given format.
 
@@ -549,7 +549,7 @@ class Frame:
         can be specified.
 
         Arguments:
-            target_fmt - VimbaPixelFormat to convert to.
+            target_fmt - PixelFormat to convert to.
             debayer_mode - Non-default Algorithm used to debayer Images in Bayer Formats. If
                            no mode is specified, debayering mode 'Mode2x2' is used. In the
                            current format is no Bayer format, this parameter will be silently
@@ -557,7 +557,7 @@ class Frame:
 
         Raises:
             ValueError if current format can't be converted into 'target_fmt'. Convertible
-                Formats can be queried via get_convertible_formats() of VimbaPixelFormat.
+                Formats can be queried via get_convertible_formats() of PixelFormat.
             AssertionError if Image width or height can't be determined.
         """
 
@@ -673,7 +673,7 @@ class Frame:
 
         if fmt not in OPENCV_PIXEL_FORMATS:
             raise ValueError('Current Format \'{}\' is not in OPENCV_PIXEL_FORMATS'.format(
-                             str(VimbaPixelFormat(self._frame.pixelFormat))))
+                             str(PixelFormat(self._frame.pixelFormat))))
 
         return self.as_numpy_ndarray()
 

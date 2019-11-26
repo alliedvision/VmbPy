@@ -38,8 +38,7 @@ all python types interfacing with the C - Layer. VimbaC developers should be abl
 the interface to VimbaC and keeping the name convention helps a lot in that regard.
 
 However prefixing everything with 'Vmb' is not required in VimbaPython, therefore most Types
-of the public API have no prefix. There are some types like VimbaPixelFormat, that have a Vimba
-prefix highlighting that "this type is a Vimba type".
+of the public API have no prefix.
 """
 
 # Suppress 'imported but unused' - Error from static style checker.

@@ -151,7 +151,7 @@ class RealCamTestsFrameTest(unittest.TestCase):
         current_fmt = frame.get_pixel_format()
         convertable_fmt = current_fmt.get_convertible_formats()
 
-        for fmt in VimbaPixelFormat.__members__.values():
+        for fmt in PixelFormat.__members__.values():
             if (fmt != current_fmt) and (fmt not in convertable_fmt):
                 self.assertRaises(ValueError, frame.convert_pixel_format, fmt)
 

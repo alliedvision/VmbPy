@@ -43,7 +43,7 @@ from .feature import discover_features, discover_feature, FeatureTypes, Features
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, read_memory_impl, \
                     write_memory_impl, read_registers_impl, write_registers_impl
-from .frame import Frame, FrameTuple, FormatTuple, VimbaPixelFormat
+from .frame import Frame, FrameTuple, FormatTuple, PixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout, VimbaFeatureError
 
@@ -416,11 +416,11 @@ class Camera:
         """Set camera access mode.
 
         Arguments:
-            mode - AccessMode used on accessing a Camera. This method
-                must be used before entering the Context with the 'with' statement.
+            access_mode - AccessMode used on accessing a Camera. This method
+                          must be used before entering the Context with the 'with' statement.
 
         Raises:
-           TypeError if 'mode' is not of type AccessMode.
+           TypeError if 'access_mode' is not of type AccessMode.
         """
         self.__access_mode = access_mode
 
@@ -753,16 +753,16 @@ class Camera:
         result = []
         feat = self.get_feature_by_name('PixelFormat')
 
-        # Build intersection between PixelFormat Enum Values and VimbaPixelFormat
+        # Build intersection between PixelFormat Enum Values and PixelFormat
         # Note: The Mapping is a bit complicated due to different writing styles within
-        #       Feature EnumEntries and VimbaPixelFormats
-        all_fmts = set([k.upper() for k in VimbaPixelFormat.__members__])
+        #       Feature EnumEntries and PixelFormats
+        all_fmts = set([k.upper() for k in PixelFormat.__members__])
         all_enum_fmts = set([str(k).upper() for k in feat.get_available_entries()])
         fmts = all_fmts.intersection(all_enum_fmts)
 
-        for k in VimbaPixelFormat.__members__:
+        for k in PixelFormat.__members__:
             if k.upper() in fmts:
-                result.append(VimbaPixelFormat[k])
+                result.append(PixelFormat[k])
 
         return tuple(result)
 
@@ -771,13 +771,13 @@ class Camera:
         """Get current pixel format."""
         enum_value = str(self.get_feature_by_name('PixelFormat').get()).upper()
 
-        for k in VimbaPixelFormat.__members__:
+        for k in PixelFormat.__members__:
             if k.upper() == enum_value:
-                return VimbaPixelFormat[k]
+                return PixelFormat[k]
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
-    def set_pixel_format(self, fmt: VimbaPixelFormat):
+    def set_pixel_format(self, fmt: PixelFormat):
         """ Set current pixel format.
 
         Arguments:
