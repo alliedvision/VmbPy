@@ -42,10 +42,27 @@ class RealCamTestsBaseFeatureTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
-        self.cam._open()
+        try:
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        self.height = self.cam.get_feature_by_name('Height')
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to lookup Camera.') from e
+
+        try:
+            self.cam._open()
+
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to open Camera.') from e
+
+        try:
+            self.height = self.cam.get_feature_by_name('Height')
+
+        except VimbaCameraError as e:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'Height\' not available.')
 
     def tearDown(self):
         self.cam._close()
@@ -61,7 +78,7 @@ class RealCamTestsBaseFeatureTest(unittest.TestCase):
 
     def test_get_category(self):
         """Expectation: Return decoded category"""
-        self.assertEqual(self.height.get_category(), '/ImageFormatControl')
+        self.assertNotEqual(self.height.get_category(), '')
 
     def test_get_display_name(self):
         """Expectation: Return decoded category"""
@@ -86,18 +103,16 @@ class RealCamTestsBaseFeatureTest(unittest.TestCase):
         self.assertEqual(self.height.get_visibility(), FeatureVisibility.Beginner)
 
     def test_get_tooltip(self):
-        """Expectation: Get decoded UI tooltip"""
-        self.assertEqual(self.height.get_tooltip(),
-                         'Height of the image provided by the device (in pixels).')
+        """Expectation: Shall not raise anything"""
+        self.assertNoRaise(self.height.get_tooltip)
 
     def test_get_description(self):
         """Expectation: Get decoded description"""
-        self.assertEqual(self.height.get_description(),
-                         'Height of the image provided by the device (in pixels).')
+        self.assertNotEqual(self.height.get_description(), '')
 
     def test_get_sfnc_namespace(self):
         """Expectation: Get decoded sfnc namespace"""
-        self.assertEqual(self.height.get_sfnc_namespace(), 'Standard')
+        self.assertNotEqual(self.height.get_sfnc_namespace(), '')
 
     def test_is_streamable(self):
         """Expectation: Streamable features shall return True, others False"""
@@ -160,7 +175,12 @@ class RealCamTestsBoolFeatureTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.feat = self.vimba.get_feature_by_name('UsbTLIsPresent')
+        try:
+            self.feat = self.vimba.get_feature_by_name('UsbTLIsPresent')
+
+        except VimbaFeatureError:
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'UsbTLIsPresent\' not available.')
 
     def tearDown(self):
         self.vimba._shutdown()
@@ -187,7 +207,12 @@ class RealCamTestsCommandFeatureTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.feat = self.vimba.get_feature_by_name('ActionCommand')
+        try:
+            self.feat = self.vimba.get_feature_by_name('ActionCommand')
+
+        except VimbaFeatureError:
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'ActionCommand\' not available.')
 
     def tearDown(self):
         self.vimba._shutdown()
@@ -202,11 +227,35 @@ class RealCamTestsEnumFeatureTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
-        self.cam._open()
+        try:
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        self.feat_r = self.cam.get_feature_by_name('DeviceScanType')
-        self.feat_rw = self.cam.get_feature_by_name('AcquisitionMode')
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to lookup Camera.') from e
+
+        try:
+            self.cam._open()
+
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to open Camera.') from e
+
+        try:
+            self.feat_r = self.cam.get_feature_by_name('DeviceScanType')
+
+        except VimbaFeatureError:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'DeviceScanType\' not available.')
+
+        try:
+            self.feat_rw = self.cam.get_feature_by_name('AcquisitionMode')
+
+        except VimbaFeatureError:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'AcquisitionMode\' not available.')
 
     def tearDown(self):
         self.cam._close()
@@ -244,14 +293,18 @@ class RealCamTestsEnumFeatureTest(unittest.TestCase):
     def test_get_all_entries(self):
         """Expectation: Get all possible enum entries regardless of the availability"""
         expected = (self.feat_r.get_entry('Areascan'),)
-        self.assertEqual(self.feat_r.get_all_entries(), expected)
+
+        for e in expected:
+            self.assertIn(e, self.feat_r.get_all_entries())
 
         expected = (
             self.feat_rw.get_entry('SingleFrame'),
             self.feat_rw.get_entry('MultiFrame'),
             self.feat_rw.get_entry('Continuous')
         )
-        self.assertEqual(self.feat_rw.get_all_entries(), expected)
+
+        for e in expected:
+            self.assertIn(e, self.feat_rw.get_all_entries())
 
     def test_get_avail_entries(self):
         """Expectation: All returned enum entries must be available"""
@@ -417,12 +470,35 @@ class RealCamTestsFloatFeatureTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.feat_r = self.vimba.get_feature_by_name('Elapsed')
+        try:
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
-        self.cam._open()
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to lookup Camera.') from e
 
-        self.feat_rw = self.cam.get_feature_by_name('ExposureTime')
+        try:
+            self.cam._open()
+
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to open Camera.') from e
+
+        try:
+            self.feat_r = self.vimba.get_feature_by_name('Elapsed')
+
+        except VimbaFeatureError:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'Elapsed\' not available.')
+
+        try:
+            self.feat_rw = self.cam.get_feature_by_name('ExposureTime')
+
+        except VimbaFeatureError:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'ExposureTime\' not available.')
 
     def tearDown(self):
         self.cam._close()
@@ -524,11 +600,36 @@ class RealCamTestsIntFeatureTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
-        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
-        self.cam._open()
 
-        self.feat_r = self.cam.get_feature_by_name('HeightMax')
-        self.feat_rw = self.cam.get_feature_by_name('Height')
+        try:
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to lookup Camera.') from e
+
+        try:
+            self.cam._open()
+
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to open Camera.') from e
+
+        try:
+            self.feat_r = self.cam.get_feature_by_name('HeightMax')
+
+        except VimbaFeatureError:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'HeightMax\' not available.')
+
+        try:
+            self.feat_rw = self.cam.get_feature_by_name('Height')
+
+        except VimbaFeatureError:
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Required Feature \'Height\' not available.')
 
     def tearDown(self):
         self.cam._close()

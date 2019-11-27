@@ -47,9 +47,17 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
-        self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+        try:
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+
+        except VimbaCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to lookup Camera.') from e
+
+        self.cam.set_access_mode(AccessMode.Full)
 
     def tearDown(self):
+        self.cam.set_access_mode(AccessMode.Full)
         self.vimba._shutdown()
 
     def test_context_manager_access_mode(self):
@@ -60,7 +68,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
         # There are some known Issues regarding permissions from the underlaying C-Layer.
         # Filter buggy modes. This is a VimbaC issue not a VimbaPython issue
-        permitted_modes = [p for p in permitted_modes if p not in (AccessMode.Lite,)]
+        permitted_modes = [p for p in permitted_modes if p not in (AccessMode.Lite, )]
 
         for mode in permitted_modes:
             self.cam.set_access_mode(mode)
@@ -111,8 +119,11 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
     def test_get_permitted_access_modes(self):
         """Expectation: get currently permitted access modes"""
-        expected = (AccessMode.Full, AccessMode.Read, AccessMode.Lite)
-        self.assertEqual(self.cam.get_permitted_access_modes(), expected)
+        expected = (AccessMode.None_, AccessMode.Full, AccessMode.Read,
+                    AccessMode.Lite, AccessMode.Config)
+
+        for mode in self.cam.get_permitted_access_modes():
+            self.assertIn(mode, expected)
 
     def test_get_interface_id(self):
         """Expectation: get interface Id this camera is connected to"""
@@ -124,19 +135,27 @@ class RealCamTestsCameraTest(unittest.TestCase):
         is not associated with that camera, a TypeError must be raised.
         """
         with self.cam:
-            affect = self.cam.get_feature_by_name('Height')
-            not_affect = self.cam.get_feature_by_name('AcquisitionFrameCount')
+            try:
+                affect = self.cam.get_feature_by_name('Height')
+
+            except VimbaFeatureError as e:
+                raise unittest.SkipTest('Failed to lookup Feature Height') from e
+
+            try:
+                not_affect = self.cam.get_feature_by_name('AcquisitionFrameCount')
+
+            except VimbaFeatureError as e:
+                raise unittest.SkipTest('Failed to lookup Feature AcquisitionFrameCount') from e
 
             self.assertEqual(self.cam.get_features_affected_by(not_affect), ())
 
-            expected = (
-                self.cam.get_feature_by_name('PayloadSize'),
-            )
+            try:
+                payload_size = self.cam.get_feature_by_name('PayloadSize')
 
-            feats = self.cam.get_features_affected_by(affect)
+            except VimbaFeatureError as e:
+                raise unittest.SkipTest('Failed to lookup Feature PayloadSize') from e
 
-            for expected_feat in expected:
-                self.assertIn(expected_feat, feats)
+            self.assertIn(payload_size, self.cam.get_features_affected_by(affect))
 
     def test_frame_iterator_limit_set(self):
         """Expectation: The Frame Iterator fetches the given number of images."""
@@ -261,7 +280,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 if self.cnt == self.frame_count:
                     self.event.set()
 
-
         timeout = 5.0
         frame_count = 10
         handler = FrameHandler(frame_count)
@@ -307,7 +325,6 @@ class RealCamTestsCameraTest(unittest.TestCase):
 
             finally:
                 self.cam.stop_streaming()
-
 
     def test_runtime_type_check(self):
         """Expectation: raise TypeError on passing invalid parameters"""

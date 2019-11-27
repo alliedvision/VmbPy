@@ -105,6 +105,7 @@ def main():
     import real_cam_tests.feature_test
     import real_cam_tests.camera_test
     import real_cam_tests.frame_test
+    import real_cam_tests.ancillary_data_test
 
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
@@ -118,7 +119,8 @@ def main():
         real_cam_tests.vimba_test,
         real_cam_tests.feature_test,
         real_cam_tests.camera_test,
-        real_cam_tests.frame_test
+        real_cam_tests.frame_test,
+        real_cam_tests.ancillary_data_test
     ]
 
     # Prepare TestSuites
