@@ -31,10 +31,11 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import itertools
+import inspect
 from typing import Dict, Tuple
 from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
 from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
-from .feature import FeaturesTuple, FeatureTypes
+from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
 from .error import VimbaFeatureError
 from .util import TraceEnable
 
@@ -47,7 +48,9 @@ __all__ = [
     'read_memory_impl',
     'write_memory_impl',
     'read_registers_impl',
-    'write_registers_impl'
+    'write_registers_impl',
+    'raise_if_outside_context',
+    'raise_if_inside_context',
 ]
 
 
@@ -159,7 +162,7 @@ def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureType
 
 
 @TraceEnable()
-def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypes) -> FeaturesTuple:
+def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypeTypes) -> FeaturesTuple:
     """Search for all features with a specific type within a given feature set.
 
     Arguments:
@@ -330,6 +333,36 @@ def write_registers_impl(handle: VmbHandle, addrs_values: Dict[int, int]):
 
     if exc:
         raise exc
+
+
+def raise_if_outside_context(context_counter: int):
+    """Raises RuntimeError if context_counter is less or equal than zero.
+
+    Arguments:
+        context_counter - counter variable of context this function is called from.
+
+    Raises:
+        RuntimeError - context_counter less or equal then zero.
+    """
+    if context_counter <= 0:
+        caller_fn = '{}'.format(inspect.stack()[1][3])
+        msg = 'Called \'{}(...)\' outside of with - statement scope.'.format(caller_fn)
+        raise RuntimeError(msg)
+
+
+def raise_if_inside_context(context_counter: int):
+    """Raises RuntimeError if context_counter is greater than zero.
+
+    Arguments:
+        context_counter - counter variable of context this function is called from.
+
+    Raises:
+        RuntimeError - context_counter greater than zero.
+    """
+    if context_counter > 0:
+        caller_fn = '{}'.format(inspect.stack()[1][3])
+        msg = 'Called \'{}(...)\' inside of with - statement scope.'.format(caller_fn)
+        raise RuntimeError(msg)
 
 
 def _verify_addr(addr: int):

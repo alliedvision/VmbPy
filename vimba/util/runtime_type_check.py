@@ -94,6 +94,9 @@ class RuntimeTypeCheckEnable:
         if self.__matches_base_types(type_hint, arg):
             return True
 
+        elif self.__matches_type_types(type_hint, arg):
+            return True
+
         elif self.__matches_union_types(type_hint, arg):
             return True
 
@@ -109,6 +112,18 @@ class RuntimeTypeCheckEnable:
     def __matches_base_types(self, type_hint, arg) -> bool:
         return type_hint == type(arg)
 
+    def __matches_type_types(self, type_hint, arg) -> bool:
+        try:
+            if not type_hint.__origin__ == type:
+                return False
+
+            hint_args = type_hint.__args__
+
+        except AttributeError:
+            return False
+
+        return arg in hint_args
+
     def __matches_union_types(self, type_hint, arg) -> bool:
         try:
             if not type_hint.__origin__ == Union:
@@ -117,7 +132,12 @@ class RuntimeTypeCheckEnable:
         except AttributeError:
             return False
 
-        return type(arg) in type_hint.__args__
+        # If Matches if true for an Union hint:
+        for hint in type_hint.__args__:
+            if self.__matches(hint, arg):
+                return True
+
+        return False
 
     def __matches_tuple_types(self, type_hint, arg) -> bool:
         try:

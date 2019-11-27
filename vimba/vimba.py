@@ -33,7 +33,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 from threading import Lock
 from typing import List, Dict, Tuple
 from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
-from .feature import discover_features, FeatureTypes, FeaturesTuple, EnumFeature
+from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, read_memory_impl, \
                     write_memory_impl, read_registers_impl, write_registers_impl
@@ -299,7 +299,7 @@ class Vimba:
             return filter_selected_features(self.__feats, feat)
 
         @RuntimeTypeCheckEnable()
-        def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
+        def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
             """Get all system features of a specific feature type.
 
             Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,

@@ -60,6 +60,7 @@ __all__ = [
     'RawFeature',
 
     'FeatureTypes',
+    'FeatureTypeTypes',
     'FeaturesTuple',
     'discover_features',
     'discover_feature',
@@ -1171,6 +1172,10 @@ class StringFeature(_BaseFeature):
 
 FeatureTypes = Union[IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature,
                      CommandFeature, RawFeature]
+
+FeatureTypeTypes = Union[Type[IntFeature], Type[FloatFeature], Type[StringFeature],
+                         Type[BoolFeature], Type[EnumFeature], Type[CommandFeature],
+                         Type[RawFeature]]
 
 FeaturesTuple = Tuple[FeatureTypes, ...]
 

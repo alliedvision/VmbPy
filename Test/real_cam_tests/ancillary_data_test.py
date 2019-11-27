@@ -69,10 +69,73 @@ class AncillaryDataTest(unittest.TestCase):
         """Expectation: Ancillary Data is None if ChunkMode is disable.
         If ChunkMode is enabled Ancillary Data shall not be None.
         """
+        old_state = self.chunk_mode.get()
+
+        try:
+            # Disable ChunkMode, acquire frame: Ancillary Data must be None
+            self.chunk_mode.set(False)
+            self.assertIsNone(self.cam.get_frame().get_ancillary_data())
+
+            # Enable ChunkMode, acquire frame: Ancillary Data must not be None
+            self.chunk_mode.set(True)
+            self.assertIsNotNone(self.cam.get_frame().get_ancillary_data())
+
+        finally:
+            self.chunk_mode.set(old_state)
+
+    def test_ancillary_data_context_manager_reentrancy(self):
+        old_state = self.chunk_mode.get()
+
+        try:
+            self.chunk_mode.set(True)
+            frame = self.cam.get_frame()
+            anc_data = frame.get_ancillary_data()
+
+            with anc_data:
+                with anc_data:
+                    with anc_data:
+                        pass
+
+        finally:
+            self.chunk_mode.set(old_state)
+
+    def test_ancillary_data_api_context_sensitity(self):
+        """Expectation: Ancillary Data implements a Context Manager, outside of with-scope
+        a runtime error should be raised on all feature related methods accessed outside of the
+        context.
+        """
+        old_state = self.chunk_mode.get()
+
+        try:
+            self.chunk_mode.set(True)
+            frame = self.cam.get_frame()
+            anc_data = frame.get_ancillary_data()
+
+            # Check Access Outside Context
+            self.assertRaises(RuntimeError, anc_data.get_all_features)
+            self.assertRaises(RuntimeError, anc_data.get_features_by_type, IntFeature)
+            self.assertRaises(RuntimeError, anc_data.get_features_by_category, '/ChunkData')
+            self.assertRaises(RuntimeError, anc_data.get_feature_by_name, 'ChunkExposureTime')
+
+            with anc_data:
+                # Check Access after Context entry
+                self.assertNoRaise(anc_data.get_all_features)
+                self.assertNoRaise(anc_data.get_features_by_type, IntFeature)
+                self.assertNoRaise(anc_data.get_features_by_category, '/ChunkData')
+                self.assertNoRaise(anc_data.get_feature_by_name, 'ChunkExposureTime')
+
+            # Check Access after Context leaving
+            self.assertRaises(RuntimeError, anc_data.get_all_features)
+            self.assertRaises(RuntimeError, anc_data.get_features_by_type, IntFeature)
+            self.assertRaises(RuntimeError, anc_data.get_features_by_category, '/ChunkData')
+            self.assertRaises(RuntimeError, anc_data.get_feature_by_name, 'ChunkExposureTime')
+
+        finally:
+            self.chunk_mode.set(old_state)
+
+    def test_ancillary_data_removed_attrs(self):
+        """Expectation: Ancillary Data are lightweight features. All unsupported Feature
+        Methods must be removed.
+        """
+        # TODO: Implement me!
         pass
-
-    def test_ancillary_data_context_sensitity(self):
-        """Expectation: Feature related methods are only don't raise within Context."""
-        pass
-
-

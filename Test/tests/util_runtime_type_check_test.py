@@ -31,7 +31,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import unittest
-from typing import Union, Optional, Tuple, Callable, Dict
+from typing import Union, Optional, Tuple, Callable, Dict, Type
 from vimba.util import *
 
 
@@ -102,6 +102,16 @@ class RuntimeTypeCheckTest(unittest.TestCase):
         self.assertNoRaise(obj, 'arg')
 
         self.assertRaises(TypeError, obj, 0.0)
+
+    def test_type(self):
+        """Expectation: types as parameters must be detected like any other values."""
+        @RuntimeTypeCheckEnable()
+        def func(arg: Type[int]):
+            pass
+
+        self.assertNoRaise(func, int)
+        self.assertRaises(TypeError, func, str)
+        self.assertRaises(TypeError, func, 0)
 
     def test_union(self):
         """ Expectation: int and string are valid parameters. Everything else must throw """

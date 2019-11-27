@@ -39,8 +39,10 @@ from .c_binding import create_string_buffer, byref, sizeof, decode_flags
 from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
                        VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT
-from .feature import FeaturesTuple, FeatureTypes, discover_features
-from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category
+from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
+from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
+                    raise_if_outside_context
+
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 try:
@@ -299,34 +301,31 @@ class AncillaryData:
         self.__handle: VmbFrame = handle
         self.__data_handle: VmbHandle = VmbHandle()
         self.__feats: FeaturesTuple = ()
-        self.__context_cnt = 0
+        self.__times_opened = 0
 
     @TraceEnable()
     def __enter__(self):
-        if not self.__context_cnt:
-            self._open()
-
-        self.__context_cnt += 1
+        self._open()
         return self
 
     @TraceEnable()
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.__context_cnt -= 1
-
-        if not self.__context_cnt:
-            self._close()
+        self._close()
 
     def get_all_features(self) -> FeaturesTuple:
         """Get all features in ancillary data.
 
         Returns:
-            A set of all currently features store in Ancillary Data.
-            Returns an empty set then called outside of 'with' - statement.
+            A set of all currently features stored in Ancillary Data.
+
+        Raises:
+            RuntimeError then called outside of "with" - statement.
         """
+        raise_if_outside_context(self.__times_opened)
         return self.__feats
 
     @RuntimeTypeCheckEnable()
-    def get_features_by_type(self, feat_type: FeatureTypes) -> FeaturesTuple:
+    def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all features in ancillary data of a specific type.
 
         Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
@@ -336,12 +335,13 @@ class AncillaryData:
             feat_type - FeatureType used find features of that type.
 
         Returns:
-            A set of features of type 'feat_type'. Can be an empty set if there is
-            no feature with the given type available.
+            A all features of type 'feat_type'.
 
         Raises:
+            RuntimeError then called outside of "with" - statement.
             TypeError if parameters do not match their type hint.
         """
+        raise_if_outside_context(self.__times_opened)
         return filter_features_by_type(self.__feats, feat_type)
 
     @RuntimeTypeCheckEnable()
@@ -352,12 +352,13 @@ class AncillaryData:
             category - Category that should be used for filtering.
 
         Returns:
-            A set of features of category 'category'. Can be an empty set if there is
-            no feature of that category.
+            A all features of category 'category'.
 
         Raises:
+            RuntimeError then called outside of "with" - statement.
             TypeError if parameters do not match their type hint.
         """
+        raise_if_outside_context(self.__times_opened)
         return filter_features_by_category(self.__feats, category)
 
     @RuntimeTypeCheckEnable()
@@ -371,23 +372,31 @@ class AncillaryData:
             Feature with the associated name.
 
         Raises:
+            RuntimeError then called outside of "with" - statement.
             TypeError if parameters do not match their type hint.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
+        raise_if_outside_context(self.__times_opened)
         return filter_features_by_name(self.__feats, feat_name)
 
     @TraceEnable()
     def _open(self):
-        call_vimba_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
+        if self.__times_opened <= 0:
+            call_vimba_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
-        self.__feats = discover_features(self.__data_handle)
+            self.__feats = discover_features(self.__data_handle)
+
+        self.__times_opened += 1
 
     @TraceEnable()
     def _close(self):
-        call_vimba_c('VmbAncillaryDataClose', self.__data_handle)
+        self.__times_opened -= 1
 
-        self.__data_handle = VmbHandle()
-        self.__feats = ()
+        if self.__times_opened <= 0:
+            call_vimba_c('VmbAncillaryDataClose', self.__data_handle)
+
+            self.__data_handle = VmbHandle()
+            self.__feats = ()
 
 
 class Frame:
