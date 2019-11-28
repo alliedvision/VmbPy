@@ -35,7 +35,7 @@ import unittest
 from vimba import *
 
 
-class RealCamTestsVimbaTest(unittest.TestCase):
+class CamVimbaTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
 
@@ -43,11 +43,11 @@ class RealCamTestsVimbaTest(unittest.TestCase):
         pass
 
     def test_context_entry_exit(self):
-        """ Expected Behavior:
-        Before context entry Vimba shall have no detected features, no detected cameras and
-        no detected Interfaces. On entering the context features, cameras and interfaces shall
-        be detected and after leaving the context, everything should be reverted.
-        """
+        # Expected Behavior:
+        # Before context entry Vimba shall have no detected features, no detected cameras and
+        # no detected Interfaces. On entering the context features, cameras and interfaces shall
+        # be detected and after leaving the context, everything should be reverted.
+
         self.assertEqual(self.vimba.get_all_features(), ())
         self.assertEqual(self.vimba.get_all_interfaces(), ())
         self.assertEqual(self.vimba.get_all_cameras(), ())
@@ -62,19 +62,16 @@ class RealCamTestsVimbaTest(unittest.TestCase):
         self.assertEqual(self.vimba.get_all_cameras(), ())
 
     def test_get_all_interfaces(self):
-        """Expected Behavior: get_all_interfaces() must be empty in closed state and
-           non-empty then opened.
-        """
+        # Expected Behavior: get_all_interfaces() must be empty in closed state and
+        # non-empty then opened.
         self.assertFalse(self.vimba.get_all_interfaces())
 
         with self.vimba:
             self.assertTrue(self.vimba.get_all_interfaces())
 
     def test_get_interface_by_id(self):
-        """Expected Behavior: All detected Interfaces must be lookup able by their Id.
-        If outside of given scope, an error must be returned
-        """
-
+        # Expected Behavior: All detected Interfaces must be lookup able by their Id.
+        # If outside of given scope, an error must be returned
         with self.vimba:
             ids = [inter.get_id() for inter in self.vimba.get_all_interfaces()]
 
@@ -85,15 +82,14 @@ class RealCamTestsVimbaTest(unittest.TestCase):
             self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, id_)
 
     def test_get_all_cameras(self):
-        """Expected Behavior: get_all_cameras() must only return camera handles on a open camera.
-        """
+        # Expected Behavior: get_all_cameras() must only return camera handles on a open camera.
         self.assertFalse(self.vimba.get_all_cameras())
 
         with self.vimba:
             self.assertTrue(self.vimba.get_all_cameras())
 
     def test_get_camera_by_id(self):
-        """Expected Behavior: Lookup of test camera must not fail after system opening """
+        # Expected Behavior: Lookup of test camera must not fail after system opening
         camera_id = self.get_test_camera_id()
         self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, camera_id)
 

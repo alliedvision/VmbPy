@@ -43,13 +43,13 @@ class VimbaTest(unittest.TestCase):
         pass
 
     def test_singleton(self):
-        """Expected behavior: Multiple calls to Vimba.get_instance() return the same object."""
+        # Expected behavior: Multiple calls to Vimba.get_instance() return the same object.
         self.assertEqual(Vimba.get_instance(), Vimba.get_instance())
 
     def test_get_camera_by_id_failure(self):
-        """Expected behavior: Lookup of a currently unavailable camera must throw an
-        VimbaCameraError regardless of context.
-        """
+        # Expected behavior: Lookup of a currently unavailable camera must throw an
+        # VimbaCameraError regardless of context.
+
         vimba = Vimba.get_instance()
 
         self.assertRaises(VimbaCameraError, vimba.get_camera_by_id, 'Invalid ID')
@@ -60,9 +60,9 @@ class VimbaTest(unittest.TestCase):
         self.assertRaises(VimbaCameraError, vimba.get_camera_by_id, 'Invalid ID')
 
     def test_get_interface_by_id_failure(self):
-        """Expected behavior: Lookup of a currently unavailable interface must throw an
-        VimbaInterfaceError regardless of context.
-        """
+        # Expected behavior: Lookup of a currently unavailable interface must throw an
+        # VimbaInterfaceError regardless of context.
+
         vimba = Vimba.get_instance()
 
         self.assertRaises(VimbaInterfaceError, vimba.get_interface_by_id, 'Invalid ID')
@@ -73,9 +73,9 @@ class VimbaTest(unittest.TestCase):
         self.assertRaises(VimbaInterfaceError, vimba.get_interface_by_id, 'Invalid ID')
 
     def test_get_feature_by_name_failure(self):
-        """Expected behavior: Lookup of a currently unavailable feature must throw an
-        VimbaFeatureError regardless of context.
-        """
+        # Expected behavior: Lookup of a currently unavailable feature must throw an
+        # VimbaFeatureError regardless of context.
+
         vimba = Vimba.get_instance()
 
         self.assertRaises(VimbaFeatureError, vimba.get_feature_by_name, 'Invalid ID')
@@ -86,7 +86,7 @@ class VimbaTest(unittest.TestCase):
         self.assertRaises(VimbaFeatureError, vimba.get_feature_by_name, 'Invalid ID')
 
     def test_runtime_check_failure(self):
-        """All functions with RuntimeTypeCheckEnable must return a TypeError on Failure"""
+        # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
         vimba = Vimba.get_instance()
 
         self.assertRaises(TypeError, vimba.set_network_discovery, 0.0)

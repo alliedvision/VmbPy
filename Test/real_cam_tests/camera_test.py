@@ -42,7 +42,7 @@ def dummy_frame_handler(cam: Camera, frame: Frame):
     pass
 
 
-class RealCamTestsCameraTest(unittest.TestCase):
+class CamCameraTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -61,9 +61,9 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.vimba._shutdown()
 
     def test_context_manager_access_mode(self):
-        """Expectation: Entering Context must not throw in cases where the current access mode is
-        within get_permitted_access_modes()
-        """
+        # Expectation: Entering Context must not throw in cases where the current access mode is
+        # within get_permitted_access_modes()
+
         permitted_modes = self.cam.get_permitted_access_modes()
 
         # There are some known Issues regarding permissions from the underlaying C-Layer.
@@ -81,9 +81,8 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 self.fail()
 
     def test_context_manager_feature_discovery(self):
-        """Expectation: Outside of context, all features must be cleared,
-        inside of context all features must be detected.
-        """
+        # Expectation: Outside of context, all features must be cleared,
+        # inside of context all features must be detected.
 
         self.assertEqual(self.cam.get_all_features(), ())
 
@@ -93,7 +92,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertEqual(self.cam.get_all_features(), ())
 
     def test_access_mode(self):
-        """Expectation: set/get access mode"""
+        # Expectation: set/get access mode
         self.cam.set_access_mode(AccessMode.None_)
         self.assertEqual(self.cam.get_access_mode(), AccessMode.None_)
         self.cam.set_access_mode(AccessMode.Full)
@@ -102,23 +101,23 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertEqual(self.cam.get_access_mode(), AccessMode.Read)
 
     def test_get_id(self):
-        """Expectation: get decoded camera id"""
+        # Expectation: get decoded camera id
         self.assertTrue(self.cam.get_id())
 
     def test_get_name(self):
-        """Expectation: get decoded camera name"""
+        # Expectation: get decoded camera name
         self.assertTrue(self.cam.get_name())
 
     def test_get_model(self):
-        """Expectation: get decoded camera model"""
+        # Expectation: get decoded camera model
         self.assertTrue(self.cam.get_model())
 
     def test_get_serial(self):
-        """Expectation: get decoded camera serial"""
+        # Expectation: get decoded camera serial
         self.assertTrue(self.cam.get_serial())
 
     def test_get_permitted_access_modes(self):
-        """Expectation: get currently permitted access modes"""
+        # Expectation: get currently permitted access modes
         expected = (AccessMode.None_, AccessMode.Full, AccessMode.Read,
                     AccessMode.Lite, AccessMode.Config)
 
@@ -126,14 +125,14 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertIn(mode, expected)
 
     def test_get_interface_id(self):
-        """Expectation: get interface Id this camera is connected to"""
+        # Expectation: get interface Id this camera is connected to
         self.assertTrue(self.cam.get_interface_id())
 
     def test_get_features_affected(self):
-        """Expectation: Features that affect other features shall return a set of affected feature
-        Features that don't affect other features shall return (). If a Feature is supplied that
-        is not associated with that camera, a TypeError must be raised.
-        """
+        # Expectation: Features that affect other features shall return a set of affected feature
+        # Features that don't affect other features shall return (). If a Feature is supplied that
+        # is not associated with that camera, a TypeError must be raised.
+
         with self.cam:
             try:
                 affect = self.cam.get_feature_by_name('Height')
@@ -158,7 +157,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertIn(payload_size, self.cam.get_features_affected_by(affect))
 
     def test_frame_iterator_limit_set(self):
-        """Expectation: The Frame Iterator fetches the given number of images."""
+        # Expectation: The Frame Iterator fetches the given number of images.
         with self.cam:
             self.assertEqual(len([i for i in self.cam.get_frame_iter(0)]), 0)
             self.assertEqual(len([i for i in self.cam.get_frame_iter(1)]), 1)
@@ -166,10 +165,10 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertEqual(len([i for i in self.cam.get_frame_iter(11)]), 11)
 
     def test_frame_iterator_error(self):
-        """Expectation: The Frame Iterator raises a VimbaCameraError on a
-        negative limit and the camera raises an VimbaCameraError
-        if the camera is not opened.
-        """
+        # Expectation: The Frame Iterator raises a VimbaCameraError on a
+        # negative limit and the camera raises an VimbaCameraError
+        # if the camera is not opened.
+
         # Check limits
         self.assertRaises(ValueError, self.cam.get_frame_iter, -1)
         self.assertRaises(ValueError, self.cam.get_frame_iter, 1, 0)
@@ -200,9 +199,8 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertNoRaise(iter_.__next__)
 
     def test_get_frame(self):
-        """Expectation: Gets single Frame without any exception. Image data must be set.
-        If a zero or negative timeouts must lead to a ValueError.
-        """
+        # Expectation: Gets single Frame without any exception. Image data must be set.
+        # If a zero or negative timeouts must lead to a ValueError.
 
         self.assertRaises(ValueError, self.cam.get_frame, 0)
         self.assertRaises(ValueError, self.cam.get_frame, -1)
@@ -212,7 +210,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertEqual(type(self.cam.get_frame()), Frame)
 
     def test_capture_error_outside_vimba_scope(self):
-        """Expectation: Camera access outside of Vimba scope must lead to a VimbaCameraError"""
+        # Expectation: Camera access outside of Vimba scope must lead to a VimbaCameraError
         frame_iter = None
 
         with self.cam:
@@ -225,7 +223,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertRaises(VimbaCameraError, frame_iter.__next__)
 
     def test_capture_error_outside_camera_scope(self):
-        """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
+        # Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError
         frame_iter = None
 
         with self.cam:
@@ -234,15 +232,14 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertRaises(VimbaCameraError, frame_iter.__next__)
 
     def test_capture_timeout(self):
-        """Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError"""
+        # Expectation: Camera access outside of Camera scope must lead to a VimbaCameraError
         with self.cam:
             self.assertRaises(VimbaTimeout, self.cam.get_frame, 1)
 
     def test_is_streaming(self):
-        """Expectation: After start_streaming() is_streaming() must return true. After stop it must
-        return false. If the camera context is left without stop_streaming(), leaving
-        the context must stop streaming.
-        """
+        # Expectation: After start_streaming() is_streaming() must return true. After stop it must
+        # return false. If the camera context is left without stop_streaming(), leaving
+        # the context must stop streaming.
 
         # Normal Operation
         self.assertEqual(self.cam.is_streaming(), False)
@@ -261,12 +258,12 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertEqual(self.cam.is_streaming(), False)
 
     def test_streaming_error_frame_count(self):
-        """Expectation: A negative or zero frame_count must lead to an value error"""
+        # Expectation: A negative or zero frame_count must lead to an value error
         self.assertRaises(ValueError, self.cam.start_streaming, dummy_frame_handler, 0)
         self.assertRaises(ValueError, self.cam.start_streaming, dummy_frame_handler, -1)
 
     def test_streaming(self):
-        """Expectation: A given frame_handler must be executed for each buffered frame. """
+        # Expectation: A given frame_handler must be executed for each buffered frame.
 
         class FrameHandler:
             def __init__(self, frame_count):
@@ -295,7 +292,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 self.cam.stop_streaming()
 
     def test_streaming_queue(self):
-        """Expectation: A given frame must be reused if it is enqueued again. """
+        # Expectation: A given frame must be reused if it is enqueued again.
 
         class FrameHandler:
             def __init__(self, frame_count):
@@ -327,7 +324,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 self.cam.stop_streaming()
 
     def test_runtime_type_check(self):
-        """Expectation: raise TypeError on passing invalid parameters"""
+        # Expectation: raise TypeError on passing invalid parameters
         self.assertRaises(TypeError, self.cam.set_access_mode, -1)
         self.assertRaises(TypeError, self.cam.get_frame, 'hi')
         self.assertRaises(TypeError, self.cam.get_features_affected_by, 'No Feature')
@@ -353,9 +350,8 @@ class RealCamTestsCameraTest(unittest.TestCase):
         self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
 
     def test_save_load_settings(self):
-        """Expectation: After settings export a settings change must be reverted by loading a
-        Previously saved configuration.
-        """
+        # Expectation: After settings export a settings change must be reverted by loading a
+        # Previously saved configuration.
 
         file_name = 'test_save_load_settings.xml'
 
@@ -376,9 +372,9 @@ class RealCamTestsCameraTest(unittest.TestCase):
             self.assertEqual(old_val, feat_height.get())
 
     def test_save_settings_verify_path(self):
-        """Expectation: Valid files end with .xml and can be either a absolute path or relative
-        path to the given File. Everything else is a ValueError.
-        """
+        # Expectation: Valid files end with .xml and can be either a absolute path or relative
+        # path to the given File. Everything else is a ValueError.
+
         valid_paths = (
             'valid1.xml',
             os.path.join('.', 'valid2.xml'),
@@ -394,7 +390,7 @@ class RealCamTestsCameraTest(unittest.TestCase):
                 os.remove(path)
 
     def test_load_settings_verify_path(self):
-        """Expectation: Valid files end with .xml and must exist before before any execution. """
+        # Expectation: Valid files end with .xml and must exist before before any execution.
         valid_paths = (
             'valid1.xml',
             os.path.join('.', 'valid2.xml'),

@@ -89,7 +89,7 @@ def main():
 
     # Select TestRunner
     if args['console']:
-        runner = unittest.TextTestRunner(verbosity=1)
+        runner = unittest.TextTestRunner(verbosity=2)
 
     elif args['junit_xml']:
         import xmlrunner

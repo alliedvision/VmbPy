@@ -34,7 +34,7 @@ import unittest
 
 from vimba import *
 
-class AncillaryDataTest(unittest.TestCase):
+class CamAncillaryDataTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -66,9 +66,9 @@ class AncillaryDataTest(unittest.TestCase):
         self.vimba._shutdown()
 
     def test_ancillary_data_access(self):
-        """Expectation: Ancillary Data is None if ChunkMode is disable.
-        If ChunkMode is enabled Ancillary Data shall not be None.
-        """
+        # Expectation: Ancillary Data is None if ChunkMode is disable.
+        # If ChunkMode is enabled Ancillary Data shall not be None.
+
         old_state = self.chunk_mode.get()
 
         try:
@@ -84,6 +84,7 @@ class AncillaryDataTest(unittest.TestCase):
             self.chunk_mode.set(old_state)
 
     def test_ancillary_data_context_manager_reentrancy(self):
+        # Expectation: Ancillary Data Context Manager must be reentrant.
         old_state = self.chunk_mode.get()
 
         try:
@@ -100,10 +101,10 @@ class AncillaryDataTest(unittest.TestCase):
             self.chunk_mode.set(old_state)
 
     def test_ancillary_data_api_context_sensitity(self):
-        """Expectation: Ancillary Data implements a Context Manager, outside of with-scope
-        a runtime error should be raised on all feature related methods accessed outside of the
-        context.
-        """
+        # Expectation: Ancillary Data implements a Context Manager, outside of with-scope
+        # a runtime error should be raised on all feature related methods accessed outside of the
+        # context.
+
         old_state = self.chunk_mode.get()
 
         try:
@@ -134,8 +135,8 @@ class AncillaryDataTest(unittest.TestCase):
             self.chunk_mode.set(old_state)
 
     def test_ancillary_data_removed_attrs(self):
-        """Expectation: Ancillary Data are lightweight features. All unsupported Feature
-        Methods must be removed.
-        """
+        # Expectation: Ancillary Data are lightweight features. All unsupported Feature
+        # Methods must be removed.
+
         # TODO: Implement me!
-        pass
+        raise NotImplementedError('No Impl')
