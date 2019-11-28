@@ -31,7 +31,6 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import unittest
-
 from vimba import *
 
 

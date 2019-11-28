@@ -101,6 +101,7 @@ def main():
     import tests.util_tracer_test
     import tests.util_context_decorator_test
     import tests.vimba_test
+    import tests.interface_test
 
     import real_cam_tests.vimba_test
     import real_cam_tests.feature_test
@@ -114,7 +115,8 @@ def main():
         tests.util_runtime_type_check_test,
         tests.util_tracer_test,
         tests.util_context_decorator_test,
-        tests.vimba_test
+        tests.vimba_test,
+        tests.interface_test,
     ]
 
     REAL_CAM_TEST_MODS = [
