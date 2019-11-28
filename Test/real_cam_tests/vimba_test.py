@@ -44,27 +44,26 @@ class CamVimbaTest(unittest.TestCase):
 
     def test_context_entry_exit(self):
         # Expected Behavior:
-        # Before context entry Vimba shall have no detected features, no detected cameras and
-        # no detected Interfaces. On entering the context features, cameras and interfaces shall
+        # On entering the context features, cameras and interfaces shall
         # be detected and after leaving the context, everything should be reverted.
 
-        self.assertEqual(self.vimba.get_all_features(), ())
-        self.assertEqual(self.vimba.get_all_interfaces(), ())
-        self.assertEqual(self.vimba.get_all_cameras(), ())
+        self.assertRaises(RuntimeError, self.vimba.get_all_features)
+        self.assertRaises(RuntimeError, self.vimba.get_all_interfaces)
+        self.assertRaises(RuntimeError, self.vimba.get_all_cameras)
 
         with self.vimba:
             self.assertNotEqual(self.vimba.get_all_features(), ())
             self.assertNotEqual(self.vimba.get_all_interfaces(), ())
             self.assertNotEqual(self.vimba.get_all_cameras(), ())
 
-        self.assertEqual(self.vimba.get_all_features(), ())
-        self.assertEqual(self.vimba.get_all_interfaces(), ())
-        self.assertEqual(self.vimba.get_all_cameras(), ())
+        self.assertRaises(RuntimeError, self.vimba.get_all_features)
+        self.assertRaises(RuntimeError, self.vimba.get_all_interfaces)
+        self.assertRaises(RuntimeError, self.vimba.get_all_cameras)
 
     def test_get_all_interfaces(self):
-        # Expected Behavior: get_all_interfaces() must be empty in closed state and
-        # non-empty then opened.
-        self.assertFalse(self.vimba.get_all_interfaces())
+        # Expected Behavior: get_all_interfaces() must raise an RuntimeError in closed state and
+        # be non-empty then opened.
+        self.assertRaises(RuntimeError, self.vimba.get_all_interfaces)
 
         with self.vimba:
             self.assertTrue(self.vimba.get_all_interfaces())
@@ -79,11 +78,11 @@ class CamVimbaTest(unittest.TestCase):
                 self.assertNoRaise(self.vimba.get_interface_by_id, id_)
 
         for id_ in ids:
-            self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, id_)
+            self.assertRaises(RuntimeError, self.vimba.get_interface_by_id, id_)
 
     def test_get_all_cameras(self):
         # Expected Behavior: get_all_cameras() must only return camera handles on a open camera.
-        self.assertFalse(self.vimba.get_all_cameras())
+        self.assertRaises(RuntimeError, self.vimba.get_all_cameras)
 
         with self.vimba:
             self.assertTrue(self.vimba.get_all_cameras())
@@ -91,9 +90,6 @@ class CamVimbaTest(unittest.TestCase):
     def test_get_camera_by_id(self):
         # Expected Behavior: Lookup of test camera must not fail after system opening
         camera_id = self.get_test_camera_id()
-        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, camera_id)
 
         with self.vimba:
             self.assertNoRaise(self.vimba.get_camera_by_id, camera_id)
-
-        self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, camera_id)

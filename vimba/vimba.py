@@ -41,7 +41,8 @@ from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, Interf
                        InterfacesList, discover_interfaces, discover_interface
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
                     discover_cameras, discover_camera
-from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable
+from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VimbaCameraError, VimbaInterfaceError
 
 
@@ -59,6 +60,7 @@ class Vimba:
         """
 
         @TraceEnable()
+        @LeaveContextOnCall()
         def __init__(self):
             """Do not call directly. Use Vimba.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
@@ -92,6 +94,7 @@ class Vimba:
                 self._shutdown()
 
         @RuntimeTypeCheckEnable()
+        @RaiseIfInsideContext()
         def set_network_discovery(self, enable: bool):
             """Enable/Disable network camera discovery.
 
@@ -102,6 +105,7 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError if called inside with-statement.
             """
             self.__nw_discover = enable
 
@@ -123,6 +127,7 @@ class Vimba:
 
         @TraceEnable()
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def read_memory(self, addr: int, max_bytes: int) -> bytes:
             """Read a byte sequence from a given memory address.
 
@@ -135,6 +140,7 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 ValueError if addr is negative
                 ValueError if max_bytes is negative.
                 ValueError if the memory access was invalid.
@@ -143,6 +149,7 @@ class Vimba:
 
         @TraceEnable()
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def write_memory(self, addr: int, data: bytes):
             """ Write a byte sequence to a given memory address.
 
@@ -152,12 +159,14 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 ValueError if addr is negative.
             """
             return write_memory_impl(G_VIMBA_C_HANDLE, addr, data)
 
         @TraceEnable()
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:
             """Read contents of multiple registers.
 
@@ -169,6 +178,7 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 ValueError if any address in addrs_values is negative.
                 ValueError if the register access was invalid.
             """
@@ -176,6 +186,7 @@ class Vimba:
 
         @TraceEnable()
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def write_registers(self, addrs_values: Dict[int, int]):
             """Write data to multiple Registers.
 
@@ -184,22 +195,27 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 ValueError if any address in addrs is negative.
                 ValueError if the register access was invalid.
             """
             return write_registers_impl(G_VIMBA_C_HANDLE, addrs_values)
 
+        @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
             """Get access to all discovered Interfaces:
 
             Returns:
-                A set of all currently detected Interfaces. Returns an empty set then called
-                outside of 'with'.
+                A set of all currently detected Interfaces.
+
+            Raises:
+                RuntimeError then called outside of "with" - statement.
             """
             with self.__inters_lock:
                 return tuple(self.__inters)
 
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_interface_by_id(self, id_: str) -> Interface:
             """Lookup Interface with given ID.
 
@@ -207,10 +223,11 @@ class Vimba:
                 id_ - Interface Id to search for.
 
             Returns:
-                Interface associated with given Id
+                Interface associated with given Id.
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 VimbaInterfaceError if interface with id_ can't be found.
             """
             with self.__inters_lock:
@@ -221,17 +238,21 @@ class Vimba:
 
             return inter.pop()
 
+        @RaiseIfOutsideContext()
         def get_all_cameras(self) -> CamerasTuple:
             """Get access to all discovered Cameras.
 
             Returns:
-                A set of all currently detected Cameras. Returns an empty set then called
-                outside of 'with'.
+                A set of all currently detected Cameras.
+
+            Raises:
+                RuntimeError then called outside of "with" - statement.
             """
             with self.__cams_lock:
                 return tuple(self.__cams)
 
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_camera_by_id(self, id_: str) -> Camera:
             """Lookup Camera with given ID.
 
@@ -243,6 +264,7 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 VimbaCameraError if camera with id_ can't be found.
             """
             with self.__cams_lock:
@@ -253,17 +275,21 @@ class Vimba:
 
             return cam.pop()
 
+        @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:
             """Get access to all discovered system features:
 
             Returns:
-                A set of all currently detected Features. Returns an empty set then called
-                outside of 'with' - statement.
+                A set of all currently detected Features.
+
+            Raises:
+                RuntimeError then called outside of "with" - statement.
             """
             return self.__feats
 
         @TraceEnable()
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
             """Get all system features affected by a specific system feature.
 
@@ -271,17 +297,18 @@ class Vimba:
                 feat - Feature used find features that are affected by feat.
 
             Returns:
-                A set of features affected by changes on 'feat'. Can be an empty set if 'feat'
-                does not affect any features.
+                A set of features affected by changes on 'feat'.
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 VimbaFeatureError if 'feat' is not a system feature.
             """
             return filter_affected_features(self.__feats, feat)
 
         @TraceEnable()
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
             """Get all system features selected by a specific system feature.
 
@@ -289,16 +316,17 @@ class Vimba:
                 feat - Feature used find features that are selected by feat.
 
             Returns:
-                A set of features selected by 'feat'. Can be an empty set if 'feat'
-                does not select any features.
+                A set of features selected by 'feat'.
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 VimbaFeatureError if 'feat' is not a system feature.
             """
             return filter_selected_features(self.__feats, feat)
 
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
             """Get all system features of a specific feature type.
 
@@ -309,15 +337,16 @@ class Vimba:
                 feat_type - FeatureType used find features of that type.
 
             Returns:
-                A set of features of type 'feat_type'. Can be an empty set if there is
-                no system feature with the given type available.
+                A set of features of type 'feat_type'.
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
             """
             return filter_features_by_type(self.__feats, feat_type)
 
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_features_by_category(self, category: str) -> FeaturesTuple:
             """Get all system features of a specific category.
 
@@ -325,15 +354,16 @@ class Vimba:
                 category - Category that should be used for filtering.
 
             Returns:
-                A set of features of category 'category'. Can be an empty set if there is
-                no system feature of that category.
+                A set of features of category 'category'.
 
             Returns:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
             """
             return filter_features_by_category(self.__feats, category)
 
         @RuntimeTypeCheckEnable()
+        @RaiseIfOutsideContext()
         def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
             """Get a system feature by its name.
 
@@ -345,6 +375,7 @@ class Vimba:
 
             Raises:
                 TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
                 VimbaFeatureError if no feature is associated with 'feat_name'.
             """
             return filter_features_by_name(self.__feats, feat_name)
@@ -418,6 +449,7 @@ class Vimba:
                     self.__inters_handlers.remove(handler)
 
         @TraceEnable()
+        @EnterContextOnCall()
         def _startup(self):
             call_vimba_c('VmbStartup')
 
@@ -432,6 +464,7 @@ class Vimba:
             feat.register_change_handler(self.__cam_cb_wrapper)
 
         @TraceEnable()
+        @LeaveContextOnCall()
         def _shutdown(self):
             self.unregister_all_camera_change_handlers()
             self.unregister_all_interface_change_handlers()

@@ -30,48 +30,59 @@ A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
-# Suppress 'imported but unused' - Error from static style checker.
-# flake8: noqa: F401
+import unittest
 
-__all__ = [
-    'LogLevel',
-    'LogConfig',
-    'Log',
-    'LOG_CONFIG_TRACE_CONSOLE_ONLY',
-    'LOG_CONFIG_TRACE_FILE_ONLY',
-    'LOG_CONFIG_TRACE',
-    'LOG_CONFIG_INFO_CONSOLE_ONLY',
-    'LOG_CONFIG_INFO_FILE_ONLY',
-    'LOG_CONFIG_INFO',
-    'LOG_CONFIG_WARNING_CONSOLE_ONLY',
-    'LOG_CONFIG_WARNING_FILE_ONLY',
-    'LOG_CONFIG_WARNING',
-    'LOG_CONFIG_ERROR_CONSOLE_ONLY',
-    'LOG_CONFIG_ERROR_FILE_ONLY',
-    'LOG_CONFIG_ERROR',
-    'LOG_CONFIG_CRITICAL_CONSOLE_ONLY',
-    'LOG_CONFIG_CRITICAL_FILE_ONLY',
-    'LOG_CONFIG_CRITICAL',
+from vimba.util import *
 
-    # Decorators
-    'TraceEnable',
-    'ScopedLogEnable',
-    'RuntimeTypeCheckEnable',
-    'EnterContextOnCall',
-    'LeaveContextOnCall',
-    'RaiseIfInsideContext',
-    'RaiseIfOutsideContext'
-]
+class TestObj:
+    @LeaveContextOnCall()
+    def __init__(self):
+        pass
 
-from .log import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \
-                 LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_INFO_CONSOLE_ONLY, \
-                 LOG_CONFIG_INFO_FILE_ONLY, LOG_CONFIG_INFO, LOG_CONFIG_WARNING_CONSOLE_ONLY, \
-                 LOG_CONFIG_WARNING_FILE_ONLY, LOG_CONFIG_WARNING, LOG_CONFIG_ERROR_CONSOLE_ONLY, \
-                 LOG_CONFIG_ERROR_FILE_ONLY, LOG_CONFIG_ERROR, LOG_CONFIG_CRITICAL_CONSOLE_ONLY, \
-                 LOG_CONFIG_CRITICAL_FILE_ONLY, LOG_CONFIG_CRITICAL
+    @EnterContextOnCall()
+    def __enter__(self):
+        pass
 
-from .tracer import TraceEnable
-from .scoped_log import ScopedLogEnable
-from .runtime_type_check import RuntimeTypeCheckEnable
-from .context_decorator import EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext, \
-                               RaiseIfOutsideContext
+    @LeaveContextOnCall()
+    def __exit__(self, _1, _2, _3):
+        pass
+
+    @RaiseIfOutsideContext()
+    def works_inside_context(self):
+        pass
+
+    @RaiseIfInsideContext()
+    def works_outside_context(self):
+        pass
+
+
+class ContextDecoratorTest(unittest.TestCase):
+    def setUp(self):
+        self.test_obj = TestObj()
+
+    def tearDown(self):
+        pass
+
+    def test_raise_if_inside_context(self):
+        # Expectation: a decorated method must raise a RuntimeError if a
+        # Decorated function is called within a with - statement and
+        # run properly outside of the context.
+
+        self.assertNoRaise(self.test_obj.works_outside_context)
+
+        with self.test_obj:
+            self.assertRaises(RuntimeError, self.test_obj.works_outside_context)
+
+        self.assertNoRaise(self.test_obj.works_outside_context)
+
+    def test_raise_if_outside_context(self):
+        # Expectation: a decorated method must raise a RuntimeError if a
+        # Decorated function is called outside a with - statement and
+        # run properly inside of the context.
+
+        self.assertRaises(RuntimeError, self.test_obj.works_inside_context)
+
+        with self.test_obj:
+            self.assertNoRaise(self.test_obj.works_inside_context)
+
+        self.assertRaises(RuntimeError, self.test_obj.works_inside_context)

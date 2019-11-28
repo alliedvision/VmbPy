@@ -99,6 +99,7 @@ def main():
     import tests.c_binding_test
     import tests.util_runtime_type_check_test
     import tests.util_tracer_test
+    import tests.util_context_decorator_test
     import tests.vimba_test
 
     import real_cam_tests.vimba_test
@@ -112,6 +113,7 @@ def main():
         tests.c_binding_test,
         tests.util_runtime_type_check_test,
         tests.util_tracer_test,
+        tests.util_context_decorator_test,
         tests.vimba_test
     ]
 
