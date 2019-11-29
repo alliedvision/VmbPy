@@ -59,7 +59,7 @@
         {
             "name": "exec Examples/list_features",
             "working_dir": "$project_path",
-            "shell_cmd": "python Examples/list_features.py DEV_000F314C7A89"
+            "shell_cmd": "python Examples/list_features.py"
         },
         {
             "name": "exec Examples/asynchronous_grab.py",

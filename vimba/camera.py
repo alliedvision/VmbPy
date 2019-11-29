@@ -213,7 +213,7 @@ class _StateQueued(_State):
             self.context.cam.get_feature_by_name('AcquisitionStart').run()
 
         except BaseException as e:
-            return cast(VimbaCameraError, e)
+            return VimbaCameraError(str(e))
 
         return _StateAcquiring(self.context)
 
@@ -237,7 +237,7 @@ class _StateAcquiring(_State):
             self.context.cam.get_feature_by_name('AcquisitionStop').run()
 
         except BaseException as e:
-            return cast(VimbaCameraError, e)
+            return VimbaCameraError(str(e))
 
         return _StateQueued(self.context)
 
@@ -251,7 +251,7 @@ class _StateAcquiring(_State):
                              self.context.timeout_ms)
 
             except VimbaCError as e:
-                raise _build_camera_error(self.context.cam, e)
+                raise _build_camera_error(self.context.cam, e) from e
 
     @TraceEnable()
     def queue_frame(self, frame):
@@ -262,7 +262,7 @@ class _StateAcquiring(_State):
                          self.context.frames_wrapper)
 
         except VimbaCError as e:
-            raise _build_camera_error(self.context.cam, e)
+            raise _build_camera_error(self.context.cam, e) from e
 
 
 class _CaptureFsm:
@@ -910,14 +910,11 @@ class Camera:
     @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
-        exc = None
-
         try:
             call_vimba_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
                          byref(self.__handle))
 
         except VimbaCError as e:
-            exc = cast(VimbaCameraError, e)
             err = e.get_error_code()
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
@@ -926,11 +923,12 @@ class Camera:
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
                                  self.get_permitted_access_modes())
-
                 exc = VimbaCameraError(msg)
 
-        if exc:
-            raise exc
+            else:
+                exc = VimbaCameraError(repr(err))
+
+            raise exc from e
 
         self.__feats = discover_features(self.__handle)
 
@@ -1048,7 +1046,6 @@ def _frame_handle_accessor(frame: Frame) -> VmbFrame:
 
 
 def _build_camera_error(cam: Camera, orig_exc: VimbaCError) -> VimbaCameraError:
-    exc = cast(VimbaCameraError, orig_exc)
     err = orig_exc.get_error_code()
 
     if err == VmbError.ApiNotStarted:
@@ -1070,5 +1067,8 @@ def _build_camera_error(cam: Camera, orig_exc: VimbaCError) -> VimbaCameraError:
     elif err == VmbError.Timeout:
         msg = 'Frame capturing on Camera \'{}\' timed out.'
         exc = cast(VimbaCameraError, VimbaTimeout(msg.format(cam.get_id())))
+
+    else:
+        exc = VimbaCameraError(repr(err))
 
     return exc

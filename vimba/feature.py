@@ -332,6 +332,9 @@ class _BaseFeature:
 
         return VimbaFeatureError(msg.format(caller_name, self.get_name()))
 
+    def _build_unhandled_error(self, c_exc: VimbaCError) -> VimbaFeatureError:
+        return VimbaFeatureError(repr(c_exc.get_error_code()))
+
 
 class BoolFeature(_BaseFeature):
     """The BoolFeature is a feature, that is represented by a boolean value"""
@@ -351,19 +354,20 @@ class BoolFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_val = VmbBool(False)
 
         try:
             call_vimba_c('VmbFeatureBoolGet', self._handle, self._info.name, byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-            if e.get_error_code() == VmbError.InvalidAccess:
+            err = e.get_error_code()
+            if err == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value
 
@@ -381,13 +385,10 @@ class BoolFeature(_BaseFeature):
             VimbaFeatureError if called with an invalid value.
             VimbaFeatureError if executed within a registered change_handler.
         """
-        exc = None
-
         try:
             call_vimba_c('VmbFeatureBoolSet', self._handle, self._info.name, val)
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -399,8 +400,10 @@ class BoolFeature(_BaseFeature):
             elif err == VmbError.InvalidCall:
                 exc = self._build_within_callback_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
     def _build_value_error(self, val: bool) -> VimbaFeatureError:
         caller_name = inspect.stack()[1][3]
@@ -424,8 +427,6 @@ class CommandFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
-
         try:
             call_vimba_c('VmbFeatureCommandRun', self._handle, self._info.name)
 
@@ -435,8 +436,10 @@ class CommandFeature(_BaseFeature):
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
     @TraceEnable()
     def is_done(self) -> bool:
@@ -448,21 +451,19 @@ class CommandFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-
-        exc = None
         c_val = VmbBool(False)
 
         try:
             call_vimba_c('VmbFeatureCommandIsDone', self._handle, self._info.name, byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value
 
@@ -570,21 +571,19 @@ class EnumFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-
-        exc = None
         c_val = ctypes.c_char_p(None)
 
         try:
             call_vimba_c('VmbFeatureEnumGet', self._handle, self._info.name, byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return self.get_entry(c_val.value.decode() if c_val.value else '')
 
@@ -602,8 +601,6 @@ class EnumFeature(_BaseFeature):
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if executed within a registered change_handler.
         """
-
-        exc = None
         type_info = type(val)
 
         if type_info == EnumEntry:
@@ -619,7 +616,6 @@ class EnumFeature(_BaseFeature):
             call_vimba_c('VmbFeatureEnumSet', self._handle, self._info.name, val.as_bytes())
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -628,8 +624,10 @@ class EnumFeature(_BaseFeature):
             elif err == VmbError.InvalidCall:
                 exc = self._build_within_callback_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
 
 @TraceEnable()
@@ -675,20 +673,19 @@ class FloatFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_val = VmbDouble(0.0)
 
         try:
             call_vimba_c('VmbFeatureFloatGet', self._handle, self._info.name, byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value
 
@@ -702,7 +699,6 @@ class FloatFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_min = VmbDouble(0.0)
         c_max = VmbDouble(0.0)
 
@@ -711,13 +707,13 @@ class FloatFeature(_BaseFeature):
                          byref(c_max))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return (c_min.value, c_max.value)
 
@@ -731,8 +727,6 @@ class FloatFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-
-        exc = None
         c_has_val = VmbBool(False)
         c_val = VmbDouble(False)
 
@@ -741,13 +735,13 @@ class FloatFeature(_BaseFeature):
                          byref(c_has_val), byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value if c_has_val else None
 
@@ -765,13 +759,10 @@ class FloatFeature(_BaseFeature):
             VimbaFeatureError if value is out of bounds.
             VimbaFeatureError if executed within a registered change_handler.
         """
-        exc = None
-
         try:
             call_vimba_c('VmbFeatureFloatSet', self._handle, self._info.name, val)
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -783,8 +774,10 @@ class FloatFeature(_BaseFeature):
             elif err == VmbError.InvalidCall:
                 exc = self._build_within_callback_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
     def _build_value_error(self, val: float) -> VimbaFeatureError:
         caller_name = inspect.stack()[1][3]
@@ -815,20 +808,19 @@ class IntFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_val = VmbInt64()
 
         try:
             call_vimba_c('VmbFeatureIntGet', self._handle, self._info.name, byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value
 
@@ -842,7 +834,6 @@ class IntFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_min = VmbInt64()
         c_max = VmbInt64()
 
@@ -851,13 +842,13 @@ class IntFeature(_BaseFeature):
                          byref(c_max))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return (c_min.value, c_max.value)
 
@@ -871,20 +862,19 @@ class IntFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_val = VmbInt64()
 
         try:
             call_vimba_c('VmbFeatureIntIncrementQuery', self._handle, self._info.name, byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value
 
@@ -902,13 +892,10 @@ class IntFeature(_BaseFeature):
             VimbaFeatureError if value is out of bounds or misaligned with regards the increment.
             VimbaFeatureError if executed within a registered change_handler.
         """
-        exc = None
-
         try:
             call_vimba_c('VmbFeatureIntSet', self._handle, self._info.name, val)
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -920,8 +907,10 @@ class IntFeature(_BaseFeature):
             elif err == VmbError.InvalidCall:
                 exc = self._build_within_callback_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
     def _build_value_error(self, val) -> VimbaFeatureError:
         caller_name = inspect.stack()[1][3]
@@ -959,8 +948,6 @@ class RawFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-
-        exc = None
         c_buf_avail = VmbUint32()
         c_buf_len = self.length()
         c_buf = create_string_buffer(c_buf_len)
@@ -970,13 +957,13 @@ class RawFeature(_BaseFeature):
                          byref(c_buf_avail))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_buf.raw[:c_buf_avail.value]
 
@@ -993,13 +980,10 @@ class RawFeature(_BaseFeature):
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if executed within a registered change_handler.
         """
-        exc = None
-
         try:
             call_vimba_c('VmbFeatureRawSet', self._handle, self._info.name, buf, len(buf))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -1008,8 +992,10 @@ class RawFeature(_BaseFeature):
             elif err == VmbError.InvalidCall:
                 exc = self._build_within_callback_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
     @TraceEnable()
     def length(self) -> int:
@@ -1021,7 +1007,6 @@ class RawFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_val = VmbUint32()
 
         try:
@@ -1029,13 +1014,13 @@ class RawFeature(_BaseFeature):
                          byref(c_val))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_val.value
 
@@ -1058,7 +1043,6 @@ class StringFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_buf_len = VmbUint32(0)
 
         # Query buffer length
@@ -1067,13 +1051,13 @@ class StringFeature(_BaseFeature):
                          byref(c_buf_len))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         c_buf = create_string_buffer(c_buf_len.value)
 
@@ -1083,13 +1067,13 @@ class StringFeature(_BaseFeature):
                          None)
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_buf.value.decode()
 
@@ -1107,13 +1091,10 @@ class StringFeature(_BaseFeature):
             VimbaFeatureError if val exceeds the maximum string length.
             VimbaFeatureError if executed within a registered change_handler.
         """
-        exc = None
-
         try:
             call_vimba_c('VmbFeatureStringSet', self._handle, self._info.name, val.encode('utf8'))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -1125,8 +1106,10 @@ class StringFeature(_BaseFeature):
             elif err == VmbError.InvalidCall:
                 exc = self._build_within_callback_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
     @TraceEnable()
     def get_max_length(self) -> int:
@@ -1142,7 +1125,6 @@ class StringFeature(_BaseFeature):
         Raises:
             VimbaFeatureError if access rights are not sufficient.
         """
-        exc = None
         c_max_len = VmbUint32(0)
 
         try:
@@ -1150,13 +1132,13 @@ class StringFeature(_BaseFeature):
                          byref(c_max_len))
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
-
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
-        if exc:
-            raise exc
+            else:
+                exc = self._build_unhandled_error(e)
+
+            raise exc from e
 
         return c_max_len.value
 

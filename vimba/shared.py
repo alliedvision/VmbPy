@@ -208,7 +208,6 @@ def read_memory_impl(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:
     _verify_addr(addr)
     _verify_size(max_bytes)
 
-    exc = None
     buf = create_string_buffer(max_bytes)
     bytesRead = VmbUint32()
 
@@ -217,10 +216,7 @@ def read_memory_impl(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:
 
     except VimbaCError as e:
         msg = 'Memory read access at {} failed with C-Error: {}.'
-        exc = ValueError(msg.format(hex(addr), repr(e.get_error_code())))
-
-    if exc:
-        raise exc
+        raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
 
     return buf.value[:bytesRead.value]
 
@@ -240,7 +236,6 @@ def write_memory_impl(handle: VmbHandle, addr: int, data: bytes):
     """
     _verify_addr(addr)
 
-    exc = None
     bytesWrite = VmbUint32()
 
     try:
@@ -248,10 +243,7 @@ def write_memory_impl(handle: VmbHandle, addr: int, data: bytes):
 
     except VimbaCError as e:
         msg = 'Memory write access at {} failed with C-Error: {}.'
-        exc = ValueError(msg.format(hex(addr), repr(e.get_error_code())))
-
-    if exc:
-        raise exc
+        raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
 
 
 @TraceEnable()
@@ -272,7 +264,6 @@ def read_registers_impl(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, 
     for addr in addrs:
         _verify_addr(addr)
 
-    exc = None
     size = len(addrs)
     valid_reads = VmbUint32()
 
@@ -287,10 +278,7 @@ def read_registers_impl(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, 
 
     except VimbaCError as e:
         msg = 'Register read access failed with C-Error: {}.'
-        exc = ValueError(msg.format(repr(e.get_error_code())))
-
-    if exc:
-        raise exc
+        raise ValueError(msg.format(repr(e.get_error_code()))) from e
 
     return dict(zip(c_addrs, c_values))
 
@@ -310,7 +298,6 @@ def write_registers_impl(handle: VmbHandle, addrs_values: Dict[int, int]):
     for addr in addrs_values:
         _verify_addr(addr)
 
-    exc = None
     size = len(addrs_values)
     valid_writes = VmbUint32()
 
@@ -326,10 +313,7 @@ def write_registers_impl(handle: VmbHandle, addrs_values: Dict[int, int]):
 
     except VimbaCError as e:
         msg = 'Register write access failed with C-Error: {}.'
-        exc = ValueError(msg.format(repr(e.get_error_code())))
-
-    if exc:
-        raise exc
+        raise ValueError(msg.format(repr(e.get_error_code()))) from e
 
 
 def _verify_addr(addr: int):
