@@ -64,20 +64,22 @@ class VimbaTest(unittest.TestCase):
             self.assertRaises(VimbaFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
 
     def test_runtime_check_failure(self):
-        # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
         self.assertRaises(TypeError, self.vimba.set_network_discovery, 0.0)
-        self.assertRaises(TypeError, self.vimba.get_camera_by_id, 0)
-        self.assertRaises(TypeError, self.vimba.get_interface_by_id, 1)
-        self.assertRaises(TypeError, self.vimba.get_feature_by_name, 0)
-        self.assertRaises(TypeError, self.vimba.enable_log, '-1')
 
-        self.assertRaises(TypeError, self.vimba.get_features_affected_by, '-1')
-        self.assertRaises(TypeError, self.vimba.get_features_selected_by, '-1')
-        self.assertRaises(TypeError, self.vimba.get_features_by_type, [])
-        self.assertRaises(TypeError, self.vimba.register_camera_change_handler, 0)
-        self.assertRaises(TypeError, self.vimba.unregister_camera_change_handler, 0)
-        self.assertRaises(TypeError, self.vimba.register_interface_change_handler, 0)
-        self.assertRaises(TypeError, self.vimba.unregister_interface_change_handler, 0)
+        with self.vimba:
+            # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
+            self.assertRaises(TypeError, self.vimba.get_camera_by_id, 0)
+            self.assertRaises(TypeError, self.vimba.get_interface_by_id, 1)
+            self.assertRaises(TypeError, self.vimba.get_feature_by_name, 0)
+            self.assertRaises(TypeError, self.vimba.enable_log, '-1')
+
+            self.assertRaises(TypeError, self.vimba.get_features_affected_by, '-1')
+            self.assertRaises(TypeError, self.vimba.get_features_selected_by, '-1')
+            self.assertRaises(TypeError, self.vimba.get_features_by_type, [])
+            self.assertRaises(TypeError, self.vimba.register_camera_change_handler, 0)
+            self.assertRaises(TypeError, self.vimba.unregister_camera_change_handler, 0)
+            self.assertRaises(TypeError, self.vimba.register_interface_change_handler, 0)
+            self.assertRaises(TypeError, self.vimba.unregister_interface_change_handler, 0)
 
     def test_vimba_context_manager_reentrancy(self):
         # Expectation: Implemented Context Manager must be reentrant, not causing

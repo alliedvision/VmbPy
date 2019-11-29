@@ -152,8 +152,8 @@ class Interface:
         return decode_cstr(self.__info.serialString)
 
     @TraceEnable()
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:
         """Read a byte sequence from a given memory address.
 
@@ -174,8 +174,8 @@ class Interface:
         return read_memory_impl(self.__handle, addr, max_bytes)
 
     @TraceEnable()
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):
         """ Write a byte sequence to a given memory address.
 
@@ -191,8 +191,8 @@ class Interface:
         return write_memory_impl(self.__handle, addr, data)
 
     @TraceEnable()
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:
         """Read contents of multiple registers.
 
@@ -211,8 +211,8 @@ class Interface:
         return read_registers_impl(self.__handle, addrs)
 
     @TraceEnable()
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def write_registers(self, addrs_values: Dict[int, int]):
         """Write data to multiple Registers.
 
@@ -239,8 +239,8 @@ class Interface:
         return self.__feats
 
     @TraceEnable()
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features affected by a specific interface feature.
 
@@ -258,8 +258,8 @@ class Interface:
         return filter_affected_features(self.__feats, feat)
 
     @TraceEnable()
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific interface feature.
 
@@ -276,8 +276,8 @@ class Interface:
         """
         return filter_selected_features(self.__feats, feat)
 
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all interface features of a specific feature type.
 
@@ -296,8 +296,8 @@ class Interface:
         """
         return filter_features_by_type(self.__feats, feat_type)
 
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all interface features of a specific category.
 
@@ -313,8 +313,8 @@ class Interface:
         """
         return filter_features_by_category(self.__feats, category)
 
-    @RuntimeTypeCheckEnable()
     @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get a interface feature by its name.
 

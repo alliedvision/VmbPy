@@ -45,7 +45,8 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     filter_selected_features, filter_features_by_category, read_memory_impl, \
                     write_memory_impl, read_registers_impl, write_registers_impl
 from .frame import Frame, FrameTuple, FormatTuple, PixelFormat
-from .util import Log, TraceEnable, RuntimeTypeCheckEnable
+from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout, VimbaFeatureError
 
 
@@ -385,6 +386,7 @@ class Camera:
     Basic Camera properties like Name and Model can be access outside of the context.
     """
     @TraceEnable()
+    @LeaveContextOnCall()
     def __init__(self, info: VmbCameraInfo):
         """Do not call directly. Access Cameras via vimba.System instead."""
         self.__handle: VmbHandle = VmbHandle(0)
@@ -412,16 +414,17 @@ class Camera:
     def __str__(self):
         return 'Camera(id={})'.format(self.get_id())
 
+    @RaiseIfInsideContext()
     @RuntimeTypeCheckEnable()
     def set_access_mode(self, access_mode: AccessMode):
         """Set camera access mode.
 
         Arguments:
-            access_mode - AccessMode used on accessing a Camera. This method
-                          must be used before entering the Context with the 'with' statement.
+            access_mode - AccessMode used on accessing a Camera.
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called inside "with" - statement scope.
         """
         self.__access_mode = access_mode
 
@@ -454,6 +457,7 @@ class Camera:
         return decode_cstr(self.__info.interfaceIdString)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:
         """Read a byte sequence from a given memory address.
@@ -467,6 +471,7 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if addr is negative
             ValueError if max_bytes is negative.
             ValueError if the memory access was invalid.
@@ -474,6 +479,7 @@ class Camera:
         return read_memory_impl(self.__handle, addr, max_bytes)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):
         """ Write a byte sequence to a given memory address.
@@ -484,11 +490,13 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if addr is negative.
         """
         return write_memory_impl(self.__handle, addr, data)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:
         """Read contents of multiple registers.
@@ -501,12 +509,14 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if any address in addrs is negative.
             ValueError if the register access was invalid.
         """
         return read_registers_impl(self.__handle, addrs)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_registers(self, addrs_values: Dict[int, int]):
         """Write data to multiple Registers.
@@ -516,21 +526,26 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if any address in addrs_values is negative.
             ValueError if the register access was invalid.
         """
         return write_registers_impl(self.__handle, addrs_values)
 
+    @RaiseIfOutsideContext()
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this camera:
 
         Returns:
-            A set of all currently detected features. Returns an empty set then called
-            outside of 'with' - statement.
+            A set of all currently detected features.
+
+        Raises:
+            RuntimeError if called outside "with" - statement scope.
         """
         return self.__feats
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features affected by a specific camera feature.
@@ -539,16 +554,17 @@ class Camera:
             feat - Feature used find features that are affected by 'feat'.
 
         Returns:
-            A set of features affected by changes on 'feat'. Can be an empty set if 'feat'
-            does not affect any features.
+            A set of features affected by changes on 'feat'.
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             VimbaFeatureError if 'feat' is not a feature of this camera.
         """
         return filter_affected_features(self.__feats, feat)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific camera feature.
@@ -557,15 +573,16 @@ class Camera:
             feat - Feature used find features that are selected by 'feat'.
 
         Returns:
-            A set of features selected by changes on 'feat'. Can be an empty set if 'feat'
-            does not affect any features.
+            A set of features selected by changes on 'feat'.
 
         Raises:
             TypeError if 'feat' is not of any feature type.
+            RuntimeError if called outside "with" - statement scope.
             VimbaFeatureError if 'feat' is not a feature of this camera.
         """
         return filter_selected_features(self.__feats, feat)
 
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all camera features of a specific feature type.
@@ -577,14 +594,15 @@ class Camera:
             feat_type - FeatureType used find features of that type.
 
         Returns:
-            A set of features of type 'feat_type'. Can be an empty set if there is
-            no camera feature with the given type available.
+            A set of features of type 'feat_type'.
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all camera features of a specific category.
@@ -598,9 +616,11 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
         """
         return filter_features_by_category(self.__feats, category)
 
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get a camera feature by its name.
@@ -613,11 +633,13 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
         return filter_features_by_name(self.__feats, feat_name)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_frame_iter(self, limit: Optional[int] = None, timeout_ms: int = 2000) -> FrameIter:
         """Construct frame iterator, providing synchronous camera access.
@@ -634,9 +656,9 @@ class Camera:
             frame_iter object
 
         Raises:
+            RuntimeError if called outside "with" - statement scope.
             ValueError if a limit is supplied and negative.
             ValueError if a timeout_ms is negative.
-            VimbaCameraError if the camera is outside of its implemented context.
             VimbaTimeout if Frame acquisition timed out.
         """
         if limit and (limit < 0):
@@ -645,13 +667,10 @@ class Camera:
         if timeout_ms <= 0:
             raise ValueError('Given Timeout {} is not > 0'.format(timeout_ms))
 
-        if not self.__handle:
-            msg = 'Camera \'{}\' not ready for frame acquisition. Open camera via \'with\' .'
-            raise VimbaCameraError(msg)
-
         return FrameIter(self, limit, timeout_ms)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_frame(self, timeout_ms: int = 2000) -> Frame:
         """Get single frame from camera. Synchronous frame acquisition.
@@ -664,6 +683,7 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if a timeout_ms is negative.
             VimbaCameraError if camera is outside of its context.
             VimbaTimeout if Frame acquisition timed out.
@@ -671,6 +691,7 @@ class Camera:
         return self.get_frame_iter(1, timeout_ms).__iter__().__next__()
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def start_streaming(self, handler: FrameHandler, buffer_count: int = 5):
         """Enter streaming mode
@@ -685,6 +706,7 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if buffer is less or equal to zero.
             VimbaCameraError if the camera is already streaming
             VimbaCameraError if the anything gone wrong on entering streaming mode.
@@ -693,8 +715,7 @@ class Camera:
             raise ValueError('Given buffer_count {} must be positive'.format(buffer_count))
 
         if self.is_streaming():
-            msg = 'Camera \'{}\' already streaming.'
-            raise VimbaCameraError(msg)
+            raise VimbaCameraError('Camera \'{}\' already streaming.'.format(self.get_id()))
 
         # Setup capturing fsm
         payload_size = self.get_feature_by_name('PayloadSize').get()
@@ -711,6 +732,7 @@ class Camera:
             raise exc
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     def stop_streaming(self):
         """Leave streaming mode.
 
@@ -718,6 +740,7 @@ class Camera:
         it just returns silently.
 
         Raises:
+            RuntimeError if called outside "with" - statement scope.
             VimbaCameraError if the anything gone wrong on leaving streaming mode.
         """
         if not self.is_streaming():
@@ -738,6 +761,8 @@ class Camera:
         return self.__capture_fsm is not None
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def queue_frame(self, frame: Frame):
         """Reuse acquired Frame in streaming mode.
 
@@ -749,20 +774,30 @@ class Camera:
             frame - The frame to reuse.
 
         Raises:
+            TypeError if parameters do not match their type hint.
             ValueError if the given frame is not from the internal buffer queue.
+            RuntimeError if called outside "with" - statement scope.
             VimbaCameraError if the anything gone wrong on reusing the frame.
         """
         if self.__capture_fsm is None:
             return
 
         if frame not in self.__capture_fsm.get_context().frames:
-            raise ValueError
+            raise ValueError('Given Frame is not from Queue')
 
         self.__capture_fsm.queue_frame(frame)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     def get_pixel_formats(self) -> FormatTuple:
-        """ Get supported pixel formats from Camera"""
+        """ Get supported pixel formats from Camera.
+
+        Returns:
+            All PixelFormat the camera support
+
+        Raises:
+            RuntimeError if called outside "with" - statement scope.
+        """
         result = []
         feat = self.get_feature_by_name('PixelFormat')
 
@@ -780,8 +815,13 @@ class Camera:
         return tuple(result)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     def get_pixel_format(self):
-        """Get current pixel format."""
+        """Get current pixel format.
+
+        Raises:
+            RuntimeError if called outside "with" - statement scope.
+        """
         enum_value = str(self.get_feature_by_name('PixelFormat').get()).upper()
 
         for k in PixelFormat.__members__:
@@ -789,6 +829,7 @@ class Camera:
                 return PixelFormat[k]
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def set_pixel_format(self, fmt: PixelFormat):
         """ Set current pixel format.
@@ -798,6 +839,7 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError is given format in not in cameras supported PixelFormats.
         """
         if fmt not in self.get_pixel_formats():
@@ -811,6 +853,7 @@ class Camera:
                 feat.set(entry)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def save_settings(self, file: str, persist_type: PersistType):
         """Save camera settings to XML - File
@@ -822,6 +865,7 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if argument path is no ".xml"- File.
          """
 
@@ -835,6 +879,7 @@ class Camera:
                      sizeof(settings))
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def load_settings(self, file: str, persist_type: PersistType):
         """Load camera settings from XML - File
@@ -846,6 +891,7 @@ class Camera:
 
         Raises:
             TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
             ValueError if argument path is no ".xml"- File.
          """
 
@@ -862,6 +908,7 @@ class Camera:
                      sizeof(settings))
 
     @TraceEnable()
+    @EnterContextOnCall()
     def _open(self):
         exc = None
 
@@ -903,6 +950,7 @@ class Camera:
             pass
 
     @TraceEnable()
+    @LeaveContextOnCall()
     def _close(self):
         if self.is_streaming:
             self.stop_streaming()

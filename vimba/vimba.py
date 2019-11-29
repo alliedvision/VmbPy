@@ -93,8 +93,8 @@ class Vimba:
             if not self.__context_cnt:
                 self._shutdown()
 
-        @RuntimeTypeCheckEnable()
         @RaiseIfInsideContext()
+        @RuntimeTypeCheckEnable()
         def set_network_discovery(self, enable: bool):
             """Enable/Disable network camera discovery.
 
@@ -126,8 +126,8 @@ class Vimba:
             Log.get_instance().disable()
 
         @TraceEnable()
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def read_memory(self, addr: int, max_bytes: int) -> bytes:
             """Read a byte sequence from a given memory address.
 
@@ -148,8 +148,8 @@ class Vimba:
             return read_memory_impl(G_VIMBA_C_HANDLE, addr, max_bytes)
 
         @TraceEnable()
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def write_memory(self, addr: int, data: bytes):
             """ Write a byte sequence to a given memory address.
 
@@ -165,8 +165,8 @@ class Vimba:
             return write_memory_impl(G_VIMBA_C_HANDLE, addr, data)
 
         @TraceEnable()
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:
             """Read contents of multiple registers.
 
@@ -185,8 +185,8 @@ class Vimba:
             return read_registers_impl(G_VIMBA_C_HANDLE, addrs)
 
         @TraceEnable()
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def write_registers(self, addrs_values: Dict[int, int]):
             """Write data to multiple Registers.
 
@@ -214,8 +214,8 @@ class Vimba:
             with self.__inters_lock:
                 return tuple(self.__inters)
 
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_interface_by_id(self, id_: str) -> Interface:
             """Lookup Interface with given ID.
 
@@ -251,8 +251,8 @@ class Vimba:
             with self.__cams_lock:
                 return tuple(self.__cams)
 
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_camera_by_id(self, id_: str) -> Camera:
             """Lookup Camera with given ID.
 
@@ -288,8 +288,8 @@ class Vimba:
             return self.__feats
 
         @TraceEnable()
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
             """Get all system features affected by a specific system feature.
 
@@ -307,8 +307,8 @@ class Vimba:
             return filter_affected_features(self.__feats, feat)
 
         @TraceEnable()
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
             """Get all system features selected by a specific system feature.
 
@@ -325,8 +325,8 @@ class Vimba:
             """
             return filter_selected_features(self.__feats, feat)
 
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
             """Get all system features of a specific feature type.
 
@@ -345,8 +345,8 @@ class Vimba:
             """
             return filter_features_by_type(self.__feats, feat_type)
 
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_features_by_category(self, category: str) -> FeaturesTuple:
             """Get all system features of a specific category.
 
@@ -362,8 +362,8 @@ class Vimba:
             """
             return filter_features_by_category(self.__feats, category)
 
-        @RuntimeTypeCheckEnable()
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
         def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
             """Get a system feature by its name.
 

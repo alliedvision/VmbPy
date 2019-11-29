@@ -40,7 +40,7 @@ __all__ = [
 ]
 
 
-class EnterContextOnCall():
+class EnterContextOnCall:
     """Decorator setting/injecting flag used for checking the context."""
     def __call__(self, func):
         @functools.wraps(func)
@@ -51,7 +51,7 @@ class EnterContextOnCall():
         return wrapper
 
 
-class LeaveContextOnCall():
+class LeaveContextOnCall:
     """Decorator clearing/injecting flag used for checking the context."""
     def __call__(self, func):
         @functools.wraps(func)
@@ -63,7 +63,7 @@ class LeaveContextOnCall():
         return wrapper
 
 
-class RaiseIfInsideContext():
+class RaiseIfInsideContext:
     """Raising RuntimeError is decorated Method is called inside with-statement.
 
     Note This Decorator shall work only on Object implementing a Context Manger.
@@ -83,7 +83,7 @@ class RaiseIfInsideContext():
         return wrapper
 
 
-class RaiseIfOutsideContext():
+class RaiseIfOutsideContext:
     """Raising RuntimeError is decorated Method is called outside with-statement.
 
     Note This Decorator shall work only on Object implementing a Context Manger.
