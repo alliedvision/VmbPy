@@ -250,14 +250,14 @@ class VimbaCTest(unittest.TestCase):
 
     def test_call_vimba_c_valid(self):
         # Expectation for valid call: No exceptions, no errors
-        expected_ver_info = ((1, 8, 0), (1, 8, 1))
+        expected_ver_info = (1, 8, 1)
         ver_info = VmbVersionInfo()
 
         call_vimba_c('VmbVersionQuery', byref(ver_info), sizeof(ver_info))
 
         ver_info = (ver_info.major, ver_info.minor, ver_info.patch)
 
-        self.assertIn(ver_info, expected_ver_info)
+        self.assertEqual(ver_info, expected_ver_info)
 
     def test_call_vimba_c_invalid_func_name(self):
         # Expectation: An invalid function name must throw an AttributeError

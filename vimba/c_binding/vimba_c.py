@@ -61,7 +61,7 @@ __all__ = [
     'VmbInvalidationCallback',
     'VmbFrameCallback',
     'G_VIMBA_C_HANDLE',
-    'EXPECTED_VIMBA_C_VERSIONS',
+    'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c',
     'decode_cstr',
     'decode_flags'
@@ -581,7 +581,7 @@ VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
 G_VIMBA_C_HANDLE = VmbHandle(1)
 
 # API
-EXPECTED_VIMBA_C_VERSIONS = ('1.8.0', '1.8.1')
+EXPECTED_VIMBA_C_VERSION = '1.8.1'
 
 # For detailed information on the signatures see "VimbaC.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
@@ -660,15 +660,15 @@ def _attach_signatures(lib_handle: CDLL) -> CDLL:
 
 
 def _check_version(lib_handle: CDLL) -> CDLL:
-    global EXPECTED_VIMBA_C_VERSIONS
+    global EXPECTED_VIMBA_C_VERSION
 
     v = VmbVersionInfo()
     lib_handle.VmbVersionQuery(byref(v), sizeof(v))
 
     ver = str(v)
-    expected = EXPECTED_VIMBA_C_VERSIONS
+    expected = EXPECTED_VIMBA_C_VERSION
 
-    if (ver not in expected):
+    if ver != expected:
         msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
         raise VimbaSystemError(msg.format(expected, ver))
 
