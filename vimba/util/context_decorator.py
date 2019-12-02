@@ -72,8 +72,7 @@ class RaiseIfInsideContext:
     def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            obj = args[0]
-            if obj._context_entered:
+            if args[0]._context_entered:
                 msg = 'Called \'{}()\' outside of \'with\' - statement scope.'
                 msg = msg.format('{}'.format(func.__qualname__))
                 raise RuntimeError(msg)
@@ -92,8 +91,7 @@ class RaiseIfOutsideContext:
     def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            obj = args[0]
-            if not obj._context_entered:
+            if not args[0]._context_entered:
                 msg = 'Called \'{}()\' outside of \'with\' - statement scope.'
                 msg = msg.format('{}'.format(func.__qualname__))
                 raise RuntimeError(msg)

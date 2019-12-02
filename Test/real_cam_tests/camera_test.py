@@ -164,7 +164,6 @@ class CamCameraTest(unittest.TestCase):
         # negative limit and the camera raises an VimbaCameraError
         # if the camera is not opened.
 
-
         # Iterator execution must throw if streaming is enabled
         with self.cam:
             # Check limits
@@ -435,4 +434,3 @@ class CamCameraTest(unittest.TestCase):
         self.assertRaises(RuntimeError, self.cam.set_pixel_format)
         self.assertRaises(RuntimeError, self.cam.save_settings)
         self.assertRaises(RuntimeError, self.cam.load_settings)
-

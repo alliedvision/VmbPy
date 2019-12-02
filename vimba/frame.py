@@ -33,6 +33,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 import enum
 import ctypes
 import copy
+import functools
 
 from typing import Optional, Tuple
 from .c_binding import create_string_buffer, byref, sizeof, decode_flags
@@ -391,7 +392,7 @@ class AncillaryData:
     def _open(self):
         call_vimba_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
-        self.__feats = discover_features(self.__data_handle)
+        self.__feats = _replace_invalid_feature_calls(discover_features(self.__data_handle))
 
     @TraceEnable()
     @LeaveContextOnCall()
@@ -400,6 +401,42 @@ class AncillaryData:
 
         self.__data_handle = VmbHandle()
         self.__feats = ()
+
+
+def _replace_invalid_feature_calls(feats: FeaturesTuple) -> FeaturesTuple:
+    # AncillaryData are basically "lightweight" features. Calling most feature related
+    # Functions with a AncillaryData - Handle leads to VimbaC Errors. This method decorates
+    # all Methods that are unsafe to call with a decorator raising a RuntimeError.
+    to_wrap = [
+        'get_access_mode',
+        'is_readable',
+        'is_writeable',
+        'register_change_handler',
+        'get_increment',
+        'get_range',
+        'set'
+    ]
+
+    # Decorator raising a RuntimeError instead of delegating call to inner function.
+    def invalid_call(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            msg = 'Calling \'{}\' is invalid for AncillaryData Features.'
+            raise RuntimeError(msg.format(func.__name__))
+
+        return wrapper
+
+    # Replace original implementation by injecting a surrounding decorator and
+    # binding the resulting function as a method to the Feature instance.
+    for f, a in [(f, a) for f in feats for a in to_wrap]:
+        try:
+            fn = invalid_call(getattr(f, a))
+            setattr(f, a, fn.__get__(f))
+
+        except AttributeError:
+            pass
+
+    return feats
 
 
 class Frame:

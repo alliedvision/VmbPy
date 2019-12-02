@@ -34,6 +34,7 @@ import unittest
 
 from vimba.util import *
 
+
 class TestObj:
     @LeaveContextOnCall()
     def __init__(self):

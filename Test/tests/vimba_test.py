@@ -36,7 +36,7 @@ from vimba import *
 
 class VimbaTest(unittest.TestCase):
     def setUp(self):
-        self.vimba =Vimba.get_instance()
+        self.vimba = Vimba.get_instance()
 
     def tearDown(self):
         pass

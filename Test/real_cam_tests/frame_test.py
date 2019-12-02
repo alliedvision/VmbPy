@@ -164,7 +164,6 @@ class CamFrameTest(unittest.TestCase):
             for fmt in self.cam.get_pixel_formats():
                 self.cam.set_pixel_format(fmt)
 
-                frame = self.cam.get_frame()
                 self.assertEqual(fmt, frame.get_pixel_format())
                 test_frames.append(frame)
 

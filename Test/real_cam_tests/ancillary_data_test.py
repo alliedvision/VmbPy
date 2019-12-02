@@ -34,6 +34,7 @@ import unittest
 
 from vimba import *
 
+
 class CamAncillaryDataTest(unittest.TestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
@@ -135,8 +136,25 @@ class CamAncillaryDataTest(unittest.TestCase):
             self.chunk_mode.set(old_state)
 
     def test_ancillary_data_removed_attrs(self):
-        # Expectation: Ancillary Data are lightweight features. All unsupported Feature
-        # Methods must be removed.
+        # Expectation: Ancillary Data are lightweight features. Calling most Feature-Methods that
+        # call VimbaC Features would cause an internal error. Those error prone methods
+        # shall raise a RuntimeError on call.
 
-        # TODO: Implement me!
-        raise NotImplementedError('No Impl')
+        old_state = self.chunk_mode.get()
+
+        try:
+            self.chunk_mode.set(True)
+            frame = self.cam.get_frame()
+            anc_data = frame.get_ancillary_data()
+
+            with anc_data:
+                for feat in anc_data.get_all_features():
+                    self.assertRaises(RuntimeError, feat.get_access_mode)
+                    self.assertRaises(RuntimeError, feat.is_readable)
+                    self.assertRaises(RuntimeError, feat.is_writeable)
+                    self.assertRaises(RuntimeError, feat.register_change_handler)
+                    self.assertRaises(RuntimeError, feat.get_range)
+                    self.assertRaises(RuntimeError, feat.get_increment)
+                    self.assertRaises(RuntimeError, feat.set)
+        finally:
+            self.chunk_mode.set(old_state)

@@ -36,7 +36,7 @@ from vimba import *
 
 class InterfaceTest(unittest.TestCase):
     def setUp(self):
-        self.vimba =Vimba.get_instance()
+        self.vimba = Vimba.get_instance()
         self.vimba._startup()
 
         inters = self.vimba.get_all_interfaces()

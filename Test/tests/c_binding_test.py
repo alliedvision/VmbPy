@@ -289,7 +289,6 @@ class VimbaCTest(unittest.TestCase):
         # to a special Exception Type call VimbaCError. This error must
         # contain the returned Error Code from the failed C-Call.
 
-
         # VmbVersionQuery has two possible Errors (taken from VimbaC.h):
         # - VmbErrorStructSize:    The given struct size is not valid for this version of the API
         # - VmbErrorBadParameter:  If "pVersionInfo" is NULL.

@@ -59,7 +59,7 @@ class CamBaseFeatureTest(unittest.TestCase):
         try:
             self.height = self.cam.get_feature_by_name('Height')
 
-        except VimbaCameraError as e:
+        except VimbaCameraError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'Height\' not available.')
@@ -157,7 +157,15 @@ class CamBaseFeatureTest(unittest.TestCase):
         self.height.register_change_handler(handler)
 
         tmp = self.height.get()
-        self.height.set(tmp - self.height.get_increment())
+
+        min_, _ = self.height.get_range()
+        inc = self.height.get_increment()
+
+        if min_ <= tmp - inc:
+            self.height.set(tmp - inc)
+
+        else:
+            self.height.set(tmp + inc)
 
         handler.event.wait()
 
@@ -491,9 +499,14 @@ class CamFloatFeatureTest(unittest.TestCase):
             self.feat_rw = self.cam.get_feature_by_name('ExposureTime')
 
         except VimbaFeatureError:
-            self.cam._close()
-            self.vimba._shutdown()
-            self.skipTest('Required Feature \'ExposureTime\' not available.')
+            # Some Cameras name ExposureTime as ExposureTimeAbs
+            try:
+                self.feat_rw = self.cam.get_feature_by_name('ExposureTimeAbs')
+
+            except VimbaFeatureError:
+                self.cam._close()
+                self.vimba._shutdown()
+                self.skipTest('Required Feature \'ExposureTime\' not available.')
 
     def tearDown(self):
         self.cam._close()
@@ -704,7 +717,15 @@ class CamIntFeatureTest(unittest.TestCase):
             self.feat_rw.register_change_handler(handler)
 
             # Trigger change handler and wait for callback execution.
-            self.feat_rw.set(self.feat_rw.get() - self.feat_rw.get_increment())
+            min_, _ = self.feat_rw.get_range()
+            inc = self.feat_rw.get_increment()
+
+            if min_ <= (old_entry - inc):
+                self.feat_rw.set(old_entry - inc)
+
+            else:
+                self.feat_rw.set(old_entry + inc)
+
             handler.event.wait()
 
             self.assertTrue(handler.raised)
