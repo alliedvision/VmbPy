@@ -80,6 +80,114 @@ FormatTuple = Tuple['PixelFormat', ...]
 
 
 class PixelFormat(enum.IntEnum):
+    """Enum specifying all PixelFormats. Note: Not all Cameras support all Pixelformats.
+
+    Mono formats:
+        Mono8        - Monochrome, 8 bits (PFNC:Mono8)
+        Mono10       - Monochrome, 10 bits in 16 bits (PFNC:Mono10)
+        Mono10p      - Monochrome, 4x10 bits continuously packed in 40 bits
+                       (PFNC:Mono10p)
+        Mono12       - Monochrome, 12 bits in 16 bits (PFNC:Mono12)
+        Mono12Packed - Monochrome, 2x12 bits in 24 bits (GEV:Mono12Packed)
+        Mono12p      - Monochrome, 2x12 bits continuously packed in 24 bits
+                       (PFNC:Mono12p)
+        Mono14       - Monochrome, 14 bits in 16 bits (PFNC:Mono14)
+        Mono16       - Monochrome, 16 bits (PFNC:Mono16)
+
+    Bayer formats:
+        BayerGR8        - Bayer-color, 8 bits, starting with GR line
+                          (PFNC:BayerGR8)
+        BayerRG8        - Bayer-color, 8 bits, starting with RG line
+                          (PFNC:BayerRG8)
+        BayerGB8        - Bayer-color, 8 bits, starting with GB line
+                          (PFNC:BayerGB8)
+        BayerBG8        - Bayer-color, 8 bits, starting with BG line
+                          (PFNC:BayerBG8)
+        BayerGR10       - Bayer-color, 10 bits in 16 bits, starting with GR
+                          line (PFNC:BayerGR10)
+        BayerRG10       - Bayer-color, 10 bits in 16 bits, starting with RG
+                          line (PFNC:BayerRG10)
+        BayerGB10       - Bayer-color, 10 bits in 16 bits, starting with GB
+                          line (PFNC:BayerGB10)
+        BayerBG10       - Bayer-color, 10 bits in 16 bits, starting with BG
+                          line (PFNC:BayerBG10)
+        BayerGR12       - Bayer-color, 12 bits in 16 bits, starting with GR
+                          line (PFNC:BayerGR12)
+        BayerRG12       - Bayer-color, 12 bits in 16 bits, starting with RG
+                          line (PFNC:BayerRG12)
+        BayerGB12       - Bayer-color, 12 bits in 16 bits, starting with GB
+                          line (PFNC:BayerGB12)
+        BayerBG12       - Bayer-color, 12 bits in 16 bits, starting with BG
+                          line (PFNC:BayerBG12)
+        BayerGR12Packed - Bayer-color, 2x12 bits in 24 bits, starting with GR
+                          line (GEV:BayerGR12Packed)
+        BayerRG12Packed - Bayer-color, 2x12 bits in 24 bits, starting with RG
+                          line (GEV:BayerRG12Packed)
+        BayerGB12Packed - Bayer-color, 2x12 bits in 24 bits, starting with GB
+                          line (GEV:BayerGB12Packed)
+        BayerBG12Packed - Bayer-color, 2x12 bits in 24 bits, starting with BG
+                          line (GEV:BayerBG12Packed)
+        BayerGR10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with GR line (PFNC:BayerGR10p)
+        BayerRG10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with RG line (PFNC:BayerRG10p)
+        BayerGB10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with GB line (PFNC:BayerGB10p)
+        BayerBG10p      - Bayer-color, 4x10 bits continuously packed in 40
+                          bits, starting with BG line (PFNC:BayerBG10p)
+        BayerGR12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with GR line (PFNC:BayerGR12p)
+        BayerRG12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with RG line (PFNC:BayerRG12p)
+        BayerGB12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with GB line (PFNC:BayerGB12p)
+        BayerBG12p      - Bayer-color, 2x12 bits continuously packed in 24
+                          bits, starting with BG line (PFNC:BayerBG12p)
+        BayerGR16       - Bayer-color, 16 bits, starting with GR line
+                          (PFNC:BayerGR16)
+        BayerRG16       - Bayer-color, 16 bits, starting with RG line
+                          (PFNC:BayerRG16)
+        BayerGB16       - Bayer-color, 16 bits, starting with GB line
+                          (PFNC:BayerGB16)
+        BayerBG16       - Bayer-color, 16 bits, starting with BG line
+                          (PFNC:BayerBG16)
+
+    RGB formats:
+        Rgb8  - RGB, 8 bits x 3 (PFNC:RGB8)
+        Bgr8  - BGR, 8 bits x 3 (PFNC:Bgr8)
+        Rgb10 - RGB, 10 bits in 16 bits x 3 (PFNC:RGB10)
+        Bgr10 - BGR, 10 bits in 16 bits x 3 (PFNC:BGR10)
+        Rgb12 - RGB, 12 bits in 16 bits x 3 (PFNC:RGB12)
+        Bgr12 - BGR, 12 bits in 16 bits x 3 (PFNC:BGR12)
+        Rgb14 - RGB, 14 bits in 16 bits x 3 (PFNC:RGB14)
+        Bgr14 - BGR, 14 bits in 16 bits x 3 (PFNC:BGR14)
+        Rgb16 - RGB, 16 bits x 3 (PFNC:RGB16)
+        Bgr16 - BGR, 16 bits x 3 (PFNC:BGR16)
+
+    RGBA formats:
+        Argb8  - ARGB, 8 bits x 4 (PFNC:RGBa8)
+        Rgba8  - RGBA, 8 bits x 4, legacy name
+        Bgra8  - BGRA, 8 bits x 4 (PFNC:BGRa8)
+        Rgba10 - RGBA, 10 bits in 16 bits x 4
+        Bgra10 - BGRA, 10 bits in 16 bits x 4
+        Rgba12 - RGBA, 12 bits in 16 bits x 4
+        Bgra12 - BGRA, 12 bits in 16 bits x 4
+        Rgba14 - RGBA, 14 bits in 16 bits x 4
+        Bgra14 - BGRA, 14 bits in 16 bits x 4
+        Rgba16 - RGBA, 16 bits x 4
+        Bgra16 - BGRA, 16 bits x 4
+
+    YUV/YCbCr formats:
+        Yuv411              -  YUV 411 with 8 bits (GEV:YUV411Packed)
+        Yuv422              -  YUV 422 with 8 bits (GEV:YUV422Packed)
+        Yuv444              -  YUV 444 with 8 bits (GEV:YUV444Packed)
+        YCbCr411_8_CbYYCrYY -  Y´CbCr 411 with 8 bits
+                               (PFNC:YCbCr411_8_CbYYCrYY) - identical to Yuv411
+        YCbCr422_8_CbYCrY   -  Y´CbCr 422 with 8 bits
+                               (PFNC:YCbCr422_8_CbYCrY) - identical to Yuv422
+        YCbCr8_CbYCr        -  Y´CbCr 444 with 8 bits
+                               (PFNC:YCbCr8_CbYCr) - identical to Yuv444
+    """
     # Mono Formats
     Mono8 = VmbPixelFormat.Mono8
     Mono10 = VmbPixelFormat.Mono10
@@ -272,6 +380,15 @@ OPENCV_PIXEL_FORMATS = (
 
 
 class Debayer(enum.IntEnum):
+    """Enum specifying Debayer modes.
+
+    Enum values:
+        Mode2x2    - No further information available.
+        Mode3x3    - No further information available.
+        ModeLCAA   - No further information available.
+        ModeLCAAV  - No further information available.
+        ModeYuv422 - No further information available.
+    """
     Mode2x2 = VmbDebayerMode.Mode_2x2
     Mode3x3 = VmbDebayerMode.Mode_3x3
     ModeLCAA = VmbDebayerMode.Mode_LCAA
@@ -286,6 +403,15 @@ class Debayer(enum.IntEnum):
 
 
 class FrameStatus(enum.IntEnum):
+    """Enum specifying the current status of internal Frame data.
+
+    Enum values:
+        Complete   - Frame data is complete without errors.
+        Incomplete - Frame could not be filled to the end.
+        TooSmall   - Frame buffer was too small
+        Invalid    - Frame buffer was invalid
+    """
+
     Complete = VmbFrameStatus.Complete
     Incomplete = VmbFrameStatus.Incomplete
     TooSmall = VmbFrameStatus.TooSmall
@@ -454,6 +580,29 @@ class Frame:
 
     def __str__(self):
         return 'Frame(id={}, buffer={})'.format(self._frame.frameID, hex(self._frame.buffer))
+
+    def __getstate__(self):
+        return {
+            '_buffer': self._buffer.raw,
+            '_frame': self._frame.serialize_skip_ptr()
+        }
+
+    def __setstate__(self, state):
+        raw_buf = state['_buffer']
+        raw_buf_size = len(raw_buf)
+
+        # Allocate and copy frame data into new buffer
+        self._buffer = create_string_buffer(raw_buf_size)
+        ctypes.memmove(self._buffer, raw_buf, raw_buf_size)
+
+        self._frame = VmbFrame().deserialize_skip_ptr(state['_frame'])
+
+        # Pickle does not support serialization of c pointers (for a good reasons)
+        # therefore, set Pointers manually.
+        self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
+        self._frame.bufferSize = sizeof(self._buffer)
+
+        return self
 
     def __deepcopy__(self, memo):
         cls = self.__class__

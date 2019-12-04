@@ -73,7 +73,7 @@ class RaiseIfInsideContext:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             if args[0]._context_entered:
-                msg = 'Called \'{}()\' outside of \'with\' - statement scope.'
+                msg = 'Called \'{}()\' inside of \'with\' - statement scope.'
                 msg = msg.format('{}'.format(func.__qualname__))
                 raise RuntimeError(msg)
 

@@ -137,12 +137,15 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
 
 
 @TraceEnable()
-def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureTypes:
+def filter_features_by_name(feats: FeaturesTuple, feat_name: str,
+                            raises: bool = True) -> FeatureTypes:
     """Search for a feature with a specific name within a feature set.
 
     Arguments:
         feats: Feature set to search in.
         feat_name: Feature name to look for.
+        raises: If True, raises runtime error on failed lookup, if false returns empty set.
+                This is used to suppress creation of a log entry while VimbaFeatureError construction.
 
     Returns:
         The Feature with the name 'feat_name'
@@ -152,8 +155,11 @@ def filter_features_by_name(feats: FeaturesTuple, feat_name: str) -> FeatureType
     """
     filtered = [feat for feat in feats if feat_name == feat.get_name()]
 
-    if not filtered:
+    if not filtered and raises:
         raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+
+    elif not filtered:
+        return ()
 
     return filtered.pop()
 

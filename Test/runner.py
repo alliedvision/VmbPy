@@ -111,20 +111,20 @@ def main():
 
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
-        tests.c_binding_test,
-        tests.util_runtime_type_check_test,
-        tests.util_tracer_test,
-        tests.util_context_decorator_test,
-        tests.vimba_test,
-        tests.interface_test,
+        #tests.c_binding_test,
+        #tests.util_runtime_type_check_test,
+        #tests.util_tracer_test,
+        #tests.util_context_decorator_test,
+        #tests.vimba_test,
+        #tests.interface_test,
     ]
 
     REAL_CAM_TEST_MODS = [
-        real_cam_tests.vimba_test,
-        real_cam_tests.feature_test,
-        real_cam_tests.camera_test,
+        #real_cam_tests.vimba_test,
+        #real_cam_tests.feature_test,
+        #real_cam_tests.camera_test,
         real_cam_tests.frame_test,
-        real_cam_tests.ancillary_data_test
+        #real_cam_tests.ancillary_data_test
     ]
 
     # Prepare TestSuites

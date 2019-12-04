@@ -525,6 +525,30 @@ class VmbFrame(ctypes.Structure):
         rep += ')'
         return rep
 
+    def serialize_skip_ptr(self):
+        # Helper Function for pickling VmbFrame. All Pointer must be set accordingly for
+        # unpickling.
+        result = {}
+
+        # Fetch all values from self
+        for id_, _ in self._fields_:
+            result[id_] = getattr(self, id_)
+
+        # Clear pointers fields
+        result['buffer'] = None
+        result['bufferSize'] = 0
+        result['context'] = (None, None, None, None)
+
+        return result
+
+    def deserialize_skip_ptr(self, state):
+        # Helper function for Pickling the VmbFrame.
+        # Warning: Update all Pointer types manually.
+        for key in state:
+            setattr(self, key, state[key])
+
+        return self
+
     def deepcopy_skip_ptr(self, memo):
         result = VmbFrame()
         memo[id(self)] = result

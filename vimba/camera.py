@@ -933,19 +933,20 @@ class Camera:
         self.__feats = discover_features(self.__handle)
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
-        # add a log entry that
-        try:
-            min_ = 1400
-            max_ = 1600
-            size = filter_features_by_name(self.__feats, 'GVSPPacketSize').get()
+        feat = filter_features_by_name(self.__feats, 'GVSPPacketSize', False)
+        if feat:
+            try:
+                min_ = 1400
+                max_ = 1600
+                size = feat.get()
 
-            if (min_ < size) and (size < max_):
-                msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
-                       'Enable jumbo packets for improved performance.')
-                Log.get_instance().info(msg.format(self.get_id()))
+                if (min_ < size) and (size < max_):
+                    msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
+                           'Enable jumbo packets for improved performance.')
+                    Log.get_instance().info(msg.format(self.get_id()))
 
-        except VimbaFeatureError:
-            pass
+            except VimbaFeatureError:
+                pass
 
     @TraceEnable()
     @LeaveContextOnCall()
