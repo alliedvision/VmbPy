@@ -52,6 +52,11 @@
             "shell_cmd": "python run_tests.py test_junit -s all -c DEV_1AB22C00041B"
         },
         {
+            "name": "exec Examples/multithread_example_opencv.py",
+            "working_dir": "$project_path",
+            "shell_cmd": "python Examples/multithread_example_opencv.py"
+        },
+        {
             "name": "exec Examples/list_cameras",
             "working_dir": "$project_path",
             "shell_cmd": "python Examples/list_cameras.py"

@@ -37,146 +37,206 @@ import queue
 import numpy
 import functools
 
+from typing import Optional
 from vimba import *
 
+
+def print_preamble():
+    print('////////////////////////////////////////////')
+    print('/// Vimba API Multithreading Example ///////')
+    print('////////////////////////////////////////////\n')
+    print(flush=True)
+
+
+def add_camera_id(frame: Frame, cam_id: str) -> Frame:
+    text = 'Cam: {}'.format(cam_id)
+    cv2.putText(frame.as_opencv_image(), text, org=(0, 30), fontScale=1, color=255, thickness=1,
+                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
+    return frame
+
+
+def create_dummy_frame() -> numpy.ndarray:
+    HEIGHT = 50
+    WIDTH = 640
+    CHANNELS = 1
+    TEXT = 'No Stream available. Please connect a Camera.'
+
+    # Create White Image
+    cv_frame = numpy.zeros((HEIGHT, WIDTH, CHANNELS), numpy.uint8)
+    cv_frame[:] = 0
+
+    # Add Text onto of white Image
+    cv2.putText(cv_frame, TEXT, org=(30, 30), fontScale=1, color=255, thickness=1,
+                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
+
+    return cv_frame
+
+
+def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame], timeout: int = 1):
+    try:
+        q.put((cam.get_id(), frame), timeout=timeout)
+
+    except queue.Full:
+        pass
+
+
+def set_feature(obj, feat_name: str, feat_value):
+    try:
+        obj.get_feature_by_name(feat_name).set(feat_value)
+
+    except VimbaFeatureError as e:
+        raise RuntimeError('Failed to set Feature \'{}\''.format(feat_name)) from e
+
+
+# Thread Objects
 class FrameProducer(threading.Thread):
-    def __init__(self, cam: Camera, frame_queue: queue.Queue, teardown: threading.Event):
+    def __init__(self, cam: Camera, frame_queue: queue.Queue):
         threading.Thread.__init__(self)
 
         self.log = Log.get_instance()
         self.cam = cam
         self.frame_queue = frame_queue
-        self.teardown = teardown
+        self.killswitch = threading.Event()
 
     def __call__(self, cam: Camera, frame: Frame):
         if frame.get_status() == FrameStatus.Complete:
-            # Construct Item to send to FrameConsumer (camera id + acquired frame)
-            queue_item = (cam.get_id(), copy.deepcopy(frame))
+            try_put_frame(self.frame_queue, cam, copy.deepcopy(frame))
 
-            try:
-                self.frame_queue.put(queue_item, timeout=1)
-
-            except queue.Full:
-                pass
-
-        # Reuse original Frame
         cam.queue_frame(frame)
+
+    def stop(self):
+        self.killswitch.set()
+        self.join()
 
     def run(self):
         self.log.info('Thread \'FrameProducer({})\' started.'.format(self.cam.get_id()))
 
-        with self.cam:
-            self.setup_camera()
+        try:
+            with self.cam:
+                set_feature(self.cam, 'Height', 640)
+                set_feature(self.cam, 'Width', 640)
+                set_feature(self.cam, 'ExposureAuto', 'Once')
+                set_feature(self.cam, 'PixelFormat', 'Mono8')
 
-            try:
-                self.cam.start_streaming(self)
-                self.teardown.wait()
+                try:
+                    self.cam.start_streaming(self)
+                    self.killswitch.wait()
 
-            finally:
-                self.cam.stop_streaming()
+                finally:
+                    self.cam.stop_streaming()
+
+        except VimbaCameraError:
+            pass
+
+        finally:
+            try_put_frame(self.frame_queue, self.cam, None)
 
         self.log.info('Thread \'FrameProducer({})\' terminated.'.format(self.cam.get_id()))
 
-    def setup_camera(self):
-        with self.cam:
-            try:
-                self.cam.get_feature_by_name('Height').set(640)
-
-            except VimbaFeatureError as e:
-                raise RuntimeError('Failed to set feature Height') from e
-
-            try:
-                self.cam.get_feature_by_name('Width').set(640)
-
-            except VimbaFeatureError as e:
-                raise RuntimeError('Failed to set feature Width') from e
-
-            try:
-                self.cam.get_feature_by_name('ExposureAuto').set('Once')
-
-            except VimbaFeatureError as e:
-                raise RuntimeError('Failed to set feature ExposureAuto') from e
-
-            try:
-                self.cam.set_pixel_format(PixelFormat.Mono8)
-
-            except VimbaFeatureError as e:
-                raise RuntimeError('Failed to set PixelFormat') from e
-
 
 class FrameConsumer(threading.Thread):
-    def __init__(self, frame_queue: queue.Queue, teardown: threading.Event):
+    def __init__(self, frame_queue: queue.Queue):
         threading.Thread.__init__(self)
 
         self.log = Log.get_instance()
         self.frame_queue = frame_queue
-        self.teardown = teardown
 
     def run(self):
-        KEY_CODE_ENTER = 13
         IMAGE_CAPTION = 'Multithreading Example: Press <Enter> to exit'
+        KEY_CODE_ENTER = 13
 
-        # Set Defaults to cv2.putText
-        putText = functools.partial(cv2.putText, org=(0, 30), fontScale=1, color=255, thickness=1,
-                                    fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
+        frames = {}
+        alive = True
 
-        state = {}
         self.log.info('Thread \'FrameConsumer\' started.')
 
-        while self.teardown.is_set() == False:
+        while alive:
             try:
-                item = self.frame_queue.get(timeout=1)
+                cam_id, frame = self.frame_queue.get(timeout=1)
 
             except queue.Empty:
-                continue
+                cam_id, frame = (None, None)
 
-            cam_id, frame = item
-            self.log.info('Received Frame {} from Camera {}.'.format(frame.get_id(), cam_id))
+            # Add/Remove Frame from current state.
+            if frame:
+                frames[cam_id] = add_camera_id(frame, cam_id)
 
-            # Write Camera ID into acquired image
-            opencv_image = frame.as_opencv_image()
-            putText(opencv_image, 'Cam: {}'.format(cam_id))
+            else:
+                frames.pop(cam_id, None)
 
-            # Add Frame to current state chart
-            state[cam_id] = (frame, opencv_image)
+            # If the current state contains any Frames, stitch the together and show them
+            if frames:
+                cv_images = [frames[cam_id].as_opencv_image() for cam_id in sorted(frames.keys())]
+                cv2.imshow(IMAGE_CAPTION, numpy.concatenate(cv_images, axis=1))
 
-            # Sort Frames by Camera ID and stitch all frames together.
-            opencv_images = [state[key][1] for key in sorted(state.keys())]
+            # If there are no Frames available, show dummy image
+            else:
+                cv2.imshow(IMAGE_CAPTION, create_dummy_frame())
 
-            # Show Image and check for shutdown condition.
-            cv2.imshow(IMAGE_CAPTION, numpy.concatenate(opencv_images, axis=1))
-
-            if cv2.waitKey(10) == KEY_CODE_ENTER:
-                self.teardown.set()
+            # Check for shutdown condition
+            if KEY_CODE_ENTER == cv2.waitKey(10):
+                alive = False
 
         self.log.info('Thread \'FrameConsumer\' terminated.')
 
 
-def main():
-    # Setup synchronization methods
-    frame_queue = queue.Queue(10)
-    teardown = threading.Event()
+class MainThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
 
-    with Vimba.get_instance() as vimba:
+        self.frame_queue = queue.Queue(10)
+        self.producers = {}
+        self.producers_lock = threading.Lock()
+
+    def __call__(self, cam: Camera, event: CameraEvent):
+        if event == CameraEvent.Detected:
+            # New Camera was detected. Create FrameProducer, add it to active Producers
+            # and start thread.
+            with self.producers_lock:
+                self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
+                self.producers[cam.get_id()].start()
+
+        elif event == CameraEvent.Missing:
+            # An existing Camera was disconnected, associated FrameProducer and remove
+            # if from active Producers
+            with self.producers_lock:
+                self.producers.pop(cam.get_id()).stop()
+
+    def run(self):
+        log = Log.get_instance()
+        consumer = FrameConsumer(self.frame_queue)
+
+        vimba = Vimba.get_instance()
         vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
 
-        producers = [FrameProducer(cam, frame_queue, teardown) for cam in vimba.get_all_cameras()]
-        consumer = FrameConsumer(frame_queue, teardown)
+        log.info('Thread \'MainThread\' started.')
 
-        # Start Threads
-        consumer.start()
-        for producer in producers:
-            producer.start()
+        with vimba:
+            # Construct FrameProducer for all detected Cameras
+            for cam in vimba.get_all_cameras():
+                self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
 
-        # Wait on Event for synchronized tear down
-        teardown.wait()
+            # Start FrameProducer Threads
+            with self.producers_lock:
+                for cam_id in self.producers:
+                    self.producers[cam_id].start()
 
-        for producer in producers:
-            producer.join()
+            # Start and Wait for consumer to terminate
+            vimba.register_camera_change_handler(self)
+            consumer.start()
+            consumer.join()
+            vimba.unregister_camera_change_handler(self)
 
-        consumer.join()
+            # Tear down all Threads
+            with self.producers_lock:
+                for cam_id in self.producers:
+                    self.producers[cam_id].stop()
 
+        log.info('Thread \'MainThread\' terminated.')
 
 if __name__ == '__main__':
-    main()
+    print_preamble()
+    main = MainThread()
+    main.start()
+    main.join()
 
