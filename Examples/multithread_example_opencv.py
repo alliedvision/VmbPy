@@ -70,7 +70,7 @@ def create_dummy_frame() -> numpy.ndarray:
     return cv_frame
 
 
-def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame], timeout: int = 1):
+def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame], timeout: int = 0.1):
     try:
         q.put((cam.get_id(), frame), timeout=timeout)
 
@@ -104,7 +104,6 @@ class FrameProducer(threading.Thread):
 
     def stop(self):
         self.killswitch.set()
-        self.join()
 
     def run(self):
         self.log.info('Thread \'FrameProducer({})\' started.'.format(self.cam.get_id()))
@@ -173,6 +172,7 @@ class FrameConsumer(threading.Thread):
 
             # Check for shutdown condition
             if KEY_CODE_ENTER == cv2.waitKey(10):
+                cv2.destroyAllWindows()
                 alive = False
 
         self.log.info('Thread \'FrameConsumer\' terminated.')
@@ -182,7 +182,7 @@ class MainThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-        self.frame_queue = queue.Queue(10)
+        self.frame_queue = queue.Queue(maxsize=10)
         self.producers = {}
         self.producers_lock = threading.Lock()
 
@@ -196,7 +196,9 @@ class MainThread(threading.Thread):
         elif event == CameraEvent.Missing:
             # An existing Camera was disconnected, stop associated FrameProducer.
             with self.producers_lock:
-                self.producers.pop(cam.get_id()).stop()
+                producer = self.producers.pop(cam.get_id())
+                producer.stop()
+                producer.join()
 
     def run(self):
         log = Log.get_instance()
@@ -214,10 +216,10 @@ class MainThread(threading.Thread):
 
             # Start FrameProducer Threads
             with self.producers_lock:
-                for cam_id in self.producers:
-                    self.producers[cam_id].start()
+                for producer in self.producers.values():
+                    producer.start()
 
-            # Start and Wait for consumer to terminate
+            # Start and wait for consumer to terminate
             vimba.register_camera_change_handler(self)
             consumer.start()
             consumer.join()
@@ -225,8 +227,13 @@ class MainThread(threading.Thread):
 
             # Stop all FrameProducer Threads
             with self.producers_lock:
-                for cam_id in self.producers:
-                    self.producers[cam_id].stop()
+                # Initiate concurrent shutdown
+                for producer in self.producers.values():
+                    producer.stop()
+
+                # Wait for shutdown to complete
+                for producer in self.producers.values():
+                    producer.join()
 
         log.info('Thread \'MainThread\' terminated.')
 
