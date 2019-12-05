@@ -61,11 +61,9 @@ def create_dummy_frame() -> numpy.ndarray:
     CHANNELS = 1
     TEXT = 'No Stream available. Please connect a Camera.'
 
-    # Create White Image
     cv_frame = numpy.zeros((HEIGHT, WIDTH, CHANNELS), numpy.uint8)
     cv_frame[:] = 0
 
-    # Add Text onto of white Image
     cv2.putText(cv_frame, TEXT, org=(30, 30), fontScale=1, color=255, thickness=1,
                 fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
 
@@ -190,15 +188,13 @@ class MainThread(threading.Thread):
 
     def __call__(self, cam: Camera, event: CameraEvent):
         if event == CameraEvent.Detected:
-            # New Camera was detected. Create FrameProducer, add it to active Producers
-            # and start thread.
+            # New Camera was detected. Create FrameProducer, add it to active FrameProducers
             with self.producers_lock:
                 self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
                 self.producers[cam.get_id()].start()
 
         elif event == CameraEvent.Missing:
-            # An existing Camera was disconnected, associated FrameProducer and remove
-            # if from active Producers
+            # An existing Camera was disconnected, stop associated FrameProducer.
             with self.producers_lock:
                 self.producers.pop(cam.get_id()).stop()
 
@@ -212,7 +208,7 @@ class MainThread(threading.Thread):
         log.info('Thread \'MainThread\' started.')
 
         with vimba:
-            # Construct FrameProducer for all detected Cameras
+            # Construct FrameProducer Threads for all detected Cameras
             for cam in vimba.get_all_cameras():
                 self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
 
@@ -227,7 +223,7 @@ class MainThread(threading.Thread):
             consumer.join()
             vimba.unregister_camera_change_handler(self)
 
-            # Tear down all Threads
+            # Stop all FrameProducer Threads
             with self.producers_lock:
                 for cam_id in self.producers:
                     self.producers[cam_id].stop()
@@ -239,4 +235,3 @@ if __name__ == '__main__':
     main = MainThread()
     main.start()
     main.join()
-
