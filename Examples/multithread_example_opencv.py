@@ -112,7 +112,7 @@ def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
             val = max_
 
         else:
-            val = min([i for i in range(min_, max_, inc) if (i - feat_value) >= 0])
+            val = (((feat_value - min_ ) // inc ) * inc ) + min_
 
         feat.set(val)
 
