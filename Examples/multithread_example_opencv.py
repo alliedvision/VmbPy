@@ -98,10 +98,9 @@ def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
         feat.set(feat_value)
 
     except VimbaFeatureError:
-        # Query value boundaries and increment and calculate nearest value above given value.
         min_, max_ = feat.get_range()
         inc = feat.get_increment()
-        val = min([i for i in range(min_, max_, inc) if (i - FRAME_HEIGHT) >= 0])
+        val = min([i for i in range(min_, max_, inc) if (i - feat_value) >= 0])
         feat.set(val)
 
         msg = ('Camera {}: Failed to set value of Feature \'{}\' to \'{}\': '
