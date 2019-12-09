@@ -51,6 +51,8 @@ def stringify_list(l):
 def static_test():
     fprint('Execute Static Test: flake8')
     subprocess.run('flake8 vimba', shell=True)
+    subprocess.run('flake8 Examples --ignore=F405,F403', shell=True)
+    subprocess.run('flake8 Tests --ignore=F405,F403', shell=True)
     fprint('')
 
     fprint('Execute Static Test: mypy')
@@ -90,6 +92,7 @@ def static_test_junit(report_dir):
     fprint('Execute Static Test: flake8')
     cmd = 'flake8 vimba --output-file=' + report_dir + '/flake8.txt'
     subprocess.run(cmd, shell=True)
+
     cmd = 'flake8_junit ' + report_dir + '/flake8.txt ' + report_dir + '/flake8_junit.xml'
     subprocess.run(cmd, shell=True)
     fprint('')

@@ -35,10 +35,14 @@ import cv2
 import threading
 import queue
 import numpy
-import functools
 
 from typing import Optional
 from vimba import *
+
+
+FRAME_QUEUE_SIZE = 10
+FRAME_HEIGHT = 480
+FRAME_WIDTH = 480
 
 
 def print_preamble():
@@ -49,23 +53,32 @@ def print_preamble():
 
 
 def add_camera_id(frame: Frame, cam_id: str) -> Frame:
-    text = 'Cam: {}'.format(cam_id)
-    cv2.putText(frame.as_opencv_image(), text, org=(0, 30), fontScale=1, color=255, thickness=1,
-                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
+    # Helper function inserting string 'cam_id' into given Frame. Note this Function
+    # manipulates the Image buffer stored in frame.
+    cv2.putText(frame.as_opencv_image(), 'Cam: {}'.format(cam_id), org=(0, 30), fontScale=1,
+                color=255, thickness=1, fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
     return frame
 
 
-def create_dummy_frame() -> numpy.ndarray:
-    HEIGHT = 50
-    WIDTH = 640
-    CHANNELS = 1
-    TEXT = 'No Stream available. Please connect a Camera.'
+def resize_if_required(frame: Frame) -> numpy.ndarray:
+    # Helper function resizing the given Frame if it has no the configured dimensions.
+    # Instead of manipulating the image data buffer stored in "frame", numpy allocates
+    # a new buffer with the resized image data. The original frame is untouched.
+    cv_frame = frame.as_opencv_image()
 
-    cv_frame = numpy.zeros((HEIGHT, WIDTH, CHANNELS), numpy.uint8)
+    if (frame.get_height() != FRAME_HEIGHT) or (frame.get_width() != FRAME_WIDTH):
+        cv_frame = cv2.resize(cv_frame, (FRAME_WIDTH, FRAME_HEIGHT), interpolation=cv2.INTER_AREA)
+        cv_frame = cv_frame[..., numpy.newaxis]
+
+    return cv_frame
+
+
+def create_dummy_frame() -> numpy.ndarray:
+    cv_frame = numpy.zeros((50, 640, 1), numpy.uint8)
     cv_frame[:] = 0
 
-    cv2.putText(cv_frame, TEXT, org=(30, 30), fontScale=1, color=255, thickness=1,
-                fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
+    cv2.putText(cv_frame, 'No Stream available. Please connect a Camera.', org=(30, 30),
+                fontScale=1, color=255, thickness=1, fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
 
     return cv_frame
 
@@ -78,12 +91,23 @@ def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame]):
         pass
 
 
-def set_feature(obj, feat_name: str, feat_value):
-    try:
-        obj.get_feature_by_name(feat_name).set(feat_value)
+def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
+    feat = cam.get_feature_by_name(feat_name)
 
-    except VimbaFeatureError as e:
-        raise RuntimeError('Failed to set Feature \'{}\''.format(feat_name)) from e
+    try:
+        feat.set(feat_value)
+
+    except VimbaFeatureError:
+        # Query value boundaries and increment and calculate nearest value above given value.
+        min_, max_ = feat.get_range()
+        inc = feat.get_increment()
+        val = min([i for i in range(min_, max_, inc) if (i - FRAME_HEIGHT) >= 0])
+        feat.set(val)
+
+        msg = ('Camera {}: Failed to set value of Feature \'{}\' to \'{}\': '
+               'Using nearest valid value \'{}\'. Beware this causes resizing during processing, '
+               'reducing the frame rate.')
+        Log.get_instance().info(msg.format(cam.get_id(), feat_name, feat_value, val))
 
 
 # Thread Objects
@@ -97,23 +121,41 @@ class FrameProducer(threading.Thread):
         self.killswitch = threading.Event()
 
     def __call__(self, cam: Camera, frame: Frame):
+        # This Method is executed within VimbaC Context. All incoming Frames
+        # are reused for later Frame acquisition. If a Frame shall be queued, the
+        # Frame must be copied and the copy must be sent, otherwise the acquired
+        # Frame will be override as soon as the Frame is reused.
         if frame.get_status() == FrameStatus.Complete:
-            try_put_frame(self.frame_queue, cam, copy.deepcopy(frame))
+
+            if not self.frame_queue.full():
+                frame_cpy = copy.deepcopy(frame)
+                try_put_frame(self.frame_queue, cam, frame_cpy)
 
         cam.queue_frame(frame)
 
     def stop(self):
         self.killswitch.set()
 
+    def setup_camera(self):
+        set_nearest_value(self.cam, 'Height', FRAME_HEIGHT)
+        set_nearest_value(self.cam, 'Width', FRAME_WIDTH)
+
+        # Try to enable automatic Exposure time setting
+        try:
+            self.cam.get_feature_by_name('ExposureAuto').set('Once')
+
+        except VimbaFeatureError:
+            self.log.info('Camera {}: Failed to automatically set exposure time.'.format(
+                          self.cam.get_id()))
+
+        self.cam.set_pixel_format(PixelFormat.Mono8)
+
     def run(self):
         self.log.info('Thread \'FrameProducer({})\' started.'.format(self.cam.get_id()))
 
         try:
             with self.cam:
-                set_feature(self.cam, 'Height', 640)
-                set_feature(self.cam, 'Width', 640)
-                set_feature(self.cam, 'ExposureAuto', 'Once')
-                self.cam.set_pixel_format(PixelFormat.Mono8)
+                self.setup_camera()
 
                 try:
                     self.cam.start_streaming(self)
@@ -159,16 +201,17 @@ class FrameConsumer(threading.Thread):
 
                 # Add/Remove Frame from current state.
                 if frame:
-                    frames[cam_id] = add_camera_id(frame, cam_id)
+                    frames[cam_id] = frame
 
                 else:
                     frames.pop(cam_id, None)
 
                 frames_left -= 1
 
-            # If the current state contains any Frames, stitch the together and show them
+            # Show Frames
             if frames:
-                cv_images = [frames[cam_id].as_opencv_image() for cam_id in sorted(frames.keys())]
+                # Construct Image by resizing each Frame (if required) and stitching the together.
+                cv_images = [resize_if_required(frames[cam_id]) for cam_id in sorted(frames.keys())]
                 cv2.imshow(IMAGE_CAPTION, numpy.concatenate(cv_images, axis=1))
 
             # If there are no Frames available, show dummy image
@@ -187,7 +230,7 @@ class MainThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-        self.frame_queue = queue.Queue(maxsize=10)
+        self.frame_queue = queue.Queue(maxsize=FRAME_QUEUE_SIZE)
         self.producers = {}
         self.producers_lock = threading.Lock()
 
@@ -241,6 +284,7 @@ class MainThread(threading.Thread):
                     producer.join()
 
         log.info('Thread \'MainThread\' terminated.')
+
 
 if __name__ == '__main__':
     print_preamble()
