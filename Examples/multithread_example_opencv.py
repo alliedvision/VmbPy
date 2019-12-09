@@ -70,9 +70,9 @@ def create_dummy_frame() -> numpy.ndarray:
     return cv_frame
 
 
-def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame], timeout: int = 0.1):
+def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame]):
     try:
-        q.put((cam.get_id(), frame), timeout=timeout)
+        q.put_nowait((cam.get_id(), frame))
 
     except queue.Full:
         pass
@@ -113,7 +113,7 @@ class FrameProducer(threading.Thread):
                 set_feature(self.cam, 'Height', 640)
                 set_feature(self.cam, 'Width', 640)
                 set_feature(self.cam, 'ExposureAuto', 'Once')
-                set_feature(self.cam, 'PixelFormat', 'Mono8')
+                self.cam.set_pixel_format(PixelFormat.Mono8)
 
                 try:
                     self.cam.start_streaming(self)
@@ -148,18 +148,23 @@ class FrameConsumer(threading.Thread):
         self.log.info('Thread \'FrameConsumer\' started.')
 
         while alive:
-            try:
-                cam_id, frame = self.frame_queue.get(timeout=1)
+            # Update State by dequeuing all currently available frames.
+            frames_left = self.frame_queue.qsize()
+            while frames_left:
+                try:
+                    cam_id, frame = self.frame_queue.get_nowait()
 
-            except queue.Empty:
-                cam_id, frame = (None, None)
+                except queue.Empty:
+                    break
 
-            # Add/Remove Frame from current state.
-            if frame:
-                frames[cam_id] = add_camera_id(frame, cam_id)
+                # Add/Remove Frame from current state.
+                if frame:
+                    frames[cam_id] = add_camera_id(frame, cam_id)
 
-            else:
-                frames.pop(cam_id, None)
+                else:
+                    frames.pop(cam_id, None)
+
+                frames_left -= 1
 
             # If the current state contains any Frames, stitch the together and show them
             if frames:
