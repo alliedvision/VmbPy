@@ -92,6 +92,10 @@ def try_put_frame(q: queue.Queue, cam: Camera, frame: Optional[Frame]):
 
 
 def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
+    # Helper function that tries to set a given value. If setting of the initial value failed
+    # it calculates the nearest valid value and sets the result. This function is intended to
+    # be used with Height and Width Features because not all Cameras allow the same values
+    # for height and width.
     feat = cam.get_feature_by_name(feat_name)
 
     try:
@@ -100,7 +104,16 @@ def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
     except VimbaFeatureError:
         min_, max_ = feat.get_range()
         inc = feat.get_increment()
-        val = min([i for i in range(min_, max_, inc) if (i - feat_value) >= 0])
+
+        if feat_value <= min_:
+            val = min_
+
+        elif feat_value >= max_:
+            val = max_
+
+        else:
+            val = min([i for i in range(min_, max_, inc) if (i - feat_value) >= 0])
+
         feat.set(val)
 
         msg = ('Camera {}: Failed to set value of Feature \'{}\' to \'{}\': '
@@ -120,10 +133,10 @@ class FrameProducer(threading.Thread):
         self.killswitch = threading.Event()
 
     def __call__(self, cam: Camera, frame: Frame):
-        # This Method is executed within VimbaC Context. All incoming Frames
-        # are reused for later Frame acquisition. If a Frame shall be queued, the
-        # Frame must be copied and the copy must be sent, otherwise the acquired
-        # Frame will be override as soon as the Frame is reused.
+        # This Method is executed within VimbaC context. All incoming frames
+        # are reused for later frame acquisition. If a frame shall be queued, the
+        # frame must be copied and the copy must be sent, otherwise the acquired
+        # frame will be override as soon as the frame is reused.
         if frame.get_status() == FrameStatus.Complete:
 
             if not self.frame_queue.full():
@@ -139,12 +152,12 @@ class FrameProducer(threading.Thread):
         set_nearest_value(self.cam, 'Height', FRAME_HEIGHT)
         set_nearest_value(self.cam, 'Width', FRAME_WIDTH)
 
-        # Try to enable automatic Exposure time setting
+        # Try to enable automatic exposure time setting
         try:
             self.cam.get_feature_by_name('ExposureAuto').set('Once')
 
         except VimbaFeatureError:
-            self.log.info('Camera {}: Failed to automatically set exposure time.'.format(
+            self.log.info('Camera {}: Failed to set Feature \'ExposureAuto\'.'.format(
                           self.cam.get_id()))
 
         self.cam.set_pixel_format(PixelFormat.Mono8)
@@ -207,13 +220,12 @@ class FrameConsumer(threading.Thread):
 
                 frames_left -= 1
 
-            # Show Frames
+            # Construct Image by resizing each Frame (if required) and stitching all frames together.
             if frames:
-                # Construct Image by resizing each Frame (if required) and stitching the together.
                 cv_images = [resize_if_required(frames[cam_id]) for cam_id in sorted(frames.keys())]
                 cv2.imshow(IMAGE_CAPTION, numpy.concatenate(cv_images, axis=1))
 
-            # If there are no Frames available, show dummy image
+            # If there are no frames available, show dummy image
             else:
                 cv2.imshow(IMAGE_CAPTION, create_dummy_frame())
 
@@ -234,14 +246,14 @@ class MainThread(threading.Thread):
         self.producers_lock = threading.Lock()
 
     def __call__(self, cam: Camera, event: CameraEvent):
+        # New Camera was detected. Create FrameProducer, add it to active FrameProducers
         if event == CameraEvent.Detected:
-            # New Camera was detected. Create FrameProducer, add it to active FrameProducers
             with self.producers_lock:
                 self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
                 self.producers[cam.get_id()].start()
 
+        # An existing Camera was disconnected, stop associated FrameProducer.
         elif event == CameraEvent.Missing:
-            # An existing Camera was disconnected, stop associated FrameProducer.
             with self.producers_lock:
                 producer = self.producers.pop(cam.get_id())
                 producer.stop()
