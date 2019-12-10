@@ -66,10 +66,6 @@ class CamCameraTest(unittest.TestCase):
 
         permitted_modes = self.cam.get_permitted_access_modes()
 
-        # There are some known Issues regarding permissions from the underlaying C-Layer.
-        # Filter buggy modes. This is a VimbaC issue not a VimbaPython issue
-        permitted_modes = [p for p in permitted_modes if p not in (AccessMode.Lite, )]
-
         for mode in permitted_modes:
             self.cam.set_access_mode(mode)
 
@@ -113,8 +109,7 @@ class CamCameraTest(unittest.TestCase):
 
     def test_camera_get_permitted_access_modes(self):
         # Expectation: get currently permitted access modes
-        expected = (AccessMode.None_, AccessMode.Full, AccessMode.Read,
-                    AccessMode.Lite, AccessMode.Config)
+        expected = (AccessMode.None_, AccessMode.Full, AccessMode.Read, AccessMode.Config)
 
         for mode in self.cam.get_permitted_access_modes():
             self.assertIn(mode, expected)

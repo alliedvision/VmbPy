@@ -31,6 +31,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import itertools
+
 from typing import Dict, Tuple
 from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
 from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
@@ -47,7 +48,7 @@ __all__ = [
     'read_memory_impl',
     'write_memory_impl',
     'read_registers_impl',
-    'write_registers_impl',
+    'write_registers_impl'
 ]
 
 
@@ -137,15 +138,15 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
 
 
 @TraceEnable()
-def filter_features_by_name(feats: FeaturesTuple, feat_name: str,
-                            raises: bool = True) -> FeatureTypes:
+def filter_features_by_name(feats: FeaturesTuple, feat_name: str, raises: bool = True):
     """Search for a feature with a specific name within a feature set.
 
     Arguments:
         feats: Feature set to search in.
         feat_name: Feature name to look for.
         raises: If True, raises runtime error on failed lookup, if false returns empty set.
-                This is used to suppress creation of a log entry while VimbaFeatureError construction.
+                This is used to suppress creation of a log entry while VimbaFeatureError
+                construction.
 
     Returns:
         The Feature with the name 'feat_name'

@@ -79,13 +79,11 @@ class AccessMode(enum.IntEnum):
         Full   - Read and write access
         Read   - Read-only access
         Config - Configuration access (GeV)
-        Lite   - Read and write access without feature access (only addresses)
     """
     None_ = VmbAccessMode.None_
     Full = VmbAccessMode.Full
     Read = VmbAccessMode.Read
     Config = VmbAccessMode.Config
-    Lite = VmbAccessMode.Lite
 
 
 class CameraEvent(enum.IntEnum):
@@ -450,7 +448,12 @@ class Camera:
 
     def get_permitted_access_modes(self) -> Tuple[AccessMode, ...]:
         """Get a set of all access modes, the camera can be accessed with."""
-        return decode_flags(AccessMode, self.__info.permittedAccess)
+        val = self.__info.permittedAccess
+
+        # Clear VmbAccessMode.Lite Flag. It is offered by VimbaC, but it is not in the public API
+        val &= ~int(VmbAccessMode.Lite)
+
+        return decode_flags(AccessMode, val)
 
     def get_interface_id(self) -> str:
         """Get ID of the Interface this camera is connected to, e.g. VimbaUSBInterface_0x0"""

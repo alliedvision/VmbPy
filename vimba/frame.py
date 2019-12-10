@@ -581,29 +581,6 @@ class Frame:
     def __str__(self):
         return 'Frame(id={}, buffer={})'.format(self._frame.frameID, hex(self._frame.buffer))
 
-    def __getstate__(self):
-        return {
-            '_buffer': self._buffer.raw,
-            '_frame': self._frame.serialize_skip_ptr()
-        }
-
-    def __setstate__(self, state):
-        raw_buf = state['_buffer']
-        raw_buf_size = len(raw_buf)
-
-        # Allocate and copy frame data into new buffer
-        self._buffer = create_string_buffer(raw_buf_size)
-        ctypes.memmove(self._buffer, raw_buf, raw_buf_size)
-
-        self._frame = VmbFrame().deserialize_skip_ptr(state['_frame'])
-
-        # Pickle does not support serialization of c pointers (for a good reasons)
-        # therefore, set Pointers manually.
-        self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
-        self._frame.bufferSize = sizeof(self._buffer)
-
-        return self
-
     def __deepcopy__(self, memo):
         cls = self.__class__
         result = cls.__new__(cls)

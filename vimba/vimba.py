@@ -534,7 +534,7 @@ class Vimba:
                 with self.__inters_lock:
                     self.__inters.append(inter)
 
-                log.info('Added interface \"{}\" to active interfaces')
+                log.info('Added interface \"{}\" to active interfaces'.format(inter_id))
 
             # Existing interface lost. Remove it from active interfaces
             elif event == InterfaceEvent.Missing:
@@ -542,7 +542,7 @@ class Vimba:
                     inter = [i for i in self.__inters if inter_id == i.get_id()].pop()
                     self.__inters.remove(inter)
 
-                log.info('Removed interface \"{}\" from active interfaces')
+                log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
 
             else:
                 inter = self.get_interface_by_id(inter_id)

@@ -53,17 +53,17 @@ def print_preamble():
 
 
 def add_camera_id(frame: Frame, cam_id: str) -> Frame:
-    # Helper function inserting string 'cam_id' into given Frame. Note this Function
-    # manipulates the Image buffer stored in frame.
+    # Helper function inserting 'cam_id' into given frame. This function
+    # manipulates the original image buffer inside frame object.
     cv2.putText(frame.as_opencv_image(), 'Cam: {}'.format(cam_id), org=(0, 30), fontScale=1,
                 color=255, thickness=1, fontFace=cv2.FONT_HERSHEY_COMPLEX_SMALL)
     return frame
 
 
 def resize_if_required(frame: Frame) -> numpy.ndarray:
-    # Helper function resizing the given Frame if it has no the configured dimensions.
-    # Instead of manipulating the image data buffer stored in "frame", numpy allocates
-    # a new buffer with the resized image data. The original frame is untouched.
+    # Helper function resizing the given frame, if it has not the required dimensions.
+    # On resizing, the image data is copied and resized, the image inside the frame object
+    # is untouched.
     cv_frame = frame.as_opencv_image()
 
     if (frame.get_height() != FRAME_HEIGHT) or (frame.get_width() != FRAME_WIDTH):
@@ -112,7 +112,7 @@ def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
             val = max_
 
         else:
-            val = (((feat_value - min_ ) // inc ) * inc ) + min_
+            val = (((feat_value - min_) // inc) * inc) + min_
 
         feat.set(val)
 
@@ -133,10 +133,10 @@ class FrameProducer(threading.Thread):
         self.killswitch = threading.Event()
 
     def __call__(self, cam: Camera, frame: Frame):
-        # This Method is executed within VimbaC context. All incoming frames
+        # This method is executed within VimbaC context. All incoming frames
         # are reused for later frame acquisition. If a frame shall be queued, the
         # frame must be copied and the copy must be sent, otherwise the acquired
-        # frame will be override as soon as the frame is reused.
+        # frame will be overridden as soon as the frame is reused.
         if frame.get_status() == FrameStatus.Complete:
 
             if not self.frame_queue.full():
@@ -202,7 +202,7 @@ class FrameConsumer(threading.Thread):
         self.log.info('Thread \'FrameConsumer\' started.')
 
         while alive:
-            # Update State by dequeuing all currently available frames.
+            # Update current state by dequeuing all currently available frames.
             frames_left = self.frame_queue.qsize()
             while frames_left:
                 try:
@@ -211,7 +211,7 @@ class FrameConsumer(threading.Thread):
                 except queue.Empty:
                     break
 
-                # Add/Remove Frame from current state.
+                # Add/Remove frame from current state.
                 if frame:
                     frames[cam_id] = frame
 
@@ -220,12 +220,12 @@ class FrameConsumer(threading.Thread):
 
                 frames_left -= 1
 
-            # Construct Image by resizing each Frame (if required) and stitching all frames together.
+            # Construct image by stitching frames together.
             if frames:
                 cv_images = [resize_if_required(frames[cam_id]) for cam_id in sorted(frames.keys())]
                 cv2.imshow(IMAGE_CAPTION, numpy.concatenate(cv_images, axis=1))
 
-            # If there are no frames available, show dummy image
+            # If there are no frames available, show dummy image instead
             else:
                 cv2.imshow(IMAGE_CAPTION, create_dummy_frame())
 
@@ -246,13 +246,13 @@ class MainThread(threading.Thread):
         self.producers_lock = threading.Lock()
 
     def __call__(self, cam: Camera, event: CameraEvent):
-        # New Camera was detected. Create FrameProducer, add it to active FrameProducers
+        # New camera was detected. Create FrameProducer, add it to active FrameProducers
         if event == CameraEvent.Detected:
             with self.producers_lock:
                 self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
                 self.producers[cam.get_id()].start()
 
-        # An existing Camera was disconnected, stop associated FrameProducer.
+        # An existing camera was disconnected, stop associated FrameProducer.
         elif event == CameraEvent.Missing:
             with self.producers_lock:
                 producer = self.producers.pop(cam.get_id())
@@ -269,11 +269,11 @@ class MainThread(threading.Thread):
         log.info('Thread \'MainThread\' started.')
 
         with vimba:
-            # Construct FrameProducer Threads for all detected Cameras
+            # Construct FrameProducer threads for all detected cameras
             for cam in vimba.get_all_cameras():
                 self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
 
-            # Start FrameProducer Threads
+            # Start FrameProducer threads
             with self.producers_lock:
                 for producer in self.producers.values():
                     producer.start()
@@ -284,7 +284,7 @@ class MainThread(threading.Thread):
             consumer.join()
             vimba.unregister_camera_change_handler(self)
 
-            # Stop all FrameProducer Threads
+            # Stop all FrameProducer threads
             with self.producers_lock:
                 # Initiate concurrent shutdown
                 for producer in self.producers.values():

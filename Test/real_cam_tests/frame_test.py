@@ -179,23 +179,4 @@ class CamFrameTest(unittest.TestCase):
 
                 self.assertEquals(expected_fmt, cpy_frame.get_pixel_format())
 
-    def test_pickle_frame(self):
-        with self.cam:
-            frame1 = self.cam.get_frame()
 
-        frame2 = pickle.loads(pickle.dumps(frame1))
-
-        # Ensure both Frames have the same values (except Pointer related data. They must be in
-        # different address spaces)
-        self.assertEquals(frame1.get_buffer().raw, frame2.get_buffer().raw)
-        self.assertEquals(frame1.get_buffer_size(), frame2.get_buffer_size())
-        self.assertEquals(frame1.get_image_size(), frame2.get_image_size())
-        self.assertEquals(frame1.get_ancillary_data(), frame2.get_ancillary_data())
-        self.assertEquals(frame1.get_status(), frame2.get_status())
-        self.assertEquals(frame1.get_pixel_format(), frame2.get_pixel_format())
-        self.assertEquals(frame1.get_height(), frame2.get_height())
-        self.assertEquals(frame1.get_width(), frame2.get_width())
-        self.assertEquals(frame1.get_offset_x(), frame2.get_offset_x())
-        self.assertEquals(frame1.get_offset_y(), frame2.get_offset_y())
-        self.assertEquals(frame1.get_id(), frame2.get_id())
-        self.assertEquals(frame1.get_timestamp(), frame2.get_timestamp())
