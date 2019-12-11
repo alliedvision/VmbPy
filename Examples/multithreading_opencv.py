@@ -117,8 +117,8 @@ def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
         feat.set(val)
 
         msg = ('Camera {}: Failed to set value of Feature \'{}\' to \'{}\': '
-               'Using nearest valid value \'{}\'. Beware this causes resizing during processing, '
-               'reducing the frame rate.')
+               'Using nearest valid value \'{}\'. Note that, this causes resizing '
+               'during processing, reducing the frame rate.')
         Log.get_instance().info(msg.format(cam.get_id(), feat_name, feat_value, val))
 
 
