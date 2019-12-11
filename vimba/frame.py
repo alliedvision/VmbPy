@@ -380,14 +380,16 @@ OPENCV_PIXEL_FORMATS = (
 
 
 class Debayer(enum.IntEnum):
-    """Enum specifying Debayer modes.
+    """Enum specifying debayer modes.
 
     Enum values:
-        Mode2x2    - No further information available.
-        Mode3x3    - No further information available.
-        ModeLCAA   - No further information available.
-        ModeLCAAV  - No further information available.
-        ModeYuv422 - No further information available.
+        Mode2x2    - 2x2 with green averaging (this is the default if no debayering algorithm
+                     is added as transformation option).
+        Mode3x3    - 3x3 with equal green weighting per line (8-bit images only).
+        ModeLCAA   - Debayering with horizontal local color anti-aliasing (8-bit images only).
+        ModeLCAAV  - Debayering with horizontal and vertical local color anti-aliasing
+        (            8-bit images only).
+        ModeYuv422 - Debayering with YUV422-alike sub-sampling (8-bit images only).
     """
     Mode2x2 = VmbDebayerMode.Mode_2x2
     Mode3x3 = VmbDebayerMode.Mode_3x3
@@ -408,8 +410,8 @@ class FrameStatus(enum.IntEnum):
     Enum values:
         Complete   - Frame data is complete without errors.
         Incomplete - Frame could not be filled to the end.
-        TooSmall   - Frame buffer was too small
-        Invalid    - Frame buffer was invalid
+        TooSmall   - Frame buffer was too small.
+        Invalid    - Frame buffer was invalid.
     """
 
     Complete = VmbFrameStatus.Complete
@@ -566,11 +568,11 @@ def _replace_invalid_feature_calls(feats: FeaturesTuple) -> FeaturesTuple:
 
 
 class Frame:
-    """This class allows access a Frames acquired by a Camera. The Frame is basically
-    a buffer containing image data and some metadata.
+    """This class allows access to Frames acquired by a camera. The Frame is basically
+    a buffer that wraps image data and some metadata.
     """
     def __init__(self, buffer_size: int):
-        """Do not call directly. Create Frame via Camera methods instead."""
+        """Do not call directly. Create Frames via Camera methods instead."""
         self._buffer = create_string_buffer(buffer_size)
         self._frame: VmbFrame = VmbFrame()
 
@@ -612,8 +614,8 @@ class Frame:
     def get_ancillary_data(self) -> Optional[AncillaryData]:
         """Get AncillaryData.
 
-        Frames acquired with Cameras where Feature ChunkModeActive is enabled, can contain
-        Ancillary Data within the image data.
+        Frames acquired with cameras where Feature ChunkModeActive is enabled can contain
+        ancillary data within the image data.
 
         Returns:
             None if Frame contains no ancillary data.
@@ -629,14 +631,14 @@ class Frame:
         return FrameStatus(self._frame.receiveStatus)
 
     def get_pixel_format(self) -> PixelFormat:
-        """Get format of the acquired image data """
+        """Get format of the acquired image data"""
         return PixelFormat(self._frame.pixelFormat)
 
     def get_height(self) -> Optional[int]:
-        """Get image height in pixel.
+        """Get image height in pixels.
 
         Returns:
-            Image height in pixel if dimension data is provided by the camera.
+            Image height in pixels if dimension data is provided by the camera.
             None if dimension data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
@@ -647,10 +649,10 @@ class Frame:
         return self._frame.height
 
     def get_width(self) -> Optional[int]:
-        """Get image width in pixel.
+        """Get image width in pixels.
 
         Returns:
-            Image width in pixel if dimension data is provided by the camera.
+            Image width in pixels if dimension data is provided by the camera.
             None if dimension data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
@@ -661,7 +663,7 @@ class Frame:
         return self._frame.width
 
     def get_offset_x(self) -> Optional[int]:
-        """Get horizontal offset in pixel.
+        """Get horizontal offset in pixels.
 
         Returns:
             Horizontal offset in pixel if offset data is provided by the camera.
@@ -675,10 +677,10 @@ class Frame:
         return self._frame.offsetX
 
     def get_offset_y(self) -> Optional[int]:
-        """Get vertical offset in pixel.
+        """Get vertical offset in pixels.
 
         Returns:
-            Vertical offset in pixel if offset data is provided by the camera.
+            Vertical offset in pixels if offset data is provided by the camera.
             None if offset data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
@@ -722,22 +724,22 @@ class Frame:
         """Convert internal pixel format to given format.
 
         Note: This method allocates a new buffer for internal image data leading to some
-        runtime overhead. For Performance Reasons, it might be better to set the value
-        of the cameras 'PixelFormat' -Feature instead. In addition a non-default debayer mode
+        runtime overhead. For performance reasons, it might be better to set the value
+        of the camera's 'PixelFormat' feature instead. In addition, a non-default debayer mode
         can be specified.
 
         Arguments:
             target_fmt - PixelFormat to convert to.
-            debayer_mode - Non-default Algorithm used to debayer Images in Bayer Formats. If
-                           no mode is specified, debayering mode 'Mode2x2' is used. In the
-                           current format is no Bayer format, this parameter will be silently
+            debayer_mode - Non-default algorithm used to debayer images in Bayer Formats. If
+                           no mode is specified, default debayering mode 'Mode2x2' is applied. If
+                           the current format is no Bayer format, this parameter is silently
                            ignored.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            ValueError if current format can't be converted into 'target_fmt'. Convertible
+            ValueError if the current format can't be converted into 'target_fmt'. Convertible
                 Formats can be queried via get_convertible_formats() of PixelFormat.
-            AssertionError if Image width or height can't be determined.
+            AssertionError if image width or height can't be determined.
         """
 
         global BAYER_PIXEL_FORMATS
@@ -803,13 +805,13 @@ class Frame:
         self._frame.pixelFormat = target_fmt
 
     def as_numpy_ndarray(self) -> 'numpy.ndarray':
-        """ Construct numpy.ndarray view on VimbaFrame
+        """Construct numpy.ndarray view on VimbaFrame.
 
         Returns:
             numpy.ndarray on internal image buffer.
 
         Raises:
-            ImportError if numpy is not installed
+            ImportError if numpy is not installed.
         """
         if numpy is None:
             raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
@@ -833,15 +835,15 @@ class Frame:
                              dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
 
     def as_opencv_image(self) -> 'numpy.ndarray':
-        """ Construct OpenCV compatible view on VimbaFrame.
+        """Construct OpenCV compatible view on VimbaFrame.
 
         Returns:
             OpenCV compatible numpy.ndarray
 
         Raises:
             ImportError if numpy is not installed.
-            ValueError if current pixel format is not compatible to with opencv. Compatible
-                       formats are in OPENCV_PIXEL_FORMATS
+            ValueError if current pixel format is not compatible with opencv. Compatible
+                       formats are in OPENCV_PIXEL_FORMATS.
         """
         global OPENCV_PIXEL_FORMATS
 
@@ -863,11 +865,11 @@ def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTup
     """Build intersection of two sets containing PixelFormat.
 
     Arguments:
-        fmts1 - PixelFormats to intersect with @p fmts2
-        fmts2 - PixelFormats to intersect with @p fmts1
+        fmts1 - PixelFormats to intersect with fmts2
+        fmts2 - PixelFormats to intersect with fmts1
 
     Returns:
-        Set of PixelFormats that occur in @p fmts1 and @p fmts2
+        Set of PixelFormats that occur in fmts1 and fmts2
 
     Raises:
             TypeError if parameters do not match their type hint.

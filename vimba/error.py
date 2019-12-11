@@ -48,32 +48,32 @@ class _LoggedError(Exception):
 
 
 class VimbaSystemError(_LoggedError):
-    """Errors related to the underlaying Vimba System
+    """Errors related to the underlying Vimba System
 
-    Error Type to indicate system wide errors like:
-    - Incomplete Vimba installation.
-    - Incompatible version of the underlaying C-Layer.
-    - Running on an unsupported OS.
+    Error type to indicate system-wide errors like:
+    - Incomplete Vimba installation
+    - Incompatible version of the underlying C-Layer
+    - An unsupported OS
     """
     pass
 
 
 class VimbaCameraError(_LoggedError):
-    """ Errors related to Cameras
+    """Errors related to cameras
 
-    Error Type to indicated Camera related Errors like
-    - Access on a disconnected camera Object
-    - Lookup of non-existing cameras etc
+    Error Type to indicated camera-related errors like:
+    - Access of a disconnected Camera object
+    - Lookup of non-existing cameras
     """
     pass
 
 
 class VimbaInterfaceError(_LoggedError):
-    """ Errors related to Interfaces
+    """Errors related to Interfaces
 
-    Error Type to indicated Interface related Errors like
-    - Access on a disconnected interface Object
-    - Lookup of non-existing interface etc
+    Error Type to indicated interface-related errors like:
+    - Access on a disconnected Interface object
+    - Lookup of a non-existing Interface
     """
     pass
 
@@ -81,14 +81,14 @@ class VimbaInterfaceError(_LoggedError):
 class VimbaFeatureError(_LoggedError):
     """Error related to Feature access.
 
-    Error Type to indicate invalid Feature access like:
+    Error type to indicate invalid Feature access like:
     - Invalid access mode on Feature access.
     - Out of range values upon setting a value.
-    - Failed lookup of Features.
+    - Failed lookup of features.
     """
     pass
 
 
 class VimbaTimeout(_LoggedError):
-    """Indicates that an operation timed out """
+    """Indicates that an operation timed out."""
     pass

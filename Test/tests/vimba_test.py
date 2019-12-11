@@ -49,7 +49,6 @@ class VimbaTest(unittest.TestCase):
         # Expectation: Returned Version is not empty and does not raise any exceptions.
         self.assertNotEqual(self.vimba.get_version(), "")
 
-
     def test_get_camera_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
         # VimbaCameraError

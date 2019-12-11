@@ -80,13 +80,13 @@ class InterfaceType(enum.IntEnum):
 
 
 class InterfaceEvent(enum.IntEnum):
-    """Enum specifying a Interface Event
+    """Enum specifying an Interface Event
 
     Enum values:
-        Missing     - A known Interface disappeared from the bus
-        Detected    - A new Interface was discovered
-        Reachable   - A known Interface can be accessed
-        Unreachable - A known Interface cannot be accessed anymore
+        Missing     - A known interface disappeared from the bus
+        Detected    - A new interface was discovered
+        Reachable   - A known interface can be accessed
+        Unreachable - A known interface cannot be accessed anymore
     """
     Missing = 0
     Detected = 1
@@ -95,16 +95,16 @@ class InterfaceEvent(enum.IntEnum):
 
 
 class Interface:
-    """This class allows access a Interface detected by the Vimba System.
-    Camera is meant be used in conjunction with the "with" - Statement. On entering a context
-    all Interface features are detected and can be accessed within the context. Basic Interface
-    properties like Name can be access outside of the context.
+    """This class allows access to an interface such as USB detected by Vimba.
+    Interface is meant to be used in conjunction with the "with" - statement. On entering a context,
+    all Interface features are detected and can be accessed within the context. Static Interface
+    properties like Name can be accessed outside the context.
     """
 
     @TraceEnable()
     @LeaveContextOnCall()
     def __init__(self, info: VmbInterfaceInfo):
-        """Do not call directly. Access Interfaces via vimba.System instead."""
+        """Do not call directly. Access Interfaces via vimba.Vimba instead."""
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbInterfaceInfo = info
         self.__feats: FeaturesTuple = ()
@@ -136,15 +136,15 @@ class Interface:
         return rep
 
     def get_id(self) -> str:
-        """Get Interface Id, e.g. VimbaUSBInterface_0x0."""
+        """Get Interface Id such as VimbaUSBInterface_0x0."""
         return decode_cstr(self.__info.interfaceIdString)
 
     def get_type(self) -> InterfaceType:
-        """Get Interface Type, e.g. InterfaceType.Usb."""
+        """Get Interface Type such as InterfaceType.Usb."""
         return InterfaceType(self.__info.interfaceType)
 
     def get_name(self) -> str:
-        """Get Interface Name, e.g. Vimba USB Interface."""
+        """Get Interface Name such as Vimba USB Interface."""
         return decode_cstr(self.__info.interfaceName)
 
     def get_serial(self) -> str:
@@ -166,8 +166,8 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
-            ValueError if addr is negative
+            RuntimeError if called outside "with" - statement.
+            ValueError if addr is negative.
             ValueError if max_bytes is negative.
             ValueError if the memory access was invalid.
         """
@@ -177,15 +177,15 @@ class Interface:
     @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):
-        """ Write a byte sequence to a given memory address.
+        """Write a byte sequence to a given memory address.
 
         Arguments:
-            addr: Address to write the content of 'data' too.
+            addr: Address to write the content of 'data' to.
             data: Byte sequence to write at address 'addr'.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
             ValueError if addr is negative.
         """
         return write_memory_impl(self.__handle, addr, data)
@@ -199,12 +199,12 @@ class Interface:
         Arguments:
             addrs: Sequence of addresses that should be read iteratively.
 
-        Return:
+        Returns:
             Dictionary containing a mapping from given address to the read register values.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
             ValueError if any address in addrs is negative.
             ValueError if the register access was invalid.
         """
@@ -214,10 +214,10 @@ class Interface:
     @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_registers(self, addrs_values: Dict[int, int]):
-        """Write data to multiple Registers.
+        """Write data to multiple registers.
 
         Arguments:
-            addrs_values: Mapping between Register addresses and the data to write.
+            addrs_values: Mapping between register addresses and the data to write.
 
         Raises:
             TypeError if parameters do not match their type hint.
@@ -228,13 +228,13 @@ class Interface:
 
     @RaiseIfOutsideContext()
     def get_all_features(self) -> FeaturesTuple:
-        """Get access to all discovered features of this Interface:
+        """Get access to all discovered features of this Interface.
 
         Returns:
             A set of all currently detected features.
 
         Raises:
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
         """
         return self.__feats
 
@@ -245,14 +245,14 @@ class Interface:
         """Get all features affected by a specific interface feature.
 
         Arguments:
-            feat - Feature used find features that are affected by 'feat'.
+            feat - Feature to find features that are affected by 'feat'.
 
         Returns:
             A set of features affected by changes on 'feat'.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
             VimbaFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_affected_features(self.__feats, feat)
@@ -264,14 +264,14 @@ class Interface:
         """Get all features selected by a specific interface feature.
 
         Arguments:
-            feat - Feature used find features that are selected by 'feat'.
+            feat - Feature to find features that are selected by 'feat'.
 
         Returns:
             A set of features selected by changes on 'feat'.
 
         Raises:
             TypeError if 'feat' is not of any feature type.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
             VimbaFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_selected_features(self.__feats, feat)
@@ -292,7 +292,7 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
@@ -302,31 +302,31 @@ class Interface:
         """Get all interface features of a specific category.
 
         Arguments:
-            category - Category that should be used for filtering.
+            category - category for filtering.
 
         Returns:
             A set of features of category 'category'.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
         """
         return filter_features_by_category(self.__feats, category)
 
     @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """Get a interface feature by its name.
+        """Get an interface feature by its name.
 
         Arguments:
-            feat_name - Name used to find a feature.
+            feat_name - Name to find a feature.
 
         Returns:
             Feature with the associated name.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside of "with" - statement.
+            RuntimeError if called outside "with" - statement.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
         return filter_features_by_name(self.__feats, feat_name)

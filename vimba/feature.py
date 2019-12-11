@@ -337,19 +337,19 @@ class _BaseFeature:
 
 
 class BoolFeature(_BaseFeature):
-    """The BoolFeature is a feature, that is represented by a boolean value"""
+    """The BoolFeature is a feature represented by a boolean value."""
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
     @TraceEnable()
     def get(self) -> bool:
-        """Get current feature value of type bool
+        """Get current feature value of type bool.
 
         Returns:
-            Feature value of type 'bool'.
+            Feature value of type bool.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
@@ -374,7 +374,7 @@ class BoolFeature(_BaseFeature):
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def set(self, val: bool):
-        """Set current feature value of type bool
+        """Set current feature value of type bool.
 
         Arguments:
             val - The boolean value to set.
@@ -413,16 +413,18 @@ class BoolFeature(_BaseFeature):
 
 
 class CommandFeature(_BaseFeature):
-    """The CommandFeature is a feature, that can perform some kind on operation."""
+    """The CommandFeature is a feature that can perform some kind of operation such as
+    saving a user set.
+    """
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera, or Interface types."""
         super().__init__(handle, info)
 
     @TraceEnable()
     def run(self):
-        """Execute feature.
+        """Execute command feature.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
@@ -446,7 +448,7 @@ class CommandFeature(_BaseFeature):
         """Test if a feature execution is done.
 
         Returns:
-            True if feature was fully executed. False if the Feature is still being executed.
+            True if feature was fully executed. False if the feature is still being executed.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
@@ -470,11 +472,11 @@ class CommandFeature(_BaseFeature):
 
 class EnumEntry:
     """An EnumEntry represents a single value of an EnumFeature. A EnumEntry
-    is a one to one association between a str and an int.
+    is a one-to-one association between a str and an int.
     """
     @TraceEnable()
     def __init__(self, handle: VmbHandle, feat_name: str, info: VmbFeatureEnumEntry):
-        """Do not call directly. Access EnumEntries via EnumFeatures instead."""
+        """Do not call directly. Instead, access EnumEntries via EnumFeatures."""
         self.__handle: VmbHandle = handle
         self.__feat_name: str = feat_name
         self.__info: VmbFeatureEnumEntry = info
@@ -503,10 +505,10 @@ class EnumEntry:
 
     @TraceEnable()
     def is_available(self) -> bool:
-        """Query if the EnumEntry can be used currently as a value.
+        """Query if the EnumEntry can currently be used as a value.
 
         Returns:
-            True if the EnumEntry can be used as a value otherwise False.
+            True if the EnumEntry can be used as a value, otherwise False.
         """
 
         c_val = VmbBool(False)
@@ -521,31 +523,31 @@ EnumEntryTuple = Tuple[EnumEntry, ...]
 
 
 class EnumFeature(_BaseFeature):
-    """The EnumFeature is a feature, where only EnumEntry values are allowed.
+    """The EnumFeature is a feature where only EnumEntry values are allowed.
     All possible values of an EnumFeature can be queried through the Feature itself.
     """
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
         self.__entries: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
 
     def get_all_entries(self) -> EnumEntryTuple:
-        """Get a set of all possible EnumEntries of this Feature."""
+        """Get a set of all possible EnumEntries of this feature."""
         return self.__entries
 
     @TraceEnable()
     def get_available_entries(self) -> EnumEntryTuple:
-        """Get a set of all currently available EnumEntries of this Feature."""
+        """Get a set of all currently available EnumEntries of this feature."""
         return tuple([e for e in self.get_all_entries() if e.is_available()])
 
     def get_entry(self, val_or_name: Union[int, str]) -> EnumEntry:
         """Get a specific EnumEntry.
 
         Arguments:
-            val_or_name: Lookup EnumEntry either by its name or its associated value.
+            val_or_name: Look up EnumEntry either by its name or its associated value.
 
         Returns:
             EnumEntry associated with Argument 'val_or_name'.
@@ -563,7 +565,7 @@ class EnumFeature(_BaseFeature):
 
     @TraceEnable()
     def get(self) -> EnumEntry:
-        """Get current feature value of type EnumEntry
+        """Get current feature value of type EnumEntry.
 
         Returns:
             Feature value of type 'EnumEntry'.
@@ -593,11 +595,11 @@ class EnumFeature(_BaseFeature):
         """Set current feature value of type EnumFeature.
 
         Arguments:
-            val - The value to set. Can be int or str or EnumEntry.
+            val - The value to set. Can be int, or str, or EnumEntry.
 
         Raises:
             TypeError if parameters do not match their type hint.
-            VimbaFeatureError if val is of type int or str and does not match to an EnumEntry.
+            VimbaFeatureError if val is of type int or str and does not match an EnumEntry.
             VimbaFeatureError if access rights are not sufficient.
             VimbaFeatureError if executed within a registered change_handler.
         """
@@ -656,16 +658,16 @@ def _discover_enum_entries(handle: VmbHandle, feat_name: str) -> EnumEntryTuple:
 
 
 class FloatFeature(_BaseFeature):
-    """The BoolFeature is a feature, that is represented by a floating number."""
+    """The FloatFeature is a feature represented by a floating number."""
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
     @TraceEnable()
     def get(self) -> float:
-        """Get current value (float)
+        """Get current value (float).
 
         Returns:
             Current float value.
@@ -694,7 +696,7 @@ class FloatFeature(_BaseFeature):
         """Get range of accepted values
 
         Returns:
-            A pair of range boundaries. First value is the minimum second value is the maximum.
+            A pair of range boundaries. First value is the minimum, second value is the maximum.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
@@ -719,10 +721,10 @@ class FloatFeature(_BaseFeature):
 
     @TraceEnable()
     def get_increment(self) -> Optional[float]:
-        """Get increment (steps between valid values, starting from minimal values).
+        """Get increment (steps between valid values, starting from minimum value).
 
         Returns:
-            The increment or None if the feature has currently no increment.
+            The increment or None if the feature currently has no increment.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
@@ -791,16 +793,16 @@ class FloatFeature(_BaseFeature):
 
 
 class IntFeature(_BaseFeature):
-    """The IntFeature is a feature, that is represented by a integer."""
+    """The IntFeature is a feature represented by an integer."""
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
     @TraceEnable()
     def get(self) -> int:
-        """Get current value (int)
+        """Get current value (int).
 
         Returns:
             Current int value.
@@ -826,10 +828,10 @@ class IntFeature(_BaseFeature):
 
     @TraceEnable()
     def get_range(self) -> Tuple[int, int]:
-        """Get range of accepted values
+        """Get range of accepted values.
 
         Returns:
-            A pair of range boundaries. First value is the minimum second value is the maximum.
+            A pair of range boundaries. First value is the minimum, second value is the maximum.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
@@ -889,7 +891,7 @@ class IntFeature(_BaseFeature):
         Raises:
             TypeError if parameters do not match their type hint.
             VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if value is out of bounds or misaligned with regards the increment.
+            VimbaFeatureError if value is out of bounds or misaligned to the increment.
             VimbaFeatureError if executed within a registered change_handler.
         """
         try:
@@ -931,11 +933,11 @@ class IntFeature(_BaseFeature):
 
 
 class RawFeature(_BaseFeature):
-    """The RawFeature is a feature, that is represented by sequence of bytes."""
+    """The RawFeature is a feature represented by sequence of bytes."""
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
     @TraceEnable()
@@ -1026,11 +1028,11 @@ class RawFeature(_BaseFeature):
 
 
 class StringFeature(_BaseFeature):
-    """The StringFeature is a feature, that is represented by a string."""
+    """The StringFeature is a feature represented by a string."""
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
-        """Do not call directly. Access Features via System, Camera or Interface Types instead."""
+        """Do not call directly. Instead, access Features via System, Camera or Interface Types."""
         super().__init__(handle, info)
 
     @TraceEnable()
@@ -1115,12 +1117,12 @@ class StringFeature(_BaseFeature):
     def get_max_length(self) -> int:
         """Get maximum string length the Feature can store.
 
-        In this context, string length does not mean the number of character, it means
-        the number of bytes after encoding. A string encoded in UTF-8 could exceed,
-        the max length.
+        In this context, string length does not mean the number of characters, it means
+        the number of bytes after encoding. A string encoded in UTF-8 could exceed
+        the maximum length.
 
         Returns:
-            Return the number of ASCII characters, the Feature can store.
+            The number of ASCII characters the Feature can store.
 
         Raises:
             VimbaFeatureError if access rights are not sufficient.
