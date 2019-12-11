@@ -30,7 +30,8 @@ A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
-from threading import Lock
+import threading
+
 from typing import List, Dict, Tuple
 from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
@@ -66,14 +67,14 @@ class Vimba:
             self.__feats: FeaturesTuple = ()
 
             self.__inters: InterfacesList = ()
-            self.__inters_lock: Lock = Lock()
+            self.__inters_lock: threading.Lock = threading.Lock()
             self.__inters_handlers: List[InterfaceChangeHandler] = []
-            self.__inters_handlers_lock: Lock = Lock()
+            self.__inters_handlers_lock: threading.Lock = threading.Lock()
 
             self.__cams: CamerasList = ()
-            self.__cams_lock: Lock = Lock()
+            self.__cams_lock: threading.Lock = threading.Lock()
             self.__cams_handlers: List[CameraChangeHandler] = []
-            self.__cams_handlers_lock: Lock = Lock()
+            self.__cams_handlers_lock: threading.Lock = threading.Lock()
 
             self.__nw_discover: bool = True
             self.__context_cnt: int = 0
@@ -257,10 +258,11 @@ class Vimba:
             """Lookup Camera with given ID.
 
             Arguments:
-                id_ - Camera Id to search for.
+                id_ - Camera Id to search for. For GigE - Cameras, the IP and MAC-Address
+                      can be used to Camera lookup
 
             Returns:
-                Camera associated with given Id
+                Camera associated with given Id.
 
             Raises:
                 TypeError if parameters do not match their type hint.
@@ -268,12 +270,25 @@ class Vimba:
                 VimbaCameraError if camera with id_ can't be found.
             """
             with self.__cams_lock:
-                cam = [cam for cam in self.__cams if id_ == cam.get_id()]
+                # Search for given Camera Id in all currently detected cameras.
+                for cam in self.__cams:
+                    if id_ == cam.get_id():
+                        return cam
 
-            if not cam:
-                raise VimbaCameraError('Camera with ID \'{}\' not found.'.format(id_))
+                # If a search by ID fails, the given id_ is almost certain an IP or MAC - Address.
+                # Try to query this Camera.
+                try:
+                    cam_info = discover_camera(id_)
 
-            return cam.pop()
+                    # Since cam_info is newly constructed, search in existing cameras for a Camera
+                    for cam in self.__cams:
+                        if cam_info.get_id() == cam.get_id():
+                            return cam
+
+                except VimbaCameraError:
+                    pass
+
+            raise VimbaCameraError('No Camera with Id \'{}\' available.'.format(id_))
 
         @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:

@@ -1033,7 +1033,12 @@ def discover_camera(id_: str) -> Camera:
 
     info = VmbCameraInfo()
 
-    call_vimba_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
+    # Try to lookup Camera with given ID. If this function
+    try:
+        call_vimba_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
+
+    except VimbaCError as e:
+        raise VimbaCameraError(str(e.get_error_code())) from e
 
     return Camera(info)
 
