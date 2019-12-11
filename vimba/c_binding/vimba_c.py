@@ -41,6 +41,8 @@ from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, 
                           decode_cstr, decode_flags, fmt_enum_repr, fmt_repr, fmt_flags_repr, \
                           load_vimba_lib
 
+__version__ = None
+
 __all__ = [
     'VmbPixelFormat',
     'VmbInterface',
@@ -61,6 +63,7 @@ __all__ = [
     'VmbInvalidationCallback',
     'VmbFrameCallback',
     'G_VIMBA_C_HANDLE',
+    'VIMBA_C_VERSION',
     'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c',
     'decode_cstr',
@@ -581,6 +584,7 @@ VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
 G_VIMBA_C_HANDLE = VmbHandle(1)
 
 # API
+VIMBA_C_VERSION = None
 EXPECTED_VIMBA_C_VERSION = '1.8.1'
 
 # For detailed information on the signatures see "VimbaC.h"
@@ -661,16 +665,16 @@ def _attach_signatures(lib_handle: CDLL) -> CDLL:
 
 def _check_version(lib_handle: CDLL) -> CDLL:
     global EXPECTED_VIMBA_C_VERSION
+    global VIMBA_C_VERSION
 
     v = VmbVersionInfo()
     lib_handle.VmbVersionQuery(byref(v), sizeof(v))
 
-    ver = str(v)
-    expected = EXPECTED_VIMBA_C_VERSION
+    VIMBA_C_VERSION = str(v)
 
-    if ver != expected:
+    if VIMBA_C_VERSION != EXPECTED_VIMBA_C_VERSION:
         msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
-        raise VimbaSystemError(msg.format(expected, ver))
+        raise VimbaSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION))
 
     return lib_handle
 

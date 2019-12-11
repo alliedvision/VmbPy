@@ -116,7 +116,7 @@ def main():
         tests.util_tracer_test,
         tests.util_context_decorator_test,
         tests.vimba_test,
-        tests.interface_test,
+        tests.interface_test
     ]
 
     REAL_CAM_TEST_MODS = [

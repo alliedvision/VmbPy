@@ -31,9 +31,9 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import threading
-
 from typing import List, Dict, Tuple
-from .c_binding import call_vimba_c, G_VIMBA_C_HANDLE
+from .c_binding import call_vimba_c, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION, \
+                       G_VIMBA_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, read_memory_impl, \
@@ -45,10 +45,11 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VimbaCameraError, VimbaInterfaceError
+from . import __version__ as VIMBA_PYTHON_VERSION
 
 
 __all__ = [
-    'Vimba'
+    'Vimba',
 ]
 
 
@@ -93,6 +94,11 @@ class Vimba:
 
             if not self.__context_cnt:
                 self._shutdown()
+
+        def get_version(self) -> str:
+            """ Returns version string of VimbaPython and underlaying dependencies."""
+            msg = 'VimbaPython: {} (using VimbaC: {}, VimbaImageTransform: {})'
+            return msg.format(VIMBA_PYTHON_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
 
         @RaiseIfInsideContext()
         @RuntimeTypeCheckEnable()
