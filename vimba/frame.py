@@ -813,6 +813,7 @@ class Frame:
 
         Raises:
             ImportError if numpy is not installed.
+            VimbaFrameError if current PixelFormat can't be converted to a numpy.ndarray.
         """
         if numpy is None:
             raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
