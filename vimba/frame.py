@@ -45,6 +45,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_fea
 
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
                   RaiseIfOutsideContext
+from .error import VimbaFrameError
 
 try:
     import numpy  # type: ignore
@@ -827,9 +828,14 @@ class Frame:
         call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                    byref(c_image))
 
-        _, bits_per_channel = PIXEL_FORMAT_TO_LAYOUT[fmt]
+        layout = PIXEL_FORMAT_TO_LAYOUT.get(fmt)
 
-        channels_per_pixel = int(c_image.ImageInfo.PixelInfo.BitsPerPixel / bits_per_channel)
+        if not layout:
+            msg = 'Can\'t construct numpy.ndarray for Pixelformat {}.'
+            raise VimbaFrameError(msg.format(str(self.get_pixel_format())))
+
+        bits_per_channel = layout[1]
+        channels_per_pixel = c_image.ImageInfo.PixelInfo.BitsPerPixel // bits_per_channel
 
         return numpy.ndarray(shape=(height, width, channels_per_pixel), buffer=self._buffer,
                              dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
