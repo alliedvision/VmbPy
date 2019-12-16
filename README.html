@@ -2,9 +2,23 @@
 <p><strong><em>Beta version for testing purposes only </em></strong></p>
 <p>You are welcome to give feedback on the beta version of our new Vimba Python API!
 Please note that the usage of beta software is at your own risk.</p>
-<p>In addition to the API's source code, this repository also contains unittests for VimbaPython.
-If you encounter any issues, feel free to run the test script and create an Issue on github.com
+<p>In addition to the API's source code, this repository also contains unit tests for VimbaPython.
+If you encounter any issues, feel free to run the test script and create an issue on github.com.
 This helps us improve the Vimba Python API.</p>
+<p>NEW - we have updated VimbaPython with the following improvements:</p>
+<ul>
+<li>Multi-threading example</li>
+<li>Improved usability by raising an exception if a function that is only valid inside a with – statement is called outside with – scope.</li>
+<li>Method get_camera_by_id() supports camera lookup via IP or MAC address for GigE cameras</li>
+<li>Method get_version() outputs the version of VimbaPython, VimbaC, and Vimba Image Transform</li>
+<li>Improved test support for using several different cameras</li>
+</ul>
+<p>Before using the updated VimbaPython version, please deinstall VimbaPython:</p>
+<pre><code>    python -m pip uninstall VimbaPython
+</code></pre>
+<p>For installing VimbaPython, we recommend using -e with your VimbaPython installation path:</p>
+<pre><code>    python -m pip install -e .
+</code></pre>
 <h1>Prerequisites</h1>
 <p>To use this software, you need:</p>
 <ol>
