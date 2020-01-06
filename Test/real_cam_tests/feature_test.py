@@ -204,10 +204,6 @@ class CamBoolFeatureTest(unittest.TestCase):
         # Expectation: Raises invalid Access on non-writeable features.
         self.assertRaises(VimbaFeatureError, self.feat.set, True)
 
-    def test_runtime_check_failure(self):
-        # Expectation: Set must throw TypeError on non-boolean input.
-        self.assertRaises(TypeError, self.feat.set, 'Hi')
-
 
 class CamCommandFeatureTest(unittest.TestCase):
     def setUp(self):
@@ -278,19 +274,7 @@ class CamEnumFeatureTest(unittest.TestCase):
         expected = b'MultiFrame'
         entry = self.feat_rw.get_entry('MultiFrame')
 
-        self.assertEqual(entry.as_bytes(), expected)
-
-    def test_entry_as_int(self):
-        # Expectation: Get EnumEntry as int
-        entry = self.feat_rw.get_entry('MultiFrame')
-
-        self.assertEqual(entry.as_int(), int(entry))
-
-    def test_entry_as_str(self):
-        # Expectation: Get EnumEntry as str
-        entry = self.feat_rw.get_entry('MultiFrame')
-
-        self.assertEqual(entry.as_string(), str(entry))
+        self.assertEqual(bytes(entry), expected)
 
     def test_entry_as_tuple(self):
         # Expectation: Get EnumEntry as (str, int)
@@ -456,17 +440,6 @@ class CamEnumFeatureTest(unittest.TestCase):
             self.feat_rw.unregister_change_handler(handler)
             self.feat_rw.set(old_entry)
 
-    def test_runtime_check_failure(self):
-        # Expectation: TypeError must raise TypeError if:
-        # set() is called with non int, str, EnumEntry
-        # get_entry() is called with non int, str
-
-        self.assertRaises(TypeError, self.feat_r.set, 0.0)
-        self.assertRaises(TypeError, self.feat_rw.set, b'bytes')
-
-        self.assertRaises(TypeError, self.feat_r.get_entry, 0.0)
-        self.assertRaises(TypeError, self.feat_rw.get_entry, b'bytes')
-
 
 class CamFloatFeatureTest(unittest.TestCase):
     def setUp(self):
@@ -598,11 +571,6 @@ class CamFloatFeatureTest(unittest.TestCase):
             self.feat_rw.unregister_change_handler(handler)
             self.feat_rw.set(old_entry)
 
-    def test_runtime_check_failure(self):
-        # Expectation: TypeError must be thrown is param for set in not float
-        self.assertRaises(TypeError, self.feat_r.set, 'str')
-        self.assertRaises(TypeError, self.feat_rw.set, 0)
-
 
 class CamIntFeatureTest(unittest.TestCase):
     def setUp(self):
@@ -733,8 +701,3 @@ class CamIntFeatureTest(unittest.TestCase):
         finally:
             self.feat_rw.unregister_change_handler(handler)
             self.feat_rw.set(old_entry)
-
-    def test_runtime_check_failure(self):
-        # Expectation: set must raise TypeError on any non int param
-        self.assertRaises(TypeError, self.feat_r.set, 0.0)
-        self.assertRaises(TypeError, self.feat_rw.set, 'no int')
