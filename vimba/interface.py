@@ -37,9 +37,11 @@ from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
-                    read_memory_impl, write_memory_impl, read_registers_impl, write_registers_impl
+                    attach_feature_accessors, remove_feature_accessors, read_memory_impl, \
+                    write_memory_impl, read_registers_impl, write_registers_impl
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
                   RaiseIfOutsideContext
+from .error import VimbaFeatureError
 
 
 __all__ = [
@@ -329,7 +331,12 @@ class Interface:
             RuntimeError if called outside "with" - statement.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
-        return filter_features_by_name(self.__feats, feat_name)
+        feat = filter_features_by_name(self.__feats, feat_name)
+
+        if not feat:
+            raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+
+        return feat
 
     @TraceEnable()
     @EnterContextOnCall()
@@ -337,6 +344,7 @@ class Interface:
         call_vimba_c('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
 
         self.__feats = discover_features(self.__handle)
+        attach_feature_accessors(self, self.__feats)
 
     @TraceEnable()
     @LeaveContextOnCall()
@@ -344,6 +352,7 @@ class Interface:
         for feat in self.__feats:
             feat.unregister_all_change_handlers()
 
+        remove_feature_accessors(self, self.__feats)
         self.__feats = ()
 
         call_vimba_c('VmbInterfaceClose', self.__handle)

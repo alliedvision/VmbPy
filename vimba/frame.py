@@ -41,11 +41,11 @@ from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus,
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
                        VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
-from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category
-
+from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
+                    attach_feature_accessors, remove_feature_accessors
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
                   RaiseIfOutsideContext
-from .error import VimbaFrameError
+from .error import VimbaFrameError, VimbaFeatureError
 
 try:
     import numpy  # type: ignore
@@ -376,7 +376,10 @@ COLOR_PIXEL_FORMATS = BAYER_PIXEL_FORMATS + RGB_PIXEL_FORMATS + RGBA_PIXEL_FORMA
 OPENCV_PIXEL_FORMATS = (
     PixelFormat.Mono8,
     PixelFormat.Bgr8,
-    PixelFormat.Bgra8
+    PixelFormat.Bgra8,
+    PixelFormat.Mono16,
+    PixelFormat.Bgr16,
+    PixelFormat.Bgra16
 )
 
 
@@ -514,7 +517,12 @@ class AncillaryData:
             TypeError if parameters do not match their type hint.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
-        return filter_features_by_name(self.__feats, feat_name)
+        feat = filter_features_by_name(self.__feats, feat_name)
+
+        if not feat:
+            raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+
+        return feat
 
     @TraceEnable()
     @EnterContextOnCall()
@@ -522,14 +530,16 @@ class AncillaryData:
         call_vimba_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
         self.__feats = _replace_invalid_feature_calls(discover_features(self.__data_handle))
+        attach_feature_accessors(self, self.__feats)
 
     @TraceEnable()
     @LeaveContextOnCall()
     def _close(self):
-        call_vimba_c('VmbAncillaryDataClose', self.__data_handle)
-
-        self.__data_handle = VmbHandle()
+        remove_feature_accessors(self, self.__feats)
         self.__feats = ()
+
+        call_vimba_c('VmbAncillaryDataClose', self.__data_handle)
+        self.__data_handle = VmbHandle()
 
 
 def _replace_invalid_feature_calls(feats: FeaturesTuple) -> FeaturesTuple:

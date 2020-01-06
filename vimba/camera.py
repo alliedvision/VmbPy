@@ -42,7 +42,8 @@ from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, Vm
 from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple, \
                      FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, filter_features_by_category, read_memory_impl, \
+                    filter_selected_features, filter_features_by_category, \
+                    attach_feature_accessors, remove_feature_accessors, read_memory_impl, \
                     write_memory_impl, read_registers_impl, write_registers_impl
 from .frame import Frame, FrameTuple, FormatTuple, PixelFormat
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
@@ -641,7 +642,12 @@ class Camera:
             RuntimeError if called outside "with" - statement scope.
             VimbaFeatureError if no feature is associated with 'feat_name'.
         """
-        return filter_features_by_name(self.__feats, feat_name)
+        feat = filter_features_by_name(self.__feats, feat_name)
+
+        if not feat:
+            raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+
+        return feat
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -936,6 +942,7 @@ class Camera:
             raise exc from e
 
         self.__feats = discover_features(self.__handle)
+        attach_feature_accessors(self, self.__feats)
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
         feat = filter_features_by_name(self.__feats, 'GVSPPacketSize', False)
@@ -962,9 +969,10 @@ class Camera:
         for feat in self.__feats:
             feat.unregister_all_change_handlers()
 
-        call_vimba_c('VmbCameraClose', self.__handle)
-
+        remove_feature_accessors(self, self.__feats)
         self.__feats = ()
+
+        call_vimba_c('VmbCameraClose', self.__handle)
         self.__handle = VmbHandle(0)
 
     def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip

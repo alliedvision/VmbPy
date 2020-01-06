@@ -36,7 +36,8 @@ from .c_binding import call_vimba_c, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERS
                        G_VIMBA_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, filter_features_by_category, read_memory_impl, \
+                    filter_selected_features, filter_features_by_category, \
+                    attach_feature_accessors, remove_feature_accessors, read_memory_impl, \
                     write_memory_impl, read_registers_impl, write_registers_impl
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesList, discover_interfaces, discover_interface
@@ -44,7 +45,7 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
                     discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
-from .error import VimbaCameraError, VimbaInterfaceError
+from .error import VimbaCameraError, VimbaInterfaceError, VimbaFeatureError
 from . import __version__ as VIMBA_PYTHON_VERSION
 
 
@@ -399,7 +400,12 @@ class Vimba:
                 RuntimeError then called outside of "with" - statement.
                 VimbaFeatureError if no feature is associated with 'feat_name'.
             """
-            return filter_features_by_name(self.__feats, feat_name)
+            feat = filter_features_by_name(self.__feats, feat_name)
+
+            if not feat:
+                raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+
+            return feat
 
         @RuntimeTypeCheckEnable()
         def register_camera_change_handler(self, handler: CameraChangeHandler):
@@ -476,9 +482,10 @@ class Vimba:
 
             call_vimba_c('VmbStartup')
 
-            self.__feats = discover_features(G_VIMBA_C_HANDLE)
             self.__inters = discover_interfaces()
             self.__cams = discover_cameras(self.__nw_discover)
+            self.__feats = discover_features(G_VIMBA_C_HANDLE)
+            attach_feature_accessors(self, self.__feats)
 
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
             feat.register_change_handler(self.__inter_cb_wrapper)
@@ -495,17 +502,18 @@ class Vimba:
             for feat in self.__feats:
                 feat.unregister_all_change_handlers()
 
+            remove_feature_accessors(self, self.__feats)
+            self.__feats = ()
             self.__cams_handlers = []
             self.__cams = ()
             self.__inters_handlers = []
             self.__inters = ()
-            self.__feats = ()
 
             call_vimba_c('VmbShutdown')
 
         def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-            event = CameraEvent(cam_event.get().as_int())
+            event = CameraEvent(int(cam_event.get()))
             cam = None
             cam_id = self.get_feature_by_name('DiscoveryCameraIdent').get()
             log = Log.get_instance()
@@ -545,7 +553,7 @@ class Vimba:
 
         def __inter_cb_wrapper(self, inter_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-            event = InterfaceEvent(inter_event.get().as_int())
+            event = InterfaceEvent(int(inter_event.get()))
             inter = None
             inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
             log = Log.get_instance()
