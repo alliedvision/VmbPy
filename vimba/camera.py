@@ -945,7 +945,7 @@ class Camera:
         attach_feature_accessors(self, self.__feats)
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
-        feat = filter_features_by_name(self.__feats, 'GVSPPacketSize', False)
+        feat = filter_features_by_name(self.__feats, 'GVSPPacketSize')
         if feat:
             try:
                 min_ = 1400
