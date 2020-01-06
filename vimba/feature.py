@@ -120,9 +120,6 @@ class _BaseFeature:
         self.__handlers_lock = threading.Lock()
         self.__feature_callback = VmbInvalidationCallback(self.__feature_cb_wrapper)
 
-    def __str__(self):
-        return 'Feature(name={}, type={})'.format(self.get_name(), self.get_type())
-
     def __repr__(self):
         rep = 'Feature'
         rep += '(_handle=' + repr(self._handle)
@@ -344,6 +341,12 @@ class BoolFeature(_BaseFeature):
         """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
+    def __str__(self):
+        if not self.is_readable():
+            return 'BoolFeature(name={})'.format(self.get_name())
+
+        return 'BoolFeature(name={}, value={})'.format(self.get_name(), self.get())
+
     @TraceEnable()
     def get(self) -> bool:
         """Get current feature value of type bool.
@@ -421,6 +424,9 @@ class CommandFeature(_BaseFeature):
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
         """Do not call directly. Instead, access Features via System, Camera, or Interface types."""
         super().__init__(handle, info)
+
+    def __str__(self):
+        return 'CommandFeature(name={})'.format(self.get_name())
 
     @TraceEnable()
     def run(self):
@@ -527,6 +533,12 @@ class EnumFeature(_BaseFeature):
         super().__init__(handle, info)
 
         self.__entries: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
+
+    def __str__(self):
+        if not self.is_readable():
+            return 'EnumFeature(name={})'.format(self.get_name())
+
+        return 'EnumFeature(name={}, value={})'.format(self.get_name(), str(self.get()))
 
     def get_all_entries(self) -> EnumEntryTuple:
         """Get a set of all possible EnumEntries of this feature."""
@@ -651,6 +663,13 @@ class FloatFeature(_BaseFeature):
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
         """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
+
+    def __str__(self):
+        if not self.is_readable():
+            return 'FloatFeature(name={})'.format(self.get_name())
+
+        msg = 'FloatFeature(name={}, value={}, range={}, increment={})'
+        return msg.format(self.get_name(), self.get(), self.get_range(), self.get_increment())
 
     @TraceEnable()
     def get(self) -> float:
@@ -786,6 +805,13 @@ class IntFeature(_BaseFeature):
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
         """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
+
+    def __str__(self):
+        if not self.is_readable():
+            return 'IntFeature(name={})'.format(self.get_name())
+
+        msg = 'IntFeature(name={}, value={}, range={}, increment={})'
+        return msg.format(self.get_name(), self.get(), self.get_range(), self.get_increment())
 
     @TraceEnable()
     def get(self) -> int:
@@ -927,6 +953,13 @@ class RawFeature(_BaseFeature):
         """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
+    def __str__(self):
+        if not self.is_readable():
+            return 'RawFeature(name={})'.format(self.get_name())
+
+        msg = 'RawFeature(name={}, value={}, length={})'
+        return msg.format(self.get_name(), self.get(), self.length())
+
     @TraceEnable()
     def get(self) -> bytes:
         """Get current value as a sequence of bytes
@@ -1021,6 +1054,13 @@ class StringFeature(_BaseFeature):
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
         """Do not call directly. Instead, access Features via System, Camera or Interface Types."""
         super().__init__(handle, info)
+
+    def __str__(self):
+        if not self.is_readable():
+            return 'StringFeature(name={})'.format(self.get_name())
+
+        msg = 'StringFeature(name={}, value={}, max_length={})'
+        return msg.format(self.get_name(), self.get(), self.get_max_length())
 
     @TraceEnable()
     def get(self) -> str:
