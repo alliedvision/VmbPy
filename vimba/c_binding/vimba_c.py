@@ -32,8 +32,9 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 
 import copy
 import ctypes
-from typing import Callable, Any, Tuple
-from ctypes import CDLL, c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
+from typing import Callable, Any, Tuple, Union
+from ctypes import CDLL, WinDLL, c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, \
+                   c_char_p as c_str
 from ..util import TraceEnable
 from ..error import VimbaSystemError
 from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
@@ -617,7 +618,7 @@ _SIGNATURES = {
     'VmbFeatureEnumIsAvailable': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbBool)]),
     'VmbFeatureEnumAsInt': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbInt64)]),
     'VmbFeatureEnumAsString': (VmbError, [VmbHandle, c_str, VmbInt64, c_ptr(c_str)]),
-    'VmbFeatureEnumEntryGet': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbFeatureEnumEntry)]),                              # noqa: E501
+    'VmbFeatureEnumEntryGet': (VmbError, [VmbHandle, c_str, c_str, c_ptr(VmbFeatureEnumEntry), VmbUint32]),                   # noqa: E501
     'VmbFeatureStringGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),                                # noqa: E501
     'VmbFeatureStringSet': (VmbError, [VmbHandle, c_str, c_str]),
     'VmbFeatureStringMaxlengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
@@ -652,7 +653,7 @@ _SIGNATURES = {
 }
 
 
-def _attach_signatures(lib_handle: CDLL) -> CDLL:
+def _attach_signatures(lib_handle: Union[CDLL, WinDLL]) -> Union[CDLL, WinDLL]:
     global _SIGNATURES
 
     for function_name, signature in _SIGNATURES.items():
@@ -663,7 +664,7 @@ def _attach_signatures(lib_handle: CDLL) -> CDLL:
     return lib_handle
 
 
-def _check_version(lib_handle: CDLL) -> CDLL:
+def _check_version(lib_handle: Union[CDLL, WinDLL]) -> Union[CDLL, WinDLL]:
     global EXPECTED_VIMBA_C_VERSION
     global VIMBA_C_VERSION
 
@@ -684,7 +685,7 @@ def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any,
         raise VimbaCError(result)
 
 
-_lib_instance: CDLL = _check_version(_attach_signatures(load_vimba_lib('VimbaC')))
+_lib_instance: Union[CDLL, WinDLL] = _check_version(_attach_signatures(load_vimba_lib('VimbaC')))
 
 
 @TraceEnable()
