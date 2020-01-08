@@ -37,10 +37,10 @@ import threading
 
 from typing import Tuple, Union, List, Callable, Optional, cast, Type
 from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, decode_cstr, \
-                       decode_flags
+                       decode_flags, build_callback_type
 from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
-                       VmbFeatureVisibility, VmbBool, VmbInvalidationCallback, \
-                       VmbFeatureEnumEntry, VmbFeatureData, VmbError, VimbaCError, VmbDouble
+                       VmbFeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
+                       VmbError, VimbaCError, VmbDouble
 
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VimbaFeatureError
@@ -118,7 +118,9 @@ class _BaseFeature:
 
         self.__handlers: List[ChangeHandler] = []
         self.__handlers_lock = threading.Lock()
-        self.__feature_callback = VmbInvalidationCallback(self.__feature_cb_wrapper)
+
+        CallbackType = build_callback_type(None, VmbHandle, ctypes.c_char_p, ctypes.c_void_p)
+        self.__feature_callback = CallbackType(self.__feature_cb_wrapper)
 
     def __repr__(self):
         rep = 'Feature'

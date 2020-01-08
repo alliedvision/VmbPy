@@ -34,11 +34,12 @@ import enum
 import os
 from threading import Lock
 
+from ctypes import POINTER
 from typing import Tuple, List, Callable, cast, Optional, Union, Dict
-from .c_binding import call_vimba_c, byref, sizeof, decode_cstr, decode_flags
+from .c_binding import call_vimba_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
 from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, VmbAccessMode, \
-                       VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFrameCallback, \
-                       VmbFeaturePersist, VmbFeaturePersistSettings
+                       VimbaCError, VmbError, VmbFrameFlags, VmbFrame, VmbFeaturePersist, \
+                       VmbFeaturePersistSettings
 from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple, \
                      FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
@@ -117,14 +118,14 @@ class PersistType(enum.IntEnum):
 
 class _Context:
     def __init__(self, cam: 'Camera', timeout_ms: int, frames: FrameTuple, handler: FrameHandler,
-                 wrapper):
+                 callback):
         self.cam: 'Camera' = cam
         self.cam_handle: VmbHandle = _cam_handle_accessor(cam)
         self.timeout_ms: int = timeout_ms
         self.frames: FrameTuple = frames
         self.frames_lock: Lock = Lock()
         self.frames_handler: FrameHandler = handler
-        self.frames_wrapper = wrapper
+        self.frames_callback = callback
 
 
 class _State:
@@ -186,7 +187,7 @@ class _StateCapturing(_State):
 
             try:
                 call_vimba_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                             self.context.frames_wrapper)
+                             self.context.frames_callback)
 
             except VimbaCError as e:
                 return _build_camera_error(self.context.cam, e)
@@ -259,7 +260,7 @@ class _StateAcquiring(_State):
 
         try:
             call_vimba_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                         self.context.frames_wrapper)
+                         self.context.frames_callback)
 
         except VimbaCError as e:
             raise _build_camera_error(self.context.cam, e) from e
@@ -731,9 +732,9 @@ class Camera:
         # Setup capturing fsm
         payload_size = self.get_feature_by_name('PayloadSize').get()
         frames = tuple([Frame(payload_size) for _ in range(buffer_count)])
-        wrapper = VmbFrameCallback(self.__frame_cb_wrapper)
+        callback = build_callback_type(None, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
 
-        self.__capture_fsm = _CaptureFsm(_Context(self, 0, frames, handler, wrapper))
+        self.__capture_fsm = _CaptureFsm(_Context(self, 0, frames, handler, callback))
 
         # Try to enter streaming mode. If this fails perform cleanup and raise error
         exc = self.__capture_fsm.enter_capturing_mode()

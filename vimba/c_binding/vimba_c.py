@@ -39,8 +39,7 @@ from ..util import TraceEnable
 from ..error import VimbaSystemError
 from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
                           VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
-                          decode_cstr, decode_flags, fmt_enum_repr, fmt_repr, fmt_flags_repr, \
-                          load_vimba_lib
+                          fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
 
 __version__ = None
 
@@ -61,14 +60,11 @@ __all__ = [
     'VmbFeatureEnumEntry',
     'VmbFrame',
     'VmbFeaturePersistSettings',
-    'VmbInvalidationCallback',
-    'VmbFrameCallback',
     'G_VIMBA_C_HANDLE',
     'VIMBA_C_VERSION',
     'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c',
-    'decode_cstr',
-    'decode_flags'
+    'build_callback_type'
 ]
 
 
@@ -579,12 +575,8 @@ class VmbFeaturePersistSettings(ctypes.Structure):
         return rep
 
 
-VmbInvalidationCallback = ctypes.CFUNCTYPE(None, VmbHandle, c_char_p, c_void_p)
-VmbFrameCallback = ctypes.CFUNCTYPE(None, VmbHandle, ctypes.POINTER(VmbFrame))
-
 G_VIMBA_C_HANDLE = VmbHandle(1)
 
-# API
 VIMBA_C_VERSION = None
 EXPECTED_VIMBA_C_VERSION = '1.8.1'
 
@@ -629,8 +621,8 @@ _SIGNATURES = {
     'VmbFeatureRawGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),
     'VmbFeatureRawSet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32]),
     'VmbFeatureRawLengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
-    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, VmbInvalidationCallback, c_void_p]),                      # noqa: E501
-    'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, VmbInvalidationCallback]),
+    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),                      # noqa: E501
+    'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, c_void_p]),
     'VmbFrameAnnounce': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbFrameRevoke': (VmbError, [VmbHandle, c_ptr(VmbFrame)]),
     'VmbFrameRevokeAll': (VmbError, [VmbHandle]),
@@ -765,3 +757,18 @@ def call_vimba_c(func_name: str, *args):
     """
     global _lib_instance
     getattr(_lib_instance, func_name)(*args)
+
+
+def build_callback_type(*args):
+    global _lib_instance
+
+    lib_type = type(_lib_instance)
+
+    if lib_type == CDLL:
+        return ctypes.CFUNCTYPE(*args)
+
+    elif lib_type == WinDLL:
+        return ctypes.WINFUNCTYPE(*args)
+
+    else:
+        raise VimbaSystemError('Unknown Library Type. Abort.')
