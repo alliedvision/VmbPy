@@ -32,6 +32,9 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 
 import unittest
 import docopt
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 
 
 # Inject 'assertNotRaise' to default test module. Tests are derived from this class.
