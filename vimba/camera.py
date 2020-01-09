@@ -211,7 +211,10 @@ class _StateQueued(_State):
     def forward(self) -> Union[_State, VimbaCameraError]:
         # Queued -> Acquiring: Start acquiring
         try:
-            self.context.cam.get_feature_by_name('AcquisitionStart').run()
+            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
+            cam = self.context.cam
+            if cam.get_access_mode() != AccessMode.Read:
+                cam.get_feature_by_name('AcquisitionStart').run()
 
         except BaseException as e:
             return VimbaCameraError(str(e))
@@ -235,7 +238,10 @@ class _StateAcquiring(_State):
     def backward(self) -> Union[_State, VimbaCameraError]:
         # Acquiring -> Queued: Stop acquiring
         try:
-            self.context.cam.get_feature_by_name('AcquisitionStop').run()
+            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
+            cam = self.context.cam
+            if cam.get_access_mode() != AccessMode.Read:
+                cam.get_feature_by_name('AcquisitionStop').run()
 
         except BaseException as e:
             return VimbaCameraError(str(e))
