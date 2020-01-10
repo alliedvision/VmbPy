@@ -60,18 +60,35 @@ unittest.TestCase.set_test_camera_id = _set_test_camera_id
 unittest.TestCase.get_test_camera_id = _get_test_camera_id
 
 
+def _blacklist_tests(test_suite, blacklist):
+    for test in test_suite:
+        # Process TestSuites recursively
+        if type(test) == unittest.TestSuite:
+            _blacklist_tests(test, blacklist)
+
+        # Test is actually a TestCase. Add skip decorator to test
+        # function if the test is blacklisted.
+        else:
+            name = test._testMethodName
+            if name in blacklist:
+                setattr(test, name, unittest.skip('Blacklisted')(getattr(test, name)))
+
+    return test_suite
+
+
 def main():
     CLI = """VimbaPython test runner.
     Usage:
         runner.py -h
-        runner.py -s basic -o console
-        runner.py -s basic -o junit_xml REPORT_DIR
-        runner.py -s (real_cam | all) -c CAMERA_ID -o console
-        runner.py -s (real_cam | all) -c CAMERA_ID -o junit_xml REPORT_DIR
+        runner.py -s basic -o console [BLACKLIST...]
+        runner.py -s basic -o junit_xml REPORT_DIR [BLACKLIST...]
+        runner.py -s (real_cam | all) -c CAMERA_ID -o console [BLACKLIST...]
+        runner.py -s (real_cam | all) -c CAMERA_ID -o junit_xml REPORT_DIR [BLACKLIST...]
 
     Arguments:
         CAMERA_ID    Camera Id from Camera that shall be used during testing
         REPORT_DIR   Directory used for junit_export.
+        BLACKLIST    Optional sequence of unittest functions to skip.
 
     Options:
         -h   Show this screen.
@@ -132,23 +149,24 @@ def main():
 
     # Prepare TestSuites
     suite_basic = unittest.TestSuite()
-    for mod in BASIC_TEST_MODS:
-        suite_basic.addTests(loader.loadTestsFromModule(mod))
+    suite_cam = unittest.TestSuite()
 
-    suite_real_cam = unittest.TestSuite()
+    for mod in BASIC_TEST_MODS:
+        suite_basic.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args['BLACKLIST']))
+
     for mod in REAL_CAM_TEST_MODS:
-        suite_real_cam.addTests(loader.loadTestsFromModule(mod))
+        suite_cam.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args['BLACKLIST']))
 
     # Execute TestSuites
     if args['basic']:
         runner.run(suite_basic)
 
     elif args['real_cam']:
-        runner.run(suite_real_cam)
+        runner.run(suite_cam)
 
     elif args['all']:
         runner.run(suite_basic)
-        runner.run(suite_real_cam)
+        runner.run(suite_cam)
 
 
 if __name__ == '__main__':

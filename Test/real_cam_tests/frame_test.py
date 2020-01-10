@@ -56,7 +56,6 @@ class CamFrameTest(unittest.TestCase):
 
     def test_verify_buffer(self):
         # Expectation: A Frame buffer shall have exactly the specified size on construction.
-
         self.assertEqual(Frame(0).get_buffer_size(), 0)
         self.assertEqual(Frame(1024).get_buffer_size(), 1024)
         self.assertEqual(Frame(1024 * 1024).get_buffer_size(), 1024 * 1024)
