@@ -36,8 +36,9 @@ import os
 import sys
 import platform
 import functools
-from typing import Tuple, List, Union
+from typing import Tuple, List
 from ..error import VimbaSystemError
+
 
 __all__ = [
     'Int32Enum',
@@ -463,14 +464,14 @@ def fmt_flags_repr(fmt: str, enum_type, enum_val):
     return fmt.format(_repr_flags_list(enum_type, enum_val))
 
 
-def load_vimba_lib(vimba_project: str) -> Union[ctypes.CDLL, ctypes.WinDLL]:
+def load_vimba_lib(vimba_project: str):
     """ Load shared library shipped with the Vimba installation
 
     Arguments:
         vimba_project - Library name without prefix or extension
 
     Return:
-        CDLL Handle on loaded library
+        CDLL or WinDLL Handle on loaded library
 
     Raises:
         VimbaSystemError if given library could not be loaded.
@@ -488,7 +489,7 @@ def load_vimba_lib(vimba_project: str) -> Union[ctypes.CDLL, ctypes.WinDLL]:
     return platform_handlers[sys.platform](vimba_project)
 
 
-def _load_under_linux(vimba_project: str) -> ctypes.CDLL:
+def _load_under_linux(vimba_project: str):
     # Construct VimbaHome based on TL installation paths
     tl_paths = os.environ.get('GENICAM_GENTL32_PATH', "")
     tl_paths += os.environ.get('GENICAM_GENTL64_PATH', "")
@@ -548,7 +549,7 @@ def _load_under_linux(vimba_project: str) -> ctypes.CDLL:
     return lib
 
 
-def _load_under_windows(vimba_project: str) -> Union[ctypes.CDLL, ctypes.WinDLL]:
+def _load_under_windows(vimba_project: str):
     vimba_home = os.environ.get('VIMBA_HOME')
 
     if vimba_home is None:

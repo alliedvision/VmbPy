@@ -32,9 +32,8 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 
 import copy
 import ctypes
-from typing import Callable, Any, Tuple, Union
-from ctypes import CDLL, WinDLL, c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, \
-                   c_char_p as c_str
+from typing import Callable, Any, Tuple
+from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
 from ..util import TraceEnable
 from ..error import VimbaSystemError
 from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
@@ -645,7 +644,7 @@ _SIGNATURES = {
 }
 
 
-def _attach_signatures(lib_handle: Union[CDLL, WinDLL]) -> Union[CDLL, WinDLL]:
+def _attach_signatures(lib_handle):
     global _SIGNATURES
 
     for function_name, signature in _SIGNATURES.items():
@@ -656,7 +655,7 @@ def _attach_signatures(lib_handle: Union[CDLL, WinDLL]) -> Union[CDLL, WinDLL]:
     return lib_handle
 
 
-def _check_version(lib_handle: Union[CDLL, WinDLL]) -> Union[CDLL, WinDLL]:
+def _check_version(lib_handle):
     global EXPECTED_VIMBA_C_VERSION
     global VIMBA_C_VERSION
 
@@ -677,7 +676,7 @@ def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any,
         raise VimbaCError(result)
 
 
-_lib_instance: Union[CDLL, WinDLL] = _check_version(_attach_signatures(load_vimba_lib('VimbaC')))
+_lib_instance = _check_version(_attach_signatures(load_vimba_lib('VimbaC')))
 
 
 @TraceEnable()
@@ -764,10 +763,10 @@ def build_callback_type(*args):
 
     lib_type = type(_lib_instance)
 
-    if lib_type == CDLL:
+    if lib_type == ctypes.CDLL:
         return ctypes.CFUNCTYPE(*args)
 
-    elif lib_type == WinDLL:
+    elif lib_type == ctypes.WinDLL:
         return ctypes.WINFUNCTYPE(*args)
 
     else:
