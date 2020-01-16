@@ -766,8 +766,8 @@ def build_callback_type(*args):
     if lib_type == ctypes.CDLL:
         return ctypes.CFUNCTYPE(*args)
 
-    elif lib_type == ctypes.WinDLL:  # type: ignore
-        return ctypes.WINFUNCTYPE(*args)  # type: ignore
+    elif lib_type == ctypes.WinDLL:
+        return ctypes.WINFUNCTYPE(*args)
 
     else:
         raise VimbaSystemError('Unknown Library Type. Abort.')
