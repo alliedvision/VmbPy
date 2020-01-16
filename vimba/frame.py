@@ -842,7 +842,8 @@ class Frame:
         layout = PIXEL_FORMAT_TO_LAYOUT.get(fmt)
 
         if not layout:
-            msg = 'Can\'t construct numpy.ndarray for Pixelformat {}.'
+            msg = 'Can\'t construct numpy.ndarray for Pixelformat {}. ' \
+                  'Use \'frame.convert_pixel_format()\' to convert to a different Pixelformat.'
             raise VimbaFrameError(msg.format(str(self.get_pixel_format())))
 
         bits_per_channel = layout[1]
