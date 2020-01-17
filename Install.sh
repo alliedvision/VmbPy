@@ -53,11 +53,11 @@ TARGET=""
 
 
 # Sanity checks
-echo "VimbaPython installation:"
+echo "VimbaPython installation."
 
-if [ -z $GENICAM_GENTL32_PATH -a -z $GENICAM_GENTL64_PATH ]
+if [ $UID -ne 0 ]
 then
-    echo "Error: Unable to detect TransportLayer. Install TransportLayer before installing VimbaPython."
+    echo "Error: Installation requires root priviliges. Abort."
     exit 1
 fi
 
@@ -67,7 +67,7 @@ then
     exit 1
 fi
 
-if [[ -z $PYTHONS ]]
+if [ -z "$PYTHONS" ]
 then
     echo "Error: No Python installations were found. Abort."
     exit 1
@@ -130,11 +130,11 @@ else
     TARGET=".[$TARGET]"
 fi
 
-$PYTHON -m pip install --user $TARGET
+$PYTHON -m pip install $TARGET
 
-if [ $? -ne 0 ]
+if [ $? -eq 0 ]
 then
+    echo "VimbaPython installation successful."
+else
     echo "Error: VimbaPython installation failed. Please check pip output for details."
 fi
-
-
