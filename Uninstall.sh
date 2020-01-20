@@ -31,56 +31,53 @@
 # A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND
 # THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 
-
-function get_input()
+function check_interpreter
 {
-    QUESTION=$1
-    ANSWER=""
+    PYTHON=$1
 
-    while [[ $ANSWER != "yes" ]] && [[ $ANSWER != "no" ]]
-    do
-        echo -n $QUESTION
-        read ANSWER
-    done
+    # Check if pip works on given interpreter
+    $PYTHON -m pip > /dev/null 2>&1
+    if [ $? -ne 0 ]
+    then
+        return
+    fi
 
-    [[ $ANSWER == "yes" ]]
+    # If pip works: Check if VimbaPython is installed
+    if [ $($PYTHON -m pip list | grep "VimbaPython" | wc -l) -ne 1 ]
+    then
+        return
+    fi
+
+    echo -n "$PYTHON "
 }
 
-
-PYTHONS=$(ls /usr/bin /usr/local/bin | grep "^python[[:digit:]]\?\.\?[[:digit:]]\?\.\?[[:digit:]]\?$" | tr '\n' ' ')
-PYTHON="unknown"
-TARGET=""
-
-
 # Sanity checks
-echo "VimbaPython install script."
+echo "VimbaPython uninstall script."
 
 if [ $UID -ne 0 ]
 then
-    echo "Error: Installation requires root priviliges. Abort."
+    echo "Error: Installation requires root privileges. Abort."
     exit 1
 fi
 
-if [ ! -e "./setup.py" ]
-then
-    echo "Error: ./setup.py not found. Please execute Install.sh within VimbaPython directory."
-    exit 1
-fi
+# Determine all Interpreters that have VimbaPython installed
+PYTHONS=$(ls /usr/bin /usr/local/bin | grep "^python[[:digit:]]\?\.\?[[:digit:]]\?\.\?[[:digit:]]\?$")
+PYTHONS=$(for P in $PYTHONS; do check_interpreter $P; done)
+PYTHON="unknown"
 
 if [ -z "$PYTHONS" ]
 then
-    echo "Error: No Python installations were found. Abort."
-    exit 1
+    echo "Can't remove VimbaPython. Is not installed."
+    exit 0
 fi
 
-
-# 1) Select Python interpreter
-echo "The following Python versions were detected: $PYTHONS"
+# Select Python interpreter
+echo "The following Python versions have VimbaPython installed: $PYTHONS"
 while [[ !($PYTHONS =~ (^|[[:space:]])$PYTHON($|[[:space:]])) ]]
 do
     TMP=""
 
-    echo -n "1) Please enter Python version: "
+    echo -n "Please enter Python version: "
     read TMP
 
     if [ -n "$TMP" ]
@@ -88,53 +85,7 @@ do
         PYTHON=$TMP
     fi
 done
-echo "    Installing VimbaPython for $PYTHON"
+echo "Removing VimbaPython for $PYTHON"
 
-
-# 2) Ask for OpenCV support
-get_input "2) Install VimbaPython with OpenCV support (yes/no):"
-if [ $? -eq 0 ]
-then
-    TARGET="opencv-export"
-fi
-
-# 2) Ask for numpy support
-get_input "3) Install VimbaPython with numpy support (yes/no):"
-if [ $? -eq 0 ]
-then
-    if [ -z $TARGET ]
-    then
-        TARGET="numpy-export"
-    else
-        TARGET=$TARGET,numpy-export
-    fi
-fi
-
-# 3) Ask for unittest support
-get_input "4) Install VimbaPython with unittest support (yes/no):"
-if [ $? -eq 0 ]
-then
-    if [ -z $TARGET ]
-    then
-        TARGET="test"
-    else
-        TARGET=$TARGET,test
-    fi
-fi
-
-# Execute installation via pip
-if [ -z $TARGET ]
-then
-    TARGET="."
-else
-    TARGET=".[$TARGET]"
-fi
-
-$PYTHON -m pip install $TARGET
-
-if [ $? -eq 0 ]
-then
-    echo "VimbaPython installation successful."
-else
-    echo "Error: VimbaPython installation failed. Please check pip output for details."
-fi
+# Remove VimbaPython
+$PYTHON -m pip uninstall VimbaPython
