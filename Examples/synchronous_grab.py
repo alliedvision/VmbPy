@@ -114,8 +114,8 @@ def main():
             setup_camera(cam)
 
             # Acquire 10 frame with a custom timeout (default is 2000ms) per frame acquisition.
-            for frame in cam.get_frame_iter(limit=10, timeout_ms=3000):
-                print('Got {}'.format(frame))
+            for frame in cam.get_frame_generator(limit=10, timeout_ms=3000):
+                print('Got {}'.format(frame), flush=True)
 
 
 if __name__ == '__main__':

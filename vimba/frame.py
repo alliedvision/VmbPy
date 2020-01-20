@@ -592,7 +592,9 @@ class Frame:
         self._frame.bufferSize = sizeof(self._buffer)
 
     def __str__(self):
-        return 'Frame(id={}, buffer={})'.format(self._frame.frameID, hex(self._frame.buffer))
+        msg = 'Frame(id={}, status={}, buffer={})'
+        return msg.format(self._frame.frameID, str(FrameStatus(self._frame.receiveStatus)),
+                          hex(self._frame.buffer))
 
     def __deepcopy__(self, memo):
         cls = self.__class__
