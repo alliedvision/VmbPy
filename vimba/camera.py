@@ -32,7 +32,6 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 
 import enum
 import os
-import sys
 import copy
 import threading
 
