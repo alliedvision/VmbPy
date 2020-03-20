@@ -352,6 +352,7 @@ class Camera:
         self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
         self.__capture_fsm: Optional[_CaptureFsm] = None
+        self._disconnected = False
 
     @TraceEnable()
     def __enter__(self):
@@ -734,7 +735,7 @@ class Camera:
     @TraceEnable()
     def is_streaming(self) -> bool:
         """Returns True if the camera is currently in streaming mode. If not, returns False."""
-        return self.__capture_fsm is not None
+        return self.__capture_fsm is not None and not self._disconnected
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -928,7 +929,7 @@ class Camera:
     @TraceEnable()
     @LeaveContextOnCall()
     def _close(self):
-        if self.is_streaming:
+        if self.is_streaming():
             self.stop_streaming()
 
         for feat in self.__feats:
