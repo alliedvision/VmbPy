@@ -943,7 +943,10 @@ class Camera:
 
     def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
-        assert self.__capture_fsm is not None
+
+        # ignore callback if camera has been disconnected
+        if self.__capture_fsm is None:
+            return
 
         context = self.__capture_fsm.get_context()
 
