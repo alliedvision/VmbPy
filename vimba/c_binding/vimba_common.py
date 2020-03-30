@@ -498,6 +498,10 @@ def _load_under_linux(vimba_project: str):
     tl64_path = os.environ.get('GENICAM_GENTL64_PATH', "")
     if tl64_path:
         path_list += tl64_path.split(':')
+    
+    # Remove empty strings from path_list if there are any.
+    # Necessary because the GENICAM_GENTLXX_PATH variable might start with a :
+    path_list = [path for path in path_list if path]
 
     # Early return if required variables are not set.
     if not path_list:
