@@ -31,6 +31,7 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import ctypes
+from difflib import SequenceMatcher
 import enum
 import os
 import sys
@@ -498,7 +499,7 @@ def _load_under_linux(vimba_project: str):
     tl64_path = os.environ.get('GENICAM_GENTL64_PATH', "")
     if tl64_path:
         path_list += tl64_path.split(':')
-    
+
     # Remove empty strings from path_list if there are any.
     # Necessary because the GENICAM_GENTLXX_PATH variable might start with a :
     path_list = [path for path in path_list if path]
@@ -514,10 +515,10 @@ def _load_under_linux(vimba_project: str):
         if vimba_home not in vimba_homes:
             vimba_homes.append(vimba_home)
 
-    # Ensure that Vimba Installation is not ambiguous
-    if len(vimba_homes) > 1:
-        raise VimbaSystemError('TL from multiple Vimba installations detected. Abort.')
+    # Sort the found vimba_home candidates by their likelyhood
+    vimba_homes = _rank_vimba_home_candidates(vimba_homes)
 
+    # Assume the top ranked candidate is the actual vimba_home directory
     vimba_home = vimba_homes[0]
 
     arch = platform.machine()
@@ -579,6 +580,23 @@ def _load_under_windows(vimba_project: str):
         raise VimbaSystemError(msg.format(lib_path)) from e
 
     return lib
+
+
+def _rank_vimba_home_candidates(candidates: List[str]) -> List[str]:
+    """
+    Rank the vimba home candidats by the likelyhood of them pointing to the expected VimbaSDK
+    directory
+
+    Arguments:
+        candidates - List of strings pointing to possible vimba home directories
+
+    Return:
+        Sorted list of passed vimba home candidates in order of likelyhood (most likely first)
+    """
+    # use SequenceMatcher from the difflib standard library to search for Vimba in the candidates
+    return sorted(candidates,
+                  key=lambda c: SequenceMatcher(None, c, 'Vimba').ratio(),
+                  reverse=True)
 
 
 def _is_python_64_bit() -> bool:
