@@ -31,7 +31,6 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 """
 
 import ctypes
-from difflib import SequenceMatcher
 import enum
 import os
 import sys
@@ -508,18 +507,15 @@ def _load_under_linux(vimba_project: str):
     if not path_list:
         raise VimbaSystemError('No TL detected. Please verify Vimba installation.')
 
-    vimba_homes: List[str] = []
+    vimba_home_candidates: List[str] = []
     for path in path_list:
         vimba_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
 
-        if vimba_home not in vimba_homes:
-            vimba_homes.append(vimba_home)
+        if vimba_home not in vimba_home_candidates:
+            vimba_home_candidates.append(vimba_home)
 
-    # Sort the found vimba_home candidates by their likelyhood
-    vimba_homes = _rank_vimba_home_candidates(vimba_homes)
-
-    # Assume the top ranked candidate is the actual vimba_home directory
-    vimba_home = vimba_homes[0]
+    # Select the most likely directory from the candidates
+    vimba_home = _select_vimba_home(vimba_home_candidates)
 
     arch = platform.machine()
 
@@ -582,21 +578,33 @@ def _load_under_windows(vimba_project: str):
     return lib
 
 
-def _rank_vimba_home_candidates(candidates: List[str]) -> List[str]:
+def _select_vimba_home(candidates: List[str]) -> str:
     """
-    Rank the vimba home candidats by the likelyhood of them pointing to the expected VimbaSDK
-    directory
+    Select the most likely candidate for VIMBA_HOME from the given list of
+    candidates
 
     Arguments:
         candidates - List of strings pointing to possible vimba home directories
 
     Return:
-        Sorted list of passed vimba home candidates in order of likelyhood (most likely first)
+        Path that represents the most likely VIMBA_HOME directory
+
+    Raises:
+        VimbaSystemError if multiple VIMBA_HOME directories were found in candidates
     """
-    # use SequenceMatcher from the difflib standard library to search for Vimba in the candidates
-    return sorted(candidates,
-                  key=lambda c: SequenceMatcher(None, c, 'Vimba').ratio(),
-                  reverse=True)
+    most_likely_candidates = []
+    for candidate in candidates:
+        if 'vimba' in candidate.lower():
+            most_likely_candidates.append(candidate)
+
+    if len(most_likely_candidates) == 0:
+        raise VimbaSystemError('No suitable Vimba installation found. The following paths '
+                               'were considered: {}'.format(candidates))
+    elif len(most_likely_candidates) > 1:
+        raise VimbaSystemError('Multiple Vimba installations found. Can\'t decide which to select: '
+                               '{}'.format(most_likely_candidates))
+
+    return most_likely_candidates[0]
 
 
 def _is_python_64_bit() -> bool:

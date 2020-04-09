@@ -32,7 +32,8 @@ THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
 
 import unittest
 
-from vimba.c_binding import _rank_vimba_home_candidates
+from vimba.c_binding import _select_vimba_home
+from vimba.error import VimbaSystemError
 
 
 class RankVimbaHomeCandidatesTest(unittest.TestCase):
@@ -44,42 +45,50 @@ class RankVimbaHomeCandidatesTest(unittest.TestCase):
 
     def test_empty_gentl_path(self):
         candidates = []
-        self.assertEqual([], _rank_vimba_home_candidates(candidates))
+        with self.assertRaises(VimbaSystemError):
+            _select_vimba_home(candidates)
 
     def test_empty_string(self):
         candidates = ['']
-        self.assertEqual([''], _rank_vimba_home_candidates(candidates))
+        with self.assertRaises(VimbaSystemError):
+            _select_vimba_home(candidates)
 
-    def test_single_vimba_home_candidate(self):
+    def test_single_bad_vimba_home_candidate(self):
         candidates = ['/some/path']
-        expected = candidates.copy()
-        self.assertEqual(expected, _rank_vimba_home_candidates(candidates))
+        with self.assertRaises(VimbaSystemError):
+            _select_vimba_home(candidates)
+
+    def test_single_good_vimba_home_candidate(self):
+        candidates = ['/opt/Vimba_3_1']
+        expected = '/opt/Vimba_3_1'
+        self.assertEquals(expected, _select_vimba_home(candidates))
 
     def test_presorted_vimba_home_candidates(self):
         candidates = ['/home/username/Vimba_4_0', '/opt/some/other/gentl/provider']
-        expected = candidates.copy()
-        self.assertEqual(expected, _rank_vimba_home_candidates(candidates))
+        expected = '/home/username/Vimba_4_0'
+        self.assertEqual(expected, _select_vimba_home(candidates))
 
     def test_unsorted_vimba_home_candidates(self):
         candidates = ['/opt/some/other/gentl/provider', '/home/username/Vimba_4_0']
-        expected = candidates[::-1]  # this also creates a copy of candidates
-        self.assertEqual(expected, _rank_vimba_home_candidates(candidates))
+        expected = '/home/username/Vimba_4_0'
+        self.assertEqual(expected, _select_vimba_home(candidates))
 
     def test_many_vimba_home_candidates(self):
         candidates = ['/some/random/path',
                       '/opt/some/gentl/provider',
-                      '/opt/Vimba_4_0',  # This should be the first element after ranking
+                      '/opt/Vimba_4_0',  # This should be selected
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
         expected = '/opt/Vimba_4_0'
-        self.assertEqual(expected, _rank_vimba_home_candidates(candidates)[0])
+        self.assertEqual(expected, _select_vimba_home(candidates))
 
     def test_multiple_vimba_home_directories(self):
+        # If multiple VIMBA_HOME directories are found an error should be raised
         candidates = ['/some/random/path',
                       '/opt/some/gentl/provider',
-                      '/opt/Vimba_4_0',  # This is a valid option
-                      '/home/username/Vimba_4_0',  # This is also valid
+                      '/opt/Vimba_4_0',  # first installation
+                      '/home/username/Vimba_4_0',  # second installation
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
-        # Check that the first element contains "Vimba"
-        self.assertTrue('Vimba' in _rank_vimba_home_candidates(candidates)[0])
+        with self.assertRaises(VimbaSystemError):
+            _select_vimba_home(candidates)
