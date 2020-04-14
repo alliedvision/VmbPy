@@ -527,7 +527,7 @@ def _load_under_linux(vimba_project: str):
         dir_ = 'x86_64bit' if _is_python_64_bit() else 'x86_32bit'
 
     # Linux x86 32 Bit
-    elif arch == 'i386':
+    elif arch in ('i386', 'i686'):
         dir_ = 'x86_32bit'
 
     # Linux arm 64 Bit (Requires additional interpreter version check)
