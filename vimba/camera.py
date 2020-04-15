@@ -317,17 +317,21 @@ def _frame_generator(cam, limit: Optional[int], timeout_ms: int):
     cnt = 0
 
     try:
-        # Enter Capturing mode
-        exc = fsm.enter_capturing_mode()
-        if exc:
-            raise exc
-
         while True if limit is None else cnt < limit:
-            cnt += 1
+            # Enter Capturing mode
+            exc = fsm.enter_capturing_mode()
+            if exc:
+                raise exc
+
             fsm.wait_for_frames(timeout_ms)
 
             # Return copy of internally used frame to keep them independent.
-            yield copy.deepcopy(frames[0])
+            frame_copy = copy.deepcopy(frames[0])
+            fsm.leave_capturing_mode()
+            frame_copy._frame.frameID = cnt
+            cnt += 1
+
+            yield frame_copy
 
     finally:
         # Leave Capturing mode
