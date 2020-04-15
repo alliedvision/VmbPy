@@ -498,7 +498,7 @@ def _load_under_linux(vimba_project: str):
     tl64_path = os.environ.get('GENICAM_GENTL64_PATH', "")
     if tl64_path:
         path_list += tl64_path.split(':')
-    
+
     # Remove empty strings from path_list if there are any.
     # Necessary because the GENICAM_GENTLXX_PATH variable might start with a :
     path_list = [path for path in path_list if path]
@@ -507,18 +507,15 @@ def _load_under_linux(vimba_project: str):
     if not path_list:
         raise VimbaSystemError('No TL detected. Please verify Vimba installation.')
 
-    vimba_homes: List[str] = []
+    vimba_home_candidates: List[str] = []
     for path in path_list:
         vimba_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
 
-        if vimba_home not in vimba_homes:
-            vimba_homes.append(vimba_home)
+        if vimba_home not in vimba_home_candidates:
+            vimba_home_candidates.append(vimba_home)
 
-    # Ensure that Vimba Installation is not ambiguous
-    if len(vimba_homes) > 1:
-        raise VimbaSystemError('TL from multiple Vimba installations detected. Abort.')
-
-    vimba_home = vimba_homes[0]
+    # Select the most likely directory from the candidates
+    vimba_home = _select_vimba_home(vimba_home_candidates)
 
     arch = platform.machine()
 
@@ -579,6 +576,35 @@ def _load_under_windows(vimba_project: str):
         raise VimbaSystemError(msg.format(lib_path)) from e
 
     return lib
+
+
+def _select_vimba_home(candidates: List[str]) -> str:
+    """
+    Select the most likely candidate for VIMBA_HOME from the given list of
+    candidates
+
+    Arguments:
+        candidates - List of strings pointing to possible vimba home directories
+
+    Return:
+        Path that represents the most likely VIMBA_HOME directory
+
+    Raises:
+        VimbaSystemError if multiple VIMBA_HOME directories were found in candidates
+    """
+    most_likely_candidates = []
+    for candidate in candidates:
+        if 'vimba' in candidate.lower():
+            most_likely_candidates.append(candidate)
+
+    if len(most_likely_candidates) == 0:
+        raise VimbaSystemError('No suitable Vimba installation found. The following paths '
+                               'were considered: {}'.format(candidates))
+    elif len(most_likely_candidates) > 1:
+        raise VimbaSystemError('Multiple Vimba installations found. Can\'t decide which to select: '
+                               '{}'.format(most_likely_candidates))
+
+    return most_likely_candidates[0]
 
 
 def _is_python_64_bit() -> bool:
