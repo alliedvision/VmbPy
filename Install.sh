@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # BSD 2-Clause License
 #
@@ -26,6 +26,15 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# global parameters parsed from command line flags 
+DEBUG=false
+
+while getopts "d" flag; do
+  case "${flag}" in
+    d) DEBUG=true ;;
+    *) ;;
+  esac
+done
 
 function get_bool_input()
 {
@@ -59,31 +68,39 @@ function get_bool_input()
 
 function get_python_versions
 {
+    DETECTED_PYTHONS=()
     for P in $(whereis -b python | tr " " "\n" | grep "python[[:digit:]]\?\.\?[[:digit:]]\?\.\?[[:digit:]]\?$")
-    do
-        PYTHON=$P
-
+    do        
         # 1) Remove results that are links
-        if [ -L "$PYTHON" ]
+        if [ -L "$P" ]
         then
+            if [ "$DEBUG" = true ] ; then
+                echo "$P was a link" >&2
+            fi
             continue
         fi
 
         # 2) Remove results that are directories
-        if [ -d "$PYTHON" ]
+        if [ -d "$P" ]
         then
+            if [ "$DEBUG" = true ] ; then
+                echo "$P was a directory" >&2
+            fi
             continue
         fi
 
         # 3) Remove results that offer no pip support.
-        $PYTHON -m pip > /dev/null 2>&1
+        $P -m pip > /dev/null 2>&1
         if [ $? -ne 0 ]
         then
+            if [ "$DEBUG" = true ] ; then
+                echo "$P did not have pip support" >&2
+            fi
             continue 
         fi
-
-        echo -n "$PYTHON "
+        DETECTED_PYTHONS+=("$P")
     done
+    echo "${DETECTED_PYTHONS[@]}"
 }
 
 echo "###############################"
@@ -214,7 +231,7 @@ then
     then
         TARGET="opencv-export"
     else
-        TARGET=$TARGET,opencv-export
+        TARGET="$TARGET,opencv-export"
     fi
     echo "Installing VimbaPython with OpenCV support."
 else
@@ -227,10 +244,10 @@ if [ -z $TARGET ]
 then
     TARGET="$SOURCEDIR"
 else
-    TARGET="$SOURCEDIR\[$TARGET\]"
+    TARGET="$SOURCEDIR[$TARGET]"
 fi
 
-$PYTHON -m pip install $TARGET
+echo "$PYTHON -m pip install $TARGET"
 
 if [ $? -eq 0 ]
 then
