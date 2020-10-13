@@ -37,7 +37,7 @@ function get_bool_input()
 
     while [[ "$ANSWER" != "$TRUTHY" ]] && [[ "$ANSWER" != "$FALSY" ]]
     do
-        echo -n $QUESTION
+        echo -n "$QUESTION"
         read ANSWER
 
         # Use Default value if it was supplied and the input was empty.
@@ -64,13 +64,13 @@ function get_python_versions
         PYTHON=$P
 
         # 1) Remove results that are links
-        if [ -L $PYTHON ]
+        if [ -L "$PYTHON" ]
         then
             continue
         fi
 
         # 2) Remove results that are directories
-        if [ -d $PYTHON ]
+        if [ -d "$PYTHON" ]
         then
             continue
         fi
@@ -110,7 +110,7 @@ then
 fi
 
 # get path to setup.py file
-SOURCEDIR="$(find -name setup.py -type f -printf '%h' -quit)"
+SOURCEDIR="$(find . -name setup.py -type f -printf '%h' -quit)"
 if [ -z "$SOURCEDIR" ]
 then
     echo "Error: setup.py not found. Abort"
@@ -148,7 +148,7 @@ do
     echo -n "Enter python version to install VimbaPython (0 - $LAST, default: 0): "
     read TMP
 
-    if [ -z $TMP ]
+    if [ -z "$TMP" ]
     then
         TMP=0
     fi
@@ -227,7 +227,7 @@ if [ -z $TARGET ]
 then
     TARGET="$SOURCEDIR"
 else
-    TARGET="$SOURCEDIR[$TARGET]"
+    TARGET="$SOURCEDIR\[$TARGET\]"
 fi
 
 $PYTHON -m pip install $TARGET
