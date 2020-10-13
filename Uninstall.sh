@@ -33,13 +33,13 @@ function get_python_versions
         PYTHON=$P
 
         # 1) Remove results that are links
-        if [ -L $PYTHON ]
+        if [ -L "$PYTHON" ]
         then
             continue
         fi
 
         # 2) Remove results that are directories
-        if [ -d $PYTHON ]
+        if [ -d "$PYTHON" ]
         then
             continue
         fi
@@ -51,7 +51,7 @@ function get_python_versions
             continue 
         fi
 
-        # 4) Remove results there VimbaPython is not installed
+        # 4) Remove results where VimbaPython is not installed
         if [ $($PYTHON -m pip list | grep "VimbaPython" | wc -l) -ne 1 ]
         then
             continue
