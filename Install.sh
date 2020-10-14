@@ -117,7 +117,19 @@ function get_python_versions
             continue
         fi
 
-        # 3) Remove results that offer no pip support.
+        # 3) Remove incompatible versions (<3.7)
+        # patch is ignored but has to be parsed in case the binary name contains it
+        read -r major minor patch < <(echo $P | tr -dc "0-9." | tr "." " ")
+        if [ $major -gt 3 ] || { [ $major -eq 3 ] && [ $minor -ge 7 ]; }; then
+            : # the interperter is compatible
+        else
+            if [ "$DEBUG" = true ] ; then
+                echo "$P is not compatible. VimbaPython requires python >=3.7" >&2
+            fi
+            continue
+        fi
+
+        # 4) Remove results that offer no pip support.
         $P -m pip > /dev/null 2>&1
         if [ $? -ne 0 ]
         then
