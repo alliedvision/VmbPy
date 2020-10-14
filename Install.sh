@@ -167,7 +167,7 @@ PYTHONS=$(get_python_versions)
 
 if [ -z "$PYTHONS" ]
 then
-    echo "Error: No Python version with pip support found. Abort."
+    echo "Error: No compatible Python version with pip support found. Abort."
     exit 1
 fi
 
@@ -209,7 +209,7 @@ do
     fi
 
     # Verify Input range
-    if [ 0 -le $ITER -a $ITER -le $LAST ]
+    if [ 0 -le $ITER ] && [ $ITER -le $LAST ]
     then
         break
 
@@ -276,7 +276,7 @@ else
     TARGET="$SOURCEDIR[$TARGET]"
 fi
 
-echo "$PYTHON -m pip install $TARGET"
+$PYTHON -m pip install "$TARGET"
 
 if [ $? -eq 0 ]
 then
