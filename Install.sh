@@ -66,13 +66,41 @@ function get_bool_input()
     [[ "$ANSWER" == "$TRUTHY" ]]
 }
 
+function inside_virtual_env
+{
+    if [ -z "$VIRTUAL_ENV" ]; then
+        echo "false"
+    else
+        echo "true"
+    fi
+}
+
 function get_python_versions
 {
     DETECTED_PYTHONS=()
-    for P in $(whereis -b python | tr " " "\n" | grep "python[[:digit:]]\?\.\?[[:digit:]]\?\.\?[[:digit:]]\?$")
-    do        
-        # 1) Remove results that are links
-        if [ -L "$P" ]
+
+    # Check if the script was run from a virtual environment and set search path for binary accordingly
+    if [ "$(inside_virtual_env)" = true ]; then
+        if [ "$DEBUG" = true ] ; then
+            echo "Detected active virtual environment" >&2
+        fi
+        SEARCH_PATH="$VIRTUAL_ENV"/bin
+    else
+        if [ "$DEBUG" = true ] ; then
+            echo "No virtual environment detected" >&2
+        fi
+        SEARCH_PATH=$(echo "$PATH" | tr ":" " ")
+    fi
+
+    if [ "$DEBUG" = true ] ; then
+        echo "Searching for python in $SEARCH_PATH" >&2
+    fi
+
+    # iterate over all detected python binaries and check if they are viable installations
+    for P in $(whereis -b -B $SEARCH_PATH -f python | tr " " "\n" | grep "python[[:digit:]]\.[[:digit:]]\.\?[[:digit:]]\?$" | sort -V)
+    do
+        # 1) Remove results that are links (venv executables are often links so we allow those)
+        if [ -L "$P" ] && [ "$(inside_virtual_env)" = false ]
         then
             if [ "$DEBUG" = true ] ; then
                 echo "$P was a link" >&2
@@ -111,7 +139,8 @@ echo "###############################"
 # Perform sanity checks #
 #########################
 
-if [ $UID -ne 0 ]
+# root is only required if we are not installing in a virtual environment
+if [ $UID -ne 0 ] && [ "$(inside_virtual_env)" = false ]
 then
     echo "Error: Installation requires root priviliges. Abort."
     exit 1
