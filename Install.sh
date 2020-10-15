@@ -119,8 +119,9 @@ function get_python_versions
 
         # 3) Remove incompatible versions (<3.7)
         # patch is ignored but has to be parsed in case the binary name contains it
-        read -r major minor patch < <(echo $P | tr -dc "0-9." | tr "." " ")
-        if [ $major -gt 3 ] || { [ $major -eq 3 ] && [ $minor -ge 7 ]; }; then
+        FILENAME=$(basename -- "$P")
+        read -r MAJOR MINOR PATCH < <(echo $FILENAME | tr -dc "0-9." | tr "." " ")
+        if [ $MAJOR -gt 3 ] || { [ $MAJOR -eq 3 ] && [ $MINOR -ge 7 ]; }; then
             : # the interperter is compatible
         else
             if [ "$DEBUG" = true ] ; then
