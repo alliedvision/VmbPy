@@ -65,6 +65,16 @@ Execute the following command:
 
       python -m pip install .[numpy-export,opencv-export]
 
+
+Helper scripts for Linux
+---------------
+For Linux systems helper scripts named `Install.sh` and `Uninstall.sh` to install and uninstall
+VimbaPython are provided. They will automatically detect if there is a currently active virtual
+environment. To install or uninstall VimbaPython for one of the system wide Python installations,
+admin rights are required (use `sudo`). To get further details on why the scripts do not offer your
+desired Python installation or to troubleshoot problems, a debug flag is provided (for example
+`./Install.sh -d`).
+
 ARM users only: 
 If installation of "opencv-export" fails, pip is not able to install
 "opencv-python" for your ARM board. This is a known issue on ARM boards.
