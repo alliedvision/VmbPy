@@ -12,8 +12,10 @@ If your system requires multiple, coexisting Python versions, consider
 using pyenv-win to install and maintain multiple Python installations:
 https://github.com/pyenv-win/pyenv-win
 
+We recommend installing Python with admin rights. 
+
 1. Install Python: https://www.python.org/downloads/windows/
-2. Ensure that the latest pip version is installed.
+2. If pip >21.2 is used, read the instructions for all operating systems below.
 3. To verify the installation, open the command prompt and enter:
 
       python --version
@@ -41,15 +43,27 @@ Installing the Vimba Python API
 ===============
 All operating systems:
 
-Open a terminal and navigate to the VimbaPython installation directory, 
-for example, C:\Program Files\Allied Vision\Vimba_x.x\VimbaPython.
+Open a terminal and navigate to the VimbaPython installation directory that
+you have admin privileges/write permission for, 
+for example, C:\Users\Public\Documents\Allied Vision\Vimba_5.x\VimbaPython_Source
 
 Users who want to change the API's sources can find them in the Vimba examples 
 directory, for example:
-C:\Users\Public\Documents\Allied Vision\Vimba_x.x\VimbaPython_Source
+C:\Users\Public\Documents\Allied Vision\Vimba_5.x\VimbaPython_Source
 
 Please note that Allied Vision can offer only limited support if an application 
 uses a modified version of the API. 
+
+Troubleshooting: If you don't have write permisson for the above-mentioned directories:
+
+Download VimbaPython (in the correct version needed for your Vimba installation) from 
+https://github.com/alliedvision/VimbaPython and install it from that directory.
+
+Or you can downgrade pip to a version <2.3 with, for example:
+
+python -m pip install --upgrade pip==21.1.2
+
+After the VimbaPython installation is complete, you can upgrade pip again to the latest version.
 
 
 Basic Installation
