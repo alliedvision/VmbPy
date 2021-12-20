@@ -32,8 +32,8 @@ from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p
 from ..util import TraceEnable
 from ..error import VimbaSystemError
 from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
-                          VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
-                          fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
+    VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
+    fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
 
 __version__ = None
 
@@ -659,7 +659,11 @@ def _check_version(lib_handle):
 
     VIMBA_C_VERSION = str(v)
 
-    if VIMBA_C_VERSION != EXPECTED_VIMBA_C_VERSION:
+    loaded_version = (v.major, v.minor, v.patch)
+    expected_version = tuple(map(int, EXPECTED_VIMBA_C_VERSION.split(".")))
+    # major and minor version must be equal, patch version may be equal or greater
+    if not(loaded_version[0:2] == expected_version[0:2] and
+           loaded_version[2] >= expected_version[2]):
         msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
         raise VimbaSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION))
 
