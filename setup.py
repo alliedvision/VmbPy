@@ -55,7 +55,7 @@ packages = [
 ]
 python_requires = '>=3.7'
 tests_require = [
-    'xmlrunner',
+    'unittest-xml-reporting',
     'flake8',
     'flake8-junit-report',
     'mypy',
