@@ -296,6 +296,42 @@ class CamCameraTest(unittest.TestCase):
             finally:
                 self.cam.stop_streaming()
 
+    def test_ensure_frame_ids_start_at_zero(self):
+        # Expectation: Frame IDs start at 0 and increment by one for each received frame (this
+        # depends on a stable stream with no lost frames!)
+
+        class FrameHandler:
+            def __init__(self, frame_count, test_instance):
+                self.cnt = 0
+                self.frame_count = frame_count
+                self._test_instance = test_instance
+                self.event = threading.Event()
+
+            def __call__(self, cam: Camera, frame: Frame):
+                # If the frame callback for the first frame is not triggered, this assertion will
+                # fail the test case because the frame will have ID 1 instead of the expected value
+                # of 0
+                self._test_instance.assertEqual(self.cnt, frame.get_id())
+                self.cnt += 1
+
+                if self.cnt == self.frame_count:
+                    self.event.set()
+
+                cam.queue_frame(frame)
+
+        timeout = 5.0
+        frame_count = 5
+        handler = FrameHandler(frame_count, self)
+        with self.cam:
+            try:
+                self.cam.start_streaming(handler, frame_count)
+
+                # Wait until the FrameHandler has been executed for each queued frame
+                self.assertTrue(handler.event.wait(timeout))
+
+            finally:
+                self.cam.stop_streaming()
+
     def test_camera_runtime_type_check(self):
         def valid_handler(cam, frame):
             pass
