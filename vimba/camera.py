@@ -148,13 +148,17 @@ class _StateInit(_State):
 class _StateAnnounced(_State):
     @TraceEnable()
     def forward(self) -> Union[_State, VimbaCameraError]:
-        try:
-            call_vimba_c('VmbCaptureStart', self.context.cam_handle)
+        for frame in self.context.frames:
+            frame_handle = _frame_handle_accessor(frame)
 
-        except VimbaCError as e:
-            return _build_camera_error(self.context.cam, e)
+            try:
+                call_vimba_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
+                             self.context.frames_callback)
 
-        return _StateCapturing(self.context)
+            except VimbaCError as e:
+                return _build_camera_error(self.context.cam, e)
+
+        return _StateQueued(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VimbaCameraError]:
@@ -170,7 +174,29 @@ class _StateAnnounced(_State):
         return _StateInit(self.context)
 
 
-class _StateCapturing(_State):
+class _StateQueued(_State):
+    @TraceEnable()
+    def forward(self) -> Union[_State, VimbaCameraError]:
+        try:
+            call_vimba_c('VmbCaptureStart', self.context.cam_handle)
+
+        except VimbaCError as e:
+            return _build_camera_error(self.context.cam, e)
+
+        return _StateCaptureStarted(self.context)
+
+    @TraceEnable()
+    def backward(self) -> Union[_State, VimbaCameraError]:
+        try:
+            call_vimba_c('VmbCaptureQueueFlush', self.context.cam_handle)
+
+        except VimbaCError as e:
+            return _build_camera_error(self.context.cam, e)
+
+        return _StateAnnounced(self.context)
+
+
+class _StateCaptureStarted(_State):
     @TraceEnable()
     def forward(self) -> Union[_State, VimbaCameraError]:
         try:
@@ -186,24 +212,12 @@ class _StateCapturing(_State):
     @TraceEnable()
     def backward(self) -> Union[_State, VimbaCameraError]:
         try:
-            call_vimba_c('VmbCaptureQueueFlush', self.context.cam_handle)
-
-        except VimbaCError as e:
-            return _build_camera_error(self.context.cam, e)
-
-        return _StateAnnounced(self.context)
-
-
-class _StateNotAcquiring(_State):
-    @TraceEnable()
-    def backward(self) -> Union[_State, VimbaCameraError]:
-        try:
             call_vimba_c('VmbCaptureEnd', self.context.cam_handle)
 
         except VimbaCError as e:
             return _build_camera_error(self.context.cam, e)
 
-        return _StateCapturing(self.context)
+        return _StateQueued(self.context)
 
 
 class _StateAcquiring(_State):
@@ -218,13 +232,10 @@ class _StateAcquiring(_State):
         except BaseException as e:
             return VimbaCameraError(str(e))
 
-        return _StateNotAcquiring(self.context)
+        return _StateCaptureStarted(self.context)
 
     @TraceEnable()
     def wait_for_frames(self, timeout_ms: int):
-        for frame in self.context.frames:
-            self.queue_frame(frame)
-
         for frame in self.context.frames:
             frame_handle = _frame_handle_accessor(frame)
 
@@ -719,10 +730,6 @@ class Camera:
             self.__capture_fsm.leave_capturing_mode()
             self.__capture_fsm = None
             raise exc
-
-        else:
-            for frame in frames:
-                self.__capture_fsm.queue_frame(frame)
 
     @TraceEnable()
     @RaiseIfOutsideContext()
