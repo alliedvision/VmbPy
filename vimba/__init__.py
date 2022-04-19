@@ -28,7 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
 
-__version__ = '1.2.1'
+__version__ = '1.3.0'
 
 __all__ = [
     'Vimba',
