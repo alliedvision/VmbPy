@@ -588,7 +588,10 @@ class Frame:
     """This class allows access to Frames acquired by a camera. The Frame is basically
     a buffer that wraps image data and some metadata.
     """
-    def __init__(self, buffer_size: int, allocation_mode: AllocationMode):
+    def __init__(self,
+                 buffer_size: int,
+                 allocation_mode: AllocationMode,
+                 buffer_alignment: int = 1):
         """Do not call directly. Create Frames via Camera methods instead."""
         self._allocation_mode = allocation_mode
 
@@ -596,7 +599,7 @@ class Frame:
         # Layer will take care of buffer allocation. The self._buffer variable will be updated after
         # the frame is announced and memory has been allocated.
         if self._allocation_mode == AllocationMode.AnnounceFrame:
-            self._buffer = (ctypes.c_ubyte * buffer_size)()
+            self._buffer = _allocate_buffer(size=buffer_size, alignment=buffer_alignment)
         self._frame: VmbFrame = VmbFrame()
 
         # Setup underlaying Frame
@@ -815,7 +818,7 @@ class Frame:
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
         anc_size = self._frame.ancillarySize
 
-        buf = (ctypes.c_ubyte * (img_size + anc_size))()
+        buf = _allocate_buffer(size=img_size + anc_size)
         c_dst_image.Data = ctypes.cast(buf, ctypes.c_void_p)
 
         # 5) Setup Debayering mode if given.
@@ -921,3 +924,17 @@ def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTup
             TypeError if parameters do not match their type hint.
     """
     return tuple(set(fmts1).intersection(set(fmts2)))
+
+
+def _allocate_buffer(size, alignment=1):
+    # Buffer can be at most (alignment -1) bytes out of alignment -> overallocate by that amount
+    overallocated_size = size + (alignment - 1)
+    overallocated_memory = (ctypes.c_ubyte * overallocated_size)()
+
+    # how far off from desired alignment does the overallocated_memory start
+    offset = ctypes.addressof(overallocated_memory) % alignment
+
+    # how far into overallocated_memory can the first aligned address be found
+    offset_to_aligned = (alignment - offset) % alignment
+
+    return (ctypes.c_ubyte * size).from_buffer(overallocated_memory, offset_to_aligned)

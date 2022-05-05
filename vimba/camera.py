@@ -321,7 +321,11 @@ def _frame_generator(cam, limit: Optional[int], timeout_ms: int, allocation_mode
         raise VimbaCameraError('Operation not supported while streaming.')
 
     frame_data_size = cam.get_feature_by_name('PayloadSize').get()
-    frames = (Frame(frame_data_size, allocation_mode), )
+    try:
+        buffer_alignment = cam.get_feature_by_name('StreamBufferAlignment').get()
+    except VimbaFeatureError:
+        buffer_alignment = 1
+    frames = (Frame(frame_data_size, allocation_mode, buffer_alignment=buffer_alignment), )
     fsm = _CaptureFsm(_Context(cam, frames, None, None))
     cnt = 0
 
@@ -719,7 +723,12 @@ class Camera:
 
         # Setup capturing fsm
         payload_size = self.get_feature_by_name('PayloadSize').get()
-        frames = tuple([Frame(payload_size, allocation_mode) for _ in range(buffer_count)])
+        try:
+            buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
+        except VimbaFeatureError:
+            buffer_alignment = 1
+        frames = tuple([Frame(payload_size, allocation_mode, buffer_alignment=buffer_alignment)
+                        for _ in range(buffer_count)])
         callback = build_callback_type(None, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
 
         self.__capture_fsm = _CaptureFsm(_Context(self, frames, handler, callback))
