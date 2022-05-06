@@ -33,33 +33,12 @@ import os
 # Add local directory to search path for test module import in this script.
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
+from helpers import VimbaTestCase
+
 
 # Add vimba module at the start of the search path. The tests should run against the
 # local VimbaPython sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-
-# Inject 'assertNotRaise' to default test module. Tests are derived from this class.
-def _assertNoRaise(self, func, *args, **kwargs):
-    try:
-        func(*args, **kwargs)
-
-    except BaseException as e:
-        self.fail('Function raised: {}'.format(e))
-
-
-# Inject shared test camera id into the base TestCase
-def _get_test_camera_id(self) -> str:
-    return unittest.TestCase.test_cam_id
-
-
-def _set_test_camera_id(test_cam_id) -> str:
-    unittest.TestCase.test_cam_id = test_cam_id
-
-
-unittest.TestCase.assertNoRaise = _assertNoRaise
-unittest.TestCase.set_test_camera_id = _set_test_camera_id
-unittest.TestCase.get_test_camera_id = _get_test_camera_id
 
 
 def _blacklist_tests(test_suite, blacklist):
@@ -104,10 +83,7 @@ def main():
     loader = unittest.TestLoader()
 
     if args['CAMERA_ID']:
-        unittest.TestCase.set_test_camera_id(args['CAMERA_ID'])
-
-    else:
-        unittest.TestCase.set_test_camera_id(None)
+        VimbaTestCase.set_test_camera_id(args['CAMERA_ID'])
 
     # Select TestRunner
     if args['console']:
