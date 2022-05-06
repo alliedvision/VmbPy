@@ -777,7 +777,7 @@ class CamStringFeatureTest(VimbaTestCase):
     def test_set(self):
         # Expectation:
         # 1) Setting a read only feature must raise a VimbaFeatureError
-        # 2) Setting a read/wrtie must raise VimbaFeatureError if the string is
+        # 2) Setting a read/write must raise VimbaFeatureError if the string is
         #    longer than max length
         # 3) Setting a read/write feature must work if string is long enough
 
