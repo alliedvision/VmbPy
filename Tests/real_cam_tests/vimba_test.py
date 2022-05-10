@@ -25,7 +25,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import ipaddress
-import struct
 
 from vimba import *
 
@@ -111,9 +110,6 @@ class CamVimbaTest(VimbaTestCase):
             # Lookup test cameras IP address.
             with cam:
                 ip_as_number = cam.get_feature_by_name('GevCurrentIPAddress').get()
-
-            # Swap byte order, the raw value does not seem to follow network byte order.
-            ip_as_number = struct.pack('<L', ip_as_number)
 
             # Verify that lookup with IPv4 Address returns the same Camera Object
             ip_addr = str(ipaddress.IPv4Address(ip_as_number))
