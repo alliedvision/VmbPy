@@ -197,10 +197,19 @@ class CamFrameTest(unittest.TestCase):
                 test_frames.append(frame)
 
         for frame in test_frames:
-
-            # The test shall work on a copy to keep the original Frame untouched
+            original_fmt = frame.get_pixel_format()
             for expected_fmt in frame.get_pixel_format().get_convertible_formats():
-                cpy_frame = copy.deepcopy(frame)
-                cpy_frame.convert_pixel_format(expected_fmt)
+                transformed_frame = frame.convert_pixel_format(expected_fmt)
 
-                self.assertEquals(expected_fmt, cpy_frame.get_pixel_format())
+                self.assertEquals(expected_fmt, transformed_frame.get_pixel_format())
+                self.assertEquals(original_fmt, frame.get_pixel_format())
+
+                # Ensure that width and height of frames are identical (if both formats can be
+                # represented as numpy arrays)
+                try:
+                    original_shape = frame.as_numpy_ndarray().shape
+                    transformed_shape = transformed_frame.as_numpy_ndarray().shape
+                    self.assertTupleEqual(original_shape[0:2], transformed_shape[0:2])
+                except VimbaFrameError:
+                    # one of the pixel formats does not support representation as numpy array
+                    pass
