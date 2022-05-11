@@ -1153,7 +1153,8 @@ class StringFeature(_BaseFeature):
 
         In this context, string length does not mean the number of characters, it means
         the number of bytes after encoding. A string encoded in UTF-8 could exceed
-        the maximum length.
+        the maximum length. Additionally the last byte of the string feature is reserved
+        for a null-byte to indicate the end of the string.
 
         Returns:
             The number of ASCII characters the Feature can store.
