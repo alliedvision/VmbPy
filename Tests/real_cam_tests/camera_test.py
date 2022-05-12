@@ -79,12 +79,9 @@ class CamCameraTest(unittest.TestCase):
 
     def test_camera_access_mode(self):
         # Expectation: set/get access mode
-        self.cam.set_access_mode(AccessMode.None_)
-        self.assertEqual(self.cam.get_access_mode(), AccessMode.None_)
-        self.cam.set_access_mode(AccessMode.Full)
-        self.assertEqual(self.cam.get_access_mode(), AccessMode.Full)
-        self.cam.set_access_mode(AccessMode.Read)
-        self.assertEqual(self.cam.get_access_mode(), AccessMode.Read)
+        for mode in AccessMode:
+            self.cam.set_access_mode(mode)
+            self.assertEqual(self.cam.get_access_mode(), mode)
 
     def test_camera_get_id(self):
         # Expectation: get decoded camera id
