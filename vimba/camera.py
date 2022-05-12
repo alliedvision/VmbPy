@@ -973,6 +973,21 @@ class Camera:
         call_vimba_c('VmbCameraClose', self.__handle)
         self.__handle = VmbHandle(0)
 
+    @TraceEnable()
+    def _update_permitted_access_modes(self):
+        info = VmbCameraInfo()
+        try:
+            call_vimba_c('VmbCameraInfoQuery',
+                         self.get_id().encode('utf-8'),
+                         byref(info),
+                         sizeof(info))
+
+        except VimbaCError as e:
+            raise VimbaCameraError(str(e.get_error_code())) from e
+        # TODO: Should this really replace the entire info member or just parts of it?
+        # TODO: Do we need to make sure that the ID in the read info struct is the expected one?
+        self.__info = info
+
     def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
 
