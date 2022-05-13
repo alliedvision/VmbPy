@@ -132,6 +132,16 @@ class CamBaseFeatureTest(unittest.TestCase):
         # Expectation: True if feature grant write access else False
         self.assertTrue(self.height.is_writeable())
 
+    def test_write_access_changes_when_streaming(self):
+        # Expectation: Feature write access changes when streaming is started (warning: some
+        # features may be writeable even during streaming!)
+        self.assertTrue(self.height.is_writeable())
+        try:
+            self.cam.start_streaming(lambda cam, frame: cam.queue_frame(frame))
+            self.assertFalse(self.height.is_writeable())
+        finally:
+            self.cam.stop_streaming()
+
     def test_change_handler(self):
         # Expectation: A given change handler is executed on value change.
         # Adding the same handler multiple times shall not lead to multiple executions.
