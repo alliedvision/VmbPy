@@ -24,6 +24,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import os
 import unittest
 import vimba
 
@@ -35,10 +36,14 @@ class VimbaTestCase(unittest.TestCase):
     Adds the static functions `get_test_camera_id` and `set_test_camera_id` to simplify opening the
     appropriate device for testing.
     """
-    test_cam_id = ""
+    test_cam_id = ''
 
     @classmethod
     def setUpClass(cls):
+        if not VimbaTestCase.test_cam_id:
+            # Try to read device id from environment variable. If it is not set test_cam_id will
+            # still be an empty string
+            VimbaTestCase.test_cam_id = os.getenv('VIMBAPYTHON_DEVICE_ID', '')
         if not VimbaTestCase.test_cam_id:
             with vimba.Vimba.get_instance() as vmb:
                 try:
