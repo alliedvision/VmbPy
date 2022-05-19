@@ -1025,7 +1025,7 @@ class Camera:
 def _setup_network_discovery():
     if discover_feature(G_VIMBA_C_HANDLE, 'GeVTLIsPresent').get():
         discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
-        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllOnce').run()
+        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllAuto').run()
 
 
 @TraceEnable()
