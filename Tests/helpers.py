@@ -40,11 +40,11 @@ class VimbaTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not VimbaTestCase.test_cam_id:
+        if not VimbaTestCase.get_test_camera_id():
             # Try to read device id from environment variable. If it is not set test_cam_id will
             # still be an empty string
             VimbaTestCase.set_test_camera_id(os.getenv('VIMBAPYTHON_DEVICE_ID', ''))
-        if not VimbaTestCase.test_cam_id:
+        if not VimbaTestCase.get_test_camera_id():
             with vimba.Vimba.get_instance() as vmb:
                 try:
                     VimbaTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
