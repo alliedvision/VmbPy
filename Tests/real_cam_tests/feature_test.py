@@ -24,15 +24,19 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-import unittest
 import threading
 
 from vimba import *
 from vimba.feature import *
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-class CamBaseFeatureTest(unittest.TestCase):
+from helpers import VimbaTestCase
+
+
+class CamBaseFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -192,7 +196,7 @@ class CamBaseFeatureTest(unittest.TestCase):
             self.assertNoRaise(str, feat)
 
 
-class CamBoolFeatureTest(unittest.TestCase):
+class CamBoolFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -220,7 +224,7 @@ class CamBoolFeatureTest(unittest.TestCase):
         self.assertRaises(VimbaFeatureError, self.feat.set, True)
 
 
-class CamCommandFeatureTest(unittest.TestCase):
+class CamCommandFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -240,7 +244,7 @@ class CamCommandFeatureTest(unittest.TestCase):
         self.assertEqual(self.feat.get_type(), CommandFeature)
 
 
-class CamEnumFeatureTest(unittest.TestCase):
+class CamEnumFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -456,7 +460,7 @@ class CamEnumFeatureTest(unittest.TestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamFloatFeatureTest(unittest.TestCase):
+class CamFloatFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -587,7 +591,7 @@ class CamFloatFeatureTest(unittest.TestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamIntFeatureTest(unittest.TestCase):
+class CamIntFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -718,7 +722,7 @@ class CamIntFeatureTest(unittest.TestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamStringFeatureTest(unittest.TestCase):
+class CamStringFeatureTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -783,7 +787,7 @@ class CamStringFeatureTest(unittest.TestCase):
     def test_set(self):
         # Expectation:
         # 1) Setting a read only feature must raise a VimbaFeatureError
-        # 2) Setting a read/wrtie must raise VimbaFeatureError if the string is
+        # 2) Setting a read/write must raise VimbaFeatureError if the string is
         #    longer than max length
         # 3) Setting a read/write feature must work if string is long enough
 

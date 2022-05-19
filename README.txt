@@ -1,4 +1,4 @@
-﻿Vimba Python API
+Vimba Python API
 ===============
 
 Prerequisites
@@ -79,6 +79,10 @@ Execute the following command:
 
       python -m pip install .[numpy-export,opencv-export]
 
+To run the entire test suite with additional style and typing checks, another set of optional
+dependencies is available. These can be installed by adding `tests_require` to the optional
+dependency list.
+
 
 Helper scripts for Linux
 ---------------
@@ -95,3 +99,49 @@ If installation of "opencv-export" fails, pip is not able to install
 If you are affected by this, install VimbaPython without optional dependencies 
 and try to install OpenCV in a different way (for example, with your operating system's packet manager). 
 The OpenCV installation can be verified by running the example "Examples/asychronous_grab_opencv.py".
+
+Running the Test suite
+======================
+The test suite of VimbaPython can be run in two different ways. The first approach is to use the
+included helper script `run_tests.py`. To use the full functionality of this script, the optional
+installation dependency `tests_require` is needed. The script provides a convenient command line
+interface
+
+VimbaPython tests script.
+    Usage:
+        run_tests.py -h
+        run_tests.py test -s basic [BLACKLIST...]
+        run_tests.py test -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+        run_tests.py test_junit -s basic [BLACKLIST...]
+        run_tests.py test_junit -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+
+    Arguments:
+        CAMERA_ID    Camera Id from Camera that shall be used during testing
+        BLACKLIST    Optional sequence of unittest functions to skip.
+
+    Options:
+        -h   Show this screen.
+        -s   Unittestsuite. Can be 'basic', 'real_cam' or 'all'. The last two require a
+             Camera Id to test against.
+        -c   Camera Id used in testing.
+
+Alternatively Python's unittest module can be used to discover the test cases of VimbaPython
+automatically. This also provides good integration into third party tools like test explorers. As
+the command line interface of the unittests module does not allow simple passing of command line
+options, setting the device ID of the camera that should be used for test execution is not as
+convenient as it is with `run_tests.py`.
+
+To execute the entire test suite the following command can be run inside the `Tests` directory of
+this repository:
+
+      python -m unittest discover -v -p *_test.py
+
+This will open the first camera, that Vimba detects on the system. If multiple cameras are connected
+to the system, an unexpected device may be selected. In this situation it is recommended to specify
+the ID of the device that should be used for test case execution. This is done by setting the
+environment variable `VIMBAPYTHON_DEVICE_ID`. On Linux this can for example be done as shown below.
+A convenient way to get the IDs of currently available devices is running the `list_cameras.py`
+example.
+
+      export VIMBAPYTHON_DEVICE_ID=DEV_PLACEHOLDER
+      python -m unittest discover -v -p *_test.py

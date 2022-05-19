@@ -24,14 +24,18 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-import unittest
 import ctypes
 
 from vimba.c_binding import *
 
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-class VimbaCommonTest(unittest.TestCase):
+from helpers import VimbaTestCase
+
+
+class VimbaCommonTest(VimbaTestCase):
     def setUp(self):
         pass
 
@@ -82,7 +86,7 @@ class VimbaCommonTest(unittest.TestCase):
         self.assertEqual(list(expected).sort(), list(actual).sort())
 
 
-class CBindingVimbaCTypesTest(unittest.TestCase):
+class CBindingVimbaCTypesTest(VimbaTestCase):
     def setUp(self):
         pass
 
@@ -236,7 +240,7 @@ class CBindingVimbaCTypesTest(unittest.TestCase):
         self.assertEqual(VmbFrameFlags.Timestamp, 8)
 
 
-class VimbaCTest(unittest.TestCase):
+class VimbaCTest(VimbaTestCase):
     def setUp(self):
         pass
 
@@ -306,7 +310,7 @@ class VimbaCTest(unittest.TestCase):
             self.assertEqual(e.get_error_code(), VmbError.BadParameter)
 
 
-class ImageTransformTest(unittest.TestCase):
+class ImageTransformTest(VimbaTestCase):
     def setUp(self):
         pass
 

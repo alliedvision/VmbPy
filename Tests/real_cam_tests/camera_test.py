@@ -27,10 +27,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import multiprocessing
 import unittest
 import threading
-import os
 
 from vimba import *
 from vimba.frame import *
+
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from helpers import VimbaTestCase
 
 
 def dummy_frame_handler(cam: Camera, frame: Frame):
@@ -62,7 +67,7 @@ def _open_camera(id: str,
             shutdown_request.wait(timeout=10)
 
 
-class CamCameraTest(unittest.TestCase):
+class CamCameraTest(VimbaTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
