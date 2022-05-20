@@ -973,6 +973,19 @@ class Camera:
         call_vimba_c('VmbCameraClose', self.__handle)
         self.__handle = VmbHandle(0)
 
+    @TraceEnable()
+    def _update_permitted_access_modes(self):
+        info = VmbCameraInfo()
+        try:
+            call_vimba_c('VmbCameraInfoQuery',
+                         self.get_id().encode('utf-8'),
+                         byref(info),
+                         sizeof(info))
+
+        except VimbaCError as e:
+            raise VimbaCameraError(str(e.get_error_code())) from e
+        self.__info.permittedAccess = info.permittedAccess
+
     def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
 
@@ -1010,7 +1023,7 @@ class Camera:
 def _setup_network_discovery():
     if discover_feature(G_VIMBA_C_HANDLE, 'GeVTLIsPresent').get():
         discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
-        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllOnce').run()
+        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllAuto').run()
 
 
 @TraceEnable()

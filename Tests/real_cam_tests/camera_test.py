@@ -24,6 +24,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import multiprocessing
 import unittest
 import threading
 
@@ -39,6 +40,31 @@ from helpers import VimbaTestCase
 
 def dummy_frame_handler(cam: Camera, frame: Frame):
     pass
+
+
+def _open_camera(id: str,
+                 shutdown_request: multiprocessing.Event):
+    """Helper function to open a camera in a different process via multiprocessing
+
+    This function can be used in a process spawned by the multiprocessing library. This allows a
+    separate process to open a camera, making tests possible that rely on cameras being accessed
+    from different processes. Used e.g. in CamCameraTest.test_permitted_access_mode_is_updated.
+
+    Example on how to use:
+    p = multiprocessing.Process(target=_open_camera, args=('<cam-id>', shutdown_event)
+    p.start()
+    # camera is now opened in separate process, maybe some wait time is needed so that an
+    # appropriate camera event is received by Vimba.
+    # Perform test here
+    shutdown_event.set()
+    p.join()
+    """
+    import vimba
+    with vimba.Vimba.get_instance() as vmb:
+        with vmb.get_camera_by_id(id):
+            # Set a timeout so we can be sure the process exits and does not remain as an orphaned
+            # process forever
+            shutdown_request.wait(timeout=10)
 
 
 class CamCameraTest(VimbaTestCase):
@@ -83,12 +109,9 @@ class CamCameraTest(VimbaTestCase):
 
     def test_camera_access_mode(self):
         # Expectation: set/get access mode
-        self.cam.set_access_mode(AccessMode.None_)
-        self.assertEqual(self.cam.get_access_mode(), AccessMode.None_)
-        self.cam.set_access_mode(AccessMode.Full)
-        self.assertEqual(self.cam.get_access_mode(), AccessMode.Full)
-        self.cam.set_access_mode(AccessMode.Read)
-        self.assertEqual(self.cam.get_access_mode(), AccessMode.Read)
+        for mode in AccessMode:
+            self.cam.set_access_mode(mode)
+            self.assertEqual(self.cam.get_access_mode(), mode)
 
     def test_camera_get_id(self):
         # Expectation: get decoded camera id
@@ -112,6 +135,38 @@ class CamCameraTest(VimbaTestCase):
 
         for mode in self.cam.get_permitted_access_modes():
             self.assertIn(mode, expected)
+
+    def test_permitted_access_mode_is_updated(self):
+        # Expectation: When the camera is opened, permitted access mode changes
+        device_unreachable_event = threading.Event()
+
+        # Additional change handler that will inform us when our camera became "Unreachable"
+        def _device_unreachable_informer(cam_event):
+            cam_id = self.vimba.get_feature_by_name('DiscoveryCameraIdent').get()
+            if (cam_id == self.cam.get_id()
+                    and CameraEvent(int(cam_event.get())) == CameraEvent.Unreachable):
+                device_unreachable_event.set()
+
+        self.vimba.DiscoveryCameraEvent.register_change_handler(_device_unreachable_informer)
+
+        # Prepare a process that will open the camera for us so we can observe the change in
+        # permitted access modes. Must be a separate process, separate thread is not enough.
+        shutdown_request = multiprocessing.Event()
+        p = multiprocessing.Process(target=_open_camera,
+                                    args=(self.cam.get_id(), shutdown_request))
+
+        self.assertIn(AccessMode.Full, self.cam.get_permitted_access_modes())
+        # Open camera in separate process to trigger a CameraEvent.Unreachable
+        p.start()
+        # Wait for a CameraEvent.Unreachable to be triggered for our device
+        device_unreachable_event.wait(timeout=5)
+        # Camera is now open in separate process. Make sure our permitted access modes reflects this
+        self.assertNotIn(AccessMode.Full, self.cam.get_permitted_access_modes())
+        # Tell spawned process to close camera and wait for it to shut down
+        shutdown_request.set()
+        p.join()
+        # Remove the additional change handler we registered
+        self.vimba.DiscoveryCameraEvent.unregister_change_handler(_device_unreachable_informer)
 
     def test_camera_get_interface_id(self):
         # Expectation: get interface Id this camera is connected to

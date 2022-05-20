@@ -535,6 +535,14 @@ class Vimba:
 
                 log.info('Removed camera \"{}\" from active cameras'.format(cam_id))
 
+            # Camera access mode changed. Need to update cached permitted access modes
+            elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
+                with self.__cams_lock:
+                    cam = [c for c in self.__cams if cam_id == c.get_id()].pop()
+                    cam._update_permitted_access_modes()
+
+                log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
+
             else:
                 cam = self.get_camera_by_id(cam_id)
 
