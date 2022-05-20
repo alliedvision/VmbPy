@@ -856,7 +856,7 @@ class Frame:
             VimbaFrameError if current PixelFormat can't be converted to a numpy.ndarray.
         """
         if numpy is None:
-            raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
+            raise ImportError('\'Frame.as_numpy_ndarray()\' requires module \'numpy\'.')
 
         # Construct numpy overlay on underlaying image buffer
         height = self._frame.height
