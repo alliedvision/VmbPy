@@ -118,16 +118,17 @@ def setup_camera(cam: Camera):
 def setup_pixel_format(cam: Camera):
     # Query available pixel formats. Prefer color formats over monochrome formats
     opencv_display_format = PixelFormat.Bgr8
-    cam_color_formats = intersect_pixel_formats(cam.get_pixel_formats(), COLOR_PIXEL_FORMATS)
+    cam_formats = cam.get_pixel_formats()
+    cam_color_formats = intersect_pixel_formats(cam_formats, COLOR_PIXEL_FORMATS)
     convertible_color_formats = tuple(f for f in cam_color_formats
                                       if opencv_display_format in f.get_convertible_formats())
 
-    cam_mono_formats = intersect_pixel_formats(cam.get_pixel_formats(), MONO_PIXEL_FORMATS)
+    cam_mono_formats = intersect_pixel_formats(cam_formats, MONO_PIXEL_FORMATS)
     convertible_mono_formats = tuple(f for f in cam_mono_formats
                                      if opencv_display_format in f.get_convertible_formats())
 
     # if OpenCV compatible color format is supported directly, use that
-    if opencv_display_format in cam_color_formats or opencv_display_format in cam_mono_formats:
+    if opencv_display_format in cam_formats:
         cam.set_pixel_format(opencv_display_format)
 
     # else if existing color format can be converted to OpenCV format do that
