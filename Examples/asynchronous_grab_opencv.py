@@ -31,6 +31,10 @@ from typing import Optional
 from vimba import *
 
 
+# All frames will either be recorded in this format, or transformed to it before being displayed
+opencv_display_format = PixelFormat.Bgr8
+
+
 def print_preamble():
     print('///////////////////////////////////////////////////////')
     print('/// Vimba API Asynchronous Grab with OpenCV Example ///')
@@ -114,22 +118,32 @@ def setup_camera(cam: Camera):
         except (AttributeError, VimbaFeatureError):
             pass
 
-        # Query available, open_cv compatible pixel formats
-        # prefer color formats over monochrome formats
-        cv_fmts = intersect_pixel_formats(cam.get_pixel_formats(), OPENCV_PIXEL_FORMATS)
-        color_fmts = intersect_pixel_formats(cv_fmts, COLOR_PIXEL_FORMATS)
 
-        if color_fmts:
-            cam.set_pixel_format(color_fmts[0])
+def setup_pixel_format(cam: Camera):
+    # Query available pixel formats. Prefer color formats over monochrome formats
+    cam_formats = cam.get_pixel_formats()
+    cam_color_formats = intersect_pixel_formats(cam_formats, COLOR_PIXEL_FORMATS)
+    convertible_color_formats = tuple(f for f in cam_color_formats
+                                      if opencv_display_format in f.get_convertible_formats())
 
-        else:
-            mono_fmts = intersect_pixel_formats(cv_fmts, MONO_PIXEL_FORMATS)
+    cam_mono_formats = intersect_pixel_formats(cam_formats, MONO_PIXEL_FORMATS)
+    convertible_mono_formats = tuple(f for f in cam_mono_formats
+                                     if opencv_display_format in f.get_convertible_formats())
 
-            if mono_fmts:
-                cam.set_pixel_format(mono_fmts[0])
+    # if OpenCV compatible color format is supported directly, use that
+    if opencv_display_format in cam_formats:
+        cam.set_pixel_format(opencv_display_format)
 
-            else:
-                abort('Camera does not support a OpenCV compatible format natively. Abort.')
+    # else if existing color format can be converted to OpenCV format do that
+    elif convertible_color_formats:
+        cam.set_pixel_format(convertible_color_formats[0])
+
+    # fall back to a mono format that can be converted
+    elif convertible_mono_formats:
+        cam.set_pixel_format(convertible_mono_formats[0])
+
+    else:
+        abort('Camera does not support an OpenCV compatible format. Abort.')
 
 
 class Handler:
@@ -146,9 +160,16 @@ class Handler:
 
         elif frame.get_status() == FrameStatus.Complete:
             print('{} acquired {}'.format(cam, frame), flush=True)
+            # Convert frame if it is not already the correct format
+            if frame.get_pixel_format() == opencv_display_format:
+                display = frame
+            else:
+                # This creates a copy of the frame. The original `frame` object can be requeued
+                # safely while `display` is used
+                display = frame.convert_pixel_format(opencv_display_format)
 
             msg = 'Stream from \'{}\'. Press <Enter> to stop stream.'
-            cv2.imshow(msg.format(cam.get_name()), frame.as_opencv_image())
+            cv2.imshow(msg.format(cam.get_name()), display.as_opencv_image())
 
         cam.queue_frame(frame)
 
@@ -159,9 +180,9 @@ def main():
 
     with Vimba.get_instance():
         with get_camera(cam_id) as cam:
-
-            # Start Streaming, wait for five seconds, stop streaming
+            # setup general camera settings and the pixel format in which frames are recorded
             setup_camera(cam)
+            setup_pixel_format(cam)
             handler = Handler()
 
             try:

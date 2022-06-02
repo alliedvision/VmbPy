@@ -761,13 +761,14 @@ class Frame:
 
     @RuntimeTypeCheckEnable()
     def convert_pixel_format(self, target_fmt: PixelFormat,
-                             debayer_mode: Optional[Debayer] = None):
-        """Convert internal pixel format to given format.
+                             debayer_mode: Optional[Debayer] = None) -> 'Frame':
+        """Return a converted version of the frame in the given format.
 
-        Note: This method allocates a new buffer for internal image data leading to some
-        runtime overhead. For performance reasons, it might be better to set the value
-        of the camera's 'PixelFormat' feature instead. In addition, a non-default debayer mode
-        can be specified.
+        This method always returns a new frame object and leaves the original instance unchanged.
+
+        Note: This method allocates a new buffer for the returned image data leading to some runtime
+        overhead. For performance reasons, it might be better to set the value of the camera's
+        'PixelFormat' feature instead. In addition, a non-default debayer mode can be specified.
 
         Arguments:
             target_fmt - PixelFormat to convert to.
@@ -789,7 +790,7 @@ class Frame:
         fmt = self.get_pixel_format()
 
         if fmt == target_fmt:
-            return
+            return copy.deepcopy(self)
 
         if target_fmt not in fmt.get_convertible_formats():
             raise ValueError('Current PixelFormat can\'t be converted into given format.')
@@ -814,12 +815,14 @@ class Frame:
         call_vimba_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
                                    bits, byref(c_dst_image))
 
-        # 4) Allocate Buffer and perform transformation
+        # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
         anc_size = self._frame.ancillarySize
 
-        buf = _allocate_buffer(size=img_size + anc_size)
-        c_dst_image.Data = ctypes.cast(buf, ctypes.c_void_p)
+        output_frame = Frame(buffer_size=img_size + anc_size,
+                             allocation_mode=AllocationMode.AnnounceFrame)
+        output_frame._frame = self._frame.deepcopy_skip_ptr({})
+        c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
 
         # 5) Setup Debayering mode if given.
         transform_info = VmbTransformInfo()
@@ -834,16 +837,17 @@ class Frame:
         # 7) Copy ancillary data if existing
         if anc_size:
             src = ctypes.addressof(self._buffer) + self._frame.imageSize
-            dst = ctypes.addressof(buf) + img_size
+            dst = ctypes.addressof(output_frame._buffer) + img_size
 
             ctypes.memmove(dst, src, anc_size)
 
-        # 8) Update frame metadata
-        self._buffer = buf
-        self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
-        self._frame.bufferSize = sizeof(self._buffer)
-        self._frame.imageSize = img_size
-        self._frame.pixelFormat = target_fmt
+        # 8) Update frame metadata that changed due to transformation
+        output_frame._frame.buffer = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
+        output_frame._frame.bufferSize = sizeof(output_frame._buffer)
+        output_frame._frame.imageSize = img_size
+        output_frame._frame.pixelFormat = target_fmt
+
+        return output_frame
 
     def as_numpy_ndarray(self) -> 'numpy.ndarray':
         """Construct numpy.ndarray view on VimbaFrame.
