@@ -140,7 +140,7 @@ def setup_pixel_format(cam: Camera):
         cam.set_pixel_format(convertible_mono_formats[0])
 
     else:
-        abort('Camera does not support a OpenCV compatible format. Abort.')
+        abort('Camera does not support an OpenCV compatible format. Abort.')
 
 
 class Handler:
