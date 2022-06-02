@@ -31,6 +31,10 @@ from typing import Optional
 from vimba import *
 
 
+# All frames will either be recorded in this format, or transformed to it before being displayed
+opencv_display_format = PixelFormat.Bgr8
+
+
 def print_preamble():
     print('///////////////////////////////////////////////////////')
     print('/// Vimba API Asynchronous Grab with OpenCV Example ///')
@@ -117,7 +121,6 @@ def setup_camera(cam: Camera):
 
 def setup_pixel_format(cam: Camera):
     # Query available pixel formats. Prefer color formats over monochrome formats
-    opencv_display_format = PixelFormat.Bgr8
     cam_formats = cam.get_pixel_formats()
     cam_color_formats = intersect_pixel_formats(cam_formats, COLOR_PIXEL_FORMATS)
     convertible_color_formats = tuple(f for f in cam_color_formats
@@ -146,7 +149,6 @@ def setup_pixel_format(cam: Camera):
 class Handler:
     def __init__(self):
         self.shutdown_event = threading.Event()
-        self.display_pixel_format = PixelFormat.Bgr8
 
     def __call__(self, cam: Camera, frame: Frame):
         ENTER_KEY_CODE = 13
@@ -159,12 +161,12 @@ class Handler:
         elif frame.get_status() == FrameStatus.Complete:
             print('{} acquired {}'.format(cam, frame), flush=True)
             # Convert frame if it is not already the correct format
-            if frame.get_pixel_format() == self.display_pixel_format:
+            if frame.get_pixel_format() == opencv_display_format:
                 display = frame
             else:
                 # This creates a copy of the frame. The original `frame` object can be requeued
                 # safely while `display` is used
-                display = frame.convert_pixel_format(self.display_pixel_format)
+                display = frame.convert_pixel_format(opencv_display_format)
 
             msg = 'Stream from \'{}\'. Press <Enter> to stop stream.'
             cv2.imshow(msg.format(cam.get_name()), display.as_opencv_image())
