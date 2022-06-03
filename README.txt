@@ -104,10 +104,9 @@ Running the Test suite
 ======================
 The test suite of VimbaPython can be run in two different ways. The first approach is to use the
 included helper script `run_tests.py`. To use the full functionality of this script, the optional
-installation dependency `tests_require` is needed. The script provides a convenient command line
-interface
+installation dependency `tests` is needed. The script provides a convenient command line interface
 
-VimbaPython tests script.
+    VimbaPython tests script.
     Usage:
         run_tests.py -h
         run_tests.py test -s basic [BLACKLIST...]
