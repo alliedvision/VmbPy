@@ -203,17 +203,23 @@ class CamFrameTest(VimbaTestCase):
         for frame in test_frames:
             original_fmt = frame.get_pixel_format()
             for expected_fmt in frame.get_pixel_format().get_convertible_formats():
-                transformed_frame = frame.convert_pixel_format(expected_fmt)
+                with self.subTest(f'convert {repr(original_fmt)} to {repr(expected_fmt)}'):
+                    transformed_frame = frame.convert_pixel_format(expected_fmt)
 
-                self.assertEquals(expected_fmt, transformed_frame.get_pixel_format())
-                self.assertEquals(original_fmt, frame.get_pixel_format())
+                    self.assertEquals(expected_fmt, transformed_frame.get_pixel_format())
+                    self.assertEquals(original_fmt, frame.get_pixel_format())
 
-                # Ensure that width and height of frames are identical (if both formats can be
-                # represented as numpy arrays)
-                try:
-                    original_shape = frame.as_numpy_ndarray().shape
-                    transformed_shape = transformed_frame.as_numpy_ndarray().shape
-                    self.assertTupleEqual(original_shape[0:2], transformed_shape[0:2])
-                except VimbaFrameError:
-                    # one of the pixel formats does not support representation as numpy array
-                    pass
+                    # Ensure that width and height of frames are identical (if both formats can be
+                    # represented as numpy arrays)
+                    try:
+                        original_shape = frame.as_numpy_ndarray().shape
+                        transformed_shape = transformed_frame.as_numpy_ndarray().shape
+                        self.assertTupleEqual(original_shape[0:2], transformed_shape[0:2])
+                    except VimbaFrameError:
+                        # one of the pixel formats does not support representation as numpy array
+                        self.skipTest(f'{repr(original_fmt)} or {repr(expected_fmt)} is not '
+                                      'representable as numpy array')
+                    except ImportError:
+                        # Numpy is not available. Checking shape is not possible.
+                        self.skipTest('Numpy not installed. Could not check frame shapes for '
+                                      'equality')
