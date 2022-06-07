@@ -26,7 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import ctypes
 
-from vimba.c_binding import *
+from vmbpy.c_binding import *
 
 import sys
 import os

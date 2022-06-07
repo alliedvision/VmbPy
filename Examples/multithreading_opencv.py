@@ -32,7 +32,7 @@ import queue
 import numpy
 
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 FRAME_QUEUE_SIZE = 10

@@ -26,7 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import ipaddress
 
-from vimba import *
+from vmbpy import *
 
 import sys
 import os

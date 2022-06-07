@@ -25,7 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from typing import Union, Optional, Tuple, Callable, Dict, Type
-from vimba.util import *
+from vmbpy.util import *
 
 import sys
 import os

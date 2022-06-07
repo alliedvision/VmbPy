@@ -27,8 +27,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import copy
 import ctypes
 
-from vimba import *
-from vimba.frame import *
+from vmbpy import *
+from vmbpy.frame import *
 
 import sys
 import os

@@ -28,7 +28,7 @@ import threading
 import sys
 import cv2
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 # All frames will either be recorded in this format, or transformed to it before being displayed

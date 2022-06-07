@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 def print_preamble():

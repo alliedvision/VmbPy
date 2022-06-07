@@ -28,8 +28,8 @@ import multiprocessing
 import unittest
 import threading
 
-from vimba import *
-from vimba.frame import *
+from vmbpy import *
+from vmbpy.frame import *
 
 import sys
 import os
@@ -59,8 +59,8 @@ def _open_camera(id: str,
     shutdown_event.set()
     p.join()
     """
-    import vimba
-    with vimba.Vimba.get_instance() as vmb:
+    import vmbpy
+    with vmbpy.Vimba.get_instance() as vmb:
         with vmb.get_camera_by_id(id):
             # Set a timeout so we can be sure the process exits and does not remain as an orphaned
             # process forever

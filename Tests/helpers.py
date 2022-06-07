@@ -26,7 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import os
 import unittest
-import vimba
+import vmbpy
 
 
 class VimbaTestCase(unittest.TestCase):
@@ -45,7 +45,7 @@ class VimbaTestCase(unittest.TestCase):
             # still be an empty string
             VimbaTestCase.set_test_camera_id(os.getenv('VIMBAPYTHON_DEVICE_ID', ''))
         if not VimbaTestCase.get_test_camera_id():
-            with vimba.Vimba.get_instance() as vmb:
+            with vmbpy.Vimba.get_instance() as vmb:
                 try:
                     VimbaTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
                 except IndexError:

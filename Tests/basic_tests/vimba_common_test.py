@@ -24,8 +24,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vimba.c_binding import _select_vimba_home
-from vimba.error import VimbaSystemError
+from vmbpy.c_binding import _select_vimba_home
+from vmbpy.error import VimbaSystemError
 
 import sys
 import os
