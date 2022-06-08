@@ -44,7 +44,7 @@ def print_camera(cam: Camera):
 
 def main():
     print_preamble()
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         cams = vimba.get_all_cameras()
 
         print('Cameras found: {}'.format(len(cams)))

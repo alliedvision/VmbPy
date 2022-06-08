@@ -35,7 +35,7 @@ from helpers import VmbPyTestCase
 
 class InterfaceTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         inters = self.vimba.get_all_interfaces()

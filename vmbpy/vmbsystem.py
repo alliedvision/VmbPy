@@ -45,11 +45,11 @@ from . import __version__ as VIMBA_PYTHON_VERSION
 
 
 __all__ = [
-    'Vimba',
+    'VmbSystem',
 ]
 
 
-class Vimba:
+class VmbSystem:
     class __Impl:
         """This class allows access to the entire Vimba System.
         Vimba is meant be used in conjunction with the "with" - Statement, upon
@@ -605,4 +605,4 @@ class Vimba:
     @TraceEnable()
     def get_instance() -> '__Impl':
         """Get VimbaSystem Singleton."""
-        return Vimba.__instance
+        return VmbSystem.__instance

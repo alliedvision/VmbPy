@@ -45,7 +45,7 @@ class VmbPyTestCase(unittest.TestCase):
             # still be an empty string
             VmbPyTestCase.set_test_camera_id(os.getenv('VMBPY_DEVICE_ID', ''))
         if not VmbPyTestCase.get_test_camera_id():
-            with vmbpy.Vimba.get_instance() as vmb:
+            with vmbpy.VmbSystem.get_instance() as vmb:
                 try:
                     VmbPyTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
                 except IndexError:

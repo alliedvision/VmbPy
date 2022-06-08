@@ -60,7 +60,7 @@ def _open_camera(id: str,
     p.join()
     """
     import vmbpy
-    with vmbpy.Vimba.get_instance() as vmb:
+    with vmbpy.VmbSystem.get_instance() as vmb:
         with vmb.get_camera_by_id(id):
             # Set a timeout so we can be sure the process exits and does not remain as an orphaned
             # process forever
@@ -69,7 +69,7 @@ def _open_camera(id: str,
 
 class CamCameraTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:

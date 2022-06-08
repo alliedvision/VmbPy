@@ -78,7 +78,7 @@ def get_input() -> str:
 
 
 def get_camera(camera_id: str) -> Camera:
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         try:
             return vimba.get_camera_by_id(camera_id)
 
@@ -90,9 +90,9 @@ def get_command_sender(interface_id):
     # If given interface_id is ALL, ActionCommand shall be sent from all Ethernet Interfaces.
     # This is achieved by run ActionCommand on the Vimba instance.
     if interface_id == 'ALL':
-        return Vimba.get_instance()
+        return VmbSystem.get_instance()
 
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         # A specific Interface was given. Lookup via given Interface id and verify that
         # it is an Ethernet Interface. Running ActionCommand will be only send from this Interface.
         try:
@@ -118,7 +118,7 @@ def main():
     print_preamble()
     camera_id, interface_id = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         cam = get_camera(camera_id)
         sender = get_command_sender(interface_id)
 

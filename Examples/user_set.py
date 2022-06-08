@@ -129,7 +129,7 @@ def parse_args() -> Dict[str, Any]:
 
 
 def get_camera(cam_id: Optional[str]):
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         # Lookup Camera if it was specified.
         if cam_id:
             try:
@@ -295,7 +295,7 @@ def main():
     print_preamble()
     args = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         cam = get_camera(args.get('camera_id'))
         print('Using Camera with ID \'{}\''.format(cam.get_id()))
 

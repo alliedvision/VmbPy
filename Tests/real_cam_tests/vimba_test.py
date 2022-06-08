@@ -37,7 +37,7 @@ from helpers import VmbPyTestCase
 
 class CamVimbaTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
 
     def tearDown(self):
         pass

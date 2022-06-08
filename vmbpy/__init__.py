@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 __version__ = '0.0.1'
 
 __all__ = [
-    'Vimba',
+    'VmbSystem',
     'Camera',
     'CameraChangeHandler',
     'CameraEvent',
@@ -101,7 +101,7 @@ __all__ = [
 ]
 
 # Import everything exported from the top level module
-from .vimba import Vimba
+from .vmbsystem import VmbSystem
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 

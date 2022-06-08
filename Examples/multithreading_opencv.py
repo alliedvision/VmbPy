@@ -258,7 +258,7 @@ class MainThread(threading.Thread):
         log = Log.get_instance()
         consumer = FrameConsumer(self.frame_queue)
 
-        vimba = Vimba.get_instance()
+        vimba = VmbSystem.get_instance()
         vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
 
         log.info('Thread \'MainThread\' started.')

@@ -35,14 +35,14 @@ from helpers import VmbPyTestCase
 
 class VimbaTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
 
     def tearDown(self):
         pass
 
     def test_singleton(self):
         # Expected behavior: Multiple calls to Vimba.get_instance() return the same object.
-        self.assertEqual(self.vimba, Vimba.get_instance())
+        self.assertEqual(self.vimba, VmbSystem.get_instance())
 
     def test_get_version(self):
         # Expectation: Returned Version is not empty and does not raise any exceptions.

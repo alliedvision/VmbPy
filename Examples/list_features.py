@@ -87,7 +87,7 @@ def print_feature(feature):
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         if camera_id:
             try:
                 return vimba.get_camera_by_id(camera_id)
@@ -107,7 +107,7 @@ def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         with get_camera(cam_id) as cam:
 
             print('Print all features of camera \'{}\':'.format(cam.get_id()))

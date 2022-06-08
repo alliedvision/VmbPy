@@ -38,7 +38,7 @@ from helpers import VmbPyTestCase
 
 class CamBaseFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
@@ -198,7 +198,7 @@ class CamBaseFeatureTest(VmbPyTestCase):
 
 class CamBoolFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
@@ -226,7 +226,7 @@ class CamBoolFeatureTest(VmbPyTestCase):
 
 class CamCommandFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
@@ -246,7 +246,7 @@ class CamCommandFeatureTest(VmbPyTestCase):
 
 class CamEnumFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
@@ -462,7 +462,7 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
 class CamFloatFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
@@ -593,7 +593,7 @@ class CamFloatFeatureTest(VmbPyTestCase):
 
 class CamIntFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
@@ -724,7 +724,7 @@ class CamIntFeatureTest(VmbPyTestCase):
 
 class CamStringFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
