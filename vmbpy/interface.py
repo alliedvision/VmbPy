@@ -101,7 +101,7 @@ class Interface:
     @TraceEnable()
     @LeaveContextOnCall()
     def __init__(self, info: VmbInterfaceInfo):
-        """Do not call directly. Access Interfaces via vimba.Vimba instead."""
+        """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbInterfaceInfo = info
         self.__feats: FeaturesTuple = ()
@@ -361,7 +361,7 @@ class Interface:
 
 @TraceEnable()
 def discover_interfaces() -> InterfacesList:
-    """Do not call directly. Access Interfaces via vimba.System instead."""
+    """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
 
     result = []
     inters_count = VmbUint32(0)
@@ -383,7 +383,7 @@ def discover_interfaces() -> InterfacesList:
 
 @TraceEnable()
 def discover_interface(id_: str) -> Interface:
-    """Do not call directly. Access Interfaces via vimba.System instead."""
+    """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
 
     # Since there is no function to query a single interface, discover all interfaces and
     # extract the Interface with the matching ID.

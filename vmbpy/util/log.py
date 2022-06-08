@@ -89,7 +89,7 @@ _LEVEL_TO_EQUAL_LEN_STR = {
 
 class LogConfig:
     """The LogConfig is a builder to configure various specialized logging configurations.
-    The constructed LogConfig must set via vimba.Vimba or the ScopedLogEnable Decorator
+    The constructed LogConfig must set via vmbpy.VmbSystem or the ScopedLogEnable Decorator
     to start logging.
     """
 

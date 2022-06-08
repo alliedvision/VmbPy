@@ -41,7 +41,7 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VmbCameraError, VmbInterfaceError, VmbFeatureError
-from . import __version__ as VIMBA_PYTHON_VERSION
+from . import __version__ as VMBPY_VERSION
 
 
 __all__ = [
@@ -52,15 +52,14 @@ __all__ = [
 class VmbSystem:
     class __Impl:
         """This class allows access to the entire Vimba System.
-        Vimba is meant be used in conjunction with the "with" - Statement, upon
-        entering the context, all system features, connected cameras and interfaces are detected
-        and can be used.
+        VmbSystem is meant be used in conjunction with the "with" - Statement, upon entering the
+        context, all system features, connected cameras and interfaces are detected and can be used.
         """
 
         @TraceEnable()
         @LeaveContextOnCall()
         def __init__(self):
-            """Do not call directly. Use Vimba.get_instance() instead."""
+            """Do not call directly. Use VmbSystem.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
 
             self.__inters: InterfacesList = ()
@@ -94,7 +93,7 @@ class VmbSystem:
         def get_version(self) -> str:
             """ Returns version string of vmbpy and underlaying dependencies."""
             msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
-            return msg.format(VIMBA_PYTHON_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
+            return msg.format(VMBPY_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
 
         @RaiseIfInsideContext()
         @RuntimeTypeCheckEnable()
@@ -604,5 +603,5 @@ class VmbSystem:
     @staticmethod
     @TraceEnable()
     def get_instance() -> '__Impl':
-        """Get VimbaSystem Singleton."""
+        """Get VmbSystem Singleton."""
         return VmbSystem.__instance
