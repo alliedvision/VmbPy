@@ -41,21 +41,21 @@ class CamAncillaryDataTest(VmbPyTestCase):
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
             self.chunk_mode = self.cam.get_feature_by_name('ChunkModeActive')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'ChunkModeActive\' not available.')

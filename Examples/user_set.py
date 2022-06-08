@@ -135,7 +135,7 @@ def get_camera(cam_id: Optional[str]):
             try:
                 return vimba.get_camera_by_id(cam_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera {}. Abort.'.format(cam_id))
 
         # If no camera was specified, use first detected camera.
@@ -151,7 +151,7 @@ def select_user_set(camera: Camera, set_id: int):
     try:
         camera.get_feature_by_name('UserSetSelector').set(set_id)
 
-    except VimbaFeatureError:
+    except VmbFeatureError:
         abort('Failed to select user set with \'{}\'. Abort.'.format(set_id))
 
 
@@ -168,7 +168,7 @@ def load_from_flash(cam: Camera, set_id: int):
             while not cmd.is_done():
                 pass
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to load user set \'{}\' from flash. Abort.'.format(set_id))
 
         print('Loaded user set \'{}\' loaded from flash successfully.'.format(set_id))
@@ -187,7 +187,7 @@ def save_to_flash(cam: Camera, set_id: int):
             while not cmd.is_done():
                 pass
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to save user set \'{}\' to flash. Abort.'.format(set_id))
 
         print('Saved user set \'{}\' to flash.'.format(set_id))
@@ -200,7 +200,7 @@ def get_active_user_set(cam: Camera, _: int):
         try:
             value = cam.get_feature_by_name('UserSetSelector').get()
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to get user set id. Abort.')
 
         print('The selected user set id is \'{}\'.'.format(int(value)))
@@ -214,7 +214,7 @@ def get_number_of_user_sets(cam: Camera, _: int):
             feat = cam.get_feature_by_name('UserSetSelector')
             value = len(feat.get_available_entries())
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to get total number of user sets. Abort.')
 
         print('The total number of user sets is \'{}\''.format(value))
@@ -231,10 +231,10 @@ def set_default_user_set(cam: Camera, set_id: int):
             try:
                 feat.set(set_id)
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 abort('Failed to set user set id \'{}\' as default user set'.format(set_id))
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             # Try to set mode via UserSetMakeDefault command
             select_user_set(cam, set_id)
 
@@ -245,7 +245,7 @@ def set_default_user_set(cam: Camera, set_id: int):
                 while not cmd.is_done():
                     pass
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 abort('Failed to set user set id \'{}\' as default user set'.format(set_id))
 
         print('User set \'{}\' is the new default user set.'.format(set_id))
@@ -258,7 +258,7 @@ def is_default_user_set(cam: Camera, set_id: int):
         try:
             default_id = int(cam.get_feature_by_name('UserSetDefaultSelector').get())
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to get default user set id. Abort.')
 
         msg = 'User set \'{}\' {} the default user set.'
@@ -272,7 +272,7 @@ def get_operation_result(cam: Camera, set_id: int):
         try:
             result = cam.get_feature_by_name('UserSetOperationResult').get()
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to get user set operation result. Abort.')
 
         print('Operation result was {}.'.format(result))
@@ -285,7 +285,7 @@ def get_operation_status(cam: Camera, set_id: int):
         try:
             result = cam.get_feature_by_name('UserSetOperationStatus').get()
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             abort('Failed to get user set operation status. Abort.')
 
         print('Operation status was {}.'.format(result))
@@ -305,7 +305,7 @@ def main():
             try:
                 set_id = args.get('set_id', int(cam.get_feature_by_name('UserSetSelector').get()))
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 abort('Failed to get id of current user set. Abort.')
 
             # Mode -> Function Object mapping

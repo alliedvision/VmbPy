@@ -36,7 +36,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     write_memory, read_registers, write_registers
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
                   RaiseIfOutsideContext
-from .error import VimbaFeatureError
+from .error import VmbFeatureError
 
 
 __all__ = [
@@ -254,7 +254,7 @@ class Interface:
         Raises:
             TypeError if parameters do not match their type hint.
             RuntimeError if called outside "with" - statement.
-            VimbaFeatureError if 'feat' is not a feature of this interface.
+            VmbFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_affected_features(self.__feats, feat)
 
@@ -273,7 +273,7 @@ class Interface:
         Raises:
             TypeError if 'feat' is not of any feature type.
             RuntimeError if called outside "with" - statement.
-            VimbaFeatureError if 'feat' is not a feature of this interface.
+            VmbFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_selected_features(self.__feats, feat)
 
@@ -328,12 +328,12 @@ class Interface:
         Raises:
             TypeError if parameters do not match their type hint.
             RuntimeError if called outside "with" - statement.
-            VimbaFeatureError if no feature is associated with 'feat_name'.
+            VmbFeatureError if no feature is associated with 'feat_name'.
         """
         feat = filter_features_by_name(self.__feats, feat_name)
 
         if not feat:
-            raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
         return feat
 

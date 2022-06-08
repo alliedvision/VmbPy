@@ -52,19 +52,19 @@ class VimbaTest(VmbPyTestCase):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
         # VimbaCameraError
         with self.vimba:
-            self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, 'Invalid ID')
+            self.assertRaises(VmbCameraError, self.vimba.get_camera_by_id, 'Invalid ID')
 
     def test_get_interface_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable interface must throw an
         # VimbaInterfaceError
         with self.vimba:
-            self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, 'Invalid ID')
+            self.assertRaises(VmbInterfaceError, self.vimba.get_interface_by_id, 'Invalid ID')
 
     def test_get_feature_by_name_failure(self):
         # Expected behavior: Lookup of a currently unavailable feature must throw an
         # VimbaFeatureError
         with self.vimba:
-            self.assertRaises(VimbaFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
+            self.assertRaises(VmbFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
 
     def test_runtime_check_failure(self):
         self.assertRaises(TypeError, self.vimba.set_network_discovery, 0.0)

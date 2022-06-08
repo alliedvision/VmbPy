@@ -60,12 +60,12 @@ __all__ = [
     'COLOR_PIXEL_FORMATS',
     'OPENCV_PIXEL_FORMATS',
 
-    'VimbaSystemError',
-    'VimbaCameraError',
-    'VimbaInterfaceError',
-    'VimbaFeatureError',
-    'VimbaFrameError',
-    'VimbaTimeout',
+    'VmbSystemError',
+    'VmbCameraError',
+    'VmbInterfaceError',
+    'VmbFeatureError',
+    'VmbFrameError',
+    'VmbTimeout',
 
     'IntFeature',
     'FloatFeature',
@@ -113,8 +113,8 @@ from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PI
                    COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, FeatureTypes, \
                    AllocationMode
 
-from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
-                   VimbaFrameError, VimbaTimeout
+from .error import VmbSystemError, VmbCameraError, VmbInterfaceError, VmbFeatureError, \
+                   VmbFrameError, VmbTimeout
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature

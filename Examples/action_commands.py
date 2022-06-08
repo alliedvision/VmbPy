@@ -82,7 +82,7 @@ def get_camera(camera_id: str) -> Camera:
         try:
             return vimba.get_camera_by_id(camera_id)
 
-        except VimbaCameraError:
+        except VmbCameraError:
             abort('Failed to access Camera {}. Abort.'.format(camera_id))
 
 
@@ -98,7 +98,7 @@ def get_command_sender(interface_id):
         try:
             inter = vimba.get_interface_by_id(interface_id)
 
-        except VimbaInterfaceError:
+        except VmbInterfaceError:
             abort('Failed to access Interface {}. Abort.'.format(interface_id))
 
         if inter.get_type() != InterfaceType.Ethernet:

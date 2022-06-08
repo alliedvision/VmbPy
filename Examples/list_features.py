@@ -74,7 +74,7 @@ def print_feature(feature):
     try:
         value = feature.get()
 
-    except (AttributeError, VimbaFeatureError):
+    except (AttributeError, VmbFeatureError):
         value = None
 
     print('/// Feature name   : {}'.format(feature.get_name()))
@@ -92,7 +92,7 @@ def get_camera(camera_id: Optional[str]) -> Camera:
             try:
                 return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:

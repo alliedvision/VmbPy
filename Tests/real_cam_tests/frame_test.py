@@ -45,7 +45,7 @@ class CamFrameTest(VmbPyTestCase):
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
@@ -215,7 +215,7 @@ class CamFrameTest(VmbPyTestCase):
                         original_shape = frame.as_numpy_ndarray().shape
                         transformed_shape = transformed_frame.as_numpy_ndarray().shape
                         self.assertTupleEqual(original_shape[0:2], transformed_shape[0:2])
-                    except VimbaFrameError:
+                    except VmbFrameError:
                         # one of the pixel formats does not support representation as numpy array
                         self.skipTest(f'{repr(original_fmt)} or {repr(expected_fmt)} is not '
                                       'representable as numpy array')

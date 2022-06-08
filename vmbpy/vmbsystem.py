@@ -40,7 +40,7 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
                     discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
-from .error import VimbaCameraError, VimbaInterfaceError, VimbaFeatureError
+from .error import VmbCameraError, VmbInterfaceError, VmbFeatureError
 from . import __version__ as VIMBA_PYTHON_VERSION
 
 
@@ -235,13 +235,13 @@ class VmbSystem:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaInterfaceError if interface with id_ can't be found.
+                VmbInterfaceError if interface with id_ can't be found.
             """
             with self.__inters_lock:
                 inter = [inter for inter in self.__inters if id_ == inter.get_id()]
 
             if not inter:
-                raise VimbaInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
+                raise VmbInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
 
             return inter.pop()
 
@@ -273,7 +273,7 @@ class VmbSystem:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaCameraError if camera with id_ can't be found.
+                VmbCameraError if camera with id_ can't be found.
             """
             with self.__cams_lock:
                 # Search for given Camera Id in all currently detected cameras.
@@ -291,10 +291,10 @@ class VmbSystem:
                         if cam_info.get_id() == cam.get_id():
                             return cam
 
-                except VimbaCameraError:
+                except VmbCameraError:
                     pass
 
-            raise VimbaCameraError('No Camera with Id \'{}\' available.'.format(id_))
+            raise VmbCameraError('No Camera with Id \'{}\' available.'.format(id_))
 
         @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:
@@ -323,7 +323,7 @@ class VmbSystem:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaFeatureError if 'feat' is not a system feature.
+                VmbFeatureError if 'feat' is not a system feature.
             """
             return filter_affected_features(self.__feats, feat)
 
@@ -342,7 +342,7 @@ class VmbSystem:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaFeatureError if 'feat' is not a system feature.
+                VmbFeatureError if 'feat' is not a system feature.
             """
             return filter_selected_features(self.__feats, feat)
 
@@ -397,12 +397,12 @@ class VmbSystem:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaFeatureError if no feature is associated with 'feat_name'.
+                VmbFeatureError if no feature is associated with 'feat_name'.
             """
             feat = filter_features_by_name(self.__feats, feat_name)
 
             if not feat:
-                raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+                raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
             return feat
 

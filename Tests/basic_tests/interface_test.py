@@ -90,13 +90,13 @@ class InterfaceTest(VmbPyTestCase):
             try:
                 affects_feats = inter.get_feature_by_name('DeviceUpdateList')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceUpdateList\'.')
 
             try:
                 not_affects_feats = inter.get_feature_by_name('DeviceCount')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceCount\'.')
 
             self.assertTrue(affects_feats.has_affected_features())
@@ -113,13 +113,13 @@ class InterfaceTest(VmbPyTestCase):
             try:
                 selects_feats = inter.get_feature_by_name('DeviceSelector')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceSelector\'.')
 
             try:
                 not_selects_feats = inter.get_feature_by_name('DeviceCount')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceCount\'.')
 
             self.assertTrue(selects_feats.has_selected_features())
@@ -146,7 +146,7 @@ class InterfaceTest(VmbPyTestCase):
         # A invalid name must raise VimbaFeatureError
         with self.vimba.get_all_interfaces()[0] as inter:
             self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
-            self.assertRaises(VimbaFeatureError, inter.get_feature_by_name, 'Invalid Name')
+            self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
 
     def test_interface_context_manager_reentrancy(self):
         # Expectation: Implemented Context Manager must be reentrant, not causing

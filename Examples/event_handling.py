@@ -77,7 +77,7 @@ def get_camera(cam_id: Optional[str]):
             try:
                 cam = vimba.get_camera_by_id(cam_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera {}. Abort.'.format(cam_id))
 
         # If no camera was specified, use first detected camera.
@@ -107,7 +107,7 @@ def setup_camera(cam: Camera):
             while not cam.GVSPAdjustPacketSize.is_done():
                 pass
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
 

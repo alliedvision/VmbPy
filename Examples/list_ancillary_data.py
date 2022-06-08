@@ -76,7 +76,7 @@ def get_camera(camera_id: Optional[str]) -> Camera:
             try:
                 return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
@@ -96,14 +96,14 @@ def setup_camera(cam: Camera):
             while not cam.GVSPAdjustPacketSize.is_done():
                 pass
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
         # Try to enable ChunkMode
         try:
             cam.ChunkModeActive.set(True)
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             abort('Failed to enable ChunkMode on Camera \'{}\'. Abort.'.format(cam.get_id()))
 
 

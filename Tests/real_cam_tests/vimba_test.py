@@ -117,11 +117,11 @@ class CamVimbaTest(VmbPyTestCase):
 
             # Verify that a lookup with an invalid IPv4 Address raises a VimbaCameraError
             ip_addr = str(ipaddress.IPv4Address('127.0.0.1'))
-            self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, ip_addr)
+            self.assertRaises(VmbCameraError, self.vimba.get_camera_by_id, ip_addr)
 
             # Verify that a lookup with an IPv6 Address raises a VimbaCameraError
             ip_addr = str(ipaddress.IPv6Address('FD00::DEAD:BEEF'))
-            self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, ip_addr)
+            self.assertRaises(VmbCameraError, self.vimba.get_camera_by_id, ip_addr)
 
     def test_get_camera_by_mac(self):
         # Expected Behavior: get_feature_by_id must be usable with a given MAC Address.
@@ -146,4 +146,4 @@ class CamVimbaTest(VmbPyTestCase):
 
             # Verify that a lookup with an invalid MAC Address raises a VimbaCameraError
             invalid_mac = 'ffffffff'
-            self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, invalid_mac)
+            self.assertRaises(VmbCameraError, self.vimba.get_camera_by_id, invalid_mac)

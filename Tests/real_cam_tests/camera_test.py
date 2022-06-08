@@ -75,7 +75,7 @@ class CamCameraTest(VmbPyTestCase):
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
@@ -181,13 +181,13 @@ class CamCameraTest(VmbPyTestCase):
             try:
                 affect = self.cam.get_feature_by_name('Height')
 
-            except VimbaFeatureError as e:
+            except VmbFeatureError as e:
                 raise unittest.SkipTest('Failed to lookup Feature Height') from e
 
             try:
                 not_affect = self.cam.get_feature_by_name('AcquisitionFrameCount')
 
-            except VimbaFeatureError as e:
+            except VmbFeatureError as e:
                 raise unittest.SkipTest('Failed to lookup Feature AcquisitionFrameCount') from e
 
             self.assertEqual(self.cam.get_features_affected_by(not_affect), ())
@@ -195,7 +195,7 @@ class CamCameraTest(VmbPyTestCase):
             try:
                 payload_size = self.cam.get_feature_by_name('PayloadSize')
 
-            except VimbaFeatureError as e:
+            except VmbFeatureError as e:
                 raise unittest.SkipTest('Failed to lookup Feature PayloadSize') from e
 
             self.assertIn(payload_size, self.cam.get_features_affected_by(affect))
@@ -222,8 +222,8 @@ class CamCameraTest(VmbPyTestCase):
 
             self.cam.start_streaming(dummy_frame_handler, 5)
 
-            self.assertRaises(VimbaCameraError, self.cam.get_frame)
-            self.assertRaises(VimbaCameraError, next, self.cam.get_frame_generator(1))
+            self.assertRaises(VmbCameraError, self.cam.get_frame)
+            self.assertRaises(VmbCameraError, next, self.cam.get_frame_generator(1))
 
             # Stop Streaming: Everything should be fine.
             self.cam.stop_streaming()
@@ -265,7 +265,7 @@ class CamCameraTest(VmbPyTestCase):
     def test_camera_capture_timeout(self):
         # Expectation: Camera access outside of Camera scope must lead to a VimbaTimeout
         with self.cam:
-            self.assertRaises(VimbaTimeout, self.cam.get_frame, 1)
+            self.assertRaises(VmbTimeout, self.cam.get_frame, 1)
 
     def test_camera_is_streaming(self):
         # Expectation: After start_streaming() is_streaming() must return true. After stop it must

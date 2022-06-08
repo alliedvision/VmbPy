@@ -76,7 +76,7 @@ def get_camera(camera_id: Optional[str]) -> Camera:
             try:
                 return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
@@ -106,14 +106,14 @@ def main():
             try:
                 cam.UserSetSelector.set('Default')
 
-            except (AttributeError, VimbaFeatureError):
+            except (AttributeError, VmbFeatureError):
                 abort('Failed to set Feature \'UserSetSelector\'')
 
             try:
                 cam.UserSetLoad.run()
                 print("--> All feature values have been restored to default")
 
-            except (AttributeError, VimbaFeatureError):
+            except (AttributeError, VmbFeatureError):
                 abort('Failed to run Feature \'UserSetLoad\'')
 
             # Load camera settings from file.

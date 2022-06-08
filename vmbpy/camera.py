@@ -44,7 +44,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
 from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
-from .error import VimbaSystemError, VimbaCameraError, VimbaTimeout, VimbaFeatureError
+from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 
 
 __all__ = [
@@ -128,7 +128,7 @@ class _State:
 
 class _StateInit(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VimbaCameraError]:
+    def forward(self) -> Union[_State, VmbCameraError]:
         for frame in self.context.frames:
             frame_handle = _frame_handle_accessor(frame)
 
@@ -147,7 +147,7 @@ class _StateInit(_State):
 
 class _StateAnnounced(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VimbaCameraError]:
+    def forward(self) -> Union[_State, VmbCameraError]:
         for frame in self.context.frames:
             frame_handle = _frame_handle_accessor(frame)
 
@@ -161,7 +161,7 @@ class _StateAnnounced(_State):
         return _StateQueued(self.context)
 
     @TraceEnable()
-    def backward(self) -> Union[_State, VimbaCameraError]:
+    def backward(self) -> Union[_State, VmbCameraError]:
         for frame in self.context.frames:
             frame_handle = _frame_handle_accessor(frame)
 
@@ -176,7 +176,7 @@ class _StateAnnounced(_State):
 
 class _StateQueued(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VimbaCameraError]:
+    def forward(self) -> Union[_State, VmbCameraError]:
         try:
             call_vimba_c('VmbCaptureStart', self.context.cam_handle)
 
@@ -186,7 +186,7 @@ class _StateQueued(_State):
         return _StateCaptureStarted(self.context)
 
     @TraceEnable()
-    def backward(self) -> Union[_State, VimbaCameraError]:
+    def backward(self) -> Union[_State, VmbCameraError]:
         try:
             call_vimba_c('VmbCaptureQueueFlush', self.context.cam_handle)
 
@@ -198,19 +198,19 @@ class _StateQueued(_State):
 
 class _StateCaptureStarted(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VimbaCameraError]:
+    def forward(self) -> Union[_State, VmbCameraError]:
         try:
             # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
             if self.context.cam.get_access_mode() != AccessMode.Read:
                 self.context.cam.get_feature_by_name('AcquisitionStart').run()
 
         except BaseException as e:
-            return VimbaCameraError(str(e))
+            return VmbCameraError(str(e))
 
         return _StateAcquiring(self.context)
 
     @TraceEnable()
-    def backward(self) -> Union[_State, VimbaCameraError]:
+    def backward(self) -> Union[_State, VmbCameraError]:
         try:
             call_vimba_c('VmbCaptureEnd', self.context.cam_handle)
 
@@ -222,7 +222,7 @@ class _StateCaptureStarted(_State):
 
 class _StateAcquiring(_State):
     @TraceEnable()
-    def backward(self) -> Union[_State, VimbaCameraError]:
+    def backward(self) -> Union[_State, VmbCameraError]:
         try:
             # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
             cam = self.context.cam
@@ -230,7 +230,7 @@ class _StateAcquiring(_State):
                 cam.get_feature_by_name('AcquisitionStop').run()
 
         except BaseException as e:
-            return VimbaCameraError(str(e))
+            return VmbCameraError(str(e))
 
         return _StateCaptureStarted(self.context)
 
@@ -318,12 +318,12 @@ class _CaptureFsm:
 @TraceEnable()
 def _frame_generator(cam, limit: Optional[int], timeout_ms: int, allocation_mode: AllocationMode):
     if cam.is_streaming():
-        raise VimbaCameraError('Operation not supported while streaming.')
+        raise VmbCameraError('Operation not supported while streaming.')
 
     frame_data_size = cam.get_feature_by_name('PayloadSize').get()
     try:
         buffer_alignment = cam.get_feature_by_name('StreamBufferAlignment').get()
-    except VimbaFeatureError:
+    except VmbFeatureError:
         buffer_alignment = 1
     frames = (Frame(frame_data_size, allocation_mode, buffer_alignment=buffer_alignment), )
     fsm = _CaptureFsm(_Context(cam, frames, None, None))
@@ -544,7 +544,7 @@ class Camera:
         Raises:
             TypeError if parameters do not match their type hint.
             RuntimeError if called outside "with" - statement scope.
-            VimbaFeatureError if 'feat' is not a feature of this camera.
+            VmbFeatureError if 'feat' is not a feature of this camera.
         """
         return filter_affected_features(self.__feats, feat)
 
@@ -563,7 +563,7 @@ class Camera:
         Raises:
             TypeError if 'feat' is not of any feature type.
             RuntimeError if called outside "with" - statement scope.
-            VimbaFeatureError if 'feat' is not a feature of this camera.
+            VmbFeatureError if 'feat' is not a feature of this camera.
         """
         return filter_selected_features(self.__feats, feat)
 
@@ -619,12 +619,12 @@ class Camera:
         Raises:
             TypeError if parameters do not match their type hint.
             RuntimeError if called outside "with" - statement scope.
-            VimbaFeatureError if no feature is associated with 'feat_name'.
+            VmbFeatureError if no feature is associated with 'feat_name'.
         """
         feat = filter_features_by_name(self.__feats, feat_name)
 
         if not feat:
-            raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
         return feat
 
@@ -654,8 +654,8 @@ class Camera:
             RuntimeError if called outside "with" - statement scope.
             ValueError if a limit is supplied and negative.
             ValueError if a timeout_ms is negative.
-            VimbaTimeout if Frame acquisition timed out.
-            VimbaCameraError if Camera is streaming while executing the generator.
+            VmbTimeout if Frame acquisition timed out.
+            VmbCameraError if Camera is streaming while executing the generator.
         """
         if limit and (limit < 0):
             raise ValueError('Given Limit {} is not >= 0'.format(limit))
@@ -685,7 +685,7 @@ class Camera:
             TypeError if parameters do not match their type hint.
             RuntimeError if called outside "with" - statement scope.
             ValueError if a timeout_ms is negative.
-            VimbaTimeout if Frame acquisition timed out.
+            VmbTimeout if Frame acquisition timed out.
         """
         return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
 
@@ -712,20 +712,20 @@ class Camera:
             TypeError if parameters do not match their type hint.
             RuntimeError if called outside "with" - statement scope.
             ValueError if buffer is less or equal to zero.
-            VimbaCameraError if the camera is already streaming.
-            VimbaCameraError if anything went wrong on entering streaming mode.
+            VmbCameraError if the camera is already streaming.
+            VmbCameraError if anything went wrong on entering streaming mode.
         """
         if buffer_count <= 0:
             raise ValueError('Given buffer_count {} must be positive'.format(buffer_count))
 
         if self.is_streaming():
-            raise VimbaCameraError('Camera \'{}\' already streaming.'.format(self.get_id()))
+            raise VmbCameraError('Camera \'{}\' already streaming.'.format(self.get_id()))
 
         # Setup capturing fsm
         payload_size = self.get_feature_by_name('PayloadSize').get()
         try:
             buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
-        except VimbaFeatureError:
+        except VmbFeatureError:
             buffer_alignment = 1
         frames = tuple([Frame(payload_size, allocation_mode, buffer_alignment=buffer_alignment)
                         for _ in range(buffer_count)])
@@ -750,7 +750,7 @@ class Camera:
 
         Raises:
             RuntimeError if called outside "with" - statement scope.
-            VimbaCameraError if anything went wrong on leaving streaming mode.
+            VmbCameraError if anything went wrong on leaving streaming mode.
         """
         if not self.is_streaming():
             return
@@ -786,7 +786,7 @@ class Camera:
             TypeError if parameters do not match their type hint.
             ValueError if the given frame is not from the internal buffer queue.
             RuntimeError if called outside "with" - statement scope.
-            VimbaCameraError if reusing the frame was unsuccessful.
+            VmbCameraError if reusing the frame was unsuccessful.
         """
         if self.__capture_fsm is None:
             return
@@ -932,10 +932,10 @@ class Camera:
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
                                  self.get_permitted_access_modes())
-                exc = VimbaCameraError(msg)
+                exc = VmbCameraError(msg)
 
             else:
-                exc = VimbaCameraError(repr(err))
+                exc = VmbCameraError(repr(err))
 
             raise exc from e
 
@@ -955,7 +955,7 @@ class Camera:
                            'Enable jumbo packets for improved performance.')
                     Log.get_instance().info(msg.format(self.get_id()))
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 pass
 
     @TraceEnable()
@@ -983,7 +983,7 @@ class Camera:
                          sizeof(info))
 
         except VimbaCError as e:
-            raise VimbaCameraError(str(e.get_error_code())) from e
+            raise VmbCameraError(str(e.get_error_code())) from e
         self.__info.permittedAccess = info.permittedAccess
 
     def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
@@ -1062,7 +1062,7 @@ def discover_camera(id_: str) -> Camera:
         call_vimba_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
 
     except VimbaCError as e:
-        raise VimbaCameraError(str(e.get_error_code())) from e
+        raise VmbCameraError(str(e.get_error_code())) from e
 
     return Camera(info)
 
@@ -1078,30 +1078,30 @@ def _frame_handle_accessor(frame: Frame) -> VmbFrame:
     return frame._frame
 
 
-def _build_camera_error(cam: Camera, orig_exc: VimbaCError) -> VimbaCameraError:
+def _build_camera_error(cam: Camera, orig_exc: VimbaCError) -> VmbCameraError:
     err = orig_exc.get_error_code()
 
     if err == VmbError.ApiNotStarted:
         msg = 'System not ready. \'{}\' accessed outside of system context. Abort.'
-        exc = cast(VimbaCameraError, VimbaSystemError(msg.format(cam.get_id())))
+        exc = cast(VmbCameraError, VmbSystemError(msg.format(cam.get_id())))
 
     elif err == VmbError.DeviceNotOpen:
         msg = 'Camera \'{}\' accessed outside of context. Abort.'
-        exc = VimbaCameraError(msg.format(cam.get_id()))
+        exc = VmbCameraError(msg.format(cam.get_id()))
 
     elif err == VmbError.BadHandle:
         msg = 'Invalid Camera. \'{}\' might be disconnected. Abort.'
-        exc = VimbaCameraError(msg.format(cam.get_id()))
+        exc = VmbCameraError(msg.format(cam.get_id()))
 
     elif err == VmbError.InvalidAccess:
         msg = 'Invalid Access Mode on camera \'{}\'. Abort.'
-        exc = VimbaCameraError(msg.format(cam.get_id()))
+        exc = VmbCameraError(msg.format(cam.get_id()))
 
     elif err == VmbError.Timeout:
         msg = 'Frame capturing on Camera \'{}\' timed out.'
-        exc = cast(VimbaCameraError, VimbaTimeout(msg.format(cam.get_id())))
+        exc = cast(VmbCameraError, VmbTimeout(msg.format(cam.get_id())))
 
     else:
-        exc = VimbaCameraError(repr(err))
+        exc = VmbCameraError(repr(err))
 
     return exc

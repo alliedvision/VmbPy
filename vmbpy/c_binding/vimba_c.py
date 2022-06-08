@@ -30,7 +30,7 @@ import ctypes
 from typing import Callable, Any, Tuple
 from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
 from ..util import TraceEnable
-from ..error import VimbaSystemError
+from ..error import VmbSystemError
 from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
     VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
     fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
@@ -665,7 +665,7 @@ def _check_version(lib_handle):
     if not(loaded_version[0:2] == expected_version[0:2] and
            loaded_version[2] >= expected_version[2]):
         msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
-        raise VimbaSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION))
+        raise VmbSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION))
 
     return lib_handle
 
@@ -769,4 +769,4 @@ def build_callback_type(*args):
         return ctypes.WINFUNCTYPE(*args)
 
     else:
-        raise VimbaSystemError('Unknown Library Type. Abort.')
+        raise VmbSystemError('Unknown Library Type. Abort.')

@@ -25,7 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from vmbpy.c_binding import _select_vimba_home
-from vmbpy.error import VimbaSystemError
+from vmbpy.error import VmbSystemError
 
 import sys
 import os
@@ -43,17 +43,17 @@ class RankVimbaHomeCandidatesTest(VmbPyTestCase):
 
     def test_empty_gentl_path(self):
         candidates = []
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
 
     def test_empty_string(self):
         candidates = ['']
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
 
     def test_single_bad_vimba_home_candidate(self):
         candidates = ['/some/path']
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
 
     def test_single_good_vimba_home_candidate(self):
@@ -88,5 +88,5 @@ class RankVimbaHomeCandidatesTest(VmbPyTestCase):
                       '/home/username/Vimba_4_0',  # second installation
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
