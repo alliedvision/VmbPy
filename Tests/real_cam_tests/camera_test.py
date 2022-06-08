@@ -35,7 +35,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
 def dummy_frame_handler(cam: Camera, frame: Frame):
@@ -67,7 +67,7 @@ def _open_camera(id: str,
             shutdown_request.wait(timeout=10)
 
 
-class CamCameraTest(VimbaTestCase):
+class CamCameraTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()

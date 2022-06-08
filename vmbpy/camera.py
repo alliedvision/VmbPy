@@ -645,7 +645,7 @@ class Camera:
                     stopped by the user supplied code.
             timeout_ms - Timeout in milliseconds of frame acquisition.
             allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              VimbaPython or the Transport Layer
+                              vmbpy or the Transport Layer
 
         Returns:
             Frame generator expression
@@ -676,7 +676,7 @@ class Camera:
         Arguments:
             timeout_ms - Timeout in milliseconds of frame acquisition.
             allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              VimbaPython or the Transport Layer
+                              vmbpy or the Transport Layer
 
         Returns:
             Frame from camera
@@ -706,7 +706,7 @@ class Camera:
             handler - Callable that is executed on each acquired frame.
             buffer_count - Number of frames supplied as internal buffer.
             allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              VimbaPython or the Transport Layer
+                              vmbpy or the Transport Layer
 
         Raises:
             TypeError if parameters do not match their type hint.

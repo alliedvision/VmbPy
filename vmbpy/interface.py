@@ -61,7 +61,7 @@ class InterfaceType(enum.IntEnum):
     """Enum specifying all interface types.
 
     Enum values:
-        Unknown  - Interface is not known to this VimbaPython version.
+        Unknown  - Interface is not known to this vmbpy version.
         Firewire - 1394
         Ethernet - Gigabit Ethernet
         Usb      - USB 3.0

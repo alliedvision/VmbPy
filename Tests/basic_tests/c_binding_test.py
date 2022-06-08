@@ -32,10 +32,10 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class VimbaCommonTest(VimbaTestCase):
+class VimbaCommonTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -86,7 +86,7 @@ class VimbaCommonTest(VimbaTestCase):
         self.assertEqual(list(expected).sort(), list(actual).sort())
 
 
-class CBindingVimbaCTypesTest(VimbaTestCase):
+class CBindingVimbaCTypesTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -240,7 +240,7 @@ class CBindingVimbaCTypesTest(VimbaTestCase):
         self.assertEqual(VmbFrameFlags.Timestamp, 8)
 
 
-class VimbaCTest(VimbaTestCase):
+class VimbaCTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -310,7 +310,7 @@ class VimbaCTest(VimbaTestCase):
             self.assertEqual(e.get_error_code(), VmbError.BadParameter)
 
 
-class ImageTransformTest(VimbaTestCase):
+class ImageTransformTest(VmbPyTestCase):
     def setUp(self):
         pass
 

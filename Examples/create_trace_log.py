@@ -30,9 +30,9 @@ from vmbpy import *
 
 
 def main():
-    print('////////////////////////////////////////////')
-    print('/// VimbaPython Create Trace Log Example ///')
-    print('////////////////////////////////////////////\n')
+    print('//////////////////////////////////////')
+    print('/// vmbpy Create Trace Log Example ///')
+    print('//////////////////////////////////////\n')
 
     # Enable logging mechanism, creating a trace log. The log file is
     # stored at the location this script was executed from.

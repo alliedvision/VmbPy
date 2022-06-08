@@ -34,10 +34,10 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class CamFrameTest(VimbaTestCase):
+class CamFrameTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -54,7 +54,7 @@ class CamFrameTest(VimbaTestCase):
 
     def test_verify_buffer(self):
         # Expectation: A Frame buffer shall have exactly the specified size on construction.
-        # Allocation is performed by VimbaPython
+        # Allocation is performed by vmbpy
         self.assertEqual(Frame(0, AllocationMode.AnnounceFrame).get_buffer_size(), 0)
         self.assertEqual(Frame(1024, AllocationMode.AnnounceFrame).get_buffer_size(), 1024)
         self.assertEqual(Frame(1024 * 1024, AllocationMode.AnnounceFrame).get_buffer_size(),
@@ -62,7 +62,7 @@ class CamFrameTest(VimbaTestCase):
 
     def test_verify_no_copy_empty_buffer_access(self):
         # Expectation: Accessing the internal buffer must not create a copy
-        # frame._buffer is only set on construction if buffer is allocated by VimbaPython
+        # frame._buffer is only set on construction if buffer is allocated by vmbpy
         frame = Frame(10, AllocationMode.AnnounceFrame)
         self.assertEqual(id(frame._buffer), id(frame.get_buffer()))
 

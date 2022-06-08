@@ -125,7 +125,7 @@ function get_python_versions
             : # the interperter is compatible
         else
             if [ "$DEBUG" = true ] ; then
-                echo "$P is not compatible. VimbaPython requires python >=3.7" >&2
+                echo "$P is not compatible. vmbpy requires python >=3.7" >&2
             fi
             continue
         fi
@@ -144,9 +144,9 @@ function get_python_versions
     echo "${DETECTED_PYTHONS[@]}"
 }
 
-echo "###############################"
-echo "# VimbaPython install script. #"
-echo "###############################"
+echo "#########################"
+echo "# vmbpy install script. #"
+echo "#########################"
 
 #########################
 # Perform sanity checks #
@@ -162,9 +162,9 @@ fi
 PWD=$(pwd)
 PWD=${PWD##*/}
 
-if [[ "$PWD" != "VimbaPython" ]]
+if [[ "$PWD" != "VmbPy" ]]
 then
-    echo "Error: Please execute Install.sh within VimbaPython directory."
+    echo "Error: Please execute Install.sh within VmbPy directory."
     exit 1
 fi
 
@@ -185,9 +185,9 @@ then
 fi
 
 
-#################################################
-# Determine python installation for VimbaPython #
-#################################################
+###########################################
+# Determine python installation for vmbpy #
+###########################################
 
 # List all given interpreters and create an Index
 echo "The following Python versions with pip support were detected:"
@@ -204,7 +204,7 @@ done
 # Read and verfiy user input
 while true
 do
-    echo -n "Enter python version to install VimbaPython (0 - $LAST, default: 0): "
+    echo -n "Enter python version to install vmbpy (0 - $LAST, default: 0): "
     read TMP
 
     if [ -z "$TMP" ]
@@ -246,7 +246,7 @@ do
     fi
 done
 
-echo "Installing VimbaPython for $PYTHON"
+echo "Installing vmbpy for $PYTHON"
 echo ""
 
 ##################################################
@@ -255,18 +255,18 @@ echo ""
 TARGET=""
 
 # Ask for numpy support
-get_bool_input "Install VimbaPython with numpy support (yes/no, default: yes):" "yes" "no" "yes"
+get_bool_input "Install vmbpy with numpy support (yes/no, default: yes):" "yes" "no" "yes"
 if [ $? -eq 0 ]
 then
     TARGET="numpy-export"
-    echo "Installing VimbaPython with numpy support."
+    echo "Installing vmbpy with numpy support."
 else
-    echo "Installing VimbaPython without numpy support."
+    echo "Installing vmbpy without numpy support."
 fi
 echo ""
 
 # Ask for OpenCV support
-get_bool_input "Install VimbaPython with OpenCV support (yes/no, default: yes):" "yes" "no" "yes"
+get_bool_input "Install vmbpy with OpenCV support (yes/no, default: yes):" "yes" "no" "yes"
 if [ $? -eq 0 ]
 then
     if [ -z $TARGET ]
@@ -275,9 +275,9 @@ then
     else
         TARGET="$TARGET,opencv-export"
     fi
-    echo "Installing VimbaPython with OpenCV support."
+    echo "Installing vmbpy with OpenCV support."
 else
-    echo "Installing VimbaPython without OpenCV support."
+    echo "Installing vmbpy without OpenCV support."
 fi
 echo ""
 
@@ -293,7 +293,7 @@ $PYTHON -m pip install "$TARGET"
 
 if [ $? -eq 0 ]
 then
-    echo "VimbaPython installation successful."
+    echo "vmbpy installation successful."
 else
-    echo "Error: VimbaPython installation failed. Please check pip output for details."
+    echo "Error: vmbpy installation failed. Please check pip output for details."
 fi

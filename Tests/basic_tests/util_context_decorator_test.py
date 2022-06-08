@@ -30,7 +30,7 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
 class TestObj:
@@ -55,7 +55,7 @@ class TestObj:
         pass
 
 
-class ContextDecoratorTest(VimbaTestCase):
+class ContextDecoratorTest(VmbPyTestCase):
     def setUp(self):
         self.test_obj = TestObj()
 

@@ -45,13 +45,13 @@ def stringify_list(l):
 
 def static_test():
     fprint('Execute Static Test: flake8')
-    subprocess.run('flake8 vimba', shell=True)
+    subprocess.run('flake8 vmbpy', shell=True)
     subprocess.run('flake8 Examples --ignore=F405,F403', shell=True)
     subprocess.run('flake8 Tests --ignore=F405,F403', shell=True)
     fprint('')
 
     fprint('Execute Static Test: mypy')
-    subprocess.run('mypy vimba', shell=True, check=True)
+    subprocess.run('mypy vmbpy', shell=True, check=True)
     fprint('')
 
 
@@ -87,7 +87,7 @@ def setup_junit(report_dir):
 
 def static_test_junit(report_dir):
     fprint('Execute Static Test: flake8')
-    cmd = 'flake8 vimba --output-file=' + report_dir + '/flake8.txt'
+    cmd = 'flake8 vmbpy --output-file=' + report_dir + '/flake8.txt'
     subprocess.run(cmd, shell=True, check=True)
 
     cmd = 'flake8_junit ' + report_dir + '/flake8.txt ' + report_dir + '/flake8_junit.xml'
@@ -95,7 +95,7 @@ def static_test_junit(report_dir):
     fprint('')
 
     fprint('Execute Static Test: mypy')
-    cmd = 'mypy vimba --junit-xml ' + report_dir + '/mypy_junit.xml'
+    cmd = 'mypy vmbpy --junit-xml ' + report_dir + '/mypy_junit.xml'
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
 
@@ -137,7 +137,7 @@ def test_junit(report_dir, testsuite, testcamera, blacklist):
 
 
 def main():
-    CLI = """VimbaPython tests script.
+    CLI = """vmbpy tests script.
     Usage:
         run_tests.py -h
         run_tests.py test -s basic [BLACKLIST...]

@@ -423,7 +423,7 @@ class AllocationMode(enum.IntEnum):
     """Enum specifying the supported frame allocation modes.
 
     Enum values:
-        AnnounceFrame         - The buffer is allocated by VimbaPython
+        AnnounceFrame         - The buffer is allocated by vmbpy
         AllocAndAnnounceFrame - The buffer is allocated by the Transport Layer
     """
     AnnounceFrame = 0

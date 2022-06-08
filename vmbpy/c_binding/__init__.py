@@ -26,6 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -------------------------------------------------------------------------
 
+# TODO: THIS PROBABLY NEEDS TO BE COMPLETELY REPHRASED. NOT CHANGING FOR NOW
 NOTE: Vimba/Vmb naming convention.
 VimbaPython is based heavily on VimbaC, this submodule contains all wrapped types and functions
 of VimbaC. All VimbaC Types and Functions are prefixed with 'Vmb', this convention is kept for

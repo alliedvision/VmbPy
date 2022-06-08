@@ -98,11 +98,11 @@ function get_python_versions
             continue 
         fi
 
-        # 4) Remove results where VimbaPython is not installed
-        if [ $($P -m pip list --format=columns | grep "VimbaPython" | wc -l) -ne 1 ]
+        # 4) Remove results where vmbpy is not installed
+        if [ $($P -m pip list --format=columns | grep "vmbpy" | wc -l) -ne 1 ]
         then
             if [ "$DEBUG" = true ] ; then
-                echo "$P did not have VimbaPython installed" >&2
+                echo "$P did not have vmbpy installed" >&2
             fi
             continue
         fi
@@ -110,9 +110,9 @@ function get_python_versions
     done
     echo "${DETECTED_PYTHONS[@]}"
 }
-echo "#################################"
-echo "# VimbaPython uninstall script. #"
-echo "#################################"
+echo "###########################"
+echo "# vmbpy uninstall script. #"
+echo "###########################"
 
 #########################
 # Perform sanity checks #
@@ -127,9 +127,9 @@ fi
 PWD=$(pwd)
 PWD=${PWD##*/}
 
-if [[ "$PWD" != "VimbaPython" ]]
+if [[ "$PWD" != "VmbPy" ]]
 then
-    echo "Error: Please execute Uninstall.sh within VimbaPython directory."
+    echo "Error: Please execute Uninstall.sh within VmbPy directory."
     exit 1
 fi
 
@@ -137,16 +137,16 @@ PYTHONS=$(get_python_versions)
 
 if [ -z "$PYTHONS" ]
 then
-    echo "Can't remove VimbaPython. No installation was found."
+    echo "Can't remove vmbpy. No installation was found."
     exit 0
 fi
 
-#############################################
-# Determine python to uninstall VimbaPython #
-#############################################
+#######################################
+# Determine python to uninstall vmbpy #
+#######################################
 
 # List all given interpreters and create an Index
-echo "VimbaPython is installed for the following interpreters:"
+echo "vmbpy is installed for the following interpreters:"
 
 ITER=0
 
@@ -160,7 +160,7 @@ done
 # Read and verfiy user input
 while true
 do
-    echo -n "Enter python version to uninstall VimbaPython (0 - $LAST, all: a, default: a): "
+    echo -n "Enter python version to uninstall vmbpy (0 - $LAST, all: a, default: a): "
     read TMP
 
     # Set TMP to default value if nothing was entered.
@@ -172,7 +172,7 @@ do
     # Check if Input was "a". If so skip further Input verification.
     if [ "$TMP" == "a" ]
     then
-        echo "  Removing all installations of VimbaPython."
+        echo "  Removing all installations of vmbpy."
         ITER=$TMP
         break
 
@@ -219,18 +219,18 @@ do
 done
 
 
-# Remove VimbaPython via pip
+# Remove vmbpy via pip
 for P in ${PYTHON[@]}
 do
     echo ""
-    echo "Remove VimbaPython for $P"
+    echo "Remove vmbpy for $P"
 
-    $P -m pip uninstall --yes VimbaPython
+    $P -m pip uninstall --yes vmbpy
 
     if [ $? -eq 0 ]
     then
-        echo "VimbaPython removal for $P was successful."
+        echo "vmbpy removal for $P was successful."
     else
-        echo "Error: VimbaPython removal for $P failed. Please check pip output for details."
+        echo "Error: vmbpy removal for $P failed. Please check pip output for details."
     fi
 done

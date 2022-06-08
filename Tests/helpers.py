@@ -29,9 +29,9 @@ import unittest
 import vmbpy
 
 
-class VimbaTestCase(unittest.TestCase):
+class VmbPyTestCase(unittest.TestCase):
     """
-    Class that represents a test case for VimbaPython.
+    Class that represents a test case for vmbpy.
 
     Adds the static functions `get_test_camera_id` and `set_test_camera_id` to simplify opening the
     appropriate device for testing.
@@ -40,21 +40,21 @@ class VimbaTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not VimbaTestCase.get_test_camera_id():
+        if not VmbPyTestCase.get_test_camera_id():
             # Try to read device id from environment variable. If it is not set test_cam_id will
             # still be an empty string
-            VimbaTestCase.set_test_camera_id(os.getenv('VIMBAPYTHON_DEVICE_ID', ''))
-        if not VimbaTestCase.get_test_camera_id():
+            VmbPyTestCase.set_test_camera_id(os.getenv('VMBPY_DEVICE_ID', ''))
+        if not VmbPyTestCase.get_test_camera_id():
             with vmbpy.Vimba.get_instance() as vmb:
                 try:
-                    VimbaTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
+                    VmbPyTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
                 except IndexError:
                     # no cameras found by vimba. Leave test_cam_id empty. This will cause tests
                     # using a real camera to fail
-                    VimbaTestCase.set_test_camera_id('<NO CAMERA FOUND>')
+                    VmbPyTestCase.set_test_camera_id('<NO CAMERA FOUND>')
 
         print(f'Executing tests in class "{cls.__name__}" '
-              f'with camera ID "{VimbaTestCase.get_test_camera_id()}"', flush=True)
+              f'with camera ID "{VmbPyTestCase.get_test_camera_id()}"', flush=True)
 
     def assertNoRaise(self, func, *args, **kwargs):
         try:
@@ -65,8 +65,8 @@ class VimbaTestCase(unittest.TestCase):
 
     @staticmethod
     def get_test_camera_id() -> str:
-        return VimbaTestCase.test_cam_id
+        return VmbPyTestCase.test_cam_id
 
     @staticmethod
     def set_test_camera_id(test_cam_id):
-        VimbaTestCase.test_cam_id = test_cam_id
+        VmbPyTestCase.test_cam_id = test_cam_id

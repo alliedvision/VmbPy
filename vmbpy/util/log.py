@@ -109,7 +109,7 @@ class LogConfig:
             Reference to the LogConfig instance (builder pattern).
         """
         log_ts = datetime.datetime.today().strftime('%Y-%m-%d_%H-%M-%S')
-        log_file = 'VimbaPython_{}_{}.log'.format(log_ts, str(level))
+        log_file = 'vmbpy_{}_{}.log'.format(log_ts, str(level))
         log_file = os.path.join(os.getcwd(), log_file)
 
         handler = logging.FileHandler(log_file, delay=True)
@@ -163,14 +163,14 @@ class Log:
             return bool(self.__logger)
 
         def enable(self, config: LogConfig):
-            """Enable global VimbaPython logging mechanism.
+            """Enable global vmbpy logging mechanism.
 
             Arguments:
                 config: The configuration to apply.
             """
             self.disable()
 
-            logger = logging.getLogger('VimbaPythonLog')
+            logger = logging.getLogger('vmbpyLog')
             logger.setLevel(logging.DEBUG)
 
             for handler in config.get_handlers():
@@ -180,7 +180,7 @@ class Log:
             self.__logger = logger
 
         def disable(self):
-            """Disable global VimbaPython logging mechanism."""
+            """Disable global vmbpy logging mechanism."""
             if self.__logger and self.__config:
                 for handler in self.__config.get_handlers():
                     handler.close()

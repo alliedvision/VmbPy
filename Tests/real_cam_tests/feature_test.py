@@ -33,10 +33,10 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class CamBaseFeatureTest(VimbaTestCase):
+class CamBaseFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -196,7 +196,7 @@ class CamBaseFeatureTest(VimbaTestCase):
             self.assertNoRaise(str, feat)
 
 
-class CamBoolFeatureTest(VimbaTestCase):
+class CamBoolFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -224,7 +224,7 @@ class CamBoolFeatureTest(VimbaTestCase):
         self.assertRaises(VimbaFeatureError, self.feat.set, True)
 
 
-class CamCommandFeatureTest(VimbaTestCase):
+class CamCommandFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -244,7 +244,7 @@ class CamCommandFeatureTest(VimbaTestCase):
         self.assertEqual(self.feat.get_type(), CommandFeature)
 
 
-class CamEnumFeatureTest(VimbaTestCase):
+class CamEnumFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -460,7 +460,7 @@ class CamEnumFeatureTest(VimbaTestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamFloatFeatureTest(VimbaTestCase):
+class CamFloatFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -591,7 +591,7 @@ class CamFloatFeatureTest(VimbaTestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamIntFeatureTest(VimbaTestCase):
+class CamIntFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
@@ -722,7 +722,7 @@ class CamIntFeatureTest(VimbaTestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamStringFeatureTest(VimbaTestCase):
+class CamStringFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()

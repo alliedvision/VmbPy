@@ -92,8 +92,8 @@ class Vimba:
                 self._shutdown()
 
         def get_version(self) -> str:
-            """ Returns version string of VimbaPython and underlaying dependencies."""
-            msg = 'VimbaPython: {} (using VimbaC: {}, VimbaImageTransform: {})'
+            """ Returns version string of vmbpy and underlaying dependencies."""
+            msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
             return msg.format(VIMBA_PYTHON_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
 
         @RaiseIfInsideContext()
@@ -102,7 +102,7 @@ class Vimba:
             """Enable/Disable network camera discovery.
 
             Arguments:
-                enable - If 'True' VimbaPython tries to detect cameras connected via Ethernet
+                enable - If 'True' vmbpy tries to detect cameras connected via Ethernet
                          on entering the 'with' statement. If set to 'False', no network
                          discover occurs.
 
@@ -114,7 +114,7 @@ class Vimba:
 
         @RuntimeTypeCheckEnable()
         def enable_log(self, config: LogConfig):
-            """Enable VimbaPython's logging mechanism.
+            """Enable vmbpy's logging mechanism.
 
             Arguments:
                 config - Configuration for the logging mechanism.
@@ -125,7 +125,7 @@ class Vimba:
             Log.get_instance().enable(config)
 
         def disable_log(self):
-            """Disable VimbaPython's logging mechanism."""
+            """Disable vmbpy's logging mechanism."""
             Log.get_instance().disable()
 
         @TraceEnable()

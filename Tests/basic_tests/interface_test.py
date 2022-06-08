@@ -30,10 +30,10 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class InterfaceTest(VimbaTestCase):
+class InterfaceTest(VmbPyTestCase):
     def setUp(self):
         self.vimba = Vimba.get_instance()
         self.vimba._startup()
