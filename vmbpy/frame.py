@@ -40,7 +40,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_fea
                     attach_feature_accessors, remove_feature_accessors
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
                   RaiseIfOutsideContext
-from .error import VimbaFrameError, VimbaFeatureError
+from .error import VmbFrameError, VmbFeatureError
 
 try:
     import numpy  # type: ignore
@@ -423,7 +423,7 @@ class AllocationMode(enum.IntEnum):
     """Enum specifying the supported frame allocation modes.
 
     Enum values:
-        AnnounceFrame         - The buffer is allocated by VimbaPython
+        AnnounceFrame         - The buffer is allocated by vmbpy
         AllocAndAnnounceFrame - The buffer is allocated by the Transport Layer
     """
     AnnounceFrame = 0
@@ -521,12 +521,12 @@ class AncillaryData:
         Raises:
             RuntimeError then called outside of "with" - statement.
             TypeError if parameters do not match their type hint.
-            VimbaFeatureError if no feature is associated with 'feat_name'.
+            VmbFeatureError if no feature is associated with 'feat_name'.
         """
         feat = filter_features_by_name(self.__feats, feat_name)
 
         if not feat:
-            raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
         return feat
 
@@ -857,7 +857,7 @@ class Frame:
 
         Raises:
             ImportError if numpy is not installed.
-            VimbaFrameError if current PixelFormat can't be converted to a numpy.ndarray.
+            VmbFrameError if current PixelFormat can't be converted to a numpy.ndarray.
         """
         if numpy is None:
             raise ImportError('\'Frame.as_numpy_ndarray()\' requires module \'numpy\'.')
@@ -878,7 +878,7 @@ class Frame:
         if not layout:
             msg = 'Can\'t construct numpy.ndarray for Pixelformat {}. ' \
                   'Use \'frame.convert_pixel_format()\' to convert to a different Pixelformat.'
-            raise VimbaFrameError(msg.format(str(self.get_pixel_format())))
+            raise VmbFrameError(msg.format(str(self.get_pixel_format())))
 
         bits_per_channel = layout[1]
         channels_per_pixel = c_image.ImageInfo.PixelInfo.BitsPerPixel // bits_per_channel

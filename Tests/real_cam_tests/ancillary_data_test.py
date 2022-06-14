@@ -24,38 +24,38 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vimba import *
+from vmbpy import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class CamAncillaryDataTest(VimbaTestCase):
+class CamAncillaryDataTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
             self.chunk_mode = self.cam.get_feature_by_name('ChunkModeActive')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'ChunkModeActive\' not available.')

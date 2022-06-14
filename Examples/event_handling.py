@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 def print_preamble():
@@ -71,13 +71,13 @@ def parse_args() -> Optional[str]:
 
 
 def get_camera(cam_id: Optional[str]):
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         # Lookup Camera if it was specified.
         if cam_id:
             try:
                 cam = vimba.get_camera_by_id(cam_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera {}. Abort.'.format(cam_id))
 
         # If no camera was specified, use first detected camera.
@@ -107,7 +107,7 @@ def setup_camera(cam: Camera):
             while not cam.GVSPAdjustPacketSize.is_done():
                 pass
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
 
@@ -120,7 +120,7 @@ def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         with get_camera(cam_id) as cam:
             setup_camera(cam)
 

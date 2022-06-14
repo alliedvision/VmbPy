@@ -32,7 +32,7 @@ import sys
 import platform
 import functools
 from typing import Tuple, List
-from ..error import VimbaSystemError
+from ..error import VmbSystemError
 
 
 __all__ = [
@@ -469,7 +469,7 @@ def load_vimba_lib(vimba_project: str):
         CDLL or WinDLL Handle on loaded library
 
     Raises:
-        VimbaSystemError if given library could not be loaded.
+        VmbSystemError if given library could not be loaded.
     """
 
     platform_handlers = {
@@ -479,7 +479,7 @@ def load_vimba_lib(vimba_project: str):
 
     if sys.platform not in platform_handlers:
         msg = 'Abort. Unsupported Platform ({}) detected.'
-        raise VimbaSystemError(msg.format(sys.platform))
+        raise VmbSystemError(msg.format(sys.platform))
 
     return platform_handlers[sys.platform](vimba_project)
 
@@ -500,7 +500,7 @@ def _load_under_linux(vimba_project: str):
 
     # Early return if required variables are not set.
     if not path_list:
-        raise VimbaSystemError('No TL detected. Please verify Vimba installation.')
+        raise VmbSystemError('No TL detected. Please verify Vimba installation.')
 
     vimba_home_candidates: List[str] = []
     for path in path_list:
@@ -531,7 +531,7 @@ def _load_under_linux(vimba_project: str):
         dir_ = 'arm_32bit'
 
     else:
-        raise VimbaSystemError('Unknown Architecture \'{}\'. Abort'.format(arch))
+        raise VmbSystemError('Unknown Architecture \'{}\'. Abort'.format(arch))
 
     lib_name = 'lib{}.so'.format(vimba_project)
     lib_path = os.path.join(vimba_home, vimba_project, 'DynamicLib', dir_, lib_name)
@@ -541,7 +541,7 @@ def _load_under_linux(vimba_project: str):
 
     except OSError as e:
         msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
-        raise VimbaSystemError(msg.format(lib_path)) from e
+        raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
@@ -550,7 +550,7 @@ def _load_under_windows(vimba_project: str):
     vimba_home = os.environ.get('VIMBA_HOME')
 
     if vimba_home is None:
-        raise VimbaSystemError('Variable VIMBA_HOME not set. Please verify Vimba installation.')
+        raise VmbSystemError('Variable VIMBA_HOME not set. Please verify Vimba installation.')
 
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
     lib_name = '{}.dll'.format(vimba_project)
@@ -570,7 +570,7 @@ def _load_under_windows(vimba_project: str):
 
     except OSError as e:
         msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
-        raise VimbaSystemError(msg.format(lib_path)) from e
+        raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
@@ -587,7 +587,7 @@ def _select_vimba_home(candidates: List[str]) -> str:
         Path that represents the most likely VIMBA_HOME directory
 
     Raises:
-        VimbaSystemError if multiple VIMBA_HOME directories were found in candidates
+        VmbSystemError if multiple VIMBA_HOME directories were found in candidates
     """
     most_likely_candidates = []
     for candidate in candidates:
@@ -595,10 +595,10 @@ def _select_vimba_home(candidates: List[str]) -> str:
             most_likely_candidates.append(candidate)
 
     if len(most_likely_candidates) == 0:
-        raise VimbaSystemError('No suitable Vimba installation found. The following paths '
+        raise VmbSystemError('No suitable Vimba installation found. The following paths '
                                'were considered: {}'.format(candidates))
     elif len(most_likely_candidates) > 1:
-        raise VimbaSystemError('Multiple Vimba installations found. Can\'t decide which to select: '
+        raise VmbSystemError('Multiple Vimba installations found. Can\'t decide which to select: '
                                '{}'.format(most_likely_candidates))
 
     return most_likely_candidates[0]

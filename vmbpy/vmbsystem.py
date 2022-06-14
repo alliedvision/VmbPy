@@ -40,27 +40,26 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
                     discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
-from .error import VimbaCameraError, VimbaInterfaceError, VimbaFeatureError
-from . import __version__ as VIMBA_PYTHON_VERSION
+from .error import VmbCameraError, VmbInterfaceError, VmbFeatureError
+from . import __version__ as VMBPY_VERSION
 
 
 __all__ = [
-    'Vimba',
+    'VmbSystem',
 ]
 
 
-class Vimba:
+class VmbSystem:
     class __Impl:
         """This class allows access to the entire Vimba System.
-        Vimba is meant be used in conjunction with the "with" - Statement, upon
-        entering the context, all system features, connected cameras and interfaces are detected
-        and can be used.
+        VmbSystem is meant be used in conjunction with the "with" - Statement, upon entering the
+        context, all system features, connected cameras and interfaces are detected and can be used.
         """
 
         @TraceEnable()
         @LeaveContextOnCall()
         def __init__(self):
-            """Do not call directly. Use Vimba.get_instance() instead."""
+            """Do not call directly. Use VmbSystem.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
 
             self.__inters: InterfacesList = ()
@@ -92,9 +91,9 @@ class Vimba:
                 self._shutdown()
 
         def get_version(self) -> str:
-            """ Returns version string of VimbaPython and underlaying dependencies."""
-            msg = 'VimbaPython: {} (using VimbaC: {}, VimbaImageTransform: {})'
-            return msg.format(VIMBA_PYTHON_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
+            """ Returns version string of vmbpy and underlaying dependencies."""
+            msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
+            return msg.format(VMBPY_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
 
         @RaiseIfInsideContext()
         @RuntimeTypeCheckEnable()
@@ -102,7 +101,7 @@ class Vimba:
             """Enable/Disable network camera discovery.
 
             Arguments:
-                enable - If 'True' VimbaPython tries to detect cameras connected via Ethernet
+                enable - If 'True' vmbpy tries to detect cameras connected via Ethernet
                          on entering the 'with' statement. If set to 'False', no network
                          discover occurs.
 
@@ -114,7 +113,7 @@ class Vimba:
 
         @RuntimeTypeCheckEnable()
         def enable_log(self, config: LogConfig):
-            """Enable VimbaPython's logging mechanism.
+            """Enable vmbpy's logging mechanism.
 
             Arguments:
                 config - Configuration for the logging mechanism.
@@ -125,7 +124,7 @@ class Vimba:
             Log.get_instance().enable(config)
 
         def disable_log(self):
-            """Disable VimbaPython's logging mechanism."""
+            """Disable vmbpy's logging mechanism."""
             Log.get_instance().disable()
 
         @TraceEnable()
@@ -235,13 +234,13 @@ class Vimba:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaInterfaceError if interface with id_ can't be found.
+                VmbInterfaceError if interface with id_ can't be found.
             """
             with self.__inters_lock:
                 inter = [inter for inter in self.__inters if id_ == inter.get_id()]
 
             if not inter:
-                raise VimbaInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
+                raise VmbInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
 
             return inter.pop()
 
@@ -273,7 +272,7 @@ class Vimba:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaCameraError if camera with id_ can't be found.
+                VmbCameraError if camera with id_ can't be found.
             """
             with self.__cams_lock:
                 # Search for given Camera Id in all currently detected cameras.
@@ -291,10 +290,10 @@ class Vimba:
                         if cam_info.get_id() == cam.get_id():
                             return cam
 
-                except VimbaCameraError:
+                except VmbCameraError:
                     pass
 
-            raise VimbaCameraError('No Camera with Id \'{}\' available.'.format(id_))
+            raise VmbCameraError('No Camera with Id \'{}\' available.'.format(id_))
 
         @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:
@@ -323,7 +322,7 @@ class Vimba:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaFeatureError if 'feat' is not a system feature.
+                VmbFeatureError if 'feat' is not a system feature.
             """
             return filter_affected_features(self.__feats, feat)
 
@@ -342,7 +341,7 @@ class Vimba:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaFeatureError if 'feat' is not a system feature.
+                VmbFeatureError if 'feat' is not a system feature.
             """
             return filter_selected_features(self.__feats, feat)
 
@@ -397,12 +396,12 @@ class Vimba:
             Raises:
                 TypeError if parameters do not match their type hint.
                 RuntimeError then called outside of "with" - statement.
-                VimbaFeatureError if no feature is associated with 'feat_name'.
+                VmbFeatureError if no feature is associated with 'feat_name'.
             """
             feat = filter_features_by_name(self.__feats, feat_name)
 
             if not feat:
-                raise VimbaFeatureError('Feature \'{}\' not found.'.format(feat_name))
+                raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
             return feat
 
@@ -604,5 +603,5 @@ class Vimba:
     @staticmethod
     @TraceEnable()
     def get_instance() -> '__Impl':
-        """Get VimbaSystem Singleton."""
-        return Vimba.__instance
+        """Get VmbSystem Singleton."""
+        return VmbSystem.__instance

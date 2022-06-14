@@ -30,7 +30,7 @@ import sys
 from ctypes import byref, sizeof, c_char_p, POINTER as c_ptr
 from typing import Callable, Any, Tuple, Dict, List
 
-from ..error import VimbaSystemError
+from ..error import VmbSystemError
 from ..util import TraceEnable
 from .vimba_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VimbaCError, \
     VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
@@ -362,7 +362,7 @@ def _check_version(lib_handle):
     if not(loaded_version[0] == expected_version[0] and
            loaded_version[1] >= expected_version[1]):
         msg = 'Invalid VimbaImageTransform Version: Expected: {}, Found:{}'
-        raise VimbaSystemError(msg.format(EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION,
+        raise VmbSystemError(msg.format(EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION,
                                           VIMBA_IMAGE_TRANSFORM_VERSION))
 
     return lib_handle

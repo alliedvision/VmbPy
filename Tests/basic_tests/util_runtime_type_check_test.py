@@ -25,16 +25,16 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from typing import Union, Optional, Tuple, Callable, Dict, Type
-from vimba.util import *
+from vmbpy.util import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class RuntimeTypeCheckTest(VimbaTestCase):
+class RuntimeTypeCheckTest(VmbPyTestCase):
     def setUp(self):
         pass
 

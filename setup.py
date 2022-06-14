@@ -41,17 +41,17 @@ def get_version(file_content):
     return result.group(1)
 
 
-name = 'VimbaPython'
-version = get_version(read_file(os.path.join('.', 'vimba', '__init__.py')))
+name = 'vmbpy'
+version = get_version(read_file(os.path.join('.', 'vmbpy', '__init__.py')))
 author = 'Allied Vision Technologies GmbH'
 description = 'Python Bindings for Allied Visions VimbaSDK'
-long_description = read_file('README.txt')
+long_description = read_file('README.md')
 long_description_type = 'text/markdown'
 license = 'BSD-2-Clause'
 packages = [
-    'vimba',
-    'vimba.c_binding',
-    'vimba.util'
+    'vmbpy',
+    'vmbpy.c_binding',
+    'vmbpy.util'
 ]
 python_requires = '>=3.7'
 tests_require = [

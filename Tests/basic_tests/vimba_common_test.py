@@ -24,17 +24,17 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vimba.c_binding import _select_vimba_home
-from vimba.error import VimbaSystemError
+from vmbpy.c_binding import _select_vimba_home
+from vmbpy.error import VmbSystemError
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class RankVimbaHomeCandidatesTest(VimbaTestCase):
+class RankVimbaHomeCandidatesTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -43,17 +43,17 @@ class RankVimbaHomeCandidatesTest(VimbaTestCase):
 
     def test_empty_gentl_path(self):
         candidates = []
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
 
     def test_empty_string(self):
         candidates = ['']
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
 
     def test_single_bad_vimba_home_candidate(self):
         candidates = ['/some/path']
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)
 
     def test_single_good_vimba_home_candidate(self):
@@ -88,5 +88,5 @@ class RankVimbaHomeCandidatesTest(VimbaTestCase):
                       '/home/username/Vimba_4_0',  # second installation
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
-        with self.assertRaises(VimbaSystemError):
+        with self.assertRaises(VmbSystemError):
             _select_vimba_home(candidates)

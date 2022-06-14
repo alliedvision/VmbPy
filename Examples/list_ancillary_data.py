@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 def print_preamble():
@@ -71,12 +71,12 @@ def parse_args() -> Optional[str]:
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         if camera_id:
             try:
                 return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
@@ -96,14 +96,14 @@ def setup_camera(cam: Camera):
             while not cam.GVSPAdjustPacketSize.is_done():
                 pass
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
         # Try to enable ChunkMode
         try:
             cam.ChunkModeActive.set(True)
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             abort('Failed to enable ChunkMode on Camera \'{}\'. Abort.'.format(cam.get_id()))
 
 
@@ -111,7 +111,7 @@ def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         with get_camera(cam_id) as cam:
             setup_camera(cam)
 

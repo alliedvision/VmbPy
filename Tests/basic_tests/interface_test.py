@@ -24,18 +24,18 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vimba import *
+from vmbpy import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class InterfaceTest(VimbaTestCase):
+class InterfaceTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         inters = self.vimba.get_all_interfaces()
@@ -90,13 +90,13 @@ class InterfaceTest(VimbaTestCase):
             try:
                 affects_feats = inter.get_feature_by_name('DeviceUpdateList')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceUpdateList\'.')
 
             try:
                 not_affects_feats = inter.get_feature_by_name('DeviceCount')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceCount\'.')
 
             self.assertTrue(affects_feats.has_affected_features())
@@ -113,13 +113,13 @@ class InterfaceTest(VimbaTestCase):
             try:
                 selects_feats = inter.get_feature_by_name('DeviceSelector')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceSelector\'.')
 
             try:
                 not_selects_feats = inter.get_feature_by_name('DeviceCount')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.skipTest('Test requires Feature \'DeviceCount\'.')
 
             self.assertTrue(selects_feats.has_selected_features())
@@ -146,7 +146,7 @@ class InterfaceTest(VimbaTestCase):
         # A invalid name must raise VimbaFeatureError
         with self.vimba.get_all_interfaces()[0] as inter:
             self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
-            self.assertRaises(VimbaFeatureError, inter.get_feature_by_name, 'Invalid Name')
+            self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
 
     def test_interface_context_manager_reentrancy(self):
         # Expectation: Implemented Context Manager must be reentrant, not causing

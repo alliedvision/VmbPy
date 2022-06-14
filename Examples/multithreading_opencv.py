@@ -32,7 +32,7 @@ import queue
 import numpy
 
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 FRAME_QUEUE_SIZE = 10
@@ -96,7 +96,7 @@ def set_nearest_value(cam: Camera, feat_name: str, feat_value: int):
     try:
         feat.set(feat_value)
 
-    except VimbaFeatureError:
+    except VmbFeatureError:
         min_, max_ = feat.get_range()
         inc = feat.get_increment()
 
@@ -151,7 +151,7 @@ class FrameProducer(threading.Thread):
         try:
             self.cam.ExposureAuto.set('Once')
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             self.log.info('Camera {}: Failed to set Feature \'ExposureAuto\'.'.format(
                           self.cam.get_id()))
 
@@ -171,7 +171,7 @@ class FrameProducer(threading.Thread):
                 finally:
                     self.cam.stop_streaming()
 
-        except VimbaCameraError:
+        except VmbCameraError:
             pass
 
         finally:
@@ -258,7 +258,7 @@ class MainThread(threading.Thread):
         log = Log.get_instance()
         consumer = FrameConsumer(self.frame_queue)
 
-        vimba = Vimba.get_instance()
+        vimba = VmbSystem.get_instance()
         vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
 
         log.info('Thread \'MainThread\' started.')

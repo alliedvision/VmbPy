@@ -25,7 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-from vimba import *
+from vmbpy import *
 
 
 def print_preamble():
@@ -44,7 +44,7 @@ def print_camera(cam: Camera):
 
 def main():
     print_preamble()
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         cams = vimba.get_all_cameras()
 
         print('Cameras found: {}'.format(len(cams)))

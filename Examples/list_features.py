@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 def print_preamble():
@@ -74,7 +74,7 @@ def print_feature(feature):
     try:
         value = feature.get()
 
-    except (AttributeError, VimbaFeatureError):
+    except (AttributeError, VmbFeatureError):
         value = None
 
     print('/// Feature name   : {}'.format(feature.get_name()))
@@ -87,12 +87,12 @@ def print_feature(feature):
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         if camera_id:
             try:
                 return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
@@ -107,7 +107,7 @@ def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         with get_camera(cam_id) as cam:
 
             print('Print all features of camera \'{}\':'.format(cam.get_id()))

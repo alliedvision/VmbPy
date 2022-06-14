@@ -33,11 +33,11 @@ import os
 # Add local directory to search path for test module import in this script.
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
 # Add vimba module at the start of the search path. The tests should run against the
-# local VimbaPython sources regardless of any existing installations.
+# local vmbpy sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
@@ -58,7 +58,7 @@ def _blacklist_tests(test_suite, blacklist):
 
 
 def main():
-    CLI = """VimbaPython test runner.
+    CLI = """vmbpy test runner.
     Usage:
         runner.py -h
         runner.py -s basic -o console [BLACKLIST...]
@@ -83,7 +83,7 @@ def main():
     loader = unittest.TestLoader()
 
     if args['CAMERA_ID']:
-        VimbaTestCase.set_test_camera_id(args['CAMERA_ID'])
+        VmbPyTestCase.set_test_camera_id(args['CAMERA_ID'])
 
     # Select TestRunner
     if args['console']:

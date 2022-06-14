@@ -31,7 +31,7 @@ from typing import Dict, Tuple
 from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
 from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
-from .error import VimbaFeatureError
+from .error import VmbFeatureError
 from .util import TraceEnable
 
 __all__ = [
@@ -61,11 +61,11 @@ def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
         A set of all features that are affected by 'feat'.
 
     Raises:
-        VimbaFeatureError if 'feat' is not stored within 'feats'.
+        VmbFeatureError if 'feat' is not stored within 'feats'.
     """
 
     if feat not in feats:
-        raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
+        raise VmbFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
 
     result = []
 
@@ -104,10 +104,10 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
         A set of all features that are selected by 'feat'.
 
     Raises:
-        VimbaFeatureError if 'feat' is not stored within 'feats'.
+        VmbFeatureError if 'feat' is not stored within 'feats'.
     """
     if feat not in feats:
-        raise VimbaFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
+        raise VmbFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
 
     result = []
 

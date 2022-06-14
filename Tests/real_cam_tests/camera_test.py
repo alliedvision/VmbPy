@@ -28,14 +28,14 @@ import multiprocessing
 import unittest
 import threading
 
-from vimba import *
-from vimba.frame import *
+from vmbpy import *
+from vmbpy.frame import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
 def dummy_frame_handler(cam: Camera, frame: Frame):
@@ -59,23 +59,23 @@ def _open_camera(id: str,
     shutdown_event.set()
     p.join()
     """
-    import vimba
-    with vimba.Vimba.get_instance() as vmb:
+    import vmbpy
+    with vmbpy.VmbSystem.get_instance() as vmb:
         with vmb.get_camera_by_id(id):
             # Set a timeout so we can be sure the process exits and does not remain as an orphaned
             # process forever
             shutdown_request.wait(timeout=10)
 
 
-class CamCameraTest(VimbaTestCase):
+class CamCameraTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
@@ -181,13 +181,13 @@ class CamCameraTest(VimbaTestCase):
             try:
                 affect = self.cam.get_feature_by_name('Height')
 
-            except VimbaFeatureError as e:
+            except VmbFeatureError as e:
                 raise unittest.SkipTest('Failed to lookup Feature Height') from e
 
             try:
                 not_affect = self.cam.get_feature_by_name('AcquisitionFrameCount')
 
-            except VimbaFeatureError as e:
+            except VmbFeatureError as e:
                 raise unittest.SkipTest('Failed to lookup Feature AcquisitionFrameCount') from e
 
             self.assertEqual(self.cam.get_features_affected_by(not_affect), ())
@@ -195,7 +195,7 @@ class CamCameraTest(VimbaTestCase):
             try:
                 payload_size = self.cam.get_feature_by_name('PayloadSize')
 
-            except VimbaFeatureError as e:
+            except VmbFeatureError as e:
                 raise unittest.SkipTest('Failed to lookup Feature PayloadSize') from e
 
             self.assertIn(payload_size, self.cam.get_features_affected_by(affect))
@@ -222,8 +222,8 @@ class CamCameraTest(VimbaTestCase):
 
             self.cam.start_streaming(dummy_frame_handler, 5)
 
-            self.assertRaises(VimbaCameraError, self.cam.get_frame)
-            self.assertRaises(VimbaCameraError, next, self.cam.get_frame_generator(1))
+            self.assertRaises(VmbCameraError, self.cam.get_frame)
+            self.assertRaises(VmbCameraError, next, self.cam.get_frame_generator(1))
 
             # Stop Streaming: Everything should be fine.
             self.cam.stop_streaming()
@@ -265,7 +265,7 @@ class CamCameraTest(VimbaTestCase):
     def test_camera_capture_timeout(self):
         # Expectation: Camera access outside of Camera scope must lead to a VimbaTimeout
         with self.cam:
-            self.assertRaises(VimbaTimeout, self.cam.get_frame, 1)
+            self.assertRaises(VmbTimeout, self.cam.get_frame, 1)
 
     def test_camera_is_streaming(self):
         # Expectation: After start_streaming() is_streaming() must return true. After stop it must

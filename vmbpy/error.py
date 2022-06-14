@@ -28,12 +28,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from .util import Log
 
 __all__ = [
-    'VimbaSystemError',
-    'VimbaCameraError',
-    'VimbaInterfaceError',
-    'VimbaFeatureError',
-    'VimbaFrameError',
-    'VimbaTimeout'
+    'VmbSystemError',
+    'VmbCameraError',
+    'VmbInterfaceError',
+    'VmbFeatureError',
+    'VmbFrameError',
+    'VmbTimeout'
 ]
 
 
@@ -43,7 +43,7 @@ class _LoggedError(Exception):
         Log.get_instance().error(msg)
 
 
-class VimbaSystemError(_LoggedError):
+class VmbSystemError(_LoggedError):
     """Errors related to the underlying Vimba System
 
     Error type to indicate system-wide errors like:
@@ -54,7 +54,7 @@ class VimbaSystemError(_LoggedError):
     pass
 
 
-class VimbaCameraError(_LoggedError):
+class VmbCameraError(_LoggedError):
     """Errors related to cameras
 
     Error Type to indicated camera-related errors like:
@@ -64,7 +64,7 @@ class VimbaCameraError(_LoggedError):
     pass
 
 
-class VimbaInterfaceError(_LoggedError):
+class VmbInterfaceError(_LoggedError):
     """Errors related to Interfaces
 
     Error Type to indicated interface-related errors like:
@@ -74,7 +74,7 @@ class VimbaInterfaceError(_LoggedError):
     pass
 
 
-class VimbaFeatureError(_LoggedError):
+class VmbFeatureError(_LoggedError):
     """Error related to Feature access.
 
     Error type to indicate invalid Feature access like:
@@ -85,11 +85,11 @@ class VimbaFeatureError(_LoggedError):
     pass
 
 
-class VimbaFrameError(_LoggedError):
+class VmbFrameError(_LoggedError):
     """Error related to Frame data"""
     pass
 
 
-class VimbaTimeout(_LoggedError):
+class VmbTimeout(_LoggedError):
     """Indicates that an operation timed out."""
     pass

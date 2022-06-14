@@ -26,39 +26,39 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import threading
 
-from vimba import *
-from vimba.feature import *
+from vmbpy import *
+from vmbpy.feature import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class CamBaseFeatureTest(VimbaTestCase):
+class CamBaseFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
             self.height = self.cam.get_feature_by_name('Height')
 
-        except VimbaCameraError:
+        except VmbCameraError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'Height\' not available.')
@@ -196,15 +196,15 @@ class CamBaseFeatureTest(VimbaTestCase):
             self.assertNoRaise(str, feat)
 
 
-class CamBoolFeatureTest(VimbaTestCase):
+class CamBoolFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.feat = self.vimba.get_feature_by_name('UsbTLIsPresent')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.vimba._shutdown()
             self.skipTest('Required Feature \'UsbTLIsPresent\' not available.')
 
@@ -221,18 +221,18 @@ class CamBoolFeatureTest(VimbaTestCase):
 
     def test_set(self):
         # Expectation: Raises invalid Access on non-writeable features.
-        self.assertRaises(VimbaFeatureError, self.feat.set, True)
+        self.assertRaises(VmbFeatureError, self.feat.set, True)
 
 
-class CamCommandFeatureTest(VimbaTestCase):
+class CamCommandFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.feat = self.vimba.get_feature_by_name('ActionCommand')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.vimba._shutdown()
             self.skipTest('Required Feature \'ActionCommand\' not available.')
 
@@ -244,29 +244,29 @@ class CamCommandFeatureTest(VimbaTestCase):
         self.assertEqual(self.feat.get_type(), CommandFeature)
 
 
-class CamEnumFeatureTest(VimbaTestCase):
+class CamEnumFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
             self.feat_r = self.cam.get_feature_by_name('DeviceScanType')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'DeviceScanType\' not available.')
@@ -274,7 +274,7 @@ class CamEnumFeatureTest(VimbaTestCase):
         try:
             self.feat_rw = self.cam.get_feature_by_name('AcquisitionMode')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'AcquisitionMode\' not available.')
@@ -334,8 +334,8 @@ class CamEnumFeatureTest(VimbaTestCase):
         expected = self.feat_rw.get_all_entries()[1]
         self.assertEqual(self.feat_rw.get_entry(int(expected)), expected)
 
-        self.assertRaises(VimbaFeatureError, self.feat_r.get_entry, -1)
-        self.assertRaises(VimbaFeatureError, self.feat_rw.get_entry, -1)
+        self.assertRaises(VmbFeatureError, self.feat_r.get_entry, -1)
+        self.assertRaises(VmbFeatureError, self.feat_rw.get_entry, -1)
 
     def test_get_entry_str(self):
         # Expectation: Lookup a given entry by using a str as key.
@@ -347,8 +347,8 @@ class CamEnumFeatureTest(VimbaTestCase):
         expected = self.feat_rw.get_all_entries()[1]
         self.assertEqual(self.feat_rw.get_entry(str(expected)), expected)
 
-        self.assertRaises(VimbaFeatureError, self.feat_r.get_entry, 'Should be invalid')
-        self.assertRaises(VimbaFeatureError, self.feat_rw.get_entry, 'Should be invalid')
+        self.assertRaises(VmbFeatureError, self.feat_r.get_entry, 'Should be invalid')
+        self.assertRaises(VmbFeatureError, self.feat_rw.get_entry, 'Should be invalid')
 
     def test_get(self):
         # Expectation: Get must return the current value.
@@ -363,7 +363,7 @@ class CamEnumFeatureTest(VimbaTestCase):
 
         # Read Only Feature
         entry = self.feat_r.get_all_entries()[0]
-        self.assertRaises(VimbaFeatureError, self.feat_r.set, entry)
+        self.assertRaises(VmbFeatureError, self.feat_r.set, entry)
 
         # Read/Write Feature
         old_entry = self.feat_rw.get()
@@ -374,7 +374,7 @@ class CamEnumFeatureTest(VimbaTestCase):
             self.assertEqual(self.feat_rw.get(), self.feat_rw.get_entry(2))
 
             # Provoke FeatureError by setting the feature from the ReadOnly entry.
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, entry)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, entry)
 
         finally:
             self.feat_rw.set(old_entry)
@@ -386,7 +386,7 @@ class CamEnumFeatureTest(VimbaTestCase):
         # - VimbaFeatureError if feature is read only
 
         # Read Only Feature
-        self.assertRaises(VimbaFeatureError, self.feat_r.set, str(self.feat_r.get_entry(0)))
+        self.assertRaises(VmbFeatureError, self.feat_r.set, str(self.feat_r.get_entry(0)))
 
         # Read/Write Feature
         old_entry = self.feat_rw.get()
@@ -397,7 +397,7 @@ class CamEnumFeatureTest(VimbaTestCase):
             self.assertEqual(self.feat_rw.get(), self.feat_rw.get_entry(2))
 
             # Provoke FeatureError by an invalid enum value
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, 'Hopefully invalid')
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, 'Hopefully invalid')
 
         finally:
             self.feat_rw.set(old_entry)
@@ -409,7 +409,7 @@ class CamEnumFeatureTest(VimbaTestCase):
         # - VimbaFeatureError if feature is read only
 
         # Read Only Feature
-        self.assertRaises(VimbaFeatureError, self.feat_r.set, int(self.feat_r.get_entry(0)))
+        self.assertRaises(VmbFeatureError, self.feat_r.set, int(self.feat_r.get_entry(0)))
 
         # Read/Write Feature
         old_entry = self.feat_rw.get()
@@ -420,7 +420,7 @@ class CamEnumFeatureTest(VimbaTestCase):
             self.assertEqual(self.feat_rw.get(), self.feat_rw.get_entry(2))
 
             # Provoke FeatureError by an invalid enum value
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, -23)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, -23)
 
         finally:
             self.feat_rw.set(old_entry)
@@ -438,7 +438,7 @@ class CamEnumFeatureTest(VimbaTestCase):
                 try:
                     feat.set(feat.get())
 
-                except VimbaFeatureError:
+                except VmbFeatureError:
                     self.raised = True
 
                 self.event.set()
@@ -460,29 +460,29 @@ class CamEnumFeatureTest(VimbaTestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamFloatFeatureTest(VimbaTestCase):
+class CamFloatFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
             self.feat_r = self.vimba.get_feature_by_name('Elapsed')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'Elapsed\' not available.')
@@ -490,12 +490,12 @@ class CamFloatFeatureTest(VimbaTestCase):
         try:
             self.feat_rw = self.cam.get_feature_by_name('ExposureTime')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             # Some Cameras name ExposureTime as ExposureTimeAbs
             try:
                 self.feat_rw = self.cam.get_feature_by_name('ExposureTimeAbs')
 
-            except VimbaFeatureError:
+            except VmbFeatureError:
                 self.cam._close()
                 self.vimba._shutdown()
                 self.skipTest('Required Feature \'ExposureTime\' not available.')
@@ -533,7 +533,7 @@ class CamFloatFeatureTest(VimbaTestCase):
         # VimbaFeatureError if value is out of bounds
 
         # Read only feature
-        self.assertRaises(VimbaFeatureError, self.feat_r.set, 0.0)
+        self.assertRaises(VmbFeatureError, self.feat_r.set, 0.0)
 
         # Read/Write Feature
         old_value = self.feat_rw.get()
@@ -551,8 +551,8 @@ class CamFloatFeatureTest(VimbaTestCase):
             self.assertAlmostEqual(self.feat_rw.get(), max_)
 
             # Out of bounds (must raise)
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, min_ - delta)
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, max_ + delta)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, min_ - delta)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, max_ + delta)
 
         finally:
             self.feat_rw.set(old_value)
@@ -569,7 +569,7 @@ class CamFloatFeatureTest(VimbaTestCase):
                 try:
                     feat.set(feat.get())
 
-                except VimbaFeatureError:
+                except VmbFeatureError:
                     self.raised = True
 
                 self.event.set()
@@ -591,29 +591,29 @@ class CamFloatFeatureTest(VimbaTestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamIntFeatureTest(VimbaTestCase):
+class CamIntFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
             self.feat_r = self.cam.get_feature_by_name('HeightMax')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'HeightMax\' not available.')
@@ -621,7 +621,7 @@ class CamIntFeatureTest(VimbaTestCase):
         try:
             self.feat_rw = self.cam.get_feature_by_name('Height')
 
-        except VimbaFeatureError:
+        except VmbFeatureError:
             self.cam._close()
             self.vimba._shutdown()
             self.skipTest('Required Feature \'Height\' not available.')
@@ -658,7 +658,7 @@ class CamIntFeatureTest(VimbaTestCase):
         # 3) Out-of-bounds Access
 
         # Read only feature
-        self.assertRaises(VimbaFeatureError, self.feat_r.set, 0)
+        self.assertRaises(VmbFeatureError, self.feat_r.set, 0)
 
         # Writable feature
         old_value = self.feat_rw.get()
@@ -674,8 +674,8 @@ class CamIntFeatureTest(VimbaTestCase):
             self.assertEqual(self.feat_rw.get(), max_)
 
             # Out of bounds access.
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, min_ - inc)
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, max_ + inc)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, min_ - inc)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, max_ + inc)
 
         finally:
             self.feat_rw.set(old_value)
@@ -692,7 +692,7 @@ class CamIntFeatureTest(VimbaTestCase):
                 try:
                     feat.set(feat.get())
 
-                except VimbaFeatureError:
+                except VmbFeatureError:
                     self.raised = True
 
                 self.event.set()
@@ -722,22 +722,22 @@ class CamIntFeatureTest(VimbaTestCase):
             self.feat_rw.set(old_entry)
 
 
-class CamStringFeatureTest(VimbaTestCase):
+class CamStringFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to open Camera.') from e
 
@@ -792,7 +792,7 @@ class CamStringFeatureTest(VimbaTestCase):
         # 3) Setting a read/write feature must work if string is long enough
 
         # Ensure Expectation 1
-        self.assertRaises(VimbaFeatureError, self.feat_r.set, self.feat_r.get())
+        self.assertRaises(VmbFeatureError, self.feat_r.set, self.feat_r.get())
         self.assertNoRaise(self.feat_rw.set, self.feat_rw.get())
 
         # Ensure Expectation 2
@@ -800,7 +800,7 @@ class CamStringFeatureTest(VimbaTestCase):
 
         try:
             invalid = 'a' * self.feat_rw.get_max_length()
-            self.assertRaises(VimbaFeatureError, self.feat_rw.set, invalid)
+            self.assertRaises(VmbFeatureError, self.feat_rw.set, invalid)
 
         finally:
             self.feat_rw.set(old_val)
@@ -826,7 +826,7 @@ class CamStringFeatureTest(VimbaTestCase):
                 try:
                     feat.set(feat.get())
 
-                except VimbaFeatureError:
+                except VmbFeatureError:
                     self.raised = True
 
                 self.event.set()

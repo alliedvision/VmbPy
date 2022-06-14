@@ -24,25 +24,25 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vimba import *
+from vmbpy import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class VimbaTest(VimbaTestCase):
+class VimbaTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
 
     def tearDown(self):
         pass
 
     def test_singleton(self):
         # Expected behavior: Multiple calls to Vimba.get_instance() return the same object.
-        self.assertEqual(self.vimba, Vimba.get_instance())
+        self.assertEqual(self.vimba, VmbSystem.get_instance())
 
     def test_get_version(self):
         # Expectation: Returned Version is not empty and does not raise any exceptions.
@@ -52,19 +52,19 @@ class VimbaTest(VimbaTestCase):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
         # VimbaCameraError
         with self.vimba:
-            self.assertRaises(VimbaCameraError, self.vimba.get_camera_by_id, 'Invalid ID')
+            self.assertRaises(VmbCameraError, self.vimba.get_camera_by_id, 'Invalid ID')
 
     def test_get_interface_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable interface must throw an
         # VimbaInterfaceError
         with self.vimba:
-            self.assertRaises(VimbaInterfaceError, self.vimba.get_interface_by_id, 'Invalid ID')
+            self.assertRaises(VmbInterfaceError, self.vimba.get_interface_by_id, 'Invalid ID')
 
     def test_get_feature_by_name_failure(self):
         # Expected behavior: Lookup of a currently unavailable feature must throw an
         # VimbaFeatureError
         with self.vimba:
-            self.assertRaises(VimbaFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
+            self.assertRaises(VmbFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
 
     def test_runtime_check_failure(self):
         self.assertRaises(TypeError, self.vimba.set_network_discovery, 0.0)

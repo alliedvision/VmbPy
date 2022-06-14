@@ -24,13 +24,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vimba.util import *
+from vmbpy.util import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
 class TestObj:
@@ -55,7 +55,7 @@ class TestObj:
         pass
 
 
-class ContextDecoratorTest(VimbaTestCase):
+class ContextDecoratorTest(VmbPyTestCase):
     def setUp(self):
         self.test_obj = TestObj()
 

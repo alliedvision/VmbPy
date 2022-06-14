@@ -38,7 +38,7 @@ from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, Vmb
                        VmbError, VimbaCError, VmbDouble
 
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
-from .error import VimbaFeatureError
+from .error import VmbFeatureError
 
 __all__ = [
     'ChangeHandler',
@@ -309,7 +309,7 @@ class _BaseFeature:
                     Log.get_instance().error(msg)
                     raise e
 
-    def _build_access_error(self) -> VimbaFeatureError:
+    def _build_access_error(self) -> VmbFeatureError:
         caller_name = inspect.stack()[1][3]
         read, write = self.get_access_mode()
 
@@ -318,16 +318,16 @@ class _BaseFeature:
         msg += 'Read access: {}. '.format('allowed' if read else 'not allowed')
         msg += 'Write access: {}. '.format('allowed' if write else 'not allowed')
 
-        return VimbaFeatureError(msg.format(caller_name, self.get_name()))
+        return VmbFeatureError(msg.format(caller_name, self.get_name()))
 
-    def _build_within_callback_error(self) -> VimbaFeatureError:
+    def _build_within_callback_error(self) -> VmbFeatureError:
         caller_name = inspect.stack()[1][3]
         msg = 'Invalid access. Calling \'{}()\' of Feature \'{}\' in change_handler is invalid.'
 
-        return VimbaFeatureError(msg.format(caller_name, self.get_name()))
+        return VmbFeatureError(msg.format(caller_name, self.get_name()))
 
-    def _build_unhandled_error(self, c_exc: VimbaCError) -> VimbaFeatureError:
-        return VimbaFeatureError(repr(c_exc.get_error_code()))
+    def _build_unhandled_error(self, c_exc: VimbaCError) -> VmbFeatureError:
+        return VmbFeatureError(repr(c_exc.get_error_code()))
 
 
 class BoolFeature(_BaseFeature):
@@ -353,7 +353,7 @@ class BoolFeature(_BaseFeature):
             Feature value of type bool.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_val = VmbBool(False)
 
@@ -380,9 +380,9 @@ class BoolFeature(_BaseFeature):
             val - The boolean value to set.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if called with an invalid value.
-            VimbaFeatureError if executed within a registered change_handler.
+            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError if called with an invalid value.
+            VmbFeatureError if executed within a registered change_handler.
         """
         as_bool = bool(val)
 
@@ -406,11 +406,11 @@ class BoolFeature(_BaseFeature):
 
             raise exc from e
 
-    def _build_value_error(self, val: bool) -> VimbaFeatureError:
+    def _build_value_error(self, val: bool) -> VmbFeatureError:
         caller_name = inspect.stack()[1][3]
         msg = 'Called \'{}()\' of Feature \'{}\' with invalid value({}).'
 
-        return VimbaFeatureError(msg.format(caller_name, self.get_name(), val))
+        return VmbFeatureError(msg.format(caller_name, self.get_name(), val))
 
 
 class CommandFeature(_BaseFeature):
@@ -431,13 +431,13 @@ class CommandFeature(_BaseFeature):
         """Execute command feature.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         try:
             call_vimba_c('VmbFeatureCommandRun', self._handle, self._info.name)
 
         except VimbaCError as e:
-            exc = cast(VimbaFeatureError, e)
+            exc = cast(VmbFeatureError, e)
 
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
@@ -455,7 +455,7 @@ class CommandFeature(_BaseFeature):
             True if feature was fully executed. False if the feature is still being executed.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_val = VmbBool(False)
 
@@ -559,14 +559,14 @@ class EnumFeature(_BaseFeature):
 
         Raises:
             TypeError if int_or_name it not of type int or type str.
-            VimbaFeatureError if no EnumEntry is associated with 'val_or_name'
+            VmbFeatureError if no EnumEntry is associated with 'val_or_name'
         """
         for entry in self.__entries:
             if type(val_or_name)(entry) == val_or_name:
                 return entry
 
         msg = 'EnumEntry lookup failed: No Entry associated with \'{}\'.'.format(val_or_name)
-        raise VimbaFeatureError(msg)
+        raise VmbFeatureError(msg)
 
     @TraceEnable()
     def get(self) -> EnumEntry:
@@ -576,7 +576,7 @@ class EnumFeature(_BaseFeature):
             Feature value of type 'EnumEntry'.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_val = ctypes.c_char_p(None)
 
@@ -602,9 +602,9 @@ class EnumFeature(_BaseFeature):
             val - The value to set. Can be int, or str, or EnumEntry.
 
         Raises:
-            VimbaFeatureError if val is of type int or str and does not match an EnumEntry.
-            VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if executed within a registered change_handler.
+            VmbFeatureError if val is of type int or str and does not match an EnumEntry.
+            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError if executed within a registered change_handler.
         """
         if type(val) in (EnumEntry, str):
             as_entry = self.get_entry(str(val))
@@ -679,7 +679,7 @@ class FloatFeature(_BaseFeature):
             Current float value.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_val = VmbDouble(0.0)
 
@@ -705,7 +705,7 @@ class FloatFeature(_BaseFeature):
             A pair of range boundaries. First value is the minimum, second value is the maximum.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_min = VmbDouble(0.0)
         c_max = VmbDouble(0.0)
@@ -733,7 +733,7 @@ class FloatFeature(_BaseFeature):
             The increment or None if the feature currently has no increment.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_has_val = VmbBool(False)
         c_val = VmbDouble(False)
@@ -761,9 +761,9 @@ class FloatFeature(_BaseFeature):
             val - The float value to set.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if value is out of bounds.
-            VimbaFeatureError if executed within a registered change_handler.
+            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError if value is out of bounds.
+            VmbFeatureError if executed within a registered change_handler.
         """
         as_float = float(val)
 
@@ -787,7 +787,7 @@ class FloatFeature(_BaseFeature):
 
             raise exc from e
 
-    def _build_value_error(self, val: float) -> VimbaFeatureError:
+    def _build_value_error(self, val: float) -> VmbFeatureError:
         caller_name = inspect.stack()[1][3]
         min_, max_ = self.get_range()
 
@@ -795,7 +795,7 @@ class FloatFeature(_BaseFeature):
         msg = 'Called \'{}()\' of Feature \'{}\' with invalid value. {} is not within [{}, {}].'
         msg = msg.format(caller_name, self.get_name(), val, min_, max_)
 
-        return VimbaFeatureError(msg)
+        return VmbFeatureError(msg)
 
 
 class IntFeature(_BaseFeature):
@@ -822,7 +822,7 @@ class IntFeature(_BaseFeature):
             Current int value.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_val = VmbInt64()
 
@@ -848,7 +848,7 @@ class IntFeature(_BaseFeature):
             A pair of range boundaries. First value is the minimum, second value is the maximum.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_min = VmbInt64()
         c_max = VmbInt64()
@@ -876,7 +876,7 @@ class IntFeature(_BaseFeature):
             The increment of this feature.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_val = VmbInt64()
 
@@ -902,9 +902,9 @@ class IntFeature(_BaseFeature):
             val - The int value to set.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if value is out of bounds or misaligned to the increment.
-            VimbaFeatureError if executed within a registered change_handler.
+            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError if value is out of bounds or misaligned to the increment.
+            VmbFeatureError if executed within a registered change_handler.
         """
         as_int = int(val)
 
@@ -928,7 +928,7 @@ class IntFeature(_BaseFeature):
 
             raise exc from e
 
-    def _build_value_error(self, val) -> VimbaFeatureError:
+    def _build_value_error(self, val) -> VmbFeatureError:
         caller_name = inspect.stack()[1][3]
         min_, max_ = self.get_range()
 
@@ -943,7 +943,7 @@ class IntFeature(_BaseFeature):
             inc = self.get_increment()
             msg += '{} is not a multiple of {}, starting at {}'.format(val, inc, min_)
 
-        return VimbaFeatureError(msg.format(caller_name, self.get_name()))
+        return VmbFeatureError(msg.format(caller_name, self.get_name()))
 
 
 class RawFeature(_BaseFeature):
@@ -970,7 +970,7 @@ class RawFeature(_BaseFeature):
             Current value.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         # Note: Coverage is skipped. RawFeature is not testable in a generic way
         c_buf_avail = VmbUint32()
@@ -1000,8 +1000,8 @@ class RawFeature(_BaseFeature):
             val - The value to set.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if executed within a registered change_handler.
+            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError if executed within a registered change_handler.
         """
         # Note: Coverage is skipped. RawFeature is not testable in a generic way
         as_bytes = bytes(buf)
@@ -1031,7 +1031,7 @@ class RawFeature(_BaseFeature):
             Length of current value.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         # Note: Coverage is skipped. RawFeature is not testable in a generic way
         c_val = VmbUint32()
@@ -1076,7 +1076,7 @@ class StringFeature(_BaseFeature):
             Current str value.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_buf_len = VmbUint32(0)
 
@@ -1120,9 +1120,9 @@ class StringFeature(_BaseFeature):
             val - The str value to set.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
-            VimbaFeatureError if val exceeds the maximum string length.
-            VimbaFeatureError if executed within a registered change_handler.
+            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError if val exceeds the maximum string length.
+            VmbFeatureError if executed within a registered change_handler.
         """
         as_str = str(val)
 
@@ -1160,7 +1160,7 @@ class StringFeature(_BaseFeature):
             The number of ASCII characters the Feature can store.
 
         Raises:
-            VimbaFeatureError if access rights are not sufficient.
+            VmbFeatureError if access rights are not sufficient.
         """
         c_max_len = VmbUint32(0)
 
@@ -1179,14 +1179,14 @@ class StringFeature(_BaseFeature):
 
         return c_max_len.value
 
-    def __build_value_error(self, val: str) -> VimbaFeatureError:
+    def __build_value_error(self, val: str) -> VmbFeatureError:
         caller_name = inspect.stack()[1][3]
         val_as_bytes = val.encode('utf8')
         max_len = self.get_max_length()
 
         msg = 'Called \'{}()\' of Feature \'{}\' with invalid value. \'{}\' > max length \'{}\'.'
 
-        return VimbaFeatureError(msg.format(caller_name, self.get_name(), val_as_bytes, max_len))
+        return VmbFeatureError(msg.format(caller_name, self.get_name(), val_as_bytes, max_len))
 
 
 FeatureTypes = Union[IntFeature, FloatFeature, StringFeature, BoolFeature, EnumFeature,

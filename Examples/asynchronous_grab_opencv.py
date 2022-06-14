@@ -28,7 +28,7 @@ import threading
 import sys
 import cv2
 from typing import Optional
-from vimba import *
+from vmbpy import *
 
 
 # All frames will either be recorded in this format, or transformed to it before being displayed
@@ -76,12 +76,12 @@ def parse_args() -> Optional[str]:
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
-    with Vimba.get_instance() as vimba:
+    with VmbSystem.get_instance() as vimba:
         if camera_id:
             try:
                 return vimba.get_camera_by_id(camera_id)
 
-            except VimbaCameraError:
+            except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
@@ -98,14 +98,14 @@ def setup_camera(cam: Camera):
         try:
             cam.ExposureAuto.set('Continuous')
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
         # Enable white balancing if camera supports it
         try:
             cam.BalanceWhiteAuto.set('Continuous')
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
         # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
@@ -115,7 +115,7 @@ def setup_camera(cam: Camera):
             while not cam.GVSPAdjustPacketSize.is_done():
                 pass
 
-        except (AttributeError, VimbaFeatureError):
+        except (AttributeError, VmbFeatureError):
             pass
 
 
@@ -178,7 +178,7 @@ def main():
     print_preamble()
     cam_id = parse_args()
 
-    with Vimba.get_instance():
+    with VmbSystem.get_instance():
         with get_camera(cam_id) as cam:
             # setup general camera settings and the pixel format in which frames are recorded
             setup_camera(cam)

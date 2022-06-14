@@ -27,25 +27,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import copy
 import ctypes
 
-from vimba import *
-from vimba.frame import *
+from vmbpy import *
+from vmbpy.frame import *
 
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VimbaTestCase
+from helpers import VmbPyTestCase
 
 
-class CamFrameTest(VimbaTestCase):
+class CamFrameTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = Vimba.get_instance()
+        self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
         try:
             self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VimbaCameraError as e:
+        except VmbCameraError as e:
             self.vimba._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
@@ -54,7 +54,7 @@ class CamFrameTest(VimbaTestCase):
 
     def test_verify_buffer(self):
         # Expectation: A Frame buffer shall have exactly the specified size on construction.
-        # Allocation is performed by VimbaPython
+        # Allocation is performed by vmbpy
         self.assertEqual(Frame(0, AllocationMode.AnnounceFrame).get_buffer_size(), 0)
         self.assertEqual(Frame(1024, AllocationMode.AnnounceFrame).get_buffer_size(), 1024)
         self.assertEqual(Frame(1024 * 1024, AllocationMode.AnnounceFrame).get_buffer_size(),
@@ -62,7 +62,7 @@ class CamFrameTest(VimbaTestCase):
 
     def test_verify_no_copy_empty_buffer_access(self):
         # Expectation: Accessing the internal buffer must not create a copy
-        # frame._buffer is only set on construction if buffer is allocated by VimbaPython
+        # frame._buffer is only set on construction if buffer is allocated by vmbpy
         frame = Frame(10, AllocationMode.AnnounceFrame)
         self.assertEqual(id(frame._buffer), id(frame.get_buffer()))
 
@@ -215,7 +215,7 @@ class CamFrameTest(VimbaTestCase):
                         original_shape = frame.as_numpy_ndarray().shape
                         transformed_shape = transformed_frame.as_numpy_ndarray().shape
                         self.assertTupleEqual(original_shape[0:2], transformed_shape[0:2])
-                    except VimbaFrameError:
+                    except VmbFrameError:
                         # one of the pixel formats does not support representation as numpy array
                         self.skipTest(f'{repr(original_fmt)} or {repr(expected_fmt)} is not '
                                       'representable as numpy array')

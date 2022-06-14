@@ -28,10 +28,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
 
-__version__ = '2.0.0'
+__version__ = '0.0.1'
 
 __all__ = [
-    'Vimba',
+    'VmbSystem',
     'Camera',
     'CameraChangeHandler',
     'CameraEvent',
@@ -60,12 +60,12 @@ __all__ = [
     'COLOR_PIXEL_FORMATS',
     'OPENCV_PIXEL_FORMATS',
 
-    'VimbaSystemError',
-    'VimbaCameraError',
-    'VimbaInterfaceError',
-    'VimbaFeatureError',
-    'VimbaFrameError',
-    'VimbaTimeout',
+    'VmbSystemError',
+    'VmbCameraError',
+    'VmbInterfaceError',
+    'VmbFeatureError',
+    'VmbFrameError',
+    'VmbTimeout',
 
     'IntFeature',
     'FloatFeature',
@@ -101,7 +101,7 @@ __all__ = [
 ]
 
 # Import everything exported from the top level module
-from .vimba import Vimba
+from .vmbsystem import VmbSystem
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
@@ -113,8 +113,8 @@ from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PI
                    COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, FeatureTypes, \
                    AllocationMode
 
-from .error import VimbaSystemError, VimbaCameraError, VimbaInterfaceError, VimbaFeatureError, \
-                   VimbaFrameError, VimbaTimeout
+from .error import VmbSystemError, VmbCameraError, VmbInterfaceError, VmbFeatureError, \
+                   VmbFrameError, VmbTimeout
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature

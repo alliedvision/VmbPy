@@ -26,17 +26,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 
-from vimba import *
+from vmbpy import *
 
 
 def main():
-    print('////////////////////////////////////////////')
-    print('/// VimbaPython Create Trace Log Example ///')
-    print('////////////////////////////////////////////\n')
+    print('//////////////////////////////////////')
+    print('/// vmbpy Create Trace Log Example ///')
+    print('//////////////////////////////////////\n')
 
     # Enable logging mechanism, creating a trace log. The log file is
     # stored at the location this script was executed from.
-    vimba = Vimba.get_instance()
+    vimba = VmbSystem.get_instance()
     vimba.enable_log(LOG_CONFIG_TRACE_FILE_ONLY)
 
     # While entering this scope, feature, camera and interface discovery occurs.
