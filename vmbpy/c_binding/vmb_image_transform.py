@@ -32,7 +32,7 @@ from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VmbSystemError
 from ..util import TraceEnable
-from .vimba_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VimbaCError, \
+from .vmb_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VimbaCError, \
     VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
 
 

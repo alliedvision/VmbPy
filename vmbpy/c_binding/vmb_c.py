@@ -31,7 +31,7 @@ from typing import Callable, Any, Tuple
 from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
 from ..util import TraceEnable
 from ..error import VmbSystemError
-from .vimba_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
+from .vmb_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
     VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
     fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
 
