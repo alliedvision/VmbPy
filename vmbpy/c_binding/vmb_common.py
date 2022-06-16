@@ -485,6 +485,8 @@ def load_vimba_lib(vimba_project: str):
 
 
 def _load_under_linux(vimba_project: str):
+    # TODO: Implement loading of libVmbC.so on linux!
+    raise NotImplementedError('Linux support is not yet implemented!')
     # Construct VimbaHome based on TL installation paths
     path_list: List[str] = []
     tl32_path = os.environ.get('GENICAM_GENTL32_PATH', "")
