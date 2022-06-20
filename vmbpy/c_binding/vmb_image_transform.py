@@ -352,7 +352,7 @@ def _check_version(lib_handle):
     global VIMBA_IMAGE_TRANSFORM_VERSION
 
     v = VmbUint32()
-    lib_handle.VmbGetVersion(byref(v))
+    lib_handle.VmbGetImageTransformVersion(byref(v))
 
     VIMBA_IMAGE_TRANSFORM_VERSION = '{}.{}'.format((v.value >> 24) & 0xff, (v.value >> 16) & 0xff)
 
@@ -373,7 +373,7 @@ def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any,
         raise VimbaCError(result)
 
 
-_lib_instance = _check_version(_attach_signatures(load_vimba_lib('VimbaImageTransform')))
+_lib_instance = _check_version(_attach_signatures(load_vimba_lib('VmbImageTransform')))
 
 
 @TraceEnable()
