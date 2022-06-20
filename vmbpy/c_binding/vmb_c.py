@@ -587,7 +587,6 @@ _SIGNATURES = {
     'VmbCameraClose': (VmbError, [VmbHandle]),
     'VmbFeaturesList': (VmbError, [VmbHandle, c_ptr(VmbFeatureInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                # noqa: E501
     'VmbFeatureInfoQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeatureInfo), VmbUint32]),
-    'VmbFeatureListAffected': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeatureInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),  # noqa: E501
     'VmbFeatureListSelected': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeatureInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),  # noqa: E501
     'VmbFeatureAccessQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool), c_ptr(VmbBool)]),
     'VmbFeatureIntGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
@@ -626,16 +625,11 @@ _SIGNATURES = {
     'VmbCaptureFrameWait': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbCaptureQueueFlush': (VmbError, [VmbHandle]),
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
-    'VmbInterfaceOpen': (VmbError, [c_str, c_ptr(VmbHandle)]),
-    'VmbInterfaceClose': (VmbError, [VmbHandle]),
-    'VmbAncillaryDataOpen': (VmbError, [c_ptr(VmbFrame), c_ptr(VmbHandle)]),
-    'VmbAncillaryDataClose': (VmbError, [VmbHandle]),
     'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
-    'VmbRegistersRead': (VmbError, [VmbHandle, VmbUint32, c_ptr(VmbUint64), c_ptr(VmbUint64), c_ptr(VmbUint32)]),             # noqa: E501
-    'VmbRegistersWrite': (VmbError, [VmbHandle, VmbUint32, c_ptr(VmbUint64), c_ptr(VmbUint64), c_ptr(VmbUint32)]),            # noqa: E501
-    'VmbCameraSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
-    'VmbCameraSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32])                      # noqa: E501
+    'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
+    'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
+    # TODO: add 'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), c_void_p <- This callback is not void. Returns VmbError_t, c_void_p])
 }
 
 
@@ -703,7 +697,6 @@ def call_vimba_c(func_name: str, *args):
         VmbCameraClose
         VmbFeaturesList
         VmbFeatureInfoQuery
-        VmbFeatureListAffected
         VmbFeatureListSelected
         VmbFeatureAccessQuery
         VmbFeatureIntGet
@@ -742,16 +735,12 @@ def call_vimba_c(func_name: str, *args):
         VmbCaptureFrameWait
         VmbCaptureQueueFlush
         VmbInterfacesList
-        VmbInterfaceOpen
-        VmbInterfaceClose
-        VmbAncillaryDataOpen
-        VmbAncillaryDataClose
         VmbMemoryRead
         VmbMemoryWrite
-        VmbRegistersRead
         VmbRegistersWrite
         VmbCameraSettingsSave
         VmbCameraSettingsLoad
+        VmbChunkDataAccess
     """
     global _lib_instance
     getattr(_lib_instance, func_name)(*args)

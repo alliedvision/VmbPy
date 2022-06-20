@@ -322,7 +322,7 @@ else:
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
 # check of flake8
 _SIGNATURES = {
-    'VmbGetVersion': (VmbError, [c_ptr(VmbUint32)]),
+    'VmbGetImageTransformVersion': (VmbError, [c_ptr(VmbUint32)]),
     'VmbGetErrorInfo': (VmbError, [VmbError, c_char_p, VmbUint32]),
     'VmbGetApiInfoString': (VmbError, [VmbAPIInfo, c_char_p, VmbUint32]),
     'VmbSetDebayerMode': (VmbError, [VmbDebayerMode, c_ptr(VmbTransformInfo)]),
@@ -392,7 +392,7 @@ def call_vimba_image_transform(func_name: str, *args):
         VimbaCError if the function call is valid but neither None or VmbError.Success was returned.
 
     The following functions of VimbaImageTransform can be executed:
-        VmbGetVersion
+        VmbGetImageTransformVersion
         VmbGetTechnoInfo
         VmbGetErrorInfo
         VmbGetApiInfoString
