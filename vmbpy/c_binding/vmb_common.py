@@ -569,16 +569,16 @@ def _load_under_linux(vimba_project: str):
     return lib
 
 
-def _load_under_windows(vimba_project: str):
-    vimba_home = os.environ.get('VIMBA_HOME')
+def _load_under_windows(vimbax_api: str):
+    vimbax_home = os.environ.get('VIMBAX_HOME')
 
-    if vimba_home is None:
-        raise VmbSystemError('Variable VIMBA_HOME not set. Please verify Vimba installation.')
+    if vimbax_home is None:
+        raise VmbSystemError('Variable VIMBAX_HOME not set. Please verify VimbaX installation.')
 
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
-    lib_name = '{}.dll'.format(vimba_project)
-    lib_path = os.path.join(vimba_home, vimba_project, 'Bin', 'Win64' if load_64bit else 'Win32',
-                            lib_name)
+    lib_name = '{}.dll'.format(vimbax_api)
+    lib_path = os.path.join(vimbax_home, 'Bin', lib_name)
+    os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
         # Load Library with 64 Bit and use cdecl call convention
