@@ -478,7 +478,8 @@ class VmbSystem:
         def _startup(self):
             Log.get_instance().info('Starting {}'.format(self.get_version()))
 
-            call_vimba_c('VmbStartup')
+            # TODO: Implement passing optional pathConfiguration to VmbStartup
+            call_vimba_c('VmbStartup', None)
 
             self.__inters = discover_interfaces()
             self.__cams = discover_cameras(self.__nw_discover)

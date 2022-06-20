@@ -579,7 +579,7 @@ EXPECTED_VIMBA_C_VERSION = '0.1.0'
 # check of flake8
 _SIGNATURES = {
     'VmbVersionQuery': (VmbError, [c_ptr(VmbVersionInfo), VmbUint32]),
-    'VmbStartup': (VmbError, None),
+    'VmbStartup': (VmbError, [c_str]),  # TODO: make sure c_str is correct (VmbFilePathChar_t in VmbC)
     'VmbShutdown': (None, None),
     'VmbCamerasList': (VmbError, [c_ptr(VmbCameraInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),
     'VmbCameraInfoQuery': (VmbError, [c_str, c_ptr(VmbCameraInfo), VmbUint32]),
