@@ -31,7 +31,7 @@ from typing import Callable, Any, Tuple
 from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
 from ..util import TraceEnable
 from ..error import VmbSystemError
-from .vmb_common import Uint32Enum, Int32Enum, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
+from .vmb_common import Uint32Enum, Int32Enum, VmbUint8, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
     VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
     fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
 
@@ -87,17 +87,17 @@ class VmbInterface(Uint32Enum):
 class VmbAccessMode(Uint32Enum):
     """
     Camera Access Mode:
-        None_  - No access
-        Full   - Read and write access
-        Read   - Read-only access
-        Config - Configuration access (GeV)
-        Lite   - Read and write access without feature access (only addresses)
+        None_     - No access
+        Full      - Read and write access
+        Read      - Read-only access
+        Config    - Configuration access (GeV)
+        Exclusive - Read and write access without permitting access for other consumers
     """
     None_ = 0
     Full = 1
     Read = 2
     Config = 4
-    Lite = 8
+    Exclusive = ~Config
 
     def __str__(self):
         return self._name_
@@ -147,6 +147,28 @@ class VmbFeaturePersist(Uint32Enum):
     def __str__(self):
         return self._name_
 
+class VmbModulePersistFlags(Uint32Enum):
+    """
+    Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad
+
+        None_          - Persist/Load features for no module
+        TransportLayer - Persist/Load the transport layer features
+        Interface      - Persist/Load the interface features
+        RemoteDevice   - Persist/Load the remote device features
+        LocalDevice    - Persist/Load the local device features
+        Streams        - Persist/Load the features of stream modules
+        All            - Persist/Load features for all modules
+    """
+    None_ = 0x00
+    TransportLayer = 0x01
+    Interface = 0x02
+    RemoteDevice = 0x04
+    LocalDevice = 0x08
+    Streams = 0x10
+    All = 0xff
+
+    def __str__(self):
+        return self._name_
 
 class VmbFeatureVisibility(Uint32Enum):
     """
@@ -211,17 +233,24 @@ class VmbFrameStatus(Int32Enum):
 class VmbFrameFlags(Uint32Enum):
     """
     Frame Flags
-        None_     - No additional information is provided
-        Dimension - Frame's dimension is provided
-        Offset    - Frame's offset is provided (ROI)
-        FrameID   - Frame's ID is provided
-        Timestamp - Frame's timestamp is provided
+        None_            - No additional information is provided
+        Dimension        - Frame's dimension is provided
+        Offset           - Frame's offset is provided (ROI)
+        FrameID          - Frame's ID is provided
+        Timestamp        - Frame's timestamp is provided
+        ImageData        - Frame's imageData is provided
+        PayloadType      - Frame's payloadType is provided
+        ChunkDataPresent - Frame's chunkDataPresent is set based on info provided by the transport layer
     """
     None_ = 0
     Dimension = 1
     Offset = 2
     FrameID = 4
     Timestamp = 8
+    ImageData = 16
+    PayloadType = 32
+    ChunkDataPresent = 64
+
 
     def __str__(self):
         return self._name_
@@ -257,32 +286,32 @@ class VmbInterfaceInfo(ctypes.Structure):
     """
     Interface information. Holds read-only information about an interface.
         Fields:
-            interfaceIdString - Type: c_char_p
-                                Info: Unique identifier for each interface
-            interfaceType     - Type: VmbInterface (VmbUint32)
-                                Info: Interface type, see VmbInterface
-            interfaceName     - Type: c_char_p
-                                Info: Interface name, given by transport layer
-            serialString      - Type: c_char_p
-                                Info: Serial number
-            permittedAccess   - Type: VmbAccessMode (VmbUint32)
-                                Info: Used access mode, see VmbAccessMode
+            interfaceIdString    - Type: c_char_p
+                                   Info: Unique identifier for each interface
+            interfaceName        - Type: c_char_p
+                                   Info: Interface name, given by transport layer
+            interfaceHandle      - Type: VmbHandle
+                                   Info: Handle of the interface for feature access
+            transportLayerHandle - Type: VmbHandle
+                                   Info: Handle of the related transport layer for feature access
+            interfaceType        - Type: VmbInterface (VmbUint32)
+                                   Info: Interface type, see VmbInterface
     """
     _fields_ = [
         ("interfaceIdString", c_char_p),
-        ("interfaceType", VmbUint32),
         ("interfaceName", c_char_p),
-        ("serialString", c_char_p),
-        ("permittedAccess", VmbUint32)
+        ("interfaceHandle", VmbHandle),
+        ("transportLayerHandle", VmbHandle),
+        ("interfaceType", VmbUint32)
     ]
 
     def __repr__(self):
         rep = 'VmbInterfaceInfo'
         rep += fmt_repr('(interfaceIdString={}', self.interfaceIdString)
-        rep += fmt_enum_repr(',interfaceType={}', VmbInterface, self.interfaceType)
         rep += fmt_repr(',interfaceName={}', self.interfaceName)
-        rep += fmt_repr(',serialString={}', self.serialString)
-        rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode, self.permittedAccess)
+        rep += fmt_repr(',interfaceHandle={}', self.interfaceHandle)
+        rep += fmt_repr(',transportLayerHandle={}', self.transportLayerHandle)
+        rep += fmt_enum_repr(',interfaceType={}', VmbInterface, self.interfaceType)
         rep += ')'
         return rep
 
@@ -291,26 +320,43 @@ class VmbCameraInfo(ctypes.Structure):
     """
     Camera information. Holds read-only information about a camera.
         Fields:
-            cameraIdString    - Type: c_char_p
-                                Info: Unique identifier for each camera
-            cameraName        - Type: c_char_p
-                                Info: Name of the camera
-            modelName         - Type: c_char_p
-                                Info: Model name
-            serialString      - Type: c_char_p
-                                Info: Serial number
-            permittedAccess   - Type: VmbAccessMode (VmbUint32)
-                                Info: Used access mode, see VmbAccessMode
-            interfaceIdString - Type: c_char_p
-                                Info: Unique value for each interface or bus
+            cameraIdString       - Type: c_char_p
+                                   Info: Unique identifier for each camera
+            cameraIdExtended     - Type: c_char_p
+                                   Info: globally unique identifier for the camera
+            cameraName           - Type: c_char_p
+                                   Info: Name of the camera
+            modelName            - Type: c_char_p
+                                   Info: Model name
+            serialString         - Type: c_char_p
+                                   Info: Serial number
+            transportLayerHandle - Type: VmbHandle
+                                   Info: Handle of the related transport layer for feature access
+            interfaceHandle      - Type: VmbHandle
+                                   Info: Handle of the related interface for feature access
+            localDeviceHandle    - Type: VmbHandle
+                                   Info: Handle of the related GenTL local device. NULL if the
+                                   camera is not opened
+            streamHandles        - Type: c_ptr(VmbHandle)
+                                   Info: Handles of the streams provided by the camera.  NULL if the
+                                   camera is not opened
+            streamCount          - Type: VmbUint32
+                                   Info: Number of stream handles in the streamHandles array
+            permittedAccess      - Type: VmbAccessMode (VmbUint32)
+                                   Info: Used access mode, see VmbAccessMode
     """
     _fields_ = [
         ("cameraIdString", c_char_p),
+        ("cameraIdExtended", c_char_p),
         ("cameraName", c_char_p),
         ("modelName", c_char_p),
         ("serialString", c_char_p),
-        ("permittedAccess", VmbUint32),
-        ("interfaceIdString", c_char_p)
+        ("transportLayerHandle", VmbHandle),
+        ("interfaceHandle", VmbHandle),
+        ("localDeviceHandle", VmbHandle),
+        ("streamHandles", c_ptr(VmbHandle)),
+        ("streamCount", VmbUint32),
+        ("permittedAccess", VmbUint32)
     ]
 
     def __repr__(self):
@@ -319,8 +365,12 @@ class VmbCameraInfo(ctypes.Structure):
         rep += fmt_repr(',cameraName={}', self.cameraName)
         rep += fmt_repr(',modelName={}', self.modelName)
         rep += fmt_repr(',serialString={}', self.serialString)
+        rep += fmt_repr(',transportLayerHandle={}', VmbHandle),
+        rep += fmt_repr(',interfaceHandle={}', VmbHandle),
+        rep += fmt_repr(',localDeviceHandle={}', VmbHandle),
+        rep += fmt_repr(',streamHandles={}', c_ptr(VmbHandle)),
+        rep += fmt_repr(',streamCount={}', VmbUint32),
         rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode, self.permittedAccess)
-        rep += fmt_repr(',interfaceIdString={}', self.interfaceIdString)
         rep += ')'
         return rep
 
@@ -331,73 +381,66 @@ class VmbFeatureInfo(ctypes.Structure):
         Fields:
             name                - Type: c_char_p
                                   Info: Name used in the API
-            featureDataType     - Type: VmbFeatureData (VmbUint32)
-                                  Info: Data type of this feature
-            featureFlags        - Type: VmbFeatureFlags (VmbUint32)
-                                  Info: Access flags for this feature
             category            - Type: c_char_p
                                   Info: Category this feature can be found in
             displayName         - Type: c_char_p
                                   Info: Feature name to be used in GUIs
-            pollingTime         - Type: VmbUint32
-                                  Info: Predefined polling time for volatile
-                                        features
-            unit                - Type: c_char_p
-                                  Info: Measuring unit as given in the XML file
-            representation      - Type: c_char_p
-                                  Info: Representation of a numeric feature
-            visibility          - Type: VmbFeatureVisibility (VmbUint32)
-                                  Info: GUI visibility
             tooltip             - Type: c_char_p
                                   Info: Short description, e.g. for a tooltip
             description         - Type: c_char_p
                                   Info: Longer description
             sfncNamespace       - Type: c_char_p
                                   Info: Namespace this feature resides in
+            unit                - Type: c_char_p
+                                  Info: Measuring unit as given in the XML file
+            representation      - Type: c_char_p
+                                  Info: Representation of a numeric feature
+            featureDataType     - Type: VmbFeatureData (VmbUint32)
+                                  Info: Data type of this feature
+            featureFlags        - Type: VmbFeatureFlags (VmbUint32)
+                                  Info: Access flags for this feature
+            pollingTime         - Type: VmbUint32
+                                  Info: Predefined polling time for volatile features
+            visibility          - Type: VmbFeatureVisibility (VmbUint32)
+                                  Info: GUI visibility
             isStreamable        - Type: VmbBool
-                                  Info: Indicates if a feature can be stored
-                                        to / loaded from a file
-            hasAffectedFeatures - Type: VmbBool
-                                  Info: Indicates if the feature potentially
-                                        affects other features
+                                  Info: Indicates if a feature can be stored to / loaded from a file
             hasSelectedFeatures - Type: VmbBool
                                   Info: Indicates if the feature selects other
                                         features
     """
     _fields_ = [
         ("name", c_char_p),
-        ("featureDataType", VmbUint32),
-        ("featureFlags", VmbUint32),
         ("category", c_char_p),
         ("displayName", c_char_p),
-        ("pollingTime", VmbUint32),
-        ("unit", c_char_p),
-        ("representation", c_char_p),
-        ("visibility", VmbUint32),
         ("tooltip", c_char_p),
         ("description", c_char_p),
         ("sfncNamespace", c_char_p),
+        ("unit", c_char_p),
+        ("representation", c_char_p),
+        ("featureDataType", VmbUint32),
+        ("featureFlags", VmbUint32),
+        ("pollingTime", VmbUint32),
+        ("visibility", VmbUint32),
         ("isStreamable", VmbBool),
-        ("hasAffectedFeatures", VmbBool),
         ("hasSelectedFeatures", VmbBool)
     ]
 
     def __repr__(self):
         rep = 'VmbFeatureInfo'
         rep += fmt_repr('(name={}', self.name)
-        rep += fmt_enum_repr(',featureDataType={}', VmbFeatureData, self.featureDataType)
-        rep += fmt_flags_repr(',featureFlags={}', VmbFeatureFlags, self.featureFlags)
         rep += fmt_repr(',category={}', self.category)
         rep += fmt_repr(',displayName={}', self.displayName)
-        rep += fmt_repr(',pollingTime={}', self.pollingTime)
-        rep += fmt_repr(',unit={}', self.unit)
-        rep += fmt_repr(',representation={}', self.representation)
-        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility, self.visibility)
         rep += fmt_repr(',tooltip={}', self.tooltip)
         rep += fmt_repr(',description={}', self.description)
         rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
+        rep += fmt_repr(',unit={}', self.unit)
+        rep += fmt_repr(',representation={}', self.representation)
+        rep += fmt_enum_repr(',featureDataType={}', VmbFeatureData, self.featureDataType)
+        rep += fmt_flags_repr(',featureFlags={}', VmbFeatureFlags, self.featureFlags)
+        rep += fmt_repr(',pollingTime={}', self.pollingTime)
+        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility, self.visibility)
         rep += fmt_repr(',isStreamable={}', self.isStreamable)
-        rep += fmt_repr(',hasAffectedFeatures={}', self.hasAffectedFeatures)
         rep += fmt_repr(',hasSelectedFeatures={}', self.hasSelectedFeatures)
         rep += ')'
         return rep
@@ -411,36 +454,36 @@ class VmbFeatureEnumEntry(ctypes.Structure):
                             Info: Name used in the API
             displayName   - Type: c_char_p
                             Info: Enumeration entry name to be used in GUIs
-            visibility    - Type: VmbFeatureVisibility (VmbUint32)
-                            Info: GUI visibility
             tooltip       - Type: c_char_p
                             Info: Short description, e.g. for a tooltip
             description   - Type: c_char_p
                             Info: Longer description
-            sfncNamespace - Type: c_char_p
-                            Info: Namespace this feature resides in
             intValue      - Type: VmbInt64
                             Info: Integer value of this enumeration entry
+            sfncNamespace - Type: c_char_p
+                            Info: Namespace this feature resides in
+            visibility    - Type: VmbFeatureVisibility (VmbUint32)
+                            Info: GUI visibility
     """
     _fields_ = [
         ("name", c_char_p),
         ("displayName", c_char_p),
-        ("visibility", VmbUint32),
         ("tooltip", c_char_p),
         ("description", c_char_p),
+        ("intValue", VmbInt64),
         ("sfncNamespace", c_char_p),
-        ("intValue", VmbInt64)
+        ("visibility", VmbUint32)
     ]
 
     def __repr__(self):
         rep = 'VmbFeatureEnumEntry'
         rep += fmt_repr('(name={}', self.name)
         rep += fmt_repr(',displayName={}', self.displayName)
-        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility, self.visibility)
         rep += fmt_repr(',tooltip={}', self.tooltip)
         rep += fmt_repr(',description={}', self.description)
-        rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
         rep += fmt_repr(',intValue={},', self.intValue)
+        rep += fmt_repr(',sfncNamespace={}', self.sfncNamespace)
+        rep += fmt_enum_repr(',visibility={}', VmbFeatureVisibility, self.visibility)
         rep += ')'
         return rep
 
@@ -458,46 +501,48 @@ class VmbFrame(ctypes.Structure):
                                (e.g. for storing handles)
 
         Fields (out):
-            receiveStatus - Type: VmbFrameStatus (VmbInt32)
-                            Info: Resulting status of the receive operation
-            receiveFlags  - Type: VmbFrameFlags (VmbUint32)
-                            Info: Flags indicating which additional frame
-                                  information is available
-            imageSize     - Type: VmbUint32
-                            Info: Size of the image data inside the data buffer
-            ancillarySize - Type: VmbUint32
-                            Info: Size of the ancillary data inside the
-                                  data buffer
-            pixelFormat   - Type: VmbPixelFormat (VmbUint32)
-                            Info: Pixel format of the image
-            width         - Type: VmbUint32
-                            Info: Width of an image
-            height        - Type: VmbUint32
-                            Info: Height of an image
-            offsetX       - Type: VmbUint32
-                            Info: Horizontal offset of an image
-            offsetY       - Type: VmbUint32
-                            Info: Vertical offset of an image
-            frameID       - Type: VmbUint64
-                            Info: Unique ID of this frame in this stream
-            timestamp     - Type: VmbUint64
-                            Info: Timestamp set by the camera
+            receiveStatus    - Type: VmbFrameStatus (VmbInt32)
+                               Info: Resulting status of the receive operation
+            frameID          - Type: VmbUint64
+                               Info: Unique ID of this frame in this stream
+            timestamp        - Type: VmbUint64
+                               Info: Timestamp set by the camera
+            imageData        - Type: VmbUint8
+                               Info: The start of the image data, if present, or null
+            receiveFlags     - Type: VmbFrameFlags (VmbUint32)
+                               Info: Flags indicating which additional frame information is
+                                     available
+            pixelFormat      - Type: VmbPixelFormat (VmbUint32)
+                               Info: Pixel format of the image
+            width            - Type: VmbImageDimension_t (VmbUint32)
+                               Info: Width of an image
+            height           - Type: VmbImageDimension_t (VmbUint32)
+                               Info: Height of an image
+            offsetX          - Type: VmbImageDimension_t (VmbUint32)
+                               Info: Horizontal offset of an image
+            offsetY          - Type: VmbImageDimension_t (VmbUint32)
+                               Info: Vertical offset of an image
+            payloadType      - Type: VmbPayloadType (VmbUint32)
+                               Info: The type of payload
+            chunkDataPresent - Type: VmbBool
+                               Info: True if the transport layer reported chunk data to be present in the buffer
     """
     _fields_ = [
         ("buffer", c_void_p),
         ("bufferSize", VmbUint32),
         ("context", c_void_p * 4),
         ("receiveStatus", VmbInt32),
+        ("frameID", VmbUint64),
+        ("timestamp", VmbUint64),
+        ("imageData", VmbUint8),
         ("receiveFlags", VmbUint32),
-        ("imageSize", VmbUint32),
-        ("ancillarySize", VmbUint32),
         ("pixelFormat", VmbUint32),
         ("width", VmbUint32),
         ("height", VmbUint32),
         ("offsetX", VmbUint32),
         ("offsetY", VmbUint32),
-        ("frameID", VmbUint64),
-        ("timestamp", VmbUint64)
+        ("payloadType", VmbUint32),
+        ("chunkDataPresent", VmbBool)
     ]
 
     def __repr__(self):
@@ -506,16 +551,17 @@ class VmbFrame(ctypes.Structure):
         rep += fmt_repr(',bufferSize={}', self.bufferSize)
         rep += fmt_repr(',context={}', self.context)
         rep += fmt_enum_repr('receiveStatus: {}', VmbFrameStatus, self.receiveStatus)
+        rep += fmt_repr(',frameID={}', self.frameID)
+        rep += fmt_repr(',timestamp={}', self.timestamp)
+        rep += fmt_repr(',imageData={}', self.imageData)
         rep += fmt_flags_repr(',receiveFlags={}', VmbFrameFlags, self.receiveFlags)
-        rep += fmt_repr(',imageSize={}', self.imageSize)
-        rep += fmt_repr(',ancillarySize={}', self.ancillarySize)
         rep += fmt_enum_repr(',pixelFormat={}', VmbPixelFormat, self.pixelFormat)
         rep += fmt_repr(',width={}', self.width)
         rep += fmt_repr(',height={}', self.height)
         rep += fmt_repr(',offsetX={}', self.offsetX)
         rep += fmt_repr(',offsetY={}', self.offsetY)
-        rep += fmt_repr(',frameID={}', self.frameID)
-        rep += fmt_repr(',timestamp={}', self.timestamp)
+        rep += fmt_repr('payloadType={}', self.payloadType)
+        rep += fmt_repr('chunkDataPresent={}', self.chunkDataPresent)
         rep += ')'
         return rep
 
@@ -528,16 +574,17 @@ class VmbFrame(ctypes.Structure):
         result.context = (None, None, None, None)
 
         setattr(result, 'receiveStatus', copy.deepcopy(self.receiveStatus, memo))
+        setattr(result, 'frameID', copy.deepcopy(self.frameID, memo))
+        setattr(result, 'timestamp', copy.deepcopy(self.timestamp, memo))
+        setattr(result, 'imageData', copy.deepcopy(self.imageData, memo))
         setattr(result, 'receiveFlags', copy.deepcopy(self.receiveFlags, memo))
-        setattr(result, 'imageSize', copy.deepcopy(self.imageSize, memo))
-        setattr(result, 'ancillarySize', copy.deepcopy(self.ancillarySize, memo))
         setattr(result, 'pixelFormat', copy.deepcopy(self.pixelFormat, memo))
         setattr(result, 'width', copy.deepcopy(self.width, memo))
         setattr(result, 'height', copy.deepcopy(self.height, memo))
         setattr(result, 'offsetX', copy.deepcopy(self.offsetX, memo))
         setattr(result, 'offsetY', copy.deepcopy(self.offsetY, memo))
-        setattr(result, 'frameID', copy.deepcopy(self.frameID, memo))
-        setattr(result, 'timestamp', copy.deepcopy(self.timestamp, memo))
+        setattr(result, 'payloadType', copy.deepcopy(self.payloadType, memo))
+        setattr(result, 'chunkDataPresent', copy.deepcopy(self.chunkDataPresent, memo))
         return result
 
 
@@ -546,16 +593,19 @@ class VmbFeaturePersistSettings(ctypes.Structure):
     Parameters determining the operation mode of VmbCameraSettingsSave
     and VmbCameraSettingsLoad
         Fields:
-            persistType   - Type: VmbFeaturePersist (VmbUint32)
-                            Info: Type of features that are to be saved
-            maxIterations - Type: VmbUint32
-                            Info: Number of iterations when loading settings
-            loggingLevel  - Type: VmbUint32
-                            Info: Determines level of detail for load/save
-                                  settings logging
+            persistType        - Type: VmbFeaturePersist (VmbUint32)
+                                 Info: Type of features that are to be saved
+            modulePersistFlags - Type: VmbModulePersistFlags (VmbUint32)
+                                 Info: Flags specifying the modules to persist/load
+            maxIterations      - Type: VmbUint32
+                                 Info: Number of iterations when loading settings
+            loggingLevel       - Type: VmbUint32
+                                 Info: Determines level of detail for load/save
+                                       settings logging
     """
     _fields_ = [
         ("persistType", VmbUint32),
+        ("modulePersistFlags", VmbUint32),
         ("maxIterations", VmbUint32),
         ("loggingLevel", VmbUint32)
     ]
@@ -563,6 +613,7 @@ class VmbFeaturePersistSettings(ctypes.Structure):
     def __repr__(self):
         rep = 'VmbFrame'
         rep += fmt_enum_repr('(persistType={}', VmbFeaturePersist, self.persistType)
+        rep += fmt_enum_repr('(modulePersistFlags={}', VmbModulePersistFlags, self.persistmodulePersistFlagsType)
         rep += fmt_repr(',maxIterations={}', self.maxIterations)
         rep += fmt_repr(',loggingLevel={}', self.loggingLevel)
         rep += ')'
