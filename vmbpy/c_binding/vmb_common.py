@@ -145,6 +145,27 @@ class VmbError(Int32Enum):
     NotSupported = -18
     Incomplete = -19
     IO = -20
+    ValidValueSetNotPresent = -21
+    GenTLUnspecified = -22
+    Unspecified = -23
+    Busy = -24
+    NoData = -25
+    ParsingChunkData = -26
+    InUse = -27
+    Unknown = -28
+    Xml = -29
+    NotAvailable = -30
+    NotInitialized = -31
+    InvalidAddress = -32
+    Already = -33
+    NoChunkData = -34
+    UserCallbackException = -35
+    FeaturesUnavailable = -36
+    TLNotFound = -37
+    Ambiguous = -39
+    RetriesExceeded = -40
+    InsufficientBufferCount = -41
+    Custom = 1
 
     def __str__(self):
         return self._name_
