@@ -572,7 +572,7 @@ class VmbFeaturePersistSettings(ctypes.Structure):
 G_VIMBA_C_HANDLE = VmbHandle(1)
 
 VIMBA_C_VERSION = None
-EXPECTED_VIMBA_C_VERSION = '1.9.0'
+EXPECTED_VIMBA_C_VERSION = '0.1.0'
 
 # For detailed information on the signatures see "VimbaC.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
@@ -669,7 +669,7 @@ def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any,
         raise VimbaCError(result)
 
 
-_lib_instance = _check_version(_attach_signatures(load_vimba_lib('VimbaC')))
+_lib_instance = _check_version(_attach_signatures(load_vimba_lib('VmbC')))
 
 
 @TraceEnable()
