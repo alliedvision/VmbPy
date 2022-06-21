@@ -316,7 +316,7 @@ if sys.platform == 'linux':
     EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.0'
 
 else:
-    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.6'
+    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.7'
 
 # For detailed information on the signatures see "VimbaImageTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'

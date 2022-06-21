@@ -249,7 +249,7 @@ class VimbaCTest(VmbPyTestCase):
 
     def test_call_vimba_c_valid(self):
         # Expectation for valid call: No exceptions, no errors
-        expected_ver_info = (1, 9, 0)
+        expected_ver_info = (0, 1, 0)
         ver_info = VmbVersionInfo()
 
         call_vimba_c('VmbVersionQuery', byref(ver_info), sizeof(ver_info))
