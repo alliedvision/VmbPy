@@ -33,7 +33,7 @@ import threading
 from ctypes import POINTER
 from typing import Tuple, List, Callable, cast, Optional, Union, Dict
 from .c_binding import call_vimba_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, VmbAccessMode, \
+from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VMB_C_HANDLE, VmbAccessMode, \
                        VimbaCError, VmbError, VmbFrame, VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple, \
                      FeatureTypeTypes
@@ -1021,9 +1021,9 @@ class Camera:
 
 
 def _setup_network_discovery():
-    if discover_feature(G_VIMBA_C_HANDLE, 'GeVTLIsPresent').get():
-        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
-        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllAuto').run()
+    if discover_feature(G_VMB_C_HANDLE, 'GeVTLIsPresent').get():
+        discover_feature(G_VMB_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
+        discover_feature(G_VMB_C_HANDLE, 'GeVDiscoveryAllAuto').run()
 
 
 @TraceEnable()

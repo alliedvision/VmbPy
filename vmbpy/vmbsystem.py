@@ -28,7 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import threading
 from typing import List, Dict, Tuple
 from .c_binding import call_vimba_c, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION, \
-                       G_VIMBA_C_HANDLE
+                       G_VMB_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
@@ -148,7 +148,7 @@ class VmbSystem:
                 ValueError if the memory access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return read_memory(G_VIMBA_C_HANDLE, addr, max_bytes)
+            return read_memory(G_VMB_C_HANDLE, addr, max_bytes)
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -166,7 +166,7 @@ class VmbSystem:
                 ValueError if addr is negative.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return write_memory(G_VIMBA_C_HANDLE, addr, data)
+            return write_memory(G_VMB_C_HANDLE, addr, data)
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -187,7 +187,7 @@ class VmbSystem:
                 ValueError if the register access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return read_registers(G_VIMBA_C_HANDLE, addrs)
+            return read_registers(G_VMB_C_HANDLE, addrs)
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -205,7 +205,7 @@ class VmbSystem:
                 ValueError if the register access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return write_registers(G_VIMBA_C_HANDLE, addrs_values)
+            return write_registers(G_VMB_C_HANDLE, addrs_values)
 
         @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
@@ -483,7 +483,7 @@ class VmbSystem:
 
             self.__inters = discover_interfaces()
             self.__cams = discover_cameras(self.__nw_discover)
-            self.__feats = discover_features(G_VIMBA_C_HANDLE)
+            self.__feats = discover_features(G_VMB_C_HANDLE)
             attach_feature_accessors(self, self.__feats)
 
             feat = self.get_feature_by_name('DiscoveryInterfaceEvent')

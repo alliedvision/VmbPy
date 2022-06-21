@@ -76,7 +76,7 @@ __all__ = [
     'VmbFeatureEnumEntry',
     'VmbFrame',
     'VmbFeaturePersistSettings',
-    'G_VIMBA_C_HANDLE',
+    'G_VMB_C_HANDLE',
     'VIMBA_C_VERSION',
     'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c',
@@ -108,7 +108,7 @@ from .vmb_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
                    VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
-                   G_VIMBA_C_HANDLE, EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION, call_vimba_c, \
+                   G_VMB_C_HANDLE, EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION, call_vimba_c, \
                    build_callback_type
 
 from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \

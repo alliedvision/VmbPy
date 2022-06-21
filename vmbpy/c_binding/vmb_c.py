@@ -54,7 +54,7 @@ __all__ = [
     'VmbFeatureEnumEntry',
     'VmbFrame',
     'VmbFeaturePersistSettings',
-    'G_VIMBA_C_HANDLE',
+    'G_VMB_C_HANDLE',
     'VIMBA_C_VERSION',
     'EXPECTED_VIMBA_C_VERSION',
     'call_vimba_c',
@@ -620,7 +620,8 @@ class VmbFeaturePersistSettings(ctypes.Structure):
         return rep
 
 
-G_VIMBA_C_HANDLE = VmbHandle(1)
+# TODO: Test that this also works on a 32bit Python version/System
+G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
 
 VIMBA_C_VERSION = None
 EXPECTED_VIMBA_C_VERSION = '0.1.0'
