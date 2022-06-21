@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import threading
 from typing import List, Dict, Tuple
-from .c_binding import call_vimba_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
+from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
@@ -462,7 +462,7 @@ class VmbSystem:
             Log.get_instance().info('Starting {}'.format(self.get_version()))
 
             # TODO: Implement passing optional pathConfiguration to VmbStartup
-            call_vimba_c('VmbStartup', None)
+            call_vmb_c('VmbStartup', None)
 
             self.__inters = discover_interfaces()
             self.__cams = discover_cameras()
@@ -491,7 +491,7 @@ class VmbSystem:
             self.__inters_handlers = []
             self.__inters = ()
 
-            call_vimba_c('VmbShutdown')
+            call_vmb_c('VmbShutdown')
 
         def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context

@@ -79,7 +79,7 @@ __all__ = [
     'G_VMB_C_HANDLE',
     'VMB_C_VERSION',
     'EXPECTED_VMB_C_VERSION',
-    'call_vimba_c',
+    'call_vmb_c',
     'build_callback_type',
 
     # Exports from vimba_image_transform
@@ -89,7 +89,7 @@ __all__ = [
     'VmbTransformInfo',
     'VMB_IMAGE_TRANSFORM_VERSION',
     'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
-    'call_vimba_image_transform',
+    'call_vmb_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
     'LAYOUT_TO_PIXEL_FORMAT',
     'PIXEL_FORMAT_CONVERTIBILITY_MAP',
@@ -108,13 +108,13 @@ from .vmb_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
                    VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
-                   G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vimba_c, \
+                   G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vmb_c, \
                    build_callback_type
 
 from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
                                  VMB_IMAGE_TRANSFORM_VERSION, \
                                  EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, VmbTransformInfo, \
-                                 call_vimba_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
+                                 call_vmb_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
                                  LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILITY_MAP
 
 from ctypes import byref, sizeof, create_string_buffer

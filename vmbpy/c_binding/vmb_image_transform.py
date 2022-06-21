@@ -48,7 +48,7 @@ __all__ = [
     'VmbTransformInfo',
     'VMB_IMAGE_TRANSFORM_VERSION',
     'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
-    'call_vimba_image_transform',
+    'call_vmb_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
     'LAYOUT_TO_PIXEL_FORMAT',
     'PIXEL_FORMAT_CONVERTIBILITY_MAP'
@@ -318,7 +318,7 @@ if sys.platform == 'linux':
 else:
     EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.7'
 
-# For detailed information on the signatures see "VimbaImageTransform.h"
+# For detailed information on the signatures see "VmbTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
 # check of flake8
 _SIGNATURES = {
@@ -361,7 +361,7 @@ def _check_version(lib_handle):
     # Major version must match. minor version may be equal or greater
     if not(loaded_version[0] == expected_version[0] and
            loaded_version[1] >= expected_version[1]):
-        msg = 'Invalid VimbaImageTransform Version: Expected: {}, Found:{}'
+        msg = 'Invalid VmbImageTransform Version: Expected: {}, Found:{}'
         raise VmbSystemError(msg.format(EXPECTED_VMB_IMAGE_TRANSFORM_VERSION,
                                           VMB_IMAGE_TRANSFORM_VERSION))
 
@@ -377,21 +377,21 @@ _lib_instance = _check_version(_attach_signatures(load_vimba_lib('VmbImageTransf
 
 
 @TraceEnable()
-def call_vimba_image_transform(func_name: str, *args):
-    """This function encapsulates the entire VimbaImageTransform access.
+def call_vmb_image_transform(func_name: str, *args):
+    """This function encapsulates the entire VmbImageTransform access.
 
-    For Details on valid function signatures see the 'VimbaImageTransform.h'.
+    For Details on valid function signatures see the 'VmbTransform.h'.
 
     Arguments:
-        func_name: The function name from VimbaImageTransform to be called.
-        args: Varargs passed directly to the underlaying C-Function.
+        func_name: The function name from VmbImageTransform to be called.
+        args: Varargs passed directly to the underlying C-Function.
 
     Raises:
         TypeError if given are do not match the signature of the function.
         AttributeError if func with name 'func_name' does not exist.
-        VimbaCError if the function call is valid but neither None or VmbError.Success was returned.
+        VmbCError if the function call is valid but neither None or VmbError.Success was returned.
 
-    The following functions of VimbaImageTransform can be executed:
+    The following functions of VmbImageTransform can be executed:
         VmbGetImageTransformVersion
         VmbGetTechnoInfo
         VmbGetErrorInfo
@@ -475,7 +475,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
     src_image = VmbImage()
     src_image.Size = sizeof(src_image)
 
-    call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', pixel_format, 0, 0,
+    call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', pixel_format, 0, 0,
                                byref(src_image))
 
     dst_image = VmbImage()
@@ -484,7 +484,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
     for layout, bits in output_layouts:
 
         try:
-            call_vimba_image_transform('VmbSetImageInfoFromInputImage', byref(src_image), layout,
+            call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(src_image), layout,
                                        bits, byref(dst_image))
 
             fmt = LAYOUT_TO_PIXEL_FORMAT[(layout, bits)]

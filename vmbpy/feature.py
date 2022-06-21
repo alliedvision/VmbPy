@@ -31,7 +31,7 @@ import ctypes
 import threading
 
 from typing import Tuple, Union, List, Callable, Optional, cast, Type
-from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, decode_cstr, \
+from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, decode_cstr, \
                        decode_flags, build_callback_type
 from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
                        VmbFeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
@@ -201,7 +201,7 @@ class _BaseFeature:
         c_read = VmbBool(False)
         c_write = VmbBool(False)
 
-        call_vimba_c('VmbFeatureAccessQuery', self._handle, self._info.name, byref(c_read),
+        call_vmb_c('VmbFeatureAccessQuery', self._handle, self._info.name, byref(c_read),
                      byref(c_write))
 
         return (c_read.value, c_write.value)
@@ -285,12 +285,12 @@ class _BaseFeature:
 
     @TraceEnable()
     def __register_callback(self):
-        call_vimba_c('VmbFeatureInvalidationRegister', self._handle, self._info.name,
+        call_vmb_c('VmbFeatureInvalidationRegister', self._handle, self._info.name,
                      self.__feature_callback, None)
 
     @TraceEnable()
     def __unregister_callback(self):
-        call_vimba_c('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
+        call_vmb_c('VmbFeatureInvalidationUnregister', self._handle, self._info.name,
                      self.__feature_callback)
 
     def __feature_cb_wrapper(self, *_):   # coverage: skip
@@ -358,7 +358,7 @@ class BoolFeature(_BaseFeature):
         c_val = VmbBool(False)
 
         try:
-            call_vimba_c('VmbFeatureBoolGet', self._handle, self._info.name, byref(c_val))
+            call_vmb_c('VmbFeatureBoolGet', self._handle, self._info.name, byref(c_val))
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -387,7 +387,7 @@ class BoolFeature(_BaseFeature):
         as_bool = bool(val)
 
         try:
-            call_vimba_c('VmbFeatureBoolSet', self._handle, self._info.name, as_bool)
+            call_vmb_c('VmbFeatureBoolSet', self._handle, self._info.name, as_bool)
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -434,7 +434,7 @@ class CommandFeature(_BaseFeature):
             VmbFeatureError if access rights are not sufficient.
         """
         try:
-            call_vimba_c('VmbFeatureCommandRun', self._handle, self._info.name)
+            call_vmb_c('VmbFeatureCommandRun', self._handle, self._info.name)
 
         except VmbCError as e:
             exc = cast(VmbFeatureError, e)
@@ -460,7 +460,7 @@ class CommandFeature(_BaseFeature):
         c_val = VmbBool(False)
 
         try:
-            call_vimba_c('VmbFeatureCommandIsDone', self._handle, self._info.name, byref(c_val))
+            call_vmb_c('VmbFeatureCommandIsDone', self._handle, self._info.name, byref(c_val))
 
         except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
@@ -511,7 +511,7 @@ class EnumEntry:
 
         c_val = VmbBool(False)
 
-        call_vimba_c('VmbFeatureEnumIsAvailable', self.__handle, self.__feat_name, self.__info.name,
+        call_vmb_c('VmbFeatureEnumIsAvailable', self.__handle, self.__feat_name, self.__info.name,
                      byref(c_val))
 
         return c_val.value
@@ -581,7 +581,7 @@ class EnumFeature(_BaseFeature):
         c_val = ctypes.c_char_p(None)
 
         try:
-            call_vimba_c('VmbFeatureEnumGet', self._handle, self._info.name, byref(c_val))
+            call_vmb_c('VmbFeatureEnumGet', self._handle, self._info.name, byref(c_val))
 
         except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
@@ -613,7 +613,7 @@ class EnumFeature(_BaseFeature):
             as_entry = self.get_entry(int(val))
 
         try:
-            call_vimba_c('VmbFeatureEnumSet', self._handle, self._info.name, bytes(as_entry))
+            call_vmb_c('VmbFeatureEnumSet', self._handle, self._info.name, bytes(as_entry))
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -635,19 +635,19 @@ def _discover_enum_entries(handle: VmbHandle, feat_name: str) -> EnumEntryTuple:
     result = []
     enums_count = VmbUint32(0)
 
-    call_vimba_c('VmbFeatureEnumRangeQuery', handle, feat_name, None, 0, byref(enums_count))
+    call_vmb_c('VmbFeatureEnumRangeQuery', handle, feat_name, None, 0, byref(enums_count))
 
     if enums_count.value:
         enums_found = VmbUint32(0)
         enums_names = (ctypes.c_char_p * enums_count.value)()
 
-        call_vimba_c('VmbFeatureEnumRangeQuery', handle, feat_name, enums_names, enums_count,
+        call_vmb_c('VmbFeatureEnumRangeQuery', handle, feat_name, enums_names, enums_count,
                      byref(enums_found))
 
         for enum_name in enums_names[:enums_found.value]:
             enum_info = VmbFeatureEnumEntry()
 
-            call_vimba_c('VmbFeatureEnumEntryGet', handle, feat_name, enum_name, byref(enum_info),
+            call_vmb_c('VmbFeatureEnumEntryGet', handle, feat_name, enum_name, byref(enum_info),
                          sizeof(VmbFeatureEnumEntry))
 
             result.append(EnumEntry(handle, feat_name, enum_info))
@@ -684,7 +684,7 @@ class FloatFeature(_BaseFeature):
         c_val = VmbDouble(0.0)
 
         try:
-            call_vimba_c('VmbFeatureFloatGet', self._handle, self._info.name, byref(c_val))
+            call_vmb_c('VmbFeatureFloatGet', self._handle, self._info.name, byref(c_val))
 
         except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
@@ -711,7 +711,7 @@ class FloatFeature(_BaseFeature):
         c_max = VmbDouble(0.0)
 
         try:
-            call_vimba_c('VmbFeatureFloatRangeQuery', self._handle, self._info.name, byref(c_min),
+            call_vmb_c('VmbFeatureFloatRangeQuery', self._handle, self._info.name, byref(c_min),
                          byref(c_max))
 
         except VmbCError as e:
@@ -739,7 +739,7 @@ class FloatFeature(_BaseFeature):
         c_val = VmbDouble(False)
 
         try:
-            call_vimba_c('VmbFeatureFloatIncrementQuery', self._handle, self._info.name,
+            call_vmb_c('VmbFeatureFloatIncrementQuery', self._handle, self._info.name,
                          byref(c_has_val), byref(c_val))
 
         except VmbCError as e:
@@ -768,7 +768,7 @@ class FloatFeature(_BaseFeature):
         as_float = float(val)
 
         try:
-            call_vimba_c('VmbFeatureFloatSet', self._handle, self._info.name, as_float)
+            call_vmb_c('VmbFeatureFloatSet', self._handle, self._info.name, as_float)
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -827,7 +827,7 @@ class IntFeature(_BaseFeature):
         c_val = VmbInt64()
 
         try:
-            call_vimba_c('VmbFeatureIntGet', self._handle, self._info.name, byref(c_val))
+            call_vmb_c('VmbFeatureIntGet', self._handle, self._info.name, byref(c_val))
 
         except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
@@ -854,7 +854,7 @@ class IntFeature(_BaseFeature):
         c_max = VmbInt64()
 
         try:
-            call_vimba_c('VmbFeatureIntRangeQuery', self._handle, self._info.name, byref(c_min),
+            call_vmb_c('VmbFeatureIntRangeQuery', self._handle, self._info.name, byref(c_min),
                          byref(c_max))
 
         except VmbCError as e:
@@ -881,7 +881,7 @@ class IntFeature(_BaseFeature):
         c_val = VmbInt64()
 
         try:
-            call_vimba_c('VmbFeatureIntIncrementQuery', self._handle, self._info.name, byref(c_val))
+            call_vmb_c('VmbFeatureIntIncrementQuery', self._handle, self._info.name, byref(c_val))
 
         except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
@@ -909,7 +909,7 @@ class IntFeature(_BaseFeature):
         as_int = int(val)
 
         try:
-            call_vimba_c('VmbFeatureIntSet', self._handle, self._info.name, as_int)
+            call_vmb_c('VmbFeatureIntSet', self._handle, self._info.name, as_int)
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -978,7 +978,7 @@ class RawFeature(_BaseFeature):
         c_buf = create_string_buffer(c_buf_len)
 
         try:
-            call_vimba_c('VmbFeatureRawGet', self._handle, self._info.name, c_buf, c_buf_len,
+            call_vmb_c('VmbFeatureRawGet', self._handle, self._info.name, c_buf, c_buf_len,
                          byref(c_buf_avail))
 
         except VmbCError as e:
@@ -1007,7 +1007,7 @@ class RawFeature(_BaseFeature):
         as_bytes = bytes(buf)
 
         try:
-            call_vimba_c('VmbFeatureRawSet', self._handle, self._info.name, as_bytes, len(as_bytes))
+            call_vmb_c('VmbFeatureRawSet', self._handle, self._info.name, as_bytes, len(as_bytes))
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -1037,7 +1037,7 @@ class RawFeature(_BaseFeature):
         c_val = VmbUint32()
 
         try:
-            call_vimba_c('VmbFeatureRawLengthQuery', self._handle, self._info.name,
+            call_vmb_c('VmbFeatureRawLengthQuery', self._handle, self._info.name,
                          byref(c_val))
 
         except VmbCError as e:
@@ -1082,7 +1082,7 @@ class StringFeature(_BaseFeature):
 
         # Query buffer length
         try:
-            call_vimba_c('VmbFeatureStringGet', self._handle, self._info.name, None, 0,
+            call_vmb_c('VmbFeatureStringGet', self._handle, self._info.name, None, 0,
                          byref(c_buf_len))
 
         except VmbCError as e:
@@ -1098,7 +1098,7 @@ class StringFeature(_BaseFeature):
 
         # Copy string from C-Layer
         try:
-            call_vimba_c('VmbFeatureStringGet', self._handle, self._info.name, c_buf, c_buf_len,
+            call_vmb_c('VmbFeatureStringGet', self._handle, self._info.name, c_buf, c_buf_len,
                          None)
 
         except VmbCError as e:
@@ -1127,7 +1127,7 @@ class StringFeature(_BaseFeature):
         as_str = str(val)
 
         try:
-            call_vimba_c('VmbFeatureStringSet', self._handle, self._info.name,
+            call_vmb_c('VmbFeatureStringSet', self._handle, self._info.name,
                          as_str.encode('utf8'))
 
         except VmbCError as e:
@@ -1165,7 +1165,7 @@ class StringFeature(_BaseFeature):
         c_max_len = VmbUint32(0)
 
         try:
-            call_vimba_c('VmbFeatureStringMaxlengthQuery', self._handle, self._info.name,
+            call_vmb_c('VmbFeatureStringMaxlengthQuery', self._handle, self._info.name,
                          byref(c_max_len))
 
         except VmbCError as e:
@@ -1240,13 +1240,13 @@ def discover_features(handle: VmbHandle) -> FeaturesTuple:
 
     feats_count = VmbUint32(0)
 
-    call_vimba_c('VmbFeaturesList', handle, None, 0, byref(feats_count), sizeof(VmbFeatureInfo))
+    call_vmb_c('VmbFeaturesList', handle, None, 0, byref(feats_count), sizeof(VmbFeatureInfo))
 
     if feats_count:
         feats_found = VmbUint32(0)
         feats_infos = (VmbFeatureInfo * feats_count.value)()
 
-        call_vimba_c('VmbFeaturesList', handle, feats_infos, feats_count, byref(feats_found),
+        call_vmb_c('VmbFeaturesList', handle, feats_infos, feats_count, byref(feats_found),
                      sizeof(VmbFeatureInfo))
 
         for info in feats_infos[:feats_found.value]:
@@ -1268,7 +1268,7 @@ def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
     """
     info = VmbFeatureInfo()
 
-    call_vimba_c('VmbFeatureInfoQuery', handle, feat_name.encode('utf-8'), byref(info),
+    call_vmb_c('VmbFeatureInfoQuery', handle, feat_name.encode('utf-8'), byref(info),
                  sizeof(VmbFeatureInfo))
 
     return _build_feature(handle, info)

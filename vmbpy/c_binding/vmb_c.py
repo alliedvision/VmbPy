@@ -57,7 +57,7 @@ __all__ = [
     'G_VMB_C_HANDLE',
     'VMB_C_VERSION',
     'EXPECTED_VMB_C_VERSION',
-    'call_vimba_c',
+    'call_vmb_c',
     'build_callback_type'
 ]
 
@@ -626,7 +626,7 @@ G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
 VMB_C_VERSION = None
 EXPECTED_VMB_C_VERSION = '0.1.0'
 
-# For detailed information on the signatures see "VimbaC.h"
+# For detailed information on the signatures see "VmbC.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
 # check of flake8
 _SIGNATURES = {
@@ -710,7 +710,7 @@ def _check_version(lib_handle):
     # major and minor version must be equal, patch version may be equal or greater
     if not(loaded_version[0:2] == expected_version[0:2] and
            loaded_version[2] >= expected_version[2]):
-        msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
+        msg = 'Invalid VmbC Version: Expected: {}, Found:{}'
         raise VmbSystemError(msg.format(EXPECTED_VMB_C_VERSION, VMB_C_VERSION))
 
     return lib_handle
@@ -725,21 +725,21 @@ _lib_instance = _check_version(_attach_signatures(load_vimba_lib('VmbC')))
 
 
 @TraceEnable()
-def call_vimba_c(func_name: str, *args):
-    """This function encapsulates the entire VimbaC access.
+def call_vmb_c(func_name: str, *args):
+    """This function encapsulates the entire VmbC access.
 
-    For Details on valid function signatures see the 'VimbaC.h'.
+    For Details on valid function signatures see the 'VmbC.h'.
 
     Arguments:
-        func_name: The function name from VimbaC to be called.
-        args: Varargs passed directly to the underlaying C-Function.
+        func_name: The function name from VmbC to be called.
+        args: Varargs passed directly to the underlying C-Function.
 
     Raises:
         TypeError if given are do not match the signature of the function.
         AttributeError if func with name 'func_name' does not exist.
-        VimbaCError if the function call is valid but neither None or VmbError.Success was returned.
+        VmbCError if the function call is valid but neither None or VmbError.Success was returned.
 
-    The following functions of VimbaC can be executed:
+    The following functions of VmbC can be executed:
         VmbVersionQuery
         VmbStartup
         VmbShutdown
@@ -789,9 +789,8 @@ def call_vimba_c(func_name: str, *args):
         VmbInterfacesList
         VmbMemoryRead
         VmbMemoryWrite
-        VmbRegistersWrite
-        VmbCameraSettingsSave
-        VmbCameraSettingsLoad
+        VmbSettingsSave
+        VmbSettingsLoad
         VmbChunkDataAccess
     """
     global _lib_instance
