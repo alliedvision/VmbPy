@@ -486,10 +486,10 @@ class VmbSystem:
             self.__feats = discover_features(G_VMB_C_HANDLE)
             attach_feature_accessors(self, self.__feats)
 
-            feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
+            feat = self.get_feature_by_name('EventInterfaceDiscovery')
             feat.register_change_handler(self.__inter_cb_wrapper)
 
-            feat = self.get_feature_by_name('DiscoveryCameraEvent')
+            feat = self.get_feature_by_name('EventCameraDiscovery')
             feat.register_change_handler(self.__cam_cb_wrapper)
 
         @TraceEnable()
