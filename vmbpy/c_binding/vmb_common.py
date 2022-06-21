@@ -59,7 +59,7 @@ __all__ = [
     'fmt_repr',
     'fmt_enum_repr',
     'fmt_flags_repr',
-    'load_vimba_lib'
+    'load_vimbax_lib'
 ]
 
 
@@ -480,11 +480,11 @@ def fmt_flags_repr(fmt: str, enum_type, enum_val):
     return fmt.format(_repr_flags_list(enum_type, enum_val))
 
 
-def load_vimba_lib(vimba_project: str):
-    """ Load shared library shipped with the Vimba installation
+def load_vimbax_lib(vimbax_project: str):
+    """ Load shared library shipped with the VimbaX installation
 
     Arguments:
-        vimba_project - Library name without prefix or extension
+        vimbax_project - Library name without prefix or extension
 
     Return:
         CDLL or WinDLL Handle on loaded library
@@ -502,13 +502,13 @@ def load_vimba_lib(vimba_project: str):
         msg = 'Abort. Unsupported Platform ({}) detected.'
         raise VmbSystemError(msg.format(sys.platform))
 
-    return platform_handlers[sys.platform](vimba_project)
+    return platform_handlers[sys.platform](vimbax_project)
 
 
-def _load_under_linux(vimba_project: str):
+def _load_under_linux(vimbax_project: str):
     # TODO: Implement loading of libVmbC.so on linux!
     raise NotImplementedError('Linux support is not yet implemented!')
-    # Construct VimbaHome based on TL installation paths
+    # Construct VimbaX_Home based on TL installation paths
     path_list: List[str] = []
     tl32_path = os.environ.get('GENICAM_GENTL32_PATH', "")
     if tl32_path:
@@ -523,17 +523,17 @@ def _load_under_linux(vimba_project: str):
 
     # Early return if required variables are not set.
     if not path_list:
-        raise VmbSystemError('No TL detected. Please verify Vimba installation.')
+        raise VmbSystemError('No TL detected. Please verify VimbaX installation.')
 
-    vimba_home_candidates: List[str] = []
+    vimbax_home_candidates: List[str] = []
     for path in path_list:
-        vimba_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
+        vimbax_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
 
-        if vimba_home not in vimba_home_candidates:
-            vimba_home_candidates.append(vimba_home)
+        if vimbax_home not in vimbax_home_candidates:
+            vimbax_home_candidates.append(vimbax_home)
 
     # Select the most likely directory from the candidates
-    vimba_home = _select_vimba_home(vimba_home_candidates)
+    vimbax_home = _select_vimbax_home(vimbax_home_candidates)
 
     arch = platform.machine()
 
@@ -556,27 +556,27 @@ def _load_under_linux(vimba_project: str):
     else:
         raise VmbSystemError('Unknown Architecture \'{}\'. Abort'.format(arch))
 
-    lib_name = 'lib{}.so'.format(vimba_project)
-    lib_path = os.path.join(vimba_home, vimba_project, 'DynamicLib', dir_, lib_name)
+    lib_name = 'lib{}.so'.format(vimbax_project)
+    lib_path = os.path.join(vimbax_home, vimbax_project, 'DynamicLib', dir_, lib_name)
 
     try:
         lib = ctypes.cdll.LoadLibrary(lib_path)
 
     except OSError as e:
-        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        msg = 'Failed to load library \'{}\'. Please verify VimbaX installation.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
 
-def _load_under_windows(vimbax_api: str):
+def _load_under_windows(vimbax_project: str):
     vimbax_home = os.environ.get('VIMBAX_HOME')
 
     if vimbax_home is None:
         raise VmbSystemError('Variable VIMBAX_HOME not set. Please verify VimbaX installation.')
 
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
-    lib_name = '{}.dll'.format(vimbax_api)
+    lib_name = '{}.dll'.format(vimbax_project)
     lib_path = os.path.join(vimbax_home, 'Bin', lib_name)
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
@@ -592,26 +592,27 @@ def _load_under_windows(vimbax_api: str):
             lib = ctypes.windll.LoadLibrary(lib_path)  # type: ignore
 
     except OSError as e:
-        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        msg = 'Failed to load library \'{}\'. Please verify VimbaX installation.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
 
-def _select_vimba_home(candidates: List[str]) -> str:
+def _select_vimbax_home(candidates: List[str]) -> str:
     """
-    Select the most likely candidate for VIMBA_HOME from the given list of
+    Select the most likely candidate for VIMBAX_HOME from the given list of
     candidates
 
     Arguments:
-        candidates - List of strings pointing to possible vimba home directories
+        candidates - List of strings pointing to possible VimbaX home directories
 
     Return:
-        Path that represents the most likely VIMBA_HOME directory
+        Path that represents the most likely VIMBAX_HOME directory
 
     Raises:
-        VmbSystemError if multiple VIMBA_HOME directories were found in candidates
+        VmbSystemError if multiple VIMBAX_HOME directories were found in candidates
     """
+    raise NotImplemented('This still needs to be adjusted for VimbaX (currently only relevant for Linux)')
     most_likely_candidates = []
     for candidate in candidates:
         if 'vimba' in candidate.lower():

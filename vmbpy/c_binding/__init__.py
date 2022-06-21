@@ -102,7 +102,7 @@ __all__ = [
 
 from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUint32, \
                         VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
-                        VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimba_home
+                        VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home
 
 from .vmb_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \

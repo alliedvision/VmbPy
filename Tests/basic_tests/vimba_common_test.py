@@ -24,7 +24,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from vmbpy.c_binding import _select_vimba_home
+from vmbpy.c_binding import _select_vimbax_home
 from vmbpy.error import VmbSystemError
 
 import sys
@@ -44,32 +44,32 @@ class RankVimbaHomeCandidatesTest(VmbPyTestCase):
     def test_empty_gentl_path(self):
         candidates = []
         with self.assertRaises(VmbSystemError):
-            _select_vimba_home(candidates)
+            _select_vimbax_home(candidates)
 
     def test_empty_string(self):
         candidates = ['']
         with self.assertRaises(VmbSystemError):
-            _select_vimba_home(candidates)
+            _select_vimbax_home(candidates)
 
     def test_single_bad_vimba_home_candidate(self):
         candidates = ['/some/path']
         with self.assertRaises(VmbSystemError):
-            _select_vimba_home(candidates)
+            _select_vimbax_home(candidates)
 
     def test_single_good_vimba_home_candidate(self):
         candidates = ['/opt/Vimba_3_1']
         expected = '/opt/Vimba_3_1'
-        self.assertEquals(expected, _select_vimba_home(candidates))
+        self.assertEquals(expected, _select_vimbax_home(candidates))
 
     def test_presorted_vimba_home_candidates(self):
         candidates = ['/home/username/Vimba_4_0', '/opt/some/other/gentl/provider']
         expected = '/home/username/Vimba_4_0'
-        self.assertEqual(expected, _select_vimba_home(candidates))
+        self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_unsorted_vimba_home_candidates(self):
         candidates = ['/opt/some/other/gentl/provider', '/home/username/Vimba_4_0']
         expected = '/home/username/Vimba_4_0'
-        self.assertEqual(expected, _select_vimba_home(candidates))
+        self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_many_vimba_home_candidates(self):
         candidates = ['/some/random/path',
@@ -78,7 +78,7 @@ class RankVimbaHomeCandidatesTest(VmbPyTestCase):
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
         expected = '/opt/Vimba_4_0'
-        self.assertEqual(expected, _select_vimba_home(candidates))
+        self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_multiple_vimba_home_directories(self):
         # If multiple VIMBA_HOME directories are found an error should be raised
@@ -89,4 +89,4 @@ class RankVimbaHomeCandidatesTest(VmbPyTestCase):
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
         with self.assertRaises(VmbSystemError):
-            _select_vimba_home(candidates)
+            _select_vimbax_home(candidates)
