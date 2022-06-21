@@ -322,7 +322,7 @@ class ImageTransformTest(VmbPyTestCase):
         expected_ver_info = EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION
         v = VmbUint32()
 
-        call_vimba_image_transform('VmbGetVersion', byref(v))
+        call_vimba_image_transform('VmbGetImageTransformVersion', byref(v))
 
         ver_info = str(v.value >> 24 & 0xff) + '.' + str(v.value >> 16 & 0xff)
 
@@ -331,20 +331,30 @@ class ImageTransformTest(VmbPyTestCase):
     def test_call_vimba_c_invalid_func_name(self):
         # Expectation: An invalid function name must throw an AttributeError
         v = VmbUint32()
-        self.assertRaises(AttributeError, call_vimba_image_transform, 'VmbGetVersio', byref(v))
+        self.assertRaises(AttributeError, call_vimba_image_transform, 'DoesNotExist', byref(v))
 
     def test_call_vimba_c_invalid_arg_number(self):
         # Expectation: Invalid number of arguments with sane types must lead to TypeErrors
-        self.assertRaises(TypeError, call_vimba_image_transform, 'VmbGetVersion')
+        self.assertRaises(TypeError, call_vimba_image_transform, 'VmbGetImageTransformVersion')
 
     def test_call_vimba_c_invalid_arg_type(self):
         # Expectation: Arguments with invalid types must lead to TypeErrors
-        self.assertRaises(ctypes.ArgumentError, call_vimba_image_transform, 'VmbGetVersion',
+        self.assertRaises(ctypes.ArgumentError,
+                          call_vimba_image_transform,
+                          'VmbGetImageTransformVersion',
                           VmbDouble())
-        self.assertRaises(ctypes.ArgumentError, call_vimba_image_transform, 'VmbGetVersion', 0)
-        self.assertRaises(ctypes.ArgumentError, call_vimba_image_transform, 'VmbGetVersion',
+        self.assertRaises(ctypes.ArgumentError,
+                          call_vimba_image_transform,
+                          'VmbGetImageTransformVersion',
+                          0)
+        self.assertRaises(ctypes.ArgumentError,
+                          call_vimba_image_transform,
+                          'VmbGetImageTransformVersion',
                           'invalid')
 
     def test_call_vimba_c_exception(self):
         # Expectation: Failed operations must raise a VimbaCError
-        self.assertRaises(VimbaCError, call_vimba_image_transform, 'VmbGetVersion', None)
+        self.assertRaises(VimbaCError,
+                          call_vimba_image_transform,
+                          'VmbGetImageTransformVersion',
+                          None)
