@@ -67,8 +67,6 @@ class VimbaTest(VmbPyTestCase):
             self.assertRaises(VmbFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
 
     def test_runtime_check_failure(self):
-        self.assertRaises(TypeError, self.vimba.set_network_discovery, 0.0)
-
         with self.vimba:
             # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
             self.assertRaises(TypeError, self.vimba.get_camera_by_id, 0)
@@ -92,17 +90,6 @@ class VimbaTest(VmbPyTestCase):
             with self.vimba:
                 with self.vimba:
                     pass
-
-    def test_vimba_api_context_sensitity_outside_context(self):
-        # Expectation: Vimba has functions that shall only be callable outside the Context and
-        # calling within the context must cause a runtime error.
-
-        self.assertNoRaise(self.vimba.set_network_discovery, True)
-
-        with self.vimba:
-            self.assertRaises(RuntimeError, self.vimba.set_network_discovery, True)
-
-        self.assertNoRaise(self.vimba.set_network_discovery, True)
 
     def test_vimba_api_context_sensitity_inside_context(self):
         # Expectation: Vimba has functions that shall only be callable inside the Context and

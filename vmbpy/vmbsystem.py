@@ -39,7 +39,7 @@ from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, Interf
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
                     discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
+                  LeaveContextOnCall, RaiseIfOutsideContext
 from .error import VmbCameraError, VmbInterfaceError, VmbFeatureError
 from . import __version__ as VMBPY_VERSION
 
@@ -72,7 +72,6 @@ class VmbSystem:
             self.__cams_handlers: List[CameraChangeHandler] = []
             self.__cams_handlers_lock: threading.Lock = threading.Lock()
 
-            self.__nw_discover: bool = True
             self.__context_cnt: int = 0
 
         @TraceEnable()
@@ -94,22 +93,6 @@ class VmbSystem:
             """ Returns version string of vmbpy and underlaying dependencies."""
             msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
             return msg.format(VMBPY_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
-
-        @RaiseIfInsideContext()
-        @RuntimeTypeCheckEnable()
-        def set_network_discovery(self, enable: bool):
-            """Enable/Disable network camera discovery.
-
-            Arguments:
-                enable - If 'True' vmbpy tries to detect cameras connected via Ethernet
-                         on entering the 'with' statement. If set to 'False', no network
-                         discover occurs.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError if called inside with-statement.
-            """
-            self.__nw_discover = enable
 
         @RuntimeTypeCheckEnable()
         def enable_log(self, config: LogConfig):
@@ -482,7 +465,7 @@ class VmbSystem:
             call_vimba_c('VmbStartup', None)
 
             self.__inters = discover_interfaces()
-            self.__cams = discover_cameras(self.__nw_discover)
+            self.__cams = discover_cameras()
             self.__feats = discover_features(G_VMB_C_HANDLE)
             attach_feature_accessors(self, self.__feats)
 

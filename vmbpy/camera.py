@@ -1020,18 +1020,9 @@ class Camera:
                 raise e
 
 
-def _setup_network_discovery():
-    if discover_feature(G_VMB_C_HANDLE, 'GeVTLIsPresent').get():
-        discover_feature(G_VMB_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
-        discover_feature(G_VMB_C_HANDLE, 'GeVDiscoveryAllAuto').run()
-
-
 @TraceEnable()
-def discover_cameras(network_discovery: bool) -> CamerasList:
+def discover_cameras() -> CamerasList:
     """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
-
-    if network_discovery:
-        _setup_network_discovery()
 
     result = []
     cams_count = VmbUint32(0)
