@@ -299,14 +299,14 @@ class VimbaCTest(VmbPyTestCase):
             call_vimba_c('VmbVersionQuery', byref(ver_info), sizeof(ver_info) - 1)
             self.fail("Previous call must raise Exception.")
 
-        except VimbaCError as e:
+        except VmbCError as e:
             self.assertEqual(e.get_error_code(), VmbError.StructSize)
 
         try:
             call_vimba_c('VmbVersionQuery', None, sizeof(ver_info))
             self.fail("Previous call must raise Exception.")
 
-        except VimbaCError as e:
+        except VmbCError as e:
             self.assertEqual(e.get_error_code(), VmbError.BadParameter)
 
 
@@ -354,7 +354,7 @@ class ImageTransformTest(VmbPyTestCase):
 
     def test_call_vimba_c_exception(self):
         # Expectation: Failed operations must raise a VimbaCError
-        self.assertRaises(VimbaCError,
+        self.assertRaises(VmbCError,
                           call_vimba_image_transform,
                           'VmbGetImageTransformVersion',
                           None)

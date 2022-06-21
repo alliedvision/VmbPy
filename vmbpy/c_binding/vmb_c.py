@@ -32,7 +32,7 @@ from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p
 from ..util import TraceEnable
 from ..error import VmbSystemError
 from .vmb_common import Uint32Enum, Int32Enum, VmbUint8, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
-    VmbHandle, VmbBool, VmbDouble, VmbError, VimbaCError, VmbPixelFormat, \
+    VmbHandle, VmbBool, VmbDouble, VmbError, VmbCError, VmbPixelFormat, \
     fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimba_lib
 
 __version__ = None
@@ -718,7 +718,7 @@ def _check_version(lib_handle):
 
 def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any, ...]):
     if result not in (VmbError.Success, None):
-        raise VimbaCError(result)
+        raise VmbCError(result)
 
 
 _lib_instance = _check_version(_attach_signatures(load_vimba_lib('VmbC')))

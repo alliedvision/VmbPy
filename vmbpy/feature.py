@@ -35,7 +35,7 @@ from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, decode
                        decode_flags, build_callback_type
 from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
                        VmbFeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
-                       VmbError, VimbaCError, VmbDouble
+                       VmbError, VmbCError, VmbDouble
 
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
@@ -326,7 +326,7 @@ class _BaseFeature:
 
         return VmbFeatureError(msg.format(caller_name, self.get_name()))
 
-    def _build_unhandled_error(self, c_exc: VimbaCError) -> VmbFeatureError:
+    def _build_unhandled_error(self, c_exc: VmbCError) -> VmbFeatureError:
         return VmbFeatureError(repr(c_exc.get_error_code()))
 
 
@@ -360,7 +360,7 @@ class BoolFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureBoolGet', self._handle, self._info.name, byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
             if err == VmbError.InvalidAccess:
                 exc = self._build_access_error()
@@ -389,7 +389,7 @@ class BoolFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureBoolSet', self._handle, self._info.name, as_bool)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -436,7 +436,7 @@ class CommandFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureCommandRun', self._handle, self._info.name)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             exc = cast(VmbFeatureError, e)
 
             if e.get_error_code() == VmbError.InvalidAccess:
@@ -462,7 +462,7 @@ class CommandFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureCommandIsDone', self._handle, self._info.name, byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -583,7 +583,7 @@ class EnumFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureEnumGet', self._handle, self._info.name, byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -615,7 +615,7 @@ class EnumFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureEnumSet', self._handle, self._info.name, bytes(as_entry))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -686,7 +686,7 @@ class FloatFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureFloatGet', self._handle, self._info.name, byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -714,7 +714,7 @@ class FloatFeature(_BaseFeature):
             call_vimba_c('VmbFeatureFloatRangeQuery', self._handle, self._info.name, byref(c_min),
                          byref(c_max))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -742,7 +742,7 @@ class FloatFeature(_BaseFeature):
             call_vimba_c('VmbFeatureFloatIncrementQuery', self._handle, self._info.name,
                          byref(c_has_val), byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -770,7 +770,7 @@ class FloatFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureFloatSet', self._handle, self._info.name, as_float)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -829,7 +829,7 @@ class IntFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureIntGet', self._handle, self._info.name, byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -857,7 +857,7 @@ class IntFeature(_BaseFeature):
             call_vimba_c('VmbFeatureIntRangeQuery', self._handle, self._info.name, byref(c_min),
                          byref(c_max))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -883,7 +883,7 @@ class IntFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureIntIncrementQuery', self._handle, self._info.name, byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -911,7 +911,7 @@ class IntFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureIntSet', self._handle, self._info.name, as_int)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -981,7 +981,7 @@ class RawFeature(_BaseFeature):
             call_vimba_c('VmbFeatureRawGet', self._handle, self._info.name, c_buf, c_buf_len,
                          byref(c_buf_avail))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -1009,7 +1009,7 @@ class RawFeature(_BaseFeature):
         try:
             call_vimba_c('VmbFeatureRawSet', self._handle, self._info.name, as_bytes, len(as_bytes))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -1040,7 +1040,7 @@ class RawFeature(_BaseFeature):
             call_vimba_c('VmbFeatureRawLengthQuery', self._handle, self._info.name,
                          byref(c_val))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -1085,7 +1085,7 @@ class StringFeature(_BaseFeature):
             call_vimba_c('VmbFeatureStringGet', self._handle, self._info.name, None, 0,
                          byref(c_buf_len))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -1101,7 +1101,7 @@ class StringFeature(_BaseFeature):
             call_vimba_c('VmbFeatureStringGet', self._handle, self._info.name, c_buf, c_buf_len,
                          None)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 
@@ -1130,7 +1130,7 @@ class StringFeature(_BaseFeature):
             call_vimba_c('VmbFeatureStringSet', self._handle, self._info.name,
                          as_str.encode('utf8'))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             if err == VmbError.InvalidAccess:
@@ -1168,7 +1168,7 @@ class StringFeature(_BaseFeature):
             call_vimba_c('VmbFeatureStringMaxlengthQuery', self._handle, self._info.name,
                          byref(c_max_len))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() == VmbError.InvalidAccess:
                 exc = self._build_access_error()
 

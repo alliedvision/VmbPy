@@ -29,7 +29,7 @@ import itertools
 
 from typing import Dict, Tuple
 from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
-from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
+from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VmbCError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
 from .error import VmbFeatureError
 from .util import TraceEnable
@@ -240,7 +240,7 @@ def read_memory(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:  # cover
     try:
         call_vimba_c('VmbMemoryRead', handle, addr, max_bytes, buf, byref(bytesRead))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Memory read access at {} failed with C-Error: {}.'
         raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
 
@@ -268,7 +268,7 @@ def write_memory(handle: VmbHandle, addr: int, data: bytes):  # coverage: skip
     try:
         call_vimba_c('VmbMemoryWrite', handle, addr, len(data), data, byref(bytesWrite))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Memory write access at {} failed with C-Error: {}.'
         raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
 
@@ -304,7 +304,7 @@ def read_registers(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, int]:
     try:
         call_vimba_c('VmbRegistersRead', handle, size, c_addrs, c_values, byref(valid_reads))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Register read access failed with C-Error: {}.'
         raise ValueError(msg.format(repr(e.get_error_code()))) from e
 
@@ -340,7 +340,7 @@ def write_registers(handle: VmbHandle, addrs_values: Dict[int, int]):  # coverag
     try:
         call_vimba_c('VmbRegistersWrite', handle, size, addrs, values, byref(valid_writes))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Register write access failed with C-Error: {}.'
         raise ValueError(msg.format(repr(e.get_error_code()))) from e
 

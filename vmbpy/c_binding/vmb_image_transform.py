@@ -32,7 +32,7 @@ from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VmbSystemError
 from ..util import TraceEnable
-from .vmb_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VimbaCError, \
+from .vmb_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VmbCError, \
     VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
 
 
@@ -370,7 +370,7 @@ def _check_version(lib_handle):
 
 def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any, ...]):
     if result not in (VmbError.Success, None):
-        raise VimbaCError(result)
+        raise VmbCError(result)
 
 
 _lib_instance = _check_version(_attach_signatures(load_vimba_lib('VmbImageTransform')))
@@ -492,7 +492,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
             if fmt not in result:
                 result.append(fmt)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() not in (VmbError.NotImplemented_, VmbError.BadParameter):
                 raise e
 

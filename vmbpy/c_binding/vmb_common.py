@@ -52,7 +52,7 @@ __all__ = [
     'VmbFloat',
     'VmbDouble',
     'VmbError',
-    'VimbaCError',
+    'VmbCError',
     'VmbPixelFormat',
     'decode_cstr',
     'decode_flags',
@@ -96,7 +96,7 @@ class VmbError(Int32Enum):
     """
     Enum containing error types returned
         Success         - No error
-        InternalFault   - Unexpected fault in VimbaC or driver
+        InternalFault   - Unexpected fault in VmbC or driver
         ApiNotStarted   - VmbStartup() was not called before the current
                           command
         NotFound        - The designated instance (camera, feature etc.)
@@ -366,10 +366,10 @@ class VmbPixelFormat(Uint32Enum):
         return self._name_
 
 
-class VimbaCError(Exception):
+class VmbCError(Exception):
     """Error Type containing an error code from the C-Layer. This error code is highly context
        sensitive. All wrapped C-Functions that do not return VmbError.Success or None must
-       raise a VimbaCError and the surrounding code must deal if the Error is possible.
+       raise a VmbCError and the surrounding code must deal if the Error is possible.
     """
 
     def __init__(self, c_error: VmbError):
@@ -380,7 +380,7 @@ class VimbaCError(Exception):
         return repr(self)
 
     def __repr__(self):
-        return 'VimbaCError({})'.format(repr(self.__c_error))
+        return 'VmbCError({})'.format(repr(self.__c_error))
 
     def get_error_code(self) -> VmbError:
         """ Get contained Error Code """
