@@ -41,7 +41,7 @@ of the public API have no prefix.
 # flake8: noqa: F401
 
 __all__ = [
-    # Exports from vimba_common
+    # Exports from vmb_common
     'VmbInt8',
     'VmbUint8',
     'VmbInt16',
@@ -60,7 +60,7 @@ __all__ = [
     'decode_cstr',
     'decode_flags',
 
-    # Exports from vimba_c
+    # Exports from vmb_c
     'VmbInterface',
     'VmbAccessMode',
     'VmbFeatureData',
@@ -82,7 +82,7 @@ __all__ = [
     'call_vmb_c',
     'build_callback_type',
 
-    # Exports from vimba_image_transform
+    # Exports from vmb_image_transform
     'VmbImage',
     'VmbImageInfo',
     'VmbDebayerMode',
