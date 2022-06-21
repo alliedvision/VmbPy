@@ -86,8 +86,8 @@ class VmbEndianness(Uint32Enum):
     """Enum defining Endian Formats
     Values:
         LITTLE - Little Endian
-        BIG - Big Endian
-        LAST - Indicator for end of defined range
+        BIG    - Big Endian
+        LAST   - Indicator for end of defined range
     """
     LITTLE = 0
     BIG = 1
@@ -100,8 +100,8 @@ class VmbEndianness(Uint32Enum):
 class VmbAligment(Uint32Enum):
     """Enum defining image alignment
     Values:
-        MSB - Alignment (pppp pppp pppp ....)
-        LSB - Alignment (.... pppp pppp pppp)
+        MSB  - Alignment (pppp pppp pppp ....)
+        LSB  - Alignment (.... pppp pppp pppp)
         LAST - Indicator for end of defined range
     """
     MSB = 0
