@@ -26,15 +26,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -------------------------------------------------------------------------
 
-# TODO: THIS PROBABLY NEEDS TO BE COMPLETELY REPHRASED. NOT CHANGING FOR NOW
-NOTE: Vimba/Vmb naming convention.
-VimbaPython is based heavily on VimbaC, this submodule contains all wrapped types and functions
-of VimbaC. All VimbaC Types and Functions are prefixed with 'Vmb', this convention is kept for
-all python types interfacing with the C - Layer. VimbaC developers should be able to understand
-the interface to VimbaC and keeping the name convention helps a lot in that regard.
+NOTE: Vmb naming convention.
+VmbPy is based on VmbC, this submodule contains all wrapped types and functions provided by VmbC to
+make them usable from Python. By convention, all VmbC Types and Functions are prefixed with 'Vmb',
+this convention is kept for all python types interfacing with the C - Layer. VmbC developers should
+be able to understand the interface to VmbC and keeping the name convention helps a lot in that
+regard.
 
-However prefixing everything with 'Vmb' is not required in VimbaPython, therefore most Types
-of the public API have no prefix.
+However prefixing everything with 'Vmb' is not required in VmbPy, therefore most Types of the public
+API have no prefix.
 """
 
 # Suppress 'imported but unused' - Error from static style checker.
