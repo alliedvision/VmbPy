@@ -55,8 +55,8 @@ __all__ = [
     'VmbFrame',
     'VmbFeaturePersistSettings',
     'G_VMB_C_HANDLE',
-    'VIMBA_C_VERSION',
-    'EXPECTED_VIMBA_C_VERSION',
+    'VMB_C_VERSION',
+    'EXPECTED_VMB_C_VERSION',
     'call_vimba_c',
     'build_callback_type'
 ]
@@ -623,8 +623,8 @@ class VmbFeaturePersistSettings(ctypes.Structure):
 # TODO: Test that this also works on a 32bit Python version/System
 G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
 
-VIMBA_C_VERSION = None
-EXPECTED_VIMBA_C_VERSION = '0.1.0'
+VMB_C_VERSION = None
+EXPECTED_VMB_C_VERSION = '0.1.0'
 
 # For detailed information on the signatures see "VimbaC.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
@@ -697,21 +697,21 @@ def _attach_signatures(lib_handle):
 
 
 def _check_version(lib_handle):
-    global EXPECTED_VIMBA_C_VERSION
-    global VIMBA_C_VERSION
+    global EXPECTED_VMB_C_VERSION
+    global VMB_C_VERSION
 
     v = VmbVersionInfo()
     lib_handle.VmbVersionQuery(byref(v), sizeof(v))
 
-    VIMBA_C_VERSION = str(v)
+    VMB_C_VERSION = str(v)
 
     loaded_version = (v.major, v.minor, v.patch)
-    expected_version = tuple(map(int, EXPECTED_VIMBA_C_VERSION.split(".")))
+    expected_version = tuple(map(int, EXPECTED_VMB_C_VERSION.split(".")))
     # major and minor version must be equal, patch version may be equal or greater
     if not(loaded_version[0:2] == expected_version[0:2] and
            loaded_version[2] >= expected_version[2]):
         msg = 'Invalid VimbaC Version: Expected: {}, Found:{}'
-        raise VmbSystemError(msg.format(EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION))
+        raise VmbSystemError(msg.format(EXPECTED_VMB_C_VERSION, VMB_C_VERSION))
 
     return lib_handle
 

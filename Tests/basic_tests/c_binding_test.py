@@ -319,7 +319,7 @@ class ImageTransformTest(VmbPyTestCase):
 
     def test_call_vimba_image_transform_valid(self):
         # Expectation for valid call: No exceptions, no errors
-        expected_ver_info = EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION
+        expected_ver_info = EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
         v = VmbUint32()
 
         call_vimba_image_transform('VmbGetImageTransformVersion', byref(v))

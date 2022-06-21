@@ -46,8 +46,8 @@ __all__ = [
     'VmbImage',
     'VmbImageInfo',
     'VmbTransformInfo',
-    'VIMBA_IMAGE_TRANSFORM_VERSION',
-    'EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION',
+    'VMB_IMAGE_TRANSFORM_VERSION',
+    'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
     'call_vimba_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
     'LAYOUT_TO_PIXEL_FORMAT',
@@ -311,12 +311,12 @@ class VmbTransformInfo(ctypes.Structure):
 
 
 # API
-VIMBA_IMAGE_TRANSFORM_VERSION = None
+VMB_IMAGE_TRANSFORM_VERSION = None
 if sys.platform == 'linux':
-    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.0'
+    EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.0'
 
 else:
-    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.7'
+    EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.7'
 
 # For detailed information on the signatures see "VimbaImageTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
@@ -348,22 +348,22 @@ def _attach_signatures(lib_handle):
 
 
 def _check_version(lib_handle):
-    global EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION
-    global VIMBA_IMAGE_TRANSFORM_VERSION
+    global EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
+    global VMB_IMAGE_TRANSFORM_VERSION
 
     v = VmbUint32()
     lib_handle.VmbGetImageTransformVersion(byref(v))
 
-    VIMBA_IMAGE_TRANSFORM_VERSION = '{}.{}'.format((v.value >> 24) & 0xff, (v.value >> 16) & 0xff)
+    VMB_IMAGE_TRANSFORM_VERSION = '{}.{}'.format((v.value >> 24) & 0xff, (v.value >> 16) & 0xff)
 
-    loaded_version = tuple(map(int, VIMBA_IMAGE_TRANSFORM_VERSION.split(".")))
-    expected_version = tuple(map(int, EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION.split(".")))
+    loaded_version = tuple(map(int, VMB_IMAGE_TRANSFORM_VERSION.split(".")))
+    expected_version = tuple(map(int, EXPECTED_VMB_IMAGE_TRANSFORM_VERSION.split(".")))
     # Major version must match. minor version may be equal or greater
     if not(loaded_version[0] == expected_version[0] and
            loaded_version[1] >= expected_version[1]):
         msg = 'Invalid VimbaImageTransform Version: Expected: {}, Found:{}'
-        raise VmbSystemError(msg.format(EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION,
-                                          VIMBA_IMAGE_TRANSFORM_VERSION))
+        raise VmbSystemError(msg.format(EXPECTED_VMB_IMAGE_TRANSFORM_VERSION,
+                                          VMB_IMAGE_TRANSFORM_VERSION))
 
     return lib_handle
 

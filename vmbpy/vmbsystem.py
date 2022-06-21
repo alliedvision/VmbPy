@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import threading
 from typing import List, Dict, Tuple
-from .c_binding import call_vimba_c, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION, \
+from .c_binding import call_vimba_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
@@ -92,7 +92,7 @@ class VmbSystem:
         def get_version(self) -> str:
             """ Returns version string of vmbpy and underlaying dependencies."""
             msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
-            return msg.format(VMBPY_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
+            return msg.format(VMBPY_VERSION, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION)
 
         @RuntimeTypeCheckEnable()
         def enable_log(self, config: LogConfig):
