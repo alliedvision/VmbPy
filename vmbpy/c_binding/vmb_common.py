@@ -612,17 +612,16 @@ def _select_vimbax_home(candidates: List[str]) -> str:
     Raises:
         VmbSystemError if multiple VIMBAX_HOME directories were found in candidates
     """
-    raise NotImplemented('This still needs to be adjusted for VimbaX (currently only relevant for Linux)')
     most_likely_candidates = []
     for candidate in candidates:
-        if 'vimba' in candidate.lower():
+        if 'vimbax' in candidate.lower():
             most_likely_candidates.append(candidate)
 
     if len(most_likely_candidates) == 0:
-        raise VmbSystemError('No suitable Vimba installation found. The following paths '
+        raise VmbSystemError('No suitable VimbaX installation found. The following paths '
                                'were considered: {}'.format(candidates))
     elif len(most_likely_candidates) > 1:
-        raise VmbSystemError('Multiple Vimba installations found. Can\'t decide which to select: '
+        raise VmbSystemError('Multiple VimbaX installations found. Can\'t decide which to select: '
                                '{}'.format(most_likely_candidates))
 
     return most_likely_candidates[0]

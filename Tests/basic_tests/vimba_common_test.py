@@ -34,7 +34,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from helpers import VmbPyTestCase
 
 
-class RankVimbaHomeCandidatesTest(VmbPyTestCase):
+class RankVimbaXHomeCandidatesTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -57,35 +57,35 @@ class RankVimbaHomeCandidatesTest(VmbPyTestCase):
             _select_vimbax_home(candidates)
 
     def test_single_good_vimba_home_candidate(self):
-        candidates = ['/opt/Vimba_3_1']
-        expected = '/opt/Vimba_3_1'
+        candidates = ['/opt/VimbaX_3_1']
+        expected = '/opt/VimbaX_3_1'
         self.assertEquals(expected, _select_vimbax_home(candidates))
 
     def test_presorted_vimba_home_candidates(self):
-        candidates = ['/home/username/Vimba_4_0', '/opt/some/other/gentl/provider']
-        expected = '/home/username/Vimba_4_0'
+        candidates = ['/home/username/VimbaX_4_0', '/opt/some/other/gentl/provider']
+        expected = '/home/username/VimbaX_4_0'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_unsorted_vimba_home_candidates(self):
-        candidates = ['/opt/some/other/gentl/provider', '/home/username/Vimba_4_0']
-        expected = '/home/username/Vimba_4_0'
+        candidates = ['/opt/some/other/gentl/provider', '/home/username/VimbaX_4_0']
+        expected = '/home/username/VimbaX_4_0'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_many_vimba_home_candidates(self):
         candidates = ['/some/random/path',
                       '/opt/some/gentl/provider',
-                      '/opt/Vimba_4_0',  # This should be selected
+                      '/opt/VimbaX_4_0',  # This should be selected
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
-        expected = '/opt/Vimba_4_0'
+        expected = '/opt/VimbaX_4_0'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_multiple_vimba_home_directories(self):
         # If multiple VIMBA_HOME directories are found an error should be raised
         candidates = ['/some/random/path',
                       '/opt/some/gentl/provider',
-                      '/opt/Vimba_4_0',  # first installation
-                      '/home/username/Vimba_4_0',  # second installation
+                      '/opt/VimbaX_4_0',  # first installation
+                      '/home/username/VimbaX_4_0',  # second installation
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
         with self.assertRaises(VmbSystemError):
