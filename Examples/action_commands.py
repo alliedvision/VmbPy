@@ -101,7 +101,7 @@ def get_command_sender(interface_id):
         except VmbInterfaceError:
             abort('Failed to access Interface {}. Abort.'.format(interface_id))
 
-        if inter.get_type() != InterfaceType.Ethernet:
+        if inter.get_type() != TransportLayerType.Ethernet:
             abort('Given Interface {} is no Ethernet Interface. Abort.'.format(interface_id))
 
     return inter

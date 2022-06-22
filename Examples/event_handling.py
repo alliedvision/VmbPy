@@ -92,7 +92,7 @@ def get_camera(cam_id: Optional[str]):
         # Ethernet Interface.
         inter = vimba.get_interface_by_id(cam.get_interface_id())
 
-        if inter.get_type() != InterfaceType.Ethernet:
+        if inter.get_type() != TransportLayerType.Ethernet:
             abort('Example supports only GigE Cameras. Abort.')
 
         return cam

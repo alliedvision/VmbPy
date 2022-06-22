@@ -39,7 +39,7 @@ __version__ = None
 
 __all__ = [
     'VmbPixelFormat',
-    'VmbInterface',
+    'VmbTransportLayer',
     'VmbAccessMode',
     'VmbFeatureData',
     'VmbFeaturePersist',
@@ -63,22 +63,34 @@ __all__ = [
 
 
 # Types
-class VmbInterface(Uint32Enum):
+class VmbTransportLayer(Uint32Enum):
     """
     Camera Interface Types:
         Unknown  - Interface is not known to this version of the API
-        Firewire - 1394
-        Ethernet - GigE
-        Usb      - USB 3.0
+        GEV      - GigE Vision
         CL       - Camera Link
-        CSI2     - CSI-2
+        IIDC     - IIDC 1394
+        UVC      - USB video class
+        CXP      - CoaXPress
+        CLHS     - Camera Link HS
+        U3V      - USB3 Vision Standard
+        Ethernet - Generic Ethernet
+        PCI      - PCI / PCIe
+        Custom   - Non standard
+        Mixed    - Mixed (transport layer only)
     """
     Unknown = 0
-    Firewire = 1
-    Ethernet = 2
-    Usb = 3
-    CL = 4
-    CSI2 = 5
+    GEV = 1
+    CL = 2
+    IIDC = 3
+    UVC = 4
+    CXP = 5
+    CLHS = 6
+    U3V = 7
+    Ethernet = 8
+    PCI = 9
+    Custom = 10
+    Mixed = 11
 
     def __str__(self):
         return self._name_
@@ -311,7 +323,7 @@ class VmbInterfaceInfo(ctypes.Structure):
         rep += fmt_repr(',interfaceName={}', self.interfaceName)
         rep += fmt_repr(',interfaceHandle={}', self.interfaceHandle)
         rep += fmt_repr(',transportLayerHandle={}', self.transportLayerHandle)
-        rep += fmt_enum_repr(',interfaceType={}', VmbInterface, self.interfaceType)
+        rep += fmt_enum_repr(',interfaceType={}', VmbTransportLayer, self.interfaceType)
         rep += ')'
         return rep
 

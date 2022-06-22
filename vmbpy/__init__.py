@@ -38,7 +38,7 @@ __all__ = [
     'AccessMode',
     'PersistType',
     'Interface',
-    'InterfaceType',
+    'TransportLayerType',
     'InterfaceChangeHandler',
     'InterfaceEvent',
     'PixelFormat',
@@ -105,7 +105,7 @@ from .vmbsystem import VmbSystem
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
-from .interface import Interface, InterfaceType, InterfaceChangeHandler, InterfaceEvent
+from .interface import Interface, TransportLayerType, InterfaceChangeHandler, InterfaceEvent
 
 from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
                    BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \

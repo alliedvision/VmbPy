@@ -104,7 +104,7 @@ class CamVimbaTest(VmbPyTestCase):
             cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
             inter = self.vimba.get_interface_by_id(cam.get_interface_id())
 
-            if inter.get_type() != InterfaceType.Ethernet:
+            if inter.get_type() != TransportLayerType.Ethernet:
                 raise self.skipTest('Test requires GigE - Camera.')
 
             # Lookup test cameras IP address.
@@ -130,7 +130,7 @@ class CamVimbaTest(VmbPyTestCase):
             cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
             inter = self.vimba.get_interface_by_id(cam.get_interface_id())
 
-            if inter.get_type() != InterfaceType.Ethernet:
+            if inter.get_type() != TransportLayerType.Ethernet:
                 raise self.skipTest('Test requires GigE - Camera.')
 
             # Lookup test cameras MAC Address.

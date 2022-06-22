@@ -61,7 +61,7 @@ __all__ = [
     'decode_flags',
 
     # Exports from vmb_c
-    'VmbInterface',
+    'VmbTransportLayer',
     'VmbAccessMode',
     'VmbFeatureData',
     'VmbFeaturePersist',
@@ -104,7 +104,7 @@ from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUin
                         VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
                         VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home
 
-from .vmb_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
+from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
                    VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \

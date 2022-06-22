@@ -55,11 +55,11 @@ class InterfaceTest(VmbPyTestCase):
     def test_interface_decode_type(self):
         # Expectation all interface types be in interface types
         excpected = (
-            InterfaceType.Firewire,
-            InterfaceType.Ethernet,
-            InterfaceType.Usb,
-            InterfaceType.CL,
-            InterfaceType.CSI2,
+            TransportLayerType.Firewire,
+            TransportLayerType.Ethernet,
+            TransportLayerType.Usb,
+            TransportLayerType.CL,
+            TransportLayerType.CSI2,
         )
 
         for i in self.vimba.get_all_interfaces():

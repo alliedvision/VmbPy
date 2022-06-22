@@ -28,7 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import enum
 from typing import Tuple, List, Callable, Dict
 from .c_binding import call_vmb_c, byref, sizeof, decode_cstr
-from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
+from .c_binding import VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
@@ -36,10 +36,10 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     write_memory, read_registers, write_registers
 from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
-
+from .transportlayer import TransportLayerType
 
 __all__ = [
-    'InterfaceType',
+    'TransportLayerType',
     'Interface',
     'InterfaceEvent',
     'InterfaceChangeHandler',
@@ -54,25 +54,6 @@ __all__ = [
 InterfaceChangeHandler = Callable[['Interface', 'InterfaceEvent'], None]
 InterfacesTuple = Tuple['Interface', ...]
 InterfacesList = List['Interface']
-
-
-class InterfaceType(enum.IntEnum):
-    """Enum specifying all interface types.
-
-    Enum values:
-        Unknown  - Interface is not known to this vmbpy version.
-        Firewire - 1394
-        Ethernet - Gigabit Ethernet
-        Usb      - USB 3.0
-        CL       - Camera Link
-        CSI2     - CSI-2
-    """
-    Unknown = VmbInterface.Unknown
-    Firewire = VmbInterface.Firewire
-    Ethernet = VmbInterface.Ethernet
-    Usb = VmbInterface.Usb
-    CL = VmbInterface.CL
-    CSI2 = VmbInterface.CSI2
 
 
 class InterfaceEvent(enum.IntEnum):
@@ -115,9 +96,9 @@ class Interface:
         """Get Interface Id such as VimbaUSBInterface_0x0."""
         return decode_cstr(self.__info.interfaceIdString)
 
-    def get_type(self) -> InterfaceType:
+    def get_type(self) -> TransportLayerType:
         """Get Interface Type such as InterfaceType.Usb."""
-        return InterfaceType(self.__info.interfaceType)
+        return TransportLayerType(self.__info.interfaceType)
 
     def get_name(self) -> str:
         """Get Interface Name such as Vimba USB Interface."""
