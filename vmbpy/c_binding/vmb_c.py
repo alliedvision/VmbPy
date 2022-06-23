@@ -306,8 +306,8 @@ class VmbInterfaceInfo(ctypes.Structure):
                                    Info: Handle of the interface for feature access
             transportLayerHandle - Type: VmbHandle
                                    Info: Handle of the related transport layer for feature access
-            interfaceType        - Type: VmbInterface (VmbUint32)
-                                   Info: Interface type, see VmbInterface
+            interfaceType        - Type: VmbTransportLayer (VmbUint32)
+                                   Info: Interface type, see VmbTransportLayer
     """
     _fields_ = [
         ("interfaceIdString", c_char_p),
