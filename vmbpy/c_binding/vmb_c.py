@@ -48,6 +48,7 @@ __all__ = [
     'VmbFrameStatus',
     'VmbFrameFlags',
     'VmbVersionInfo',
+    'VmbTransportLayerInfo',
     'VmbInterfaceInfo',
     'VmbCameraInfo',
     'VmbFeatureInfo',
@@ -291,6 +292,50 @@ class VmbVersionInfo(ctypes.Structure):
         rep += ',minor=' + repr(self.minor)
         rep += ',patch=' + repr(self.patch)
         rep += ')'
+        return rep
+
+
+class VmbTransportLayerInfo(ctypes.Structure):
+    """
+        Fields:
+            transportLayerIdString  - Type: c_char_p
+                                      Info: Unique id of the transport layer
+            transportLayerName      - Type: c_char_p
+                                      Info: Name of the transport layer
+            transportLayerModelName - Type: c_char_p
+                                      Info: Model name of the transport layer
+            transportLayerVendor    - Type: c_char_p
+                                      Info: Vendor of the transport layer
+            transportLayerVersion   - Type: c_char_p
+                                      Info: Version of the transport layer
+            transportLayerPath      - Type: c_char_p
+                                      Info: Full path of the transport layer
+            transportLayerHandle    - Type: VmbHandle
+                                      Info: Handle of the transport layer for feature access
+            transportLayerType      - Type: VmbTransportLayer (VmbUint32)
+                                      Info: The type of the transport layer
+    """
+    _fields_ = [
+        ("transportLayerIdString", c_char_p),
+        ("transportLayerName", c_char_p),
+        ("transportLayerModelName", c_char_p),
+        ("transportLayerVendor", c_char_p),
+        ("transportLayerVersion", c_char_p),
+        ("transportLayerPath", c_char_p),
+        ("transportLayerHandle", VmbHandle),
+        ("transportLayerType", VmbUint32)
+    ]
+
+    def __repr__(self):
+        rep = 'VmbTransportLayerInfo'
+        rep += fmt_repr('(transportLayerIdString={}', self.transportLayerIdString)
+        rep += fmt_repr(',transportLayerName={}', self.transportLayerName)
+        rep += fmt_repr(',transportLayerModelName={}', self.transportLayerModelName)
+        rep += fmt_repr(',transportLayerVendor={}', self.transportLayerVendor)
+        rep += fmt_repr(',transportLayerVersion={}', self.transportLayerVersion)
+        rep += fmt_repr(',transportLayerPath={}', self.transportLayerPath)
+        rep += fmt_repr(',transportLayerHandle={}', self.transportLayerHandle)
+        rep += fmt_enum_repr(',transportLayerType={}', VmbTransportLayer, self.transportLayerType)
         return rep
 
 

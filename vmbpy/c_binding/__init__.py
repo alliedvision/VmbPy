@@ -70,6 +70,7 @@ __all__ = [
     'VmbFrameStatus',
     'VmbFrameFlags',
     'VmbVersionInfo',
+    'VmbTransportLayerInfo',
     'VmbInterfaceInfo',
     'VmbCameraInfo',
     'VmbFeatureInfo',
@@ -106,7 +107,7 @@ from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUin
 
 from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
-                   VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
+                   VmbFrameFlags, VmbVersionInfo, VmbTransportLayerInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
                    G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vmb_c, \
                    build_callback_type
