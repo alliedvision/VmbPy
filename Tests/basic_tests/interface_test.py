@@ -53,17 +53,11 @@ class InterfaceTest(VmbPyTestCase):
             self.assertNotEqual(i.get_id(), '')
 
     def test_interface_decode_type(self):
-        # Expectation all interface types be in interface types
-        excpected = (
-            TransportLayerType.Firewire,
-            TransportLayerType.Ethernet,
-            TransportLayerType.Usb,
-            TransportLayerType.CL,
-            TransportLayerType.CSI2,
-        )
-
+        # Expectation all interface types be in transport layer types
+        # instances of Interface are enumerated by the TransportLayer class. Because of this the
+        # transport layer decides the type of the interface
         for i in self.vimba.get_all_interfaces():
-            self.assertIn(i.get_type(), excpected)
+            self.assertIn(i.get_type(), TransportLayerType)
 
     def test_interface_decode_name(self):
         # Expectation all interface names  can be decoded in something not ''
