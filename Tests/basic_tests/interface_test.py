@@ -70,12 +70,6 @@ class InterfaceTest(VmbPyTestCase):
         for i in self.vimba.get_all_interfaces():
             self.assertNotEqual(i.get_name(), '')
 
-    def test_interface_decode_serial(self):
-        # Expectation: Serials can be '' on some interfaces. This test success
-        # if get serial does not raise
-        for i in self.vimba.get_all_interfaces():
-            self.assertNoRaise(i.get_serial)
-
     def test_interface_get_all_features(self):
         # Expectation: Call get_all_features raises RuntimeError outside of with
         # Inside of with return a non empty set

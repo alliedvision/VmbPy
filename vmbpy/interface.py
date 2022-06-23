@@ -144,10 +144,6 @@ class Interface:
         """Get Interface Name such as Vimba USB Interface."""
         return decode_cstr(self.__info.interfaceName)
 
-    def get_serial(self) -> str:
-        """Get Interface Serial or '' if not set."""
-        return decode_cstr(self.__info.serialString)
-
     @TraceEnable()
     @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
