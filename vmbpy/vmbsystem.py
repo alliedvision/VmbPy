@@ -34,6 +34,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
+from .transportlayer import TransportLayer, TransportLayerList, discover_transport_layers
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesList, discover_interfaces, discover_interface
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
@@ -62,6 +63,7 @@ class VmbSystem:
             """Do not call directly. Use VmbSystem.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
 
+            self.__transport_layers: TransportLayerList = ()
             self.__inters: InterfacesList = ()
             self.__inters_lock: threading.Lock = threading.Lock()
             self.__inters_handlers: List[InterfaceChangeHandler] = []
@@ -189,6 +191,10 @@ class VmbSystem:
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
             return write_registers(G_VMB_C_HANDLE, addrs_values)
+
+        @RaiseIfOutsideContext()
+        def get_all_transport_layers(self):
+            return tuple(self.__transport_layers)
 
         @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
@@ -464,6 +470,7 @@ class VmbSystem:
             # TODO: Implement passing optional pathConfiguration to VmbStartup
             call_vmb_c('VmbStartup', None)
 
+            self.__transport_layers = discover_transport_layers()
             self.__inters = discover_interfaces()
             self.__cams = discover_cameras()
             self.__feats = discover_features(G_VMB_C_HANDLE)
