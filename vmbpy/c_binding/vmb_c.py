@@ -655,7 +655,7 @@ _SIGNATURES = {
     'VmbFeatureAccessQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool), c_ptr(VmbBool)]),
     'VmbFeatureIntGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
     'VmbFeatureIntSet': (VmbError, [VmbHandle, c_str, VmbInt64]),
-    'VmbFeatureIntRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64), c_ptr(VmbInt64)]),                              # noqa: E501
+    'VmbFeatureIntRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64), c_ptr(VmbInt64)]),
     'VmbFeatureIntIncrementQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
     'VmbFeatureFloatGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbDouble)]),
     'VmbFeatureFloatSet': (VmbError, [VmbHandle, c_str, VmbDouble]),
@@ -678,7 +678,7 @@ _SIGNATURES = {
     'VmbFeatureRawGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),
     'VmbFeatureRawSet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32]),
     'VmbFeatureRawLengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
-    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),                      # noqa: E501
+    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),
     'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, c_void_p]),
     'VmbFrameAnnounce': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbFrameRevoke': (VmbError, [VmbHandle, c_ptr(VmbFrame)]),
@@ -692,8 +692,8 @@ _SIGNATURES = {
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
     'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
-    'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
-    'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
+    'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
+    'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
     # TODO: add 'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), c_void_p <- This callback is not void. Returns VmbError_t, c_void_p])
 }
 
