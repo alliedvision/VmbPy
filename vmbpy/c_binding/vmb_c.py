@@ -688,6 +688,7 @@ _SIGNATURES = {
     'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), c_void_p]),
     'VmbCaptureFrameWait': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbCaptureQueueFlush': (VmbError, [VmbHandle]),
+    'VmbTransportLayersList': (VmbError, [c_ptr(VmbTransportLayerInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),             # noqa: E501
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
     'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
