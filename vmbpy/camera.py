@@ -425,12 +425,7 @@ class Camera:
 
     def get_permitted_access_modes(self) -> Tuple[AccessMode, ...]:
         """Get a set of all access modes the camera can be accessed with."""
-        val = self.__info.permittedAccess
-
-        # Clear VmbAccessMode.Lite Flag. It is offered by VimbaC, but it is not documented.
-        val &= ~int(VmbAccessMode.Lite)
-
-        return decode_flags(AccessMode, val)
+        return decode_flags(AccessMode, self.__info.permittedAccess)
 
     def get_interface_id(self) -> str:
         """Get ID of the Interface this camera is connected to, for example, VimbaUSBInterface_0x0
