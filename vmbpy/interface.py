@@ -137,7 +137,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             ValueError if addr is negative.
             ValueError if max_bytes is negative.
             ValueError if the memory access was invalid.
@@ -156,7 +155,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             ValueError if addr is negative.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
@@ -175,7 +173,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             ValueError if any address in addrs is negative.
             ValueError if the register access was invalid.
         """
@@ -203,9 +200,6 @@ class Interface:
 
         Returns:
             A set of all currently detected features.
-
-        Raises:
-            RuntimeError if called outside "with" - statement.
         """
         return self.__feats
 
@@ -222,7 +216,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             VmbFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_affected_features(self.__feats, feat)
@@ -240,7 +233,6 @@ class Interface:
 
         Raises:
             TypeError if 'feat' is not of any feature type.
-            RuntimeError if called outside "with" - statement.
             VmbFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_selected_features(self.__feats, feat)
@@ -260,7 +252,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
@@ -276,7 +267,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
         """
         return filter_features_by_category(self.__feats, category)
 
@@ -292,7 +282,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             VmbFeatureError if no feature is associated with 'feat_name'.
         """
         feat = filter_features_by_name(self.__feats, feat_name)
