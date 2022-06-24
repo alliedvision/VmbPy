@@ -95,34 +95,55 @@ VmbDouble = ctypes.c_double
 class VmbError(Int32Enum):
     """
     Enum containing error types returned
-        Success         - No error
-        InternalFault   - Unexpected fault in VmbC or driver
-        ApiNotStarted   - VmbStartup() was not called before the current
-                          command
-        NotFound        - The designated instance (camera, feature etc.)
-                          cannot be found
-        BadHandle       - The given handle is not valid
-        DeviceNotOpen   - Device was not opened for usage
-        InvalidAccess   - Operation is invalid with the current access mode
-        BadParameter    - One of the parameters is invalid (usually an illegal
-                          pointer)
-        StructSize      - The given struct size is not valid for this version
-                          of the API
-        MoreData        - More data available in a string/list than space is
-                          provided
-        WrongType       - Wrong feature type for this access function
-        InvalidValue    - The value is not valid; Either out of bounds or not
-                          an increment of the minimum
-        Timeout         - Timeout during wait
-        Other           - Other error
-        Resources       - Resources not available (e.g. memory)
-        InvalidCall     - Call is invalid in the current context (callback)
-        NoTL            - No transport layers are found
-        NotImplemented_ - API feature is not implemented
-        NotSupported    - API feature is not supported
-        Incomplete      - A multiple registers read or write is partially
-                          completed
-        IO              - low level IO error in transport layer
+        Success                 - No error
+        InternalFault           - Unexpected fault in VmbC or driver
+        ApiNotStarted           - VmbStartup() was not called before the current command
+        NotFound                - The designated instance (camera, feature etc.) cannot be found
+        BadHandle               - The given handle is not valid
+        DeviceNotOpen           - Device was not opened for usage
+        InvalidAccess           - Operation is invalid with the current access mode
+        BadParameter            - One of the parameters is invalid (usually an illegal pointer)
+        StructSize              - The given struct size is not valid for this version of the API
+        MoreData                - More data available in a string/list than space is provided
+        WrongType               - Wrong feature type for this access function
+        InvalidValue            - The value is not valid; either out of bounds or not an increment
+                                  of the minimum
+        Timeout                 - Timeout during wait
+        Other                   - Other error
+        Resources               - Resources not available (e.g. memory)
+        InvalidCall             - Call is invalid in the current context (e.g. callback)
+        NoTL                    - No transport layers are found
+        NotImplemented          - API feature is not implemented
+        NotSupported            - API feature is not supported
+        Incomplete              - The current operation was not completed (e.g. a multiple registers
+                                  read or write)
+        IO                      - Low level IO error in transport layer
+        ValidValueSetNotPresent - The valid value set could not be retrieved, since the feature does
+                                  not provide this property
+        GenTLUnspecified        - Unspecified GenTL runtime error
+        Unspecified             - Unspecified runtime error
+        Busy                    - The responsible module/entity is busy executing actions
+        NoData                  - The function has no data to work on
+        ParsingChunkData        - An error occurred parsing a buffer containing chunk data
+        InUse                   - Something is already in use
+        Unknown                 - Error condition unknown
+        Xml                     - Error parsing XML
+        NotAvailable            - Something is not available
+        NotInitialized          - Something is not initialized
+        InvalidAddress          - The given address is out of range or invalid for internal reasons
+        Already                 - Something has already been done
+        NoChunkData             - A frame expected to contain chunk data does not contain chunk data
+        UserCallbackException   - A callback provided by the user threw an exception
+        FeaturesUnavailable     - The XML for the module is currently not loaded; the module could
+                                  be in the wrong state or the XML could not be retrieved or could
+                                  not be parsed properly
+        TLNotFound              - A required transport layer could not be found or loaded
+        Ambiguous               - An entity cannot be uniquely identified based on the information
+                                  provided
+        RetriesExceeded         - Something could not be accomplished with a given number of retries
+        InsufficientBufferCount - The operation requires more buffers
+        Custom                  - The minimum error code to use for user defined error codes to
+                                  avoid conflict with existing error codes
     """
     Success = 0
     InternalFault = -1
