@@ -322,7 +322,7 @@ class ImageTransformTest(VmbPyTestCase):
         expected_ver_info = EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
         v = VmbUint32()
 
-        call_vmb_image_transform('VmbGetImageTransformVersion', byref(v))
+        call_vmb_image_transform('VmbGetVersion', byref(v))
 
         ver_info = str(v.value >> 24 & 0xff) + '.' + str(v.value >> 16 & 0xff)
 
@@ -335,26 +335,26 @@ class ImageTransformTest(VmbPyTestCase):
 
     def test_call_vmb_c_invalid_arg_number(self):
         # Expectation: Invalid number of arguments with sane types must lead to TypeErrors
-        self.assertRaises(TypeError, call_vmb_image_transform, 'VmbGetImageTransformVersion')
+        self.assertRaises(TypeError, call_vmb_image_transform, 'VmbGetVersion')
 
     def test_call_vmb_c_invalid_arg_type(self):
         # Expectation: Arguments with invalid types must lead to TypeErrors
         self.assertRaises(ctypes.ArgumentError,
                           call_vmb_image_transform,
-                          'VmbGetImageTransformVersion',
+                          'VmbGetVersion',
                           VmbDouble())
         self.assertRaises(ctypes.ArgumentError,
                           call_vmb_image_transform,
-                          'VmbGetImageTransformVersion',
+                          'VmbGetVersion',
                           0)
         self.assertRaises(ctypes.ArgumentError,
                           call_vmb_image_transform,
-                          'VmbGetImageTransformVersion',
+                          'VmbGetVersion',
                           'invalid')
 
     def test_call_vmb_c_exception(self):
         # Expectation: Failed operations must raise a VimbaCError
         self.assertRaises(VmbCError,
                           call_vmb_image_transform,
-                          'VmbGetImageTransformVersion',
+                          'VmbGetVersion',
                           None)
