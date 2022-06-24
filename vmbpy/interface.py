@@ -91,11 +91,7 @@ class InterfaceEvent(enum.IntEnum):
 
 
 class Interface:
-    """This class allows access to an interface such as USB detected by Vimba.
-    Interface is meant to be used in conjunction with the "with" - statement. On entering a context,
-    all Interface features are detected and can be accessed within the context. Static Interface
-    properties like Name can be accessed outside the context.
-    """
+    """This class allows access to an interface such as USB detected by Vimba."""
 
     @TraceEnable()
     def __init__(self, info: VmbInterfaceInfo):
