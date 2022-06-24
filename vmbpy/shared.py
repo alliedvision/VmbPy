@@ -29,7 +29,7 @@ import itertools
 
 from typing import Dict, Tuple
 from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
-from .c_binding import call_vimba_c, byref, sizeof, create_string_buffer, VimbaCError
+from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, VmbCError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
 from .error import VmbFeatureError
 from .util import TraceEnable
@@ -75,13 +75,13 @@ def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
         feats_name = feat._info.name
 
         # Query affected features from given Feature
-        call_vimba_c('VmbFeatureListAffected', feats_handle, feats_name, None, 0,
+        call_vmb_c('VmbFeatureListAffected', feats_handle, feats_name, None, 0,
                      byref(feats_count), sizeof(VmbFeatureInfo))
 
         feats_found = VmbUint32(0)
         feats_infos = (VmbFeatureInfo * feats_count.value)()
 
-        call_vimba_c('VmbFeatureListAffected', feats_handle, feats_name, feats_infos, feats_count,
+        call_vmb_c('VmbFeatureListAffected', feats_handle, feats_name, feats_infos, feats_count,
                      byref(feats_found), sizeof(VmbFeatureInfo))
 
         # Search affected features in given feature set
@@ -117,13 +117,13 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
         feats_name = feat._info.name
 
         # Query selected features from given feature
-        call_vimba_c('VmbFeatureListSelected', feats_handle, feats_name, None, 0,
+        call_vmb_c('VmbFeatureListSelected', feats_handle, feats_name, None, 0,
                      byref(feats_count), sizeof(VmbFeatureInfo))
 
         feats_found = VmbUint32(0)
         feats_infos = (VmbFeatureInfo * feats_count.value)()
 
-        call_vimba_c('VmbFeatureListSelected', feats_handle, feats_name, feats_infos, feats_count,
+        call_vmb_c('VmbFeatureListSelected', feats_handle, feats_name, feats_infos, feats_count,
                      byref(feats_found), sizeof(VmbFeatureInfo))
 
         # Search selected features in given feature set
@@ -238,9 +238,9 @@ def read_memory(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:  # cover
     bytesRead = VmbUint32()
 
     try:
-        call_vimba_c('VmbMemoryRead', handle, addr, max_bytes, buf, byref(bytesRead))
+        call_vmb_c('VmbMemoryRead', handle, addr, max_bytes, buf, byref(bytesRead))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Memory read access at {} failed with C-Error: {}.'
         raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
 
@@ -266,9 +266,9 @@ def write_memory(handle: VmbHandle, addr: int, data: bytes):  # coverage: skip
     bytesWrite = VmbUint32()
 
     try:
-        call_vimba_c('VmbMemoryWrite', handle, addr, len(data), data, byref(bytesWrite))
+        call_vmb_c('VmbMemoryWrite', handle, addr, len(data), data, byref(bytesWrite))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Memory write access at {} failed with C-Error: {}.'
         raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
 
@@ -302,9 +302,9 @@ def read_registers(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, int]:
         c_addrs[i] = addr
 
     try:
-        call_vimba_c('VmbRegistersRead', handle, size, c_addrs, c_values, byref(valid_reads))
+        call_vmb_c('VmbRegistersRead', handle, size, c_addrs, c_values, byref(valid_reads))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Register read access failed with C-Error: {}.'
         raise ValueError(msg.format(repr(e.get_error_code()))) from e
 
@@ -338,9 +338,9 @@ def write_registers(handle: VmbHandle, addrs_values: Dict[int, int]):  # coverag
         values[i] = addrs_values[addr]
 
     try:
-        call_vimba_c('VmbRegistersWrite', handle, size, addrs, values, byref(valid_writes))
+        call_vmb_c('VmbRegistersWrite', handle, size, addrs, values, byref(valid_writes))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         msg = 'Register write access failed with C-Error: {}.'
         raise ValueError(msg.format(repr(e.get_error_code()))) from e
 

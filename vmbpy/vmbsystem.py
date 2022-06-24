@@ -27,8 +27,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import threading
 from typing import List, Dict, Tuple
-from .c_binding import call_vimba_c, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION, \
-                       G_VIMBA_C_HANDLE
+from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
+                       G_VMB_C_HANDLE
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
@@ -39,7 +39,7 @@ from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, Interf
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
                     discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
+                  LeaveContextOnCall, RaiseIfOutsideContext
 from .error import VmbCameraError, VmbInterfaceError, VmbFeatureError
 from . import __version__ as VMBPY_VERSION
 
@@ -72,7 +72,6 @@ class VmbSystem:
             self.__cams_handlers: List[CameraChangeHandler] = []
             self.__cams_handlers_lock: threading.Lock = threading.Lock()
 
-            self.__nw_discover: bool = True
             self.__context_cnt: int = 0
 
         @TraceEnable()
@@ -93,23 +92,7 @@ class VmbSystem:
         def get_version(self) -> str:
             """ Returns version string of vmbpy and underlaying dependencies."""
             msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
-            return msg.format(VMBPY_VERSION, VIMBA_C_VERSION, VIMBA_IMAGE_TRANSFORM_VERSION)
-
-        @RaiseIfInsideContext()
-        @RuntimeTypeCheckEnable()
-        def set_network_discovery(self, enable: bool):
-            """Enable/Disable network camera discovery.
-
-            Arguments:
-                enable - If 'True' vmbpy tries to detect cameras connected via Ethernet
-                         on entering the 'with' statement. If set to 'False', no network
-                         discover occurs.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError if called inside with-statement.
-            """
-            self.__nw_discover = enable
+            return msg.format(VMBPY_VERSION, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION)
 
         @RuntimeTypeCheckEnable()
         def enable_log(self, config: LogConfig):
@@ -148,7 +131,7 @@ class VmbSystem:
                 ValueError if the memory access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return read_memory(G_VIMBA_C_HANDLE, addr, max_bytes)
+            return read_memory(G_VMB_C_HANDLE, addr, max_bytes)
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -166,7 +149,7 @@ class VmbSystem:
                 ValueError if addr is negative.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return write_memory(G_VIMBA_C_HANDLE, addr, data)
+            return write_memory(G_VMB_C_HANDLE, addr, data)
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -187,7 +170,7 @@ class VmbSystem:
                 ValueError if the register access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return read_registers(G_VIMBA_C_HANDLE, addrs)
+            return read_registers(G_VMB_C_HANDLE, addrs)
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -205,7 +188,7 @@ class VmbSystem:
                 ValueError if the register access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
-            return write_registers(G_VIMBA_C_HANDLE, addrs_values)
+            return write_registers(G_VMB_C_HANDLE, addrs_values)
 
         @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
@@ -478,17 +461,18 @@ class VmbSystem:
         def _startup(self):
             Log.get_instance().info('Starting {}'.format(self.get_version()))
 
-            call_vimba_c('VmbStartup')
+            # TODO: Implement passing optional pathConfiguration to VmbStartup
+            call_vmb_c('VmbStartup', None)
 
             self.__inters = discover_interfaces()
-            self.__cams = discover_cameras(self.__nw_discover)
-            self.__feats = discover_features(G_VIMBA_C_HANDLE)
+            self.__cams = discover_cameras()
+            self.__feats = discover_features(G_VMB_C_HANDLE)
             attach_feature_accessors(self, self.__feats)
 
-            feat = self.get_feature_by_name('DiscoveryInterfaceEvent')
+            feat = self.get_feature_by_name('EventInterfaceDiscovery')
             feat.register_change_handler(self.__inter_cb_wrapper)
 
-            feat = self.get_feature_by_name('DiscoveryCameraEvent')
+            feat = self.get_feature_by_name('EventCameraDiscovery')
             feat.register_change_handler(self.__cam_cb_wrapper)
 
         @TraceEnable()
@@ -507,7 +491,7 @@ class VmbSystem:
             self.__inters_handlers = []
             self.__inters = ()
 
-            call_vimba_c('VmbShutdown')
+            call_vmb_c('VmbShutdown')
 
         def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context

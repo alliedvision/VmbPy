@@ -32,7 +32,7 @@ import functools
 
 from typing import Optional, Tuple
 from .c_binding import byref, sizeof, decode_flags
-from .c_binding import call_vimba_c, call_vimba_image_transform, VmbFrameStatus, VmbFrameFlags, \
+from .c_binding import call_vmb_c, call_vmb_image_transform, VmbFrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
                        VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
@@ -533,7 +533,7 @@ class AncillaryData:
     @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
-        call_vimba_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
+        call_vmb_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
         self.__feats = _replace_invalid_feature_calls(discover_features(self.__data_handle))
         attach_feature_accessors(self, self.__feats)
@@ -544,7 +544,7 @@ class AncillaryData:
         remove_feature_accessors(self, self.__feats)
         self.__feats = ()
 
-        call_vimba_c('VmbAncillaryDataClose', self.__data_handle)
+        call_vmb_c('VmbAncillaryDataClose', self.__data_handle)
         self.__data_handle = VmbHandle()
 
 
@@ -803,7 +803,7 @@ class Frame:
         c_src_image.Size = sizeof(c_src_image)
         c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
 
-        call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+        call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                    byref(c_src_image))
 
         # 3) Specify Transformation Output Image
@@ -812,7 +812,7 @@ class Frame:
 
         layout, bits = PIXEL_FORMAT_TO_LAYOUT[VmbPixelFormat(target_fmt)]
 
-        call_vimba_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
+        call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
                                    bits, byref(c_dst_image))
 
         # 4) Create output frame and carry over image metadata
@@ -827,11 +827,11 @@ class Frame:
         # 5) Setup Debayering mode if given.
         transform_info = VmbTransformInfo()
         if debayer_mode and (fmt in BAYER_PIXEL_FORMATS):
-            call_vimba_image_transform('VmbSetDebayerMode', VmbDebayerMode(debayer_mode),
+            call_vmb_image_transform('VmbSetDebayerMode', VmbDebayerMode(debayer_mode),
                                        byref(transform_info))
 
         # 6) Perform Transformation
-        call_vimba_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
+        call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
                                    byref(transform_info), 1)
 
         # 7) Copy ancillary data if existing
@@ -870,7 +870,7 @@ class Frame:
         c_image = VmbImage()
         c_image.Size = sizeof(c_image)
 
-        call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+        call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                    byref(c_image))
 
         layout = PIXEL_FORMAT_TO_LAYOUT.get(fmt)

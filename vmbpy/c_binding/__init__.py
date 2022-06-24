@@ -26,22 +26,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 -------------------------------------------------------------------------
 
-# TODO: THIS PROBABLY NEEDS TO BE COMPLETELY REPHRASED. NOT CHANGING FOR NOW
-NOTE: Vimba/Vmb naming convention.
-VimbaPython is based heavily on VimbaC, this submodule contains all wrapped types and functions
-of VimbaC. All VimbaC Types and Functions are prefixed with 'Vmb', this convention is kept for
-all python types interfacing with the C - Layer. VimbaC developers should be able to understand
-the interface to VimbaC and keeping the name convention helps a lot in that regard.
+NOTE: Vmb naming convention.
+VmbPy is based on VmbC, this submodule contains all wrapped types and functions provided by VmbC to
+make them usable from Python. By convention, all VmbC Types and Functions are prefixed with 'Vmb',
+this convention is kept for all python types interfacing with the C - Layer. VmbC developers should
+be able to understand the interface to VmbC and keeping the name convention helps a lot in that
+regard.
 
-However prefixing everything with 'Vmb' is not required in VimbaPython, therefore most Types
-of the public API have no prefix.
+However prefixing everything with 'Vmb' is not required in VmbPy, therefore most Types of the public
+API have no prefix.
 """
 
 # Suppress 'imported but unused' - Error from static style checker.
 # flake8: noqa: F401
 
 __all__ = [
-    # Exports from vimba_common
+    # Exports from vmb_common
     'VmbInt8',
     'VmbUint8',
     'VmbInt16',
@@ -55,12 +55,12 @@ __all__ = [
     'VmbUchar',
     'VmbDouble',
     'VmbError',
-    'VimbaCError',
+    'VmbCError',
     'VmbPixelFormat',
     'decode_cstr',
     'decode_flags',
 
-    # Exports from vimba_c
+    # Exports from vmb_c
     'VmbInterface',
     'VmbAccessMode',
     'VmbFeatureData',
@@ -76,20 +76,20 @@ __all__ = [
     'VmbFeatureEnumEntry',
     'VmbFrame',
     'VmbFeaturePersistSettings',
-    'G_VIMBA_C_HANDLE',
-    'VIMBA_C_VERSION',
-    'EXPECTED_VIMBA_C_VERSION',
-    'call_vimba_c',
+    'G_VMB_C_HANDLE',
+    'VMB_C_VERSION',
+    'EXPECTED_VMB_C_VERSION',
+    'call_vmb_c',
     'build_callback_type',
 
-    # Exports from vimba_image_transform
+    # Exports from vmb_image_transform
     'VmbImage',
     'VmbImageInfo',
     'VmbDebayerMode',
     'VmbTransformInfo',
-    'VIMBA_IMAGE_TRANSFORM_VERSION',
-    'EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION',
-    'call_vimba_image_transform',
+    'VMB_IMAGE_TRANSFORM_VERSION',
+    'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
+    'call_vmb_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
     'LAYOUT_TO_PIXEL_FORMAT',
     'PIXEL_FORMAT_CONVERTIBILITY_MAP',
@@ -100,22 +100,21 @@ __all__ = [
     'create_string_buffer'
 ]
 
-from .vimba_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUint32, \
-                          VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
-                          VimbaCError, VmbPixelFormat, decode_cstr, decode_flags, \
-                          _select_vimba_home
+from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUint32, \
+                        VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
+                        VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home
 
-from .vimba_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
+from .vmb_c import VmbInterface, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
                    VmbFrameFlags, VmbVersionInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
-                   G_VIMBA_C_HANDLE, EXPECTED_VIMBA_C_VERSION, VIMBA_C_VERSION, call_vimba_c, \
+                   G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vmb_c, \
                    build_callback_type
 
-from .vimba_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
-                                   VIMBA_IMAGE_TRANSFORM_VERSION, \
-                                   EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION, VmbTransformInfo, \
-                                   call_vimba_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
-                                   LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILITY_MAP
+from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
+                                 VMB_IMAGE_TRANSFORM_VERSION, \
+                                 EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, VmbTransformInfo, \
+                                 call_vmb_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
+                                 LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILITY_MAP
 
 from ctypes import byref, sizeof, create_string_buffer

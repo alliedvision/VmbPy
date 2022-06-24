@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import enum
 from typing import Tuple, List, Callable, Dict
-from .c_binding import call_vimba_c, byref, sizeof, decode_cstr
+from .c_binding import call_vmb_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
@@ -340,7 +340,7 @@ class Interface:
     @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
-        call_vimba_c('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
+        call_vmb_c('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
 
         self.__feats = discover_features(self.__handle)
         attach_feature_accessors(self, self.__feats)
@@ -354,7 +354,7 @@ class Interface:
         remove_feature_accessors(self, self.__feats)
         self.__feats = ()
 
-        call_vimba_c('VmbInterfaceClose', self.__handle)
+        call_vmb_c('VmbInterfaceClose', self.__handle)
 
         self.__handle = VmbHandle(0)
 
@@ -366,13 +366,13 @@ def discover_interfaces() -> InterfacesList:
     result = []
     inters_count = VmbUint32(0)
 
-    call_vimba_c('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
+    call_vmb_c('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
 
     if inters_count:
         inters_found = VmbUint32(0)
         inters_infos = (VmbInterfaceInfo * inters_count.value)()
 
-        call_vimba_c('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
+        call_vmb_c('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
                      sizeof(VmbInterfaceInfo))
 
         for info in inters_infos[:inters_found.value]:

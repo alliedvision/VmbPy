@@ -32,9 +32,9 @@ import threading
 
 from ctypes import POINTER
 from typing import Tuple, List, Callable, cast, Optional, Union, Dict
-from .c_binding import call_vimba_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VIMBA_C_HANDLE, VmbAccessMode, \
-                       VimbaCError, VmbError, VmbFrame, VmbFeaturePersist, VmbFeaturePersistSettings
+from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
+from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VMB_C_HANDLE, VmbAccessMode, \
+                       VmbCError, VmbError, VmbFrame, VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple, \
                      FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
@@ -133,13 +133,13 @@ class _StateInit(_State):
             frame_handle = _frame_handle_accessor(frame)
 
             try:
-                call_vimba_c('VmbFrameAnnounce', self.context.cam_handle, byref(frame_handle),
+                call_vmb_c('VmbFrameAnnounce', self.context.cam_handle, byref(frame_handle),
                              sizeof(frame_handle))
                 if frame._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
                     assert frame_handle.buffer is not None
                     frame._set_buffer(frame_handle.buffer)
 
-            except VimbaCError as e:
+            except VmbCError as e:
                 return _build_camera_error(self.context.cam, e)
 
         return _StateAnnounced(self.context)
@@ -152,10 +152,10 @@ class _StateAnnounced(_State):
             frame_handle = _frame_handle_accessor(frame)
 
             try:
-                call_vimba_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
+                call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
                              self.context.frames_callback)
 
-            except VimbaCError as e:
+            except VmbCError as e:
                 return _build_camera_error(self.context.cam, e)
 
         return _StateQueued(self.context)
@@ -166,9 +166,9 @@ class _StateAnnounced(_State):
             frame_handle = _frame_handle_accessor(frame)
 
             try:
-                call_vimba_c('VmbFrameRevoke', self.context.cam_handle, byref(frame_handle))
+                call_vmb_c('VmbFrameRevoke', self.context.cam_handle, byref(frame_handle))
 
-            except VimbaCError as e:
+            except VmbCError as e:
                 return _build_camera_error(self.context.cam, e)
 
         return _StateInit(self.context)
@@ -178,9 +178,9 @@ class _StateQueued(_State):
     @TraceEnable()
     def forward(self) -> Union[_State, VmbCameraError]:
         try:
-            call_vimba_c('VmbCaptureStart', self.context.cam_handle)
+            call_vmb_c('VmbCaptureStart', self.context.cam_handle)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             return _build_camera_error(self.context.cam, e)
 
         return _StateCaptureStarted(self.context)
@@ -188,9 +188,9 @@ class _StateQueued(_State):
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
         try:
-            call_vimba_c('VmbCaptureQueueFlush', self.context.cam_handle)
+            call_vmb_c('VmbCaptureQueueFlush', self.context.cam_handle)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             return _build_camera_error(self.context.cam, e)
 
         return _StateAnnounced(self.context)
@@ -212,9 +212,9 @@ class _StateCaptureStarted(_State):
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
         try:
-            call_vimba_c('VmbCaptureEnd', self.context.cam_handle)
+            call_vmb_c('VmbCaptureEnd', self.context.cam_handle)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             return _build_camera_error(self.context.cam, e)
 
         return _StateQueued(self.context)
@@ -240,10 +240,10 @@ class _StateAcquiring(_State):
             frame_handle = _frame_handle_accessor(frame)
 
             try:
-                call_vimba_c('VmbCaptureFrameWait', self.context.cam_handle, byref(frame_handle),
+                call_vmb_c('VmbCaptureFrameWait', self.context.cam_handle, byref(frame_handle),
                              timeout_ms)
 
-            except VimbaCError as e:
+            except VmbCError as e:
                 raise _build_camera_error(self.context.cam, e) from e
 
     @TraceEnable()
@@ -251,10 +251,10 @@ class _StateAcquiring(_State):
         frame_handle = _frame_handle_accessor(frame)
 
         try:
-            call_vimba_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
+            call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
                          self.context.frames_callback)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             raise _build_camera_error(self.context.cam, e) from e
 
 
@@ -884,7 +884,7 @@ class Camera:
         settings = VmbFeaturePersistSettings()
         settings.persistType = VmbFeaturePersist(persist_type)
 
-        call_vimba_c('VmbCameraSettingsSave', self.__handle, file.encode('utf-8'), byref(settings),
+        call_vmb_c('VmbCameraSettingsSave', self.__handle, file.encode('utf-8'), byref(settings),
                      sizeof(settings))
 
     @TraceEnable()
@@ -913,17 +913,17 @@ class Camera:
         settings = VmbFeaturePersistSettings()
         settings.persistType = VmbFeaturePersist(persist_type)
 
-        call_vimba_c('VmbCameraSettingsLoad', self.__handle, file.encode('utf-8'), byref(settings),
+        call_vmb_c('VmbCameraSettingsLoad', self.__handle, file.encode('utf-8'), byref(settings),
                      sizeof(settings))
 
     @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
         try:
-            call_vimba_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
+            call_vmb_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
                          byref(self.__handle))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             err = e.get_error_code()
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
@@ -970,19 +970,19 @@ class Camera:
         remove_feature_accessors(self, self.__feats)
         self.__feats = ()
 
-        call_vimba_c('VmbCameraClose', self.__handle)
+        call_vmb_c('VmbCameraClose', self.__handle)
         self.__handle = VmbHandle(0)
 
     @TraceEnable()
     def _update_permitted_access_modes(self):
         info = VmbCameraInfo()
         try:
-            call_vimba_c('VmbCameraInfoQuery',
+            call_vmb_c('VmbCameraInfoQuery',
                          self.get_id().encode('utf-8'),
                          byref(info),
                          sizeof(info))
 
-        except VimbaCError as e:
+        except VmbCError as e:
             raise VmbCameraError(str(e.get_error_code())) from e
         self.__info.permittedAccess = info.permittedAccess
 
@@ -1020,29 +1020,20 @@ class Camera:
                 raise e
 
 
-def _setup_network_discovery():
-    if discover_feature(G_VIMBA_C_HANDLE, 'GeVTLIsPresent').get():
-        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllDuration').set(250)
-        discover_feature(G_VIMBA_C_HANDLE, 'GeVDiscoveryAllAuto').run()
-
-
 @TraceEnable()
-def discover_cameras(network_discovery: bool) -> CamerasList:
+def discover_cameras() -> CamerasList:
     """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
-
-    if network_discovery:
-        _setup_network_discovery()
 
     result = []
     cams_count = VmbUint32(0)
 
-    call_vimba_c('VmbCamerasList', None, 0, byref(cams_count), 0)
+    call_vmb_c('VmbCamerasList', None, 0, byref(cams_count), 0)
 
     if cams_count:
         cams_found = VmbUint32(0)
         cams_infos = (VmbCameraInfo * cams_count.value)()
 
-        call_vimba_c('VmbCamerasList', cams_infos, cams_count, byref(cams_found),
+        call_vmb_c('VmbCamerasList', cams_infos, cams_count, byref(cams_found),
                      sizeof(VmbCameraInfo))
 
         for info in cams_infos[:cams_found.value]:
@@ -1059,9 +1050,9 @@ def discover_camera(id_: str) -> Camera:
 
     # Try to lookup Camera with given ID. If this function
     try:
-        call_vimba_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
+        call_vmb_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
 
-    except VimbaCError as e:
+    except VmbCError as e:
         raise VmbCameraError(str(e.get_error_code())) from e
 
     return Camera(info)
@@ -1078,7 +1069,7 @@ def _frame_handle_accessor(frame: Frame) -> VmbFrame:
     return frame._frame
 
 
-def _build_camera_error(cam: Camera, orig_exc: VimbaCError) -> VmbCameraError:
+def _build_camera_error(cam: Camera, orig_exc: VmbCError) -> VmbCameraError:
     err = orig_exc.get_error_code()
 
     if err == VmbError.ApiNotStarted:

@@ -52,14 +52,14 @@ __all__ = [
     'VmbFloat',
     'VmbDouble',
     'VmbError',
-    'VimbaCError',
+    'VmbCError',
     'VmbPixelFormat',
     'decode_cstr',
     'decode_flags',
     'fmt_repr',
     'fmt_enum_repr',
     'fmt_flags_repr',
-    'load_vimba_lib'
+    'load_vimbax_lib'
 ]
 
 
@@ -95,34 +95,55 @@ VmbDouble = ctypes.c_double
 class VmbError(Int32Enum):
     """
     Enum containing error types returned
-        Success         - No error
-        InternalFault   - Unexpected fault in VimbaC or driver
-        ApiNotStarted   - VmbStartup() was not called before the current
-                          command
-        NotFound        - The designated instance (camera, feature etc.)
-                          cannot be found
-        BadHandle       - The given handle is not valid
-        DeviceNotOpen   - Device was not opened for usage
-        InvalidAccess   - Operation is invalid with the current access mode
-        BadParameter    - One of the parameters is invalid (usually an illegal
-                          pointer)
-        StructSize      - The given struct size is not valid for this version
-                          of the API
-        MoreData        - More data available in a string/list than space is
-                          provided
-        WrongType       - Wrong feature type for this access function
-        InvalidValue    - The value is not valid; Either out of bounds or not
-                          an increment of the minimum
-        Timeout         - Timeout during wait
-        Other           - Other error
-        Resources       - Resources not available (e.g. memory)
-        InvalidCall     - Call is invalid in the current context (callback)
-        NoTL            - No transport layers are found
-        NotImplemented_ - API feature is not implemented
-        NotSupported    - API feature is not supported
-        Incomplete      - A multiple registers read or write is partially
-                          completed
-        IO              - low level IO error in transport layer
+        Success                 - No error
+        InternalFault           - Unexpected fault in VmbC or driver
+        ApiNotStarted           - VmbStartup() was not called before the current command
+        NotFound                - The designated instance (camera, feature etc.) cannot be found
+        BadHandle               - The given handle is not valid
+        DeviceNotOpen           - Device was not opened for usage
+        InvalidAccess           - Operation is invalid with the current access mode
+        BadParameter            - One of the parameters is invalid (usually an illegal pointer)
+        StructSize              - The given struct size is not valid for this version of the API
+        MoreData                - More data available in a string/list than space is provided
+        WrongType               - Wrong feature type for this access function
+        InvalidValue            - The value is not valid; either out of bounds or not an increment
+                                  of the minimum
+        Timeout                 - Timeout during wait
+        Other                   - Other error
+        Resources               - Resources not available (e.g. memory)
+        InvalidCall             - Call is invalid in the current context (e.g. callback)
+        NoTL                    - No transport layers are found
+        NotImplemented          - API feature is not implemented
+        NotSupported            - API feature is not supported
+        Incomplete              - The current operation was not completed (e.g. a multiple registers
+                                  read or write)
+        IO                      - Low level IO error in transport layer
+        ValidValueSetNotPresent - The valid value set could not be retrieved, since the feature does
+                                  not provide this property
+        GenTLUnspecified        - Unspecified GenTL runtime error
+        Unspecified             - Unspecified runtime error
+        Busy                    - The responsible module/entity is busy executing actions
+        NoData                  - The function has no data to work on
+        ParsingChunkData        - An error occurred parsing a buffer containing chunk data
+        InUse                   - Something is already in use
+        Unknown                 - Error condition unknown
+        Xml                     - Error parsing XML
+        NotAvailable            - Something is not available
+        NotInitialized          - Something is not initialized
+        InvalidAddress          - The given address is out of range or invalid for internal reasons
+        Already                 - Something has already been done
+        NoChunkData             - A frame expected to contain chunk data does not contain chunk data
+        UserCallbackException   - A callback provided by the user threw an exception
+        FeaturesUnavailable     - The XML for the module is currently not loaded; the module could
+                                  be in the wrong state or the XML could not be retrieved or could
+                                  not be parsed properly
+        TLNotFound              - A required transport layer could not be found or loaded
+        Ambiguous               - An entity cannot be uniquely identified based on the information
+                                  provided
+        RetriesExceeded         - Something could not be accomplished with a given number of retries
+        InsufficientBufferCount - The operation requires more buffers
+        Custom                  - The minimum error code to use for user defined error codes to
+                                  avoid conflict with existing error codes
     """
     Success = 0
     InternalFault = -1
@@ -145,6 +166,27 @@ class VmbError(Int32Enum):
     NotSupported = -18
     Incomplete = -19
     IO = -20
+    ValidValueSetNotPresent = -21
+    GenTLUnspecified = -22
+    Unspecified = -23
+    Busy = -24
+    NoData = -25
+    ParsingChunkData = -26
+    InUse = -27
+    Unknown = -28
+    Xml = -29
+    NotAvailable = -30
+    NotInitialized = -31
+    InvalidAddress = -32
+    Already = -33
+    NoChunkData = -34
+    UserCallbackException = -35
+    FeaturesUnavailable = -36
+    TLNotFound = -37
+    Ambiguous = -39
+    RetriesExceeded = -40
+    InsufficientBufferCount = -41
+    Custom = 1
 
     def __str__(self):
         return self._name_
@@ -345,10 +387,10 @@ class VmbPixelFormat(Uint32Enum):
         return self._name_
 
 
-class VimbaCError(Exception):
+class VmbCError(Exception):
     """Error Type containing an error code from the C-Layer. This error code is highly context
        sensitive. All wrapped C-Functions that do not return VmbError.Success or None must
-       raise a VimbaCError and the surrounding code must deal if the Error is possible.
+       raise a VmbCError and the surrounding code must deal if the Error is possible.
     """
 
     def __init__(self, c_error: VmbError):
@@ -359,7 +401,7 @@ class VimbaCError(Exception):
         return repr(self)
 
     def __repr__(self):
-        return 'VimbaCError({})'.format(repr(self.__c_error))
+        return 'VmbCError({})'.format(repr(self.__c_error))
 
     def get_error_code(self) -> VmbError:
         """ Get contained Error Code """
@@ -459,11 +501,11 @@ def fmt_flags_repr(fmt: str, enum_type, enum_val):
     return fmt.format(_repr_flags_list(enum_type, enum_val))
 
 
-def load_vimba_lib(vimba_project: str):
-    """ Load shared library shipped with the Vimba installation
+def load_vimbax_lib(vimbax_project: str):
+    """ Load shared library shipped with the VimbaX installation
 
     Arguments:
-        vimba_project - Library name without prefix or extension
+        vimbax_project - Library name without prefix or extension
 
     Return:
         CDLL or WinDLL Handle on loaded library
@@ -481,11 +523,13 @@ def load_vimba_lib(vimba_project: str):
         msg = 'Abort. Unsupported Platform ({}) detected.'
         raise VmbSystemError(msg.format(sys.platform))
 
-    return platform_handlers[sys.platform](vimba_project)
+    return platform_handlers[sys.platform](vimbax_project)
 
 
-def _load_under_linux(vimba_project: str):
-    # Construct VimbaHome based on TL installation paths
+def _load_under_linux(vimbax_project: str):
+    # TODO: Implement loading of libVmbC.so on linux!
+    raise NotImplementedError('Linux support is not yet implemented!')
+    # Construct VimbaX_Home based on TL installation paths
     path_list: List[str] = []
     tl32_path = os.environ.get('GENICAM_GENTL32_PATH', "")
     if tl32_path:
@@ -500,17 +544,17 @@ def _load_under_linux(vimba_project: str):
 
     # Early return if required variables are not set.
     if not path_list:
-        raise VmbSystemError('No TL detected. Please verify Vimba installation.')
+        raise VmbSystemError('No TL detected. Please verify VimbaX installation.')
 
-    vimba_home_candidates: List[str] = []
+    vimbax_home_candidates: List[str] = []
     for path in path_list:
-        vimba_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
+        vimbax_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
 
-        if vimba_home not in vimba_home_candidates:
-            vimba_home_candidates.append(vimba_home)
+        if vimbax_home not in vimbax_home_candidates:
+            vimbax_home_candidates.append(vimbax_home)
 
     # Select the most likely directory from the candidates
-    vimba_home = _select_vimba_home(vimba_home_candidates)
+    vimbax_home = _select_vimbax_home(vimbax_home_candidates)
 
     arch = platform.machine()
 
@@ -533,29 +577,29 @@ def _load_under_linux(vimba_project: str):
     else:
         raise VmbSystemError('Unknown Architecture \'{}\'. Abort'.format(arch))
 
-    lib_name = 'lib{}.so'.format(vimba_project)
-    lib_path = os.path.join(vimba_home, vimba_project, 'DynamicLib', dir_, lib_name)
+    lib_name = 'lib{}.so'.format(vimbax_project)
+    lib_path = os.path.join(vimbax_home, vimbax_project, 'DynamicLib', dir_, lib_name)
 
     try:
         lib = ctypes.cdll.LoadLibrary(lib_path)
 
     except OSError as e:
-        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        msg = 'Failed to load library \'{}\'. Please verify VimbaX installation.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
 
-def _load_under_windows(vimba_project: str):
-    vimba_home = os.environ.get('VIMBA_HOME')
+def _load_under_windows(vimbax_project: str):
+    vimbax_home = os.environ.get('VIMBAX_HOME')
 
-    if vimba_home is None:
-        raise VmbSystemError('Variable VIMBA_HOME not set. Please verify Vimba installation.')
+    if vimbax_home is None:
+        raise VmbSystemError('Variable VIMBAX_HOME not set. Please verify VimbaX installation.')
 
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
-    lib_name = '{}.dll'.format(vimba_project)
-    lib_path = os.path.join(vimba_home, vimba_project, 'Bin', 'Win64' if load_64bit else 'Win32',
-                            lib_name)
+    lib_name = '{}.dll'.format(vimbax_project)
+    lib_path = os.path.join(vimbax_home, 'Bin', lib_name)
+    os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
         # Load Library with 64 Bit and use cdecl call convention
@@ -569,36 +613,36 @@ def _load_under_windows(vimba_project: str):
             lib = ctypes.windll.LoadLibrary(lib_path)  # type: ignore
 
     except OSError as e:
-        msg = 'Failed to load library \'{}\'. Please verify Vimba installation.'
+        msg = 'Failed to load library \'{}\'. Please verify VimbaX installation.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
 
-def _select_vimba_home(candidates: List[str]) -> str:
+def _select_vimbax_home(candidates: List[str]) -> str:
     """
-    Select the most likely candidate for VIMBA_HOME from the given list of
+    Select the most likely candidate for VIMBAX_HOME from the given list of
     candidates
 
     Arguments:
-        candidates - List of strings pointing to possible vimba home directories
+        candidates - List of strings pointing to possible VimbaX home directories
 
     Return:
-        Path that represents the most likely VIMBA_HOME directory
+        Path that represents the most likely VIMBAX_HOME directory
 
     Raises:
-        VmbSystemError if multiple VIMBA_HOME directories were found in candidates
+        VmbSystemError if multiple VIMBAX_HOME directories were found in candidates
     """
     most_likely_candidates = []
     for candidate in candidates:
-        if 'vimba' in candidate.lower():
+        if 'vimbax' in candidate.lower():
             most_likely_candidates.append(candidate)
 
     if len(most_likely_candidates) == 0:
-        raise VmbSystemError('No suitable Vimba installation found. The following paths '
+        raise VmbSystemError('No suitable VimbaX installation found. The following paths '
                                'were considered: {}'.format(candidates))
     elif len(most_likely_candidates) > 1:
-        raise VmbSystemError('Multiple Vimba installations found. Can\'t decide which to select: '
+        raise VmbSystemError('Multiple VimbaX installations found. Can\'t decide which to select: '
                                '{}'.format(most_likely_candidates))
 
     return most_likely_candidates[0]

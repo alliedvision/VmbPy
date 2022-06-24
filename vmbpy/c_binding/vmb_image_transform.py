@@ -32,8 +32,8 @@ from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VmbSystemError
 from ..util import TraceEnable
-from .vimba_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VimbaCError, \
-    VmbPixelFormat, load_vimba_lib, fmt_repr, fmt_enum_repr
+from .vmb_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VmbCError, \
+    VmbPixelFormat, load_vimbax_lib, fmt_repr, fmt_enum_repr
 
 
 __all__ = [
@@ -46,9 +46,9 @@ __all__ = [
     'VmbImage',
     'VmbImageInfo',
     'VmbTransformInfo',
-    'VIMBA_IMAGE_TRANSFORM_VERSION',
-    'EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION',
-    'call_vimba_image_transform',
+    'VMB_IMAGE_TRANSFORM_VERSION',
+    'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
+    'call_vmb_image_transform',
     'PIXEL_FORMAT_TO_LAYOUT',
     'LAYOUT_TO_PIXEL_FORMAT',
     'PIXEL_FORMAT_CONVERTIBILITY_MAP'
@@ -86,8 +86,8 @@ class VmbEndianness(Uint32Enum):
     """Enum defining Endian Formats
     Values:
         LITTLE - Little Endian
-        BIG - Big Endian
-        LAST - Indicator for end of defined range
+        BIG    - Big Endian
+        LAST   - Indicator for end of defined range
     """
     LITTLE = 0
     BIG = 1
@@ -100,8 +100,8 @@ class VmbEndianness(Uint32Enum):
 class VmbAligment(Uint32Enum):
     """Enum defining image alignment
     Values:
-        MSB - Alignment (pppp pppp pppp ....)
-        LSB - Alignment (.... pppp pppp pppp)
+        MSB  - Alignment (pppp pppp pppp ....)
+        LSB  - Alignment (.... pppp pppp pppp)
         LAST - Indicator for end of defined range
     """
     MSB = 0
@@ -311,14 +311,14 @@ class VmbTransformInfo(ctypes.Structure):
 
 
 # API
-VIMBA_IMAGE_TRANSFORM_VERSION = None
+VMB_IMAGE_TRANSFORM_VERSION = None
 if sys.platform == 'linux':
-    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.0'
+    EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.0'
 
 else:
-    EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION = '1.6'
+    EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.7'
 
-# For detailed information on the signatures see "VimbaImageTransform.h"
+# For detailed information on the signatures see "VmbTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
 # check of flake8
 _SIGNATURES = {
@@ -348,50 +348,50 @@ def _attach_signatures(lib_handle):
 
 
 def _check_version(lib_handle):
-    global EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION
-    global VIMBA_IMAGE_TRANSFORM_VERSION
+    global EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
+    global VMB_IMAGE_TRANSFORM_VERSION
 
     v = VmbUint32()
     lib_handle.VmbGetVersion(byref(v))
 
-    VIMBA_IMAGE_TRANSFORM_VERSION = '{}.{}'.format((v.value >> 24) & 0xff, (v.value >> 16) & 0xff)
+    VMB_IMAGE_TRANSFORM_VERSION = '{}.{}'.format((v.value >> 24) & 0xff, (v.value >> 16) & 0xff)
 
-    loaded_version = tuple(map(int, VIMBA_IMAGE_TRANSFORM_VERSION.split(".")))
-    expected_version = tuple(map(int, EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION.split(".")))
+    loaded_version = tuple(map(int, VMB_IMAGE_TRANSFORM_VERSION.split(".")))
+    expected_version = tuple(map(int, EXPECTED_VMB_IMAGE_TRANSFORM_VERSION.split(".")))
     # Major version must match. minor version may be equal or greater
     if not(loaded_version[0] == expected_version[0] and
            loaded_version[1] >= expected_version[1]):
-        msg = 'Invalid VimbaImageTransform Version: Expected: {}, Found:{}'
-        raise VmbSystemError(msg.format(EXPECTED_VIMBA_IMAGE_TRANSFORM_VERSION,
-                                          VIMBA_IMAGE_TRANSFORM_VERSION))
+        msg = 'Invalid VmbImageTransform Version: Expected: {}, Found:{}'
+        raise VmbSystemError(msg.format(EXPECTED_VMB_IMAGE_TRANSFORM_VERSION,
+                                          VMB_IMAGE_TRANSFORM_VERSION))
 
     return lib_handle
 
 
 def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any, ...]):
     if result not in (VmbError.Success, None):
-        raise VimbaCError(result)
+        raise VmbCError(result)
 
 
-_lib_instance = _check_version(_attach_signatures(load_vimba_lib('VimbaImageTransform')))
+_lib_instance = _check_version(_attach_signatures(load_vimbax_lib('VmbImageTransform')))
 
 
 @TraceEnable()
-def call_vimba_image_transform(func_name: str, *args):
-    """This function encapsulates the entire VimbaImageTransform access.
+def call_vmb_image_transform(func_name: str, *args):
+    """This function encapsulates the entire VmbImageTransform access.
 
-    For Details on valid function signatures see the 'VimbaImageTransform.h'.
+    For Details on valid function signatures see the 'VmbTransform.h'.
 
     Arguments:
-        func_name: The function name from VimbaImageTransform to be called.
-        args: Varargs passed directly to the underlaying C-Function.
+        func_name: The function name from VmbImageTransform to be called.
+        args: Varargs passed directly to the underlying C-Function.
 
     Raises:
         TypeError if given are do not match the signature of the function.
         AttributeError if func with name 'func_name' does not exist.
-        VimbaCError if the function call is valid but neither None or VmbError.Success was returned.
+        VmbCError if the function call is valid but neither None or VmbError.Success was returned.
 
-    The following functions of VimbaImageTransform can be executed:
+    The following functions of VmbImageTransform can be executed:
         VmbGetVersion
         VmbGetTechnoInfo
         VmbGetErrorInfo
@@ -475,7 +475,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
     src_image = VmbImage()
     src_image.Size = sizeof(src_image)
 
-    call_vimba_image_transform('VmbSetImageInfoFromPixelFormat', pixel_format, 0, 0,
+    call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', pixel_format, 0, 0,
                                byref(src_image))
 
     dst_image = VmbImage()
@@ -484,7 +484,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
     for layout, bits in output_layouts:
 
         try:
-            call_vimba_image_transform('VmbSetImageInfoFromInputImage', byref(src_image), layout,
+            call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(src_image), layout,
                                        bits, byref(dst_image))
 
             fmt = LAYOUT_TO_PIXEL_FORMAT[(layout, bits)]
@@ -492,7 +492,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
             if fmt not in result:
                 result.append(fmt)
 
-        except VimbaCError as e:
+        except VmbCError as e:
             if e.get_error_code() not in (VmbError.NotImplemented_, VmbError.BadParameter):
                 raise e
 
