@@ -365,11 +365,11 @@ class VmbCameraInfo(ctypes.Structure):
         rep += fmt_repr(',cameraName={}', self.cameraName)
         rep += fmt_repr(',modelName={}', self.modelName)
         rep += fmt_repr(',serialString={}', self.serialString)
-        rep += fmt_repr(',transportLayerHandle={}', VmbHandle),
-        rep += fmt_repr(',interfaceHandle={}', VmbHandle),
-        rep += fmt_repr(',localDeviceHandle={}', VmbHandle),
-        rep += fmt_repr(',streamHandles={}', c_ptr(VmbHandle)),
-        rep += fmt_repr(',streamCount={}', VmbUint32),
+        rep += fmt_repr(',transportLayerHandle={}', self.transportLayerHandle)
+        rep += fmt_repr(',interfaceHandle={}', self.interfaceHandle)
+        rep += fmt_repr(',localDeviceHandle={}', self.localDeviceHandle)
+        rep += fmt_repr(',streamHandles={}', self.streamHandles)
+        rep += fmt_repr(',streamCount={}', self.streamCount)
         rep += fmt_flags_repr(',permittedAccess={}', VmbAccessMode, self.permittedAccess)
         rep += ')'
         return rep
