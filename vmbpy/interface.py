@@ -32,10 +32,9 @@ from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
-                    attach_feature_accessors, remove_feature_accessors, read_memory, \
+                    attach_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
-                  RaiseIfOutsideContext
+from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
 
 
@@ -99,28 +98,12 @@ class Interface:
     """
 
     @TraceEnable()
-    @LeaveContextOnCall()
     def __init__(self, info: VmbInterfaceInfo):
         """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
-        self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbInterfaceInfo = info
-        self.__feats: FeaturesTuple = ()
-        self.__context_cnt: int = 0
-
-    @TraceEnable()
-    def __enter__(self):
-        if not self.__context_cnt:
-            self._open()
-
-        self.__context_cnt += 1
-        return self
-
-    @TraceEnable()
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.__context_cnt -= 1
-
-        if not self.__context_cnt:
-            self._close()
+        self.__handle: VmbHandle = self.__info.interfaceHandle
+        self.__feats = discover_features(self.__handle)
+        attach_feature_accessors(self, self.__feats)
 
     def __str__(self):
         return 'Interface(id={})'.format(self.get_id())
@@ -145,7 +128,6 @@ class Interface:
         return decode_cstr(self.__info.interfaceName)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:  # coverage: skip
         """Read a byte sequence from a given memory address.
@@ -168,7 +150,6 @@ class Interface:
         return read_memory(self.__handle, addr, max_bytes)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):  # coverage: skip
         """Write a byte sequence to a given memory address.
@@ -186,7 +167,6 @@ class Interface:
         return write_memory(self.__handle, addr, data)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:  # coverage: skip
         """Read contents of multiple registers.
@@ -207,7 +187,6 @@ class Interface:
         return read_registers(self.__handle, addrs)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_registers(self, addrs_values: Dict[int, int]):  # coverage: skip
         """Write data to multiple registers.
@@ -223,7 +202,6 @@ class Interface:
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_registers(self.__handle, addrs_values)
 
-    @RaiseIfOutsideContext()
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this Interface.
 
@@ -236,7 +214,6 @@ class Interface:
         return self.__feats
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features affected by a specific interface feature.
@@ -255,7 +232,6 @@ class Interface:
         return filter_affected_features(self.__feats, feat)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific interface feature.
@@ -273,7 +249,6 @@ class Interface:
         """
         return filter_selected_features(self.__feats, feat)
 
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all interface features of a specific feature type.
@@ -293,7 +268,6 @@ class Interface:
         """
         return filter_features_by_type(self.__feats, feat_type)
 
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all interface features of a specific category.
@@ -310,7 +284,6 @@ class Interface:
         """
         return filter_features_by_category(self.__feats, category)
 
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get an interface feature by its name.
@@ -332,27 +305,6 @@ class Interface:
             raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
         return feat
-
-    @TraceEnable()
-    @EnterContextOnCall()
-    def _open(self):
-        call_vmb_c('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
-
-        self.__feats = discover_features(self.__handle)
-        attach_feature_accessors(self, self.__feats)
-
-    @TraceEnable()
-    @LeaveContextOnCall()
-    def _close(self):
-        for feat in self.__feats:
-            feat.unregister_all_change_handlers()
-
-        remove_feature_accessors(self, self.__feats)
-        self.__feats = ()
-
-        call_vmb_c('VmbInterfaceClose', self.__handle)
-
-        self.__handle = VmbHandle(0)
 
 
 @TraceEnable()

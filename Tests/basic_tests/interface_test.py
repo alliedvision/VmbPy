@@ -73,102 +73,71 @@ class InterfaceTest(VmbPyTestCase):
     def test_interface_get_all_features(self):
         # Expectation: Call get_all_features raises RuntimeError outside of with
         # Inside of with return a non empty set
-        with self.vimba.get_all_interfaces()[0] as inter:
-            self.assertNotEqual(inter.get_all_features(), ())
+        inter = self.vimba.get_all_interfaces()[0]
+        self.assertNotEqual(inter.get_all_features(), ())
 
     def test_interface_get_features_affected_by(self):
         # Expectation: Call get_features_affected_by raises RuntimeError outside of with.
         # Inside with it must either return and empty set if the given feature has no affected
         # Feature or a set off affected features
-        with self.vimba.get_all_interfaces()[0] as inter:
-            try:
-                affects_feats = inter.get_feature_by_name('DeviceUpdateList')
+        inter = self.vimba.get_all_interfaces()[0]
+        try:
+            affects_feats = inter.get_feature_by_name('DeviceUpdateList')
 
-            except VmbFeatureError:
-                self.skipTest('Test requires Feature \'DeviceUpdateList\'.')
+        except VmbFeatureError:
+            self.skipTest('Test requires Feature \'DeviceUpdateList\'.')
 
-            try:
-                not_affects_feats = inter.get_feature_by_name('DeviceCount')
+        try:
+            not_affects_feats = inter.get_feature_by_name('DeviceCount')
 
-            except VmbFeatureError:
-                self.skipTest('Test requires Feature \'DeviceCount\'.')
+        except VmbFeatureError:
+            self.skipTest('Test requires Feature \'DeviceCount\'.')
 
-            self.assertTrue(affects_feats.has_affected_features())
-            self.assertNotEquals(inter.get_features_affected_by(affects_feats), ())
+        self.assertTrue(affects_feats.has_affected_features())
+        self.assertNotEquals(inter.get_features_affected_by(affects_feats), ())
 
-            self.assertFalse(not_affects_feats.has_affected_features())
-            self.assertEquals(inter.get_features_affected_by(not_affects_feats), ())
+        self.assertFalse(not_affects_feats.has_affected_features())
+        self.assertEquals(inter.get_features_affected_by(not_affects_feats), ())
 
     def test_interface_get_features_selected_by(self):
         # Expectation: Call get_features_selected_by raises RuntimeError outside of with.
         # Inside with it must either return and empty set if the given feature has no selected
         # Feature or a set off affected features
-        with self.vimba.get_all_interfaces()[0] as inter:
-            try:
-                selects_feats = inter.get_feature_by_name('DeviceSelector')
+        inter = self.vimba.get_all_interfaces()[0]
+        try:
+            selects_feats = inter.get_feature_by_name('DeviceSelector')
 
-            except VmbFeatureError:
-                self.skipTest('Test requires Feature \'DeviceSelector\'.')
+        except VmbFeatureError:
+            self.skipTest('Test requires Feature \'DeviceSelector\'.')
 
-            try:
-                not_selects_feats = inter.get_feature_by_name('DeviceCount')
+        try:
+            not_selects_feats = inter.get_feature_by_name('DeviceCount')
 
-            except VmbFeatureError:
-                self.skipTest('Test requires Feature \'DeviceCount\'.')
+        except VmbFeatureError:
+            self.skipTest('Test requires Feature \'DeviceCount\'.')
 
-            self.assertTrue(selects_feats.has_selected_features())
-            self.assertNotEquals(inter.get_features_selected_by(selects_feats), ())
+        self.assertTrue(selects_feats.has_selected_features())
+        self.assertNotEquals(inter.get_features_selected_by(selects_feats), ())
 
-            self.assertFalse(not_selects_feats.has_selected_features())
-            self.assertEquals(inter.get_features_selected_by(not_selects_feats), ())
+        self.assertFalse(not_selects_feats.has_selected_features())
+        self.assertEquals(inter.get_features_selected_by(not_selects_feats), ())
 
     def test_interface_get_features_by_type(self):
         # Expectation: Call get_features_by_type raises RuntimeError outside of with
         # Inside of with return a non empty set for IntFeature (DeviceCount is IntFeature)
-        with self.vimba.get_all_interfaces()[0] as inter:
-            self.assertNotEqual(inter.get_features_by_type(IntFeature), ())
+        inter = self.vimba.get_all_interfaces()[0]
+        self.assertNotEqual(inter.get_features_by_type(IntFeature), ())
 
     def test_interface_get_features_by_category(self):
         # Expectation: Call get_features_by_category raises RuntimeError outside of with
         # Inside of with return a non empty set for /DeviceEnumeration)
-        with self.vimba.get_all_interfaces()[0] as inter:
-            self.assertNotEqual(inter.get_features_by_category('/DeviceEnumeration'), ())
+        inter = self.vimba.get_all_interfaces()[0]
+        self.assertNotEqual(inter.get_features_by_category('/DeviceEnumeration'), ())
 
     def test_interface_get_feature_by_name(self):
         # Expectation: Call get_feature_by_name raises RuntimeError outside of with
         # Inside of with return dont raise VimbaFeatureError for 'DeviceCount'
         # A invalid name must raise VimbaFeatureError
-        with self.vimba.get_all_interfaces()[0] as inter:
-            self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
-            self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
-
-    def test_interface_context_manager_reentrancy(self):
-        # Expectation: Implemented Context Manager must be reentrant, not causing
-        # multiple interface openings (would cause C-Errors)
-        with self.vimba.get_all_interfaces()[0] as inter:
-            with inter:
-                with inter:
-                    pass
-
-    def test_interface_api_context_sensitivity_inside_context(self):
-        # Expectation: Interface has functions that shall only be callable inside the Context,
-        # calling outside must cause a runtime error. This test check only if the RuntimeErrors
-        # are triggered then called Outside of the with block.
         inter = self.vimba.get_all_interfaces()[0]
-
-        self.assertRaises(RuntimeError, inter.read_memory, 0, 0)
-        self.assertRaises(RuntimeError, inter.write_memory, 0, b'foo')
-        self.assertRaises(RuntimeError, inter.read_registers, ())
-        self.assertRaises(RuntimeError, inter.write_registers, {0: 0})
-        self.assertRaises(RuntimeError, inter.get_all_features)
-
-        # Enter scope to get handle on Features as valid parameters for the test:
-        # Don't to this in production code because the features will be invalid if used.
-        with inter:
-            feat = inter.get_all_features()[0]
-
-        self.assertRaises(RuntimeError, inter.get_features_affected_by, feat)
-        self.assertRaises(RuntimeError, inter.get_features_selected_by, feat)
-        self.assertRaises(RuntimeError, inter.get_features_by_type, IntFeature)
-        self.assertRaises(RuntimeError, inter.get_features_by_category, 'foo')
-        self.assertRaises(RuntimeError, inter.get_feature_by_name, 'foo')
+        self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
+        self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
