@@ -433,10 +433,19 @@ class Camera:
             tls = vmb.get_all_transport_layers()
             return [tl for tl in tls if tl._get_handle() == self.__info.transportLayerHandle].pop()
 
+    def get_interface(self):
+        raise NotImplementedError
+
     def get_interface_id(self) -> str:
         """Get ID of the Interface this camera is connected to, for example, VimbaUSBInterface_0x0
         """
         return decode_cstr(self.__info.interfaceIdString)
+
+    def get_streams(self):
+        raise NotImplementedError
+
+    def get_local_device(self):
+        raise NotImplementedError
 
     @TraceEnable()
     @RaiseIfOutsideContext()

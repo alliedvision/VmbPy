@@ -206,6 +206,12 @@ class VmbSystem:
             return tuple(self.__transport_layers)
 
         @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
+        def get_transport_layer_by_id(self, id_: str) -> TransportLayersTuple:
+            """TODO"""
+            raise NotImplementedError
+
+        @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
             """Get access to all discovered Interfaces:
 
@@ -316,6 +322,12 @@ class VmbSystem:
                 raise VmbInterfaceError('No cameras for TL \'{}\' found.'.format(tl_))
 
             return cams
+
+        @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
+        def get_cameras_by_interface(self, interface_: Interface):
+            """TODO"""
+            raise NotImplementedError
 
         @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:
