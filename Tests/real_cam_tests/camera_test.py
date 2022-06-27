@@ -168,6 +168,10 @@ class CamCameraTest(VmbPyTestCase):
         # Remove the additional change handler we registered
         self.vmb.DiscoveryCameraEvent.unregister_change_handler(_device_unreachable_informer)
 
+    def test_camera_get_transport_layer_type(self):
+        # Expectation: returns instance of transport layer for Camera instance
+        self.assertIsInstance(self.cam.get_transport_layer(), TransportLayer)
+
     def test_camera_get_interface_id(self):
         # Expectation: get interface Id this camera is connected to
         self.assertTrue(self.cam.get_interface_id())
