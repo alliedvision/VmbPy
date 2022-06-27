@@ -69,21 +69,21 @@ def _open_camera(id: str,
 
 class CamCameraTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         self.cam.set_access_mode(AccessMode.Full)
 
     def tearDown(self):
         self.cam.set_access_mode(AccessMode.Full)
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_camera_context_manager_access_mode(self):
         # Expectation: Entering Context must not throw in cases where the current access mode is
@@ -142,12 +142,12 @@ class CamCameraTest(VmbPyTestCase):
 
         # Additional change handler that will inform us when our camera became "Unreachable"
         def _device_unreachable_informer(cam_event):
-            cam_id = self.vimba.get_feature_by_name('DiscoveryCameraIdent').get()
+            cam_id = self.vmb.get_feature_by_name('DiscoveryCameraIdent').get()
             if (cam_id == self.cam.get_id()
                     and CameraEvent(int(cam_event.get())) == CameraEvent.Unreachable):
                 device_unreachable_event.set()
 
-        self.vimba.DiscoveryCameraEvent.register_change_handler(_device_unreachable_informer)
+        self.vmb.DiscoveryCameraEvent.register_change_handler(_device_unreachable_informer)
 
         # Prepare a process that will open the camera for us so we can observe the change in
         # permitted access modes. Must be a separate process, separate thread is not enough.
@@ -166,7 +166,7 @@ class CamCameraTest(VmbPyTestCase):
         shutdown_request.set()
         p.join()
         # Remove the additional change handler we registered
-        self.vimba.DiscoveryCameraEvent.unregister_change_handler(_device_unreachable_informer)
+        self.vmb.DiscoveryCameraEvent.unregister_change_handler(_device_unreachable_informer)
 
     def test_camera_get_interface_id(self):
         # Expectation: get interface Id this camera is connected to
@@ -248,7 +248,7 @@ class CamCameraTest(VmbPyTestCase):
             gener = self.cam.get_frame_generator(1)
 
         # Shutdown API
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
         # Access invalid Iterator
         self.assertRaises(RuntimeError, next, gener)
