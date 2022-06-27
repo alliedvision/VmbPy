@@ -34,7 +34,8 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
-from .transportlayer import TransportLayer, TransportLayerList, discover_transport_layers
+from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayerList, \
+                            discover_transport_layers
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesList, discover_interfaces, discover_interface
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
@@ -193,7 +194,15 @@ class VmbSystem:
             return write_registers(G_VMB_C_HANDLE, addrs_values)
 
         @RaiseIfOutsideContext()
-        def get_all_transport_layers(self):
+        def get_all_transport_layers(self) -> TransportLayersTuple:
+            """Get access to all loaded Transport Layers
+
+            Returns:
+                A set of all currently loaded Transport Layers
+
+            Raises:
+                RuntimeError then called outside of "with" - statement.
+            """
             return tuple(self.__transport_layers)
 
         @RaiseIfOutsideContext()
@@ -232,6 +241,18 @@ class VmbSystem:
                 raise VmbInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
 
             return inter.pop()
+
+        @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
+        def get_interfaces_by_tl(self, tl_: TransportLayer) -> InterfacesTuple:
+            """TODO"""
+            with self.__inters_lock:
+                inters = tuple(i for i in self.__inters if tl_ == i.get_transport_layer())
+
+            if not inters:
+                raise VmbInterfaceError('No interfaces for TL \'{}\' found.'.format(tl_))
+
+            return inters
 
         @RaiseIfOutsideContext()
         def get_all_cameras(self) -> CamerasTuple:
@@ -283,6 +304,18 @@ class VmbSystem:
                     pass
 
             raise VmbCameraError('No Camera with Id \'{}\' available.'.format(id_))
+
+        @RaiseIfOutsideContext()
+        @RuntimeTypeCheckEnable()
+        def get_cameras_by_tl(self, tl_: TransportLayer):
+            """TODO"""
+            with self.__cams_lock:
+                cams = [c for c in self.__cams if tl_ == c.get_transport_layer()]
+
+            if not cams:
+                raise VmbInterfaceError('No cameras for TL \'{}\' found.'.format(tl_))
+
+            return cams
 
         @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:

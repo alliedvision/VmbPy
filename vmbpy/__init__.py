@@ -106,9 +106,9 @@ from .vmbsystem import VmbSystem
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
-from .interface import Interface, TransportLayerType, InterfaceChangeHandler, InterfaceEvent
+from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 
-from .transportlayer import TransportLayer
+from .transportlayer import TransportLayer, TransportLayerType
 
 from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
                    BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \

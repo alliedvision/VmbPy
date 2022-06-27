@@ -29,6 +29,7 @@ import enum
 from typing import Tuple, List, Callable, Dict
 from .c_binding import call_vmb_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterfaceInfo, VmbHandle, VmbUint32
+from . import vmbsystem
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
@@ -36,10 +37,9 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     write_memory, read_registers, write_registers
 from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
-from .transportlayer import TransportLayerType
+from .transportlayer import TransportLayer, TransportLayerType
 
 __all__ = [
-    'TransportLayerType',
     'Interface',
     'InterfaceEvent',
     'InterfaceChangeHandler',
@@ -183,6 +183,13 @@ class Interface:
             A set of all currently detected features.
         """
         return self.__feats
+
+    def get_transport_layer(self) -> TransportLayer:
+        """Get the Transport Layer associated with this instance of Interface
+        """
+        with vmbsystem.VmbSystem.get_instance() as vmb:
+            tls = vmb.get_all_transport_layers()
+            return [tl for tl in tls if tl._get_handle() == self.__info.transportLayerHandle].pop()
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()

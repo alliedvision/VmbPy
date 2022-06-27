@@ -41,6 +41,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
+from . import vmbsystem
 from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
@@ -426,6 +427,11 @@ class Camera:
     def get_permitted_access_modes(self) -> Tuple[AccessMode, ...]:
         """Get a set of all access modes the camera can be accessed with."""
         return decode_flags(AccessMode, self.__info.permittedAccess)
+
+    def get_transport_layer(self):
+        with vmbsystem.VmbSystem.get_instance() as vmb:
+            tls = vmb.get_all_transport_layers()
+            return [tl for tl in tls if tl._get_handle() == self.__info.transportLayerHandle].pop()
 
     def get_interface_id(self) -> str:
         """Get ID of the Interface this camera is connected to, for example, VimbaUSBInterface_0x0
