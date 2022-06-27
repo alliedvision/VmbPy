@@ -10,16 +10,18 @@ from helpers import VmbPyTestCase
 class TransportLayerTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
-        self.vmb._startup()
+        # Actually enter context manager manually because it needs to be entered during test runs
+        # and `_startup` will otherwise experience VmbErrorAlready
+        self.vmb.__enter__()
 
         transport_layers = self.vmb.get_all_transport_layers()
 
         if not transport_layers:
-            self.vmb._shutdown()
+            self.vmb.__exit__(None, None, None)
             self.skipTest('No Transport Layers available to test against. Abort.')
 
     def tearDown(self):
-        self.vmb._shutdown()
+        self.vmb.__exit__(None, None, None)
 
     def test_transport_layer_interfaces_have_correct_type(self):
         # Expectation: All interfaces reported by the transport layer are of type Interface
