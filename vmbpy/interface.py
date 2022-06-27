@@ -32,10 +32,9 @@ from .c_binding import VmbInterface, VmbInterfaceInfo, VmbHandle, VmbUint32
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
-                    attach_feature_accessors, remove_feature_accessors, read_memory, \
+                    attach_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
-                  RaiseIfOutsideContext
+from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
 
 
@@ -92,35 +91,15 @@ class InterfaceEvent(enum.IntEnum):
 
 
 class Interface:
-    """This class allows access to an interface such as USB detected by Vimba.
-    Interface is meant to be used in conjunction with the "with" - statement. On entering a context,
-    all Interface features are detected and can be accessed within the context. Static Interface
-    properties like Name can be accessed outside the context.
-    """
+    """This class allows access to an interface such as USB detected by Vimba."""
 
     @TraceEnable()
-    @LeaveContextOnCall()
     def __init__(self, info: VmbInterfaceInfo):
         """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
-        self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbInterfaceInfo = info
-        self.__feats: FeaturesTuple = ()
-        self.__context_cnt: int = 0
-
-    @TraceEnable()
-    def __enter__(self):
-        if not self.__context_cnt:
-            self._open()
-
-        self.__context_cnt += 1
-        return self
-
-    @TraceEnable()
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.__context_cnt -= 1
-
-        if not self.__context_cnt:
-            self._close()
+        self.__handle: VmbHandle = self.__info.interfaceHandle
+        self.__feats = discover_features(self.__handle)
+        attach_feature_accessors(self, self.__feats)
 
     def __str__(self):
         return 'Interface(id={})'.format(self.get_id())
@@ -144,12 +123,7 @@ class Interface:
         """Get Interface Name such as Vimba USB Interface."""
         return decode_cstr(self.__info.interfaceName)
 
-    def get_serial(self) -> str:
-        """Get Interface Serial or '' if not set."""
-        return decode_cstr(self.__info.serialString)
-
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:  # coverage: skip
         """Read a byte sequence from a given memory address.
@@ -163,7 +137,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             ValueError if addr is negative.
             ValueError if max_bytes is negative.
             ValueError if the memory access was invalid.
@@ -172,7 +145,6 @@ class Interface:
         return read_memory(self.__handle, addr, max_bytes)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):  # coverage: skip
         """Write a byte sequence to a given memory address.
@@ -183,14 +155,12 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             ValueError if addr is negative.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:  # coverage: skip
         """Read contents of multiple registers.
@@ -203,7 +173,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             ValueError if any address in addrs is negative.
             ValueError if the register access was invalid.
         """
@@ -211,7 +180,6 @@ class Interface:
         return read_registers(self.__handle, addrs)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def write_registers(self, addrs_values: Dict[int, int]):  # coverage: skip
         """Write data to multiple registers.
@@ -227,20 +195,15 @@ class Interface:
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_registers(self.__handle, addrs_values)
 
-    @RaiseIfOutsideContext()
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this Interface.
 
         Returns:
             A set of all currently detected features.
-
-        Raises:
-            RuntimeError if called outside "with" - statement.
         """
         return self.__feats
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features affected by a specific interface feature.
@@ -253,13 +216,11 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             VmbFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_affected_features(self.__feats, feat)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific interface feature.
@@ -272,12 +233,10 @@ class Interface:
 
         Raises:
             TypeError if 'feat' is not of any feature type.
-            RuntimeError if called outside "with" - statement.
             VmbFeatureError if 'feat' is not a feature of this interface.
         """
         return filter_selected_features(self.__feats, feat)
 
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all interface features of a specific feature type.
@@ -293,11 +252,9 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
         """
         return filter_features_by_type(self.__feats, feat_type)
 
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all interface features of a specific category.
@@ -310,11 +267,9 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
         """
         return filter_features_by_category(self.__feats, category)
 
-    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get an interface feature by its name.
@@ -327,7 +282,6 @@ class Interface:
 
         Raises:
             TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement.
             VmbFeatureError if no feature is associated with 'feat_name'.
         """
         feat = filter_features_by_name(self.__feats, feat_name)
@@ -336,27 +290,6 @@ class Interface:
             raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
 
         return feat
-
-    @TraceEnable()
-    @EnterContextOnCall()
-    def _open(self):
-        call_vmb_c('VmbInterfaceOpen', self.__info.interfaceIdString, byref(self.__handle))
-
-        self.__feats = discover_features(self.__handle)
-        attach_feature_accessors(self, self.__feats)
-
-    @TraceEnable()
-    @LeaveContextOnCall()
-    def _close(self):
-        for feat in self.__feats:
-            feat.unregister_all_change_handlers()
-
-        remove_feature_accessors(self, self.__feats)
-        self.__feats = ()
-
-        call_vmb_c('VmbInterfaceClose', self.__handle)
-
-        self.__handle = VmbHandle(0)
 
 
 @TraceEnable()
