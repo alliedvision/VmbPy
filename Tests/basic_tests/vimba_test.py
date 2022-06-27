@@ -99,6 +99,7 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.write_memory, 0, b'foo')
         self.assertRaises(RuntimeError, self.vmb.read_registers, ())
         self.assertRaises(RuntimeError, self.vmb.write_registers, {0: 0})
+        self.assertRaises(RuntimeError, self.vmb.get_all_transport_layers)
         self.assertRaises(RuntimeError, self.vmb.get_all_interfaces)
         self.assertRaises(RuntimeError, self.vmb.get_interface_by_id, 'id')
         self.assertRaises(RuntimeError, self.vmb.get_all_cameras)
@@ -115,3 +116,10 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_features_by_type, IntFeature)
         self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')
         self.assertRaises(RuntimeError, self.vmb.get_feature_by_name, 'foo')
+
+    def test_get_transport_all_layers_type(self):
+        # Expectation: All transport layer instances returned by `get_all_transport_layers` have
+        # correct type
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertIsInstance(tl, TransportLayer)
