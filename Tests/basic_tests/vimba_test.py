@@ -55,7 +55,7 @@ class VimbaTest(VmbPyTestCase):
                 self.assertIsInstance(cam, Camera)
 
     def test_get_camera_by_id(self):
-        # Expectation: Getting a camera by id should return the expected tl
+        # Expectation: Getting a camera by id should return the expected camera
         with self.vmb:
             for cam in self.vmb.get_all_cameras():
                 self.assertEquals(cam,
@@ -74,7 +74,7 @@ class VimbaTest(VmbPyTestCase):
                 self.assertIsInstance(inter, Interface)
 
     def test_get_interface_by_id(self):
-        # Expectation: Getting an interface by id should return the expected tl
+        # Expectation: Getting an interface by id should return the expected interface
         with self.vmb:
             for inter in self.vmb.get_all_interfaces():
                 self.assertEquals(inter,
