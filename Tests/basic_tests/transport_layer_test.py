@@ -26,20 +26,22 @@ class TransportLayerTest(VmbPyTestCase):
     def test_transport_layer_interfaces_have_correct_type(self):
         # Expectation: All interfaces reported by the transport layer are of type Interface
         for tl in self.vmb.get_all_transport_layers():
-            interfaces = tl.get_interfaces()
-            if not interfaces:
-                self.skipTest(f'Could not test because {tl} did not provide any interfaces')
-            for i in interfaces:
-                self.assertIsInstance(i, Interface)
+            with self.subTest(f'transport_layer={str(tl)}'):
+                interfaces = tl.get_interfaces()
+                if not interfaces:
+                    self.skipTest(f'Could not test because {tl} did not provide any interfaces')
+                for i in interfaces:
+                    self.assertIsInstance(i, Interface)
 
     def test_transport_layer_cameras_have_correct_type(self):
         # Expectation: All cameras reported by the transport layer are of type Camera
         for tl in self.vmb.get_all_transport_layers():
-            cameras = tl.get_cameras()
-            if not cameras:
-                self.skipTest(f'Could not test because {tl} did not provide any cameras')
-            for cam in cameras:
-                self.assertIsInstance(cam, Camera)
+            with self.subTest(f'transport_layer={str(tl)}'):
+                cameras = tl.get_cameras()
+                if not cameras:
+                    self.skipTest(f'Could not test because {tl} did not provide any cameras')
+                for cam in cameras:
+                    self.assertIsInstance(cam, Camera)
 
     def test_transport_layer_decode_id(self):
         # Expectation all transport layer ids can be decoded to something other than ''
