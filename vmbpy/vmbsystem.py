@@ -313,10 +313,10 @@ class VmbSystem:
 
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
-        def get_cameras_by_tl(self, tl_: TransportLayer):
+        def get_cameras_by_tl(self, tl_: TransportLayer) -> CamerasTuple:
             """TODO"""
             with self.__cams_lock:
-                cams = [c for c in self.__cams if tl_ == c.get_transport_layer()]
+                cams = tuple(c for c in self.__cams if tl_ == c.get_transport_layer())
 
             if not cams:
                 raise VmbInterfaceError('No cameras for TL \'{}\' found.'.format(tl_))

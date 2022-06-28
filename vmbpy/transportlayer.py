@@ -48,6 +48,9 @@ class TransportLayerType(enum.IntEnum):
 
 
 class TransportLayer:
+    """This class allows access to a Transport Layer."""
+
+    @TraceEnable()
     def __init__(self, info: VmbTransportLayerInfo):
         """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
         self.__info: VmbTransportLayerInfo = info
@@ -79,28 +82,36 @@ class TransportLayer:
         with vmbsystem.VmbSystem.get_instance() as vmb:
             return vmb.get_cameras_by_tl(self)
 
-    def get_id(self):
+    def get_id(self) -> str:
+        """Get Transport Layer Id such as VimbaGigETL"""
         return decode_cstr(self.__info.transportLayerIdString)
 
-    def get_name(self):
+    def get_name(self) -> str:
+        """Get Transport Layer Name such as Vimba GigE Transport Layer"""
         return decode_cstr(self.__info.transportLayerName)
 
-    def get_model_name(self):
+    def get_model_name(self) -> str:
+        """Get Transport Layer Model Name such as Vimba GigE TL"""
         return decode_cstr(self.__info.transportLayerModelName)
 
-    def get_vendor(self):
+    def get_vendor(self) -> str:
+        """Get Transport Layer Vendor such as Allied Vision Technologies"""
         return decode_cstr(self.__info.transportLayerVendor)
 
-    def get_version(self):
+    def get_version(self) -> str:
+        """Get Transport Layer Version"""
         return decode_cstr(self.__info.transportLayerVersion)
 
-    def get_path(self):
+    def get_path(self) -> str:
+        """Get path to Transport Layer file"""
         return decode_cstr(self.__info.transportLayerPath)
 
-    def get_type(self):
+    def get_type(self) -> TransportLayerType:
+        """Get Transport Layer Type such as TransportLayerType.GEV"""
         return TransportLayerType(self.__info.transportLayerType)
 
-    def _get_handle(self):
+    def _get_handle(self) -> VmbHandle:
+        """Internal helper function to get handle of Transport Layer"""
         return self.__handle
 
 
