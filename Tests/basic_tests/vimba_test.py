@@ -145,7 +145,7 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')
         self.assertRaises(RuntimeError, self.vmb.get_feature_by_name, 'foo')
 
-    def test_get_transport_all_layers_type(self):
+    def test_get_all_transport_layers_type(self):
         # Expectation: All transport layer instances returned by `get_all_transport_layers` have
         # correct type
         with self.vmb:
