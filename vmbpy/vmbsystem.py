@@ -251,12 +251,20 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interfaces_by_tl(self, tl_: TransportLayer) -> InterfacesTuple:
-            """TODO"""
+            """Get access to interfaces associated with the given Transport Layer
+
+            Arguments:
+                tl_ - Transport Layer whose interfaces should be returned
+
+            Returns:
+                A tuple of all interfaces associated with the given Transport Layer
+
+            Raises:
+                TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
+            """
             with self.__inters_lock:
                 inters = tuple(i for i in self.__inters if tl_ == i.get_transport_layer())
-
-            if not inters:
-                raise VmbInterfaceError('No interfaces for TL \'{}\' found.'.format(tl_))
 
             return inters
 
@@ -314,12 +322,20 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_tl(self, tl_: TransportLayer) -> CamerasTuple:
-            """TODO"""
+            """Get access to cameras associated with the given Transport Layer
+
+            Arguments:
+                tl_ - Transport Layer whose cameras should be returned
+
+            Returns:
+                A tuple of all cameras associated with the given Transport Layer
+
+            Raises:
+                TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
+            """
             with self.__cams_lock:
                 cams = tuple(c for c in self.__cams if tl_ == c.get_transport_layer())
-
-            if not cams:
-                raise VmbInterfaceError('No cameras for TL \'{}\' found.'.format(tl_))
 
             return cams
 
