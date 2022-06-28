@@ -55,12 +55,8 @@ class TransportLayer:
         """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
         self.__info: VmbTransportLayerInfo = info
         self.__handle: VmbHandle = self.__info.transportLayerHandle
-        # TODO: Should this happen in an _open method like it does in Interface?
-        # Probably depends on decision regarding __enter__ and __exit__ requirement
         self.__feats: FeaturesTuple = discover_features(self.__handle)
         attach_feature_accessors(self, self.__feats)
-
-    # __enter__ and __exit__ required or does VmbC handle opening these for us?
 
     def __str__(self):
         return 'TransportLayer(id={})'.format(self.get_id())
