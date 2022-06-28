@@ -69,6 +69,7 @@ class VimbaTest(VmbPyTestCase):
     def test_runtime_check_failure(self):
         with self.vmb:
             # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
+            self.assertRaises(TypeError, self.vmb.get_transport_layer_by_id, 0)
             self.assertRaises(TypeError, self.vmb.get_camera_by_id, 0)
             self.assertRaises(TypeError, self.vmb.get_interface_by_id, 1)
             self.assertRaises(TypeError, self.vmb.get_feature_by_name, 0)
@@ -100,6 +101,7 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.read_registers, ())
         self.assertRaises(RuntimeError, self.vmb.write_registers, {0: 0})
         self.assertRaises(RuntimeError, self.vmb.get_all_transport_layers)
+        self.assertRaises(RuntimeError, self.vmb.get_transport_layer_by_id)
         self.assertRaises(RuntimeError, self.vmb.get_all_interfaces)
         self.assertRaises(RuntimeError, self.vmb.get_interface_by_id, 'id')
         self.assertRaises(RuntimeError, self.vmb.get_all_cameras)
@@ -123,3 +125,18 @@ class VimbaTest(VmbPyTestCase):
         with self.vmb:
             for tl in self.vmb.get_all_transport_layers():
                 self.assertIsInstance(tl, TransportLayer)
+
+    def test_get_transport_layer_by_id(self):
+        # Expectation: Getting a transport layer by id should return the expected tl
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertEquals(tl,
+                                  self.vmb.get_transport_layer_by_id(tl.get_id()))
+
+    def test_get_transport_layer_by_id_failure(self):
+        # Expected behavior: Lookup of a currently unavailable Transport Layer must throw an
+        # VmbTransportLayerError
+        with self.vmb:
+            self.assertRaises(VmbTransportLayerError,
+                              self.vmb.get_transport_layer_by_id,
+                              'Invalid ID')

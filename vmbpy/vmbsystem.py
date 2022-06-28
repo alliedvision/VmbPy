@@ -42,7 +42,7 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
                     discover_cameras, discover_camera
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfOutsideContext
-from .error import VmbCameraError, VmbInterfaceError, VmbFeatureError
+from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError, VmbFeatureError
 from . import __version__ as VMBPY_VERSION
 
 
@@ -207,9 +207,27 @@ class VmbSystem:
 
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
-        def get_transport_layer_by_id(self, id_: str) -> TransportLayersTuple:
-            """TODO"""
-            raise NotImplementedError
+        def get_transport_layer_by_id(self, id_: str) -> TransportLayer:
+            """Lookup Transport Layer with given ID.
+
+            Arguments:
+                id_ - Transport Layer Id to search for.
+
+            Returns:
+                Transport Layer associated with given Id.
+
+            Raises:
+                TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
+                VmbTransportLayerError if Transport Layer with id_ can't be found.
+            """
+            tls = [tl for tl in self.__transport_layers if id_ == tl.get_id()]
+
+            if not tls:
+                raise VmbTransportLayerError('Transport Layer with ID \'{}\' not found.'
+                                             ''.format(id_))
+
+            return tls.pop()
 
         @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:

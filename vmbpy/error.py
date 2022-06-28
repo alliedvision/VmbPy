@@ -29,6 +29,7 @@ from .util import Log
 
 __all__ = [
     'VmbSystemError',
+    'VmbTransportLayerError',
     'VmbCameraError',
     'VmbInterfaceError',
     'VmbFeatureError',
@@ -50,6 +51,15 @@ class VmbSystemError(_LoggedError):
     - Incomplete Vimba installation
     - Incompatible version of the underlying C-Layer
     - An unsupported OS
+    """
+    pass
+
+
+class VmbTransportLayerError(_LoggedError):
+    """Errors related to Transport Layers
+
+    Error type to indicate Transport Layer related errors like
+    - Lookup of a non-existing Transport Layer
     """
     pass
 

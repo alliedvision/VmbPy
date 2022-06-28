@@ -62,6 +62,7 @@ __all__ = [
     'OPENCV_PIXEL_FORMATS',
 
     'VmbSystemError',
+    'VmbTransportLayerError',
     'VmbCameraError',
     'VmbInterfaceError',
     'VmbFeatureError',
@@ -116,8 +117,8 @@ from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PI
                    COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, FeatureTypes, \
                    AllocationMode
 
-from .error import VmbSystemError, VmbCameraError, VmbInterfaceError, VmbFeatureError, \
-                   VmbFrameError, VmbTimeout
+from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbInterfaceError, \
+                   VmbFeatureError, VmbFrameError, VmbTimeout
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature
