@@ -1,14 +1,18 @@
+from __future__ import annotations
 import enum
 from ctypes import byref, sizeof
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
 
 from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbUint32, VmbHandle, call_vmb_c, \
                        decode_cstr
 from .feature import discover_features, FeaturesTuple
-# from .interface import InterfacesTuple
 from . import vmbsystem
 from .shared import attach_feature_accessors
 from .util import TraceEnable
+
+if TYPE_CHECKING:
+    from .interface import InterfacesTuple
+    from .camera import CamerasTuple
 
 
 # Forward declarations
@@ -68,13 +72,11 @@ class TransportLayer:
         rep += ')'
         return rep
 
-    # TODO: how to handle typing? importing InterfacesTuple from .interface leads to circular imports and errors
-    def get_interfaces(self):
+    def get_interfaces(self) -> InterfacesTuple:
         with vmbsystem.VmbSystem.get_instance() as vmb:
             return vmb.get_interfaces_by_tl(self)
 
-    # TODO: Also a looming typing issue here?
-    def get_cameras(self):
+    def get_cameras(self) -> CamerasTuple:
         with vmbsystem.VmbSystem.get_instance() as vmb:
             return vmb.get_cameras_by_tl(self)
 
