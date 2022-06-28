@@ -57,7 +57,7 @@ class VmbSystemError(_LoggedError):
 class VmbCameraError(_LoggedError):
     """Errors related to cameras
 
-    Error Type to indicated camera-related errors like:
+    Error Type to indicate camera-related errors like:
     - Access of a disconnected Camera object
     - Lookup of non-existing cameras
     """
