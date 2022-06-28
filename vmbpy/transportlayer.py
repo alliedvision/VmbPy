@@ -6,7 +6,6 @@ from typing import List, Tuple, TYPE_CHECKING
 from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbUint32, VmbHandle, call_vmb_c, \
                        decode_cstr
 from .feature import discover_features, FeaturesTuple
-from . import vmbsystem
 from .shared import attach_feature_accessors
 from .util import TraceEnable
 
@@ -73,12 +72,20 @@ class TransportLayer:
         return rep
 
     def get_interfaces(self) -> InterfacesTuple:
-        with vmbsystem.VmbSystem.get_instance() as vmb:
-            return vmb.get_interfaces_by_tl(self)
+        """Get all interfaces associated with the Transport Layer instance
+
+        This method relies on functionality of `VmbSystem` and is overwritten from there. This is
+        done to avoid importing `VmbSystem` here which would lead to a circular dependency.
+        """
+        raise NotImplementedError
 
     def get_cameras(self) -> CamerasTuple:
-        with vmbsystem.VmbSystem.get_instance() as vmb:
-            return vmb.get_cameras_by_tl(self)
+        """Get all cameras associated with the Transport Layer instance
+
+        This method relies on functionality of `VmbSystem` and is overwritten from there. This is
+        done to avoid importing `VmbSystem` here which would lead to a circular dependency.
+        """
+        raise NotImplementedError
 
     def get_id(self) -> str:
         """Get Transport Layer Id such as VimbaGigETL"""

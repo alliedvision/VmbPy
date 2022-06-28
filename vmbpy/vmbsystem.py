@@ -675,3 +675,8 @@ class VmbSystem:
     def get_instance() -> '__Impl':
         """Get VmbSystem Singleton."""
         return VmbSystem.__instance
+
+    # Monkey patch class methods that are just remapped VmbSystem functionality. This avoids
+    # importing `VmbSystem` from those python files, preventing circular dependencies
+    TransportLayer.get_interfaces = lambda self: VmbSystem.__instance.get_interfaces_by_tl(self)
+    TransportLayer.get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_tl(self)
