@@ -108,7 +108,6 @@ class VimbaTest(VmbPyTestCase):
                               self.vmb.get_transport_layer_by_id,
                               'Invalid ID')
 
-
     def test_get_feature_by_name_failure(self):
         # Expected behavior: Lookup of a currently unavailable feature must throw an
         # VimbaFeatureError
@@ -120,7 +119,10 @@ class VimbaTest(VmbPyTestCase):
             # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
             self.assertRaises(TypeError, self.vmb.get_transport_layer_by_id, 0)
             self.assertRaises(TypeError, self.vmb.get_camera_by_id, 0)
+            self.assertRaises(TypeError, self.vmb.get_cameras_by_tl, 0)
+            self.assertRaises(TypeError, self.vmb.get_cameras_by_interface, 0)
             self.assertRaises(TypeError, self.vmb.get_interface_by_id, 1)
+            self.assertRaises(TypeError, self.vmb.get_interfaces_by_tl, 1)
             self.assertRaises(TypeError, self.vmb.get_feature_by_name, 0)
             self.assertRaises(TypeError, self.vmb.enable_log, '-1')
 
@@ -157,11 +159,16 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_camera_by_id, 'id')
         self.assertRaises(RuntimeError, self.vmb.get_all_features)
 
-        # Enter scope to get handle on Features as valid parameters for the test:
-        # Don't to this in production code because the feature will be invalid if use.
+        # Enter scope to get handle on TransportLayer/Interface/Features as valid parameters for the
+        # test: Don't to this in production code because the feature will be invalid if use.
         with self.vmb:
+            tl = self.vmb.get_all_transport_layers()[0]
+            inter = self.vmb.get_all_interfaces()[0]
             feat = self.vmb.get_all_features()[0]
 
+        self.assertRaises(RuntimeError, self.vmb.get_interfaces_by_tl, tl)
+        self.assertRaises(RuntimeError, self.vmb.get_cameras_by_tl, tl)
+        self.assertRaises(RuntimeError, self.vmb.get_cameras_by_interface, inter)
         self.assertRaises(RuntimeError, self.vmb.get_features_affected_by, feat)
         self.assertRaises(RuntimeError, self.vmb.get_features_selected_by, feat)
         self.assertRaises(RuntimeError, self.vmb.get_features_by_type, IntFeature)
