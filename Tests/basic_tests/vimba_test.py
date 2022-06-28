@@ -48,11 +48,37 @@ class VimbaTest(VmbPyTestCase):
         # Expectation: Returned Version is not empty and does not raise any exceptions.
         self.assertNotEqual(self.vmb.get_version(), "")
 
+    def test_get_all_cameras_type(self):
+        # Expectation: All camera instances returned by `get_all_cameras` have correct type
+        with self.vmb:
+            for cam in self.vmb.get_all_cameras():
+                self.assertIsInstance(cam, Camera)
+
+    def test_get_camera_by_id(self):
+        # Expectation: Getting a camera by id should return the expected tl
+        with self.vmb:
+            for cam in self.vmb.get_all_cameras():
+                self.assertEquals(cam,
+                                  self.vmb.get_camera_by_id(cam.get_id()))
+
     def test_get_camera_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
         # VimbaCameraError
         with self.vmb:
             self.assertRaises(VmbCameraError, self.vmb.get_camera_by_id, 'Invalid ID')
+
+    def test_get_all_interfaces_type(self):
+        # Expectation: All interface instances returned by `get_all_interfaces` have correct type
+        with self.vmb:
+            for inter in self.vmb.get_all_interfaces():
+                self.assertIsInstance(inter, Interface)
+
+    def test_get_interface_by_id(self):
+        # Expectation: Getting an interface by id should return the expected tl
+        with self.vmb:
+            for inter in self.vmb.get_all_interfaces():
+                self.assertEquals(inter,
+                                  self.vmb.get_interface_by_id(inter.get_id()))
 
     def test_get_interface_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable interface must throw an
