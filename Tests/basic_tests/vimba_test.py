@@ -86,6 +86,29 @@ class VimbaTest(VmbPyTestCase):
         with self.vmb:
             self.assertRaises(VmbInterfaceError, self.vmb.get_interface_by_id, 'Invalid ID')
 
+    def test_get_all_transport_layers_type(self):
+        # Expectation: All transport layer instances returned by `get_all_transport_layers` have
+        # correct type
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertIsInstance(tl, TransportLayer)
+
+    def test_get_transport_layer_by_id(self):
+        # Expectation: Getting a transport layer by id should return the expected tl
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertEquals(tl,
+                                  self.vmb.get_transport_layer_by_id(tl.get_id()))
+
+    def test_get_transport_layer_by_id_failure(self):
+        # Expected behavior: Lookup of a currently unavailable Transport Layer must throw an
+        # VmbTransportLayerError
+        with self.vmb:
+            self.assertRaises(VmbTransportLayerError,
+                              self.vmb.get_transport_layer_by_id,
+                              'Invalid ID')
+
+
     def test_get_feature_by_name_failure(self):
         # Expected behavior: Lookup of a currently unavailable feature must throw an
         # VimbaFeatureError
@@ -144,25 +167,3 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_features_by_type, IntFeature)
         self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')
         self.assertRaises(RuntimeError, self.vmb.get_feature_by_name, 'foo')
-
-    def test_get_all_transport_layers_type(self):
-        # Expectation: All transport layer instances returned by `get_all_transport_layers` have
-        # correct type
-        with self.vmb:
-            for tl in self.vmb.get_all_transport_layers():
-                self.assertIsInstance(tl, TransportLayer)
-
-    def test_get_transport_layer_by_id(self):
-        # Expectation: Getting a transport layer by id should return the expected tl
-        with self.vmb:
-            for tl in self.vmb.get_all_transport_layers():
-                self.assertEquals(tl,
-                                  self.vmb.get_transport_layer_by_id(tl.get_id()))
-
-    def test_get_transport_layer_by_id_failure(self):
-        # Expected behavior: Lookup of a currently unavailable Transport Layer must throw an
-        # VmbTransportLayerError
-        with self.vmb:
-            self.assertRaises(VmbTransportLayerError,
-                              self.vmb.get_transport_layer_by_id,
-                              'Invalid ID')
