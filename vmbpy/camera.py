@@ -67,7 +67,7 @@ __all__ = [
 CameraChangeHandler = Callable[['Camera', 'CameraEvent'], None]
 CamerasTuple = Tuple['Camera', ...]
 CamerasList = List['Camera']
-FrameHandler = Callable[['Camera', Frame], None]
+FrameHandler = Callable[['Camera', VmbHandle, Frame], None]
 
 
 class AccessMode(enum.IntEnum):
@@ -720,7 +720,7 @@ class Camera:
             buffer_alignment = 1
         frames = tuple([Frame(payload_size, allocation_mode, buffer_alignment=buffer_alignment)
                         for _ in range(buffer_count)])
-        callback = build_callback_type(None, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
+        callback = build_callback_type(None, VmbHandle, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
 
         self.__capture_fsm = _CaptureFsm(_Context(self, frames, handler, callback))
 
@@ -977,7 +977,7 @@ class Camera:
             raise VmbCameraError(str(e.get_error_code())) from e
         self.__info.permittedAccess = info.permittedAccess
 
-    def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
+    def __frame_cb_wrapper(self, _: VmbHandle, stream_handle: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
 
         # ignore callback if camera has been disconnected
@@ -1000,7 +1000,8 @@ class Camera:
             assert frame is not None
 
             try:
-                context.frames_handler(self, frame)
+                # TODO: get stream instance from handle
+                context.frames_handler(self, stream_handle, frame)
 
             except Exception as e:
                 msg = 'Caught Exception in handler: '
