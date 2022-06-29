@@ -251,7 +251,6 @@ class VmbFrameFlags(Uint32Enum):
     PayloadType = 32
     ChunkDataPresent = 64
 
-
     def __str__(self):
         return self._name_
 
