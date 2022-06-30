@@ -24,11 +24,11 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 from __future__ import annotations
+
 import enum
 from ctypes import byref, sizeof
-from typing import List, Tuple, TYPE_CHECKING
+from typing import List, Tuple, TYPE_CHECKING, Dict
 
 from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbUint32, VmbHandle, call_vmb_c, \
                        decode_cstr
@@ -37,13 +37,13 @@ from .shared import attach_feature_accessors
 from .util import TraceEnable
 
 if TYPE_CHECKING:
-    from .interface import InterfacesTuple
     from .camera import CamerasTuple
+    from .interface import InterfacesTuple
 
 
 # Forward declarations
 TransportLayersTuple = Tuple['TransportLayer', ...]
-TransportLayerList = List['TransportLayer']
+TransportLayerDict = Dict[VmbHandle, 'TransportLayer']
 
 
 class TransportLayerType(enum.IntEnum):
@@ -145,30 +145,3 @@ class TransportLayer:
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of Transport Layer"""
         return self.__handle
-
-
-@TraceEnable()
-def discover_transport_layers() -> TransportLayerList:
-    """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
-    result = []
-    transport_layers_count = VmbUint32(0)
-
-    call_vmb_c('VmbTransportLayersList',
-               None,
-               0,
-               byref(transport_layers_count),
-               sizeof(VmbTransportLayerInfo))
-
-    if transport_layers_count:
-        transport_layers_found = VmbUint32(0)
-        transport_layer_infos = (VmbTransportLayerInfo * transport_layers_count.value)()
-
-        call_vmb_c('VmbTransportLayersList',
-                   transport_layer_infos,
-                   transport_layers_count,
-                   byref(transport_layers_found),
-                   sizeof(VmbTransportLayerInfo))
-        for info in transport_layer_infos[:transport_layers_found.value]:
-            result.append(TransportLayer(info))
-
-    return result

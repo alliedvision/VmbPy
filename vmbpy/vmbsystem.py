@@ -26,20 +26,21 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import threading
+from ctypes import byref, sizeof
 from typing import List, Dict, Tuple
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
-                       G_VMB_C_HANDLE
+                       G_VMB_C_HANDLE, VmbUint32, VmbCError
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
-from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayerList, \
-                            discover_transport_layers
+from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayerDict, \
+                            VmbTransportLayerInfo
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
-                       InterfacesList, discover_interfaces, discover_interface
+                       InterfacesDict, VmbInterfaceInfo
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
-                    discover_cameras, discover_camera
+                    VmbCameraInfo
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfOutsideContext
 from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError, VmbFeatureError
@@ -64,8 +65,8 @@ class VmbSystem:
             """Do not call directly. Use VmbSystem.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
 
-            self.__transport_layers: TransportLayerList = ()
-            self.__inters: InterfacesList = ()
+            self.__transport_layers: TransportLayerDict = {}
+            self.__inters: InterfacesDict = {}
             self.__inters_lock: threading.Lock = threading.Lock()
             self.__inters_handlers: List[InterfaceChangeHandler] = []
             self.__inters_handlers_lock: threading.Lock = threading.Lock()
@@ -203,7 +204,7 @@ class VmbSystem:
             Raises:
                 RuntimeError then called outside of "with" - statement.
             """
-            return tuple(self.__transport_layers)
+            return tuple(self.__transport_layers.values())
 
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
@@ -221,7 +222,7 @@ class VmbSystem:
                 RuntimeError then called outside of "with" - statement.
                 VmbTransportLayerError if Transport Layer with id_ can't be found.
             """
-            tls = [tl for tl in self.__transport_layers if id_ == tl.get_id()]
+            tls = [tl for tl in self.__transport_layers.values() if id_ == tl.get_id()]
 
             if not tls:
                 raise VmbTransportLayerError('Transport Layer with ID \'{}\' not found.'
@@ -240,7 +241,7 @@ class VmbSystem:
                 RuntimeError then called outside of "with" - statement.
             """
             with self.__inters_lock:
-                return tuple(self.__inters)
+                return tuple(self.__inters.values())
 
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
@@ -259,7 +260,7 @@ class VmbSystem:
                 VmbInterfaceError if interface with id_ can't be found.
             """
             with self.__inters_lock:
-                inter = [inter for inter in self.__inters if id_ == inter.get_id()]
+                inter = [inter for inter in self.__inters.values() if id_ == inter.get_id()]
 
             if not inter:
                 raise VmbInterfaceError('Interface with ID \'{}\' not found.'.format(id_))
@@ -282,7 +283,7 @@ class VmbSystem:
                 RuntimeError then called outside of "with" - statement.
             """
             with self.__inters_lock:
-                inters = tuple(i for i in self.__inters if tl_ == i.get_transport_layer())
+                inters = tuple(i for i in self.__inters.values() if tl_ == i.get_transport_layer())
 
             return inters
 
@@ -325,7 +326,7 @@ class VmbSystem:
                 # If a search by ID fails, the given id_ is almost certain an IP or MAC - Address.
                 # Try to query this Camera.
                 try:
-                    cam_info = discover_camera(id_)
+                    cam_info = self.__discover_camera(id_)
 
                     # Since cam_info is newly constructed, search in existing cameras for a Camera
                     for cam in self.__cams:
@@ -359,9 +360,23 @@ class VmbSystem:
 
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
-        def get_cameras_by_interface(self, interface_: Interface):
-            """TODO"""
-            raise NotImplementedError
+        def get_cameras_by_interface(self, inter_: Interface):
+            """Get access to cameras associated with the given interface
+
+            Arguments:
+                inter_ - Interface whose cameras should be returned
+
+            Returns:
+                A tuple of all cameras associated with the given interface
+
+            Raises:
+                TypeError if parameters do not match their type hint.
+                RuntimeError then called outside of "with" - statement.
+            """
+            with self.__cams_lock:
+                cams = tuple(c for c in self.__cams if inter_ == c.get_interface())
+
+            return cams
 
         @RaiseIfOutsideContext()
         def get_all_features(self) -> FeaturesTuple:
@@ -549,9 +564,9 @@ class VmbSystem:
             # TODO: Implement passing optional pathConfiguration to VmbStartup
             call_vmb_c('VmbStartup', None)
 
-            self.__transport_layers = discover_transport_layers()
-            self.__inters = discover_interfaces()
-            self.__cams = discover_cameras()
+            self.__transport_layers = self.__discover_transport_layers()
+            self.__inters = self.__discover_interfaces()
+            self.__cams = self.__discover_cameras()
             self.__feats = discover_features(G_VMB_C_HANDLE)
             attach_feature_accessors(self, self.__feats)
 
@@ -588,7 +603,7 @@ class VmbSystem:
 
             # New camera found: Add it to camera list
             if event == CameraEvent.Detected:
-                cam = discover_camera(cam_id)
+                cam = self.__discover_camera(cam_id)
 
                 with self.__cams_lock:
                     self.__cams.append(cam)
@@ -637,18 +652,20 @@ class VmbSystem:
 
             # New interface found: Add it to interface list
             if event == InterfaceEvent.Detected:
-                inter = discover_interface(inter_id)
+                inter = self.__discover_interface(inter_id)
 
                 with self.__inters_lock:
-                    self.__inters.append(inter)
+                    # TODO: Test that this works as intended
+                    self.__inters[inter._Interface__handle] = inter
 
                 log.info('Added interface \"{}\" to active interfaces'.format(inter_id))
 
             # Existing interface lost. Remove it from active interfaces
             elif event == InterfaceEvent.Missing:
                 with self.__inters_lock:
-                    inter = [i for i in self.__inters if inter_id == i.get_id()].pop()
-                    self.__inters.remove(inter)
+                    inter = [i for i in self.__inters.values() if inter_id == i.get_id()].pop()
+                    # TODO: Test that this works as intended
+                    del self.__inters[inter._get_handle()]
 
                 log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
 
@@ -668,6 +685,99 @@ class VmbSystem:
                         Log.get_instance().error(msg)
                         raise e
 
+        @TraceEnable()
+        def __discover_transport_layers(self) -> TransportLayerDict:
+            """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
+            result = {}
+            transport_layers_count = VmbUint32(0)
+
+            call_vmb_c('VmbTransportLayersList',
+                       None,
+                       0,
+                       byref(transport_layers_count),
+                       sizeof(VmbTransportLayerInfo))
+
+            if transport_layers_count:
+                transport_layers_found = VmbUint32(0)
+                transport_layer_infos = (VmbTransportLayerInfo * transport_layers_count.value)()
+
+                call_vmb_c('VmbTransportLayersList',
+                           transport_layer_infos,
+                           transport_layers_count,
+                           byref(transport_layers_found),
+                           sizeof(VmbTransportLayerInfo))
+                for info in transport_layer_infos[:transport_layers_found.value]:
+                    result[info.transportLayerHandle] = TransportLayer(info)
+
+            return result
+
+        @TraceEnable()
+        def __discover_interfaces(self) -> InterfacesDict:
+            """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
+
+            result = {}
+            inters_count = VmbUint32(0)
+
+            call_vmb_c('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
+
+            if inters_count:
+                inters_found = VmbUint32(0)
+                inters_infos = (VmbInterfaceInfo * inters_count.value)()
+
+                call_vmb_c('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
+                           sizeof(VmbInterfaceInfo))
+
+                for info in inters_infos[:inters_found.value]:
+                    result[info.interfaceHandle] = Interface(
+                        info, self.__transport_layers[info.transportLayerHandle])
+
+            return result
+
+        @TraceEnable()
+        def __discover_interface(self, id_: str) -> Interface:
+            """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
+
+            # Since there is no function to query a single interface, discover all interfaces and
+            # extract the Interface with the matching ID.
+            inters = self.__discover_interfaces().values()
+            return [i for i in inters if id_ == i.get_id()].pop()
+
+        @TraceEnable()
+        def __discover_cameras(self) -> CamerasList:
+            """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
+
+            result = []
+            cams_count = VmbUint32(0)
+
+            call_vmb_c('VmbCamerasList', None, 0, byref(cams_count), 0)
+
+            if cams_count:
+                cams_found = VmbUint32(0)
+                cams_infos = (VmbCameraInfo * cams_count.value)()
+
+                call_vmb_c('VmbCamerasList', cams_infos, cams_count, byref(cams_found),
+                           sizeof(VmbCameraInfo))
+
+                for info in cams_infos[:cams_found.value]:
+                    result.append(Camera(info, self.__inters[info.interfaceHandle]))
+
+            return result
+
+        @TraceEnable()
+        def __discover_camera(self, id_: str) -> Camera:
+            """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
+
+            info = VmbCameraInfo()
+
+            # Try to lookup Camera with given ID. If this function
+            try:
+                call_vmb_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
+
+            except VmbCError as e:
+                raise VmbCameraError(str(e.get_error_code())) from e
+
+            return Camera(info)
+
     __instance = __Impl()
 
     @staticmethod
@@ -680,3 +790,4 @@ class VmbSystem:
     # importing `VmbSystem` from those python files, preventing circular dependencies
     TransportLayer.get_interfaces = lambda self: VmbSystem.__instance.get_interfaces_by_tl(self)
     TransportLayer.get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_tl(self)
+    Interface.get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_interface(self)

@@ -24,12 +24,12 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from __future__ import annotations
 
 import enum
-from typing import Tuple, List, Callable, Dict
+from typing import Tuple, Callable, Dict, TYPE_CHECKING
 from .c_binding import call_vmb_c, byref, sizeof, decode_cstr
 from .c_binding import VmbInterfaceInfo, VmbHandle, VmbUint32
-from . import vmbsystem
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
@@ -37,23 +37,24 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     write_memory, read_registers, write_registers
 from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
-from .transportlayer import TransportLayer, TransportLayerType
+
+if TYPE_CHECKING:
+    from .camera import CamerasTuple
+    from .transportlayer import TransportLayer, TransportLayerType
 
 __all__ = [
     'Interface',
     'InterfaceEvent',
     'InterfaceChangeHandler',
     'InterfacesTuple',
-    'InterfacesList',
-    'discover_interfaces',
-    'discover_interface'
+    'InterfacesDict'
 ]
 
 
 # Forward declarations
 InterfaceChangeHandler = Callable[['Interface', 'InterfaceEvent'], None]
 InterfacesTuple = Tuple['Interface', ...]
-InterfacesList = List['Interface']
+InterfacesDict = Dict[VmbHandle, 'Interface']
 
 
 class InterfaceEvent(enum.IntEnum):
@@ -75,8 +76,9 @@ class Interface:
     """This class allows access to an interface such as USB detected by Vimba."""
 
     @TraceEnable()
-    def __init__(self, info: VmbInterfaceInfo):
+    def __init__(self, info: VmbInterfaceInfo, transport_layer: TransportLayer):
         """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
+        self.__transport_layer = transport_layer
         self.__info: VmbInterfaceInfo = info
         self.__handle: VmbHandle = self.__info.interfaceHandle
         self.__feats = discover_features(self.__handle)
@@ -187,9 +189,15 @@ class Interface:
     def get_transport_layer(self) -> TransportLayer:
         """Get the Transport Layer associated with this instance of Interface
         """
-        with vmbsystem.VmbSystem.get_instance() as vmb:
-            tls = vmb.get_all_transport_layers()
-            return [tl for tl in tls if tl._get_handle() == self.__info.transportLayerHandle].pop()
+        return self.__transport_layer
+
+    def get_cameras(self) -> CamerasTuple:
+        """Get the cameras associated with this instance of Interface
+
+        This method relies on functionality of `VmbSystem` and is overwritten from there. This is
+        done to avoid importing `VmbSystem` here which would lead to a circular dependency.
+        """
+        raise NotImplementedError
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
@@ -279,34 +287,6 @@ class Interface:
 
         return feat
 
-
-@TraceEnable()
-def discover_interfaces() -> InterfacesList:
-    """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
-
-    result = []
-    inters_count = VmbUint32(0)
-
-    call_vmb_c('VmbInterfacesList', None, 0, byref(inters_count), sizeof(VmbInterfaceInfo))
-
-    if inters_count:
-        inters_found = VmbUint32(0)
-        inters_infos = (VmbInterfaceInfo * inters_count.value)()
-
-        call_vmb_c('VmbInterfacesList', inters_infos, inters_count, byref(inters_found),
-                     sizeof(VmbInterfaceInfo))
-
-        for info in inters_infos[:inters_found.value]:
-            result.append(Interface(info))
-
-    return result
-
-
-@TraceEnable()
-def discover_interface(id_: str) -> Interface:
-    """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
-
-    # Since there is no function to query a single interface, discover all interfaces and
-    # extract the Interface with the matching ID.
-    inters = discover_interfaces()
-    return [i for i in inters if id_ == i.get_id()].pop()
+    def _get_handle(self) -> VmbHandle:
+        """Internal helper function to get handle of interface"""
+        return self.__handle
