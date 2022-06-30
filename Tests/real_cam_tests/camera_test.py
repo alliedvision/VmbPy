@@ -172,6 +172,10 @@ class CamCameraTest(VmbPyTestCase):
         # Expectation: returns instance of transport layer for Camera instance
         self.assertIsInstance(self.cam.get_transport_layer(), TransportLayer)
 
+    def test_camera_get_interface_type(self):
+        # Expectation: returns instance of interface for Camera instance
+        self.assertIsInstance(self.cam.get_interface(), Interface)
+
     def test_camera_get_interface_id(self):
         # Expectation: get interface Id this camera is connected to
         self.assertTrue(self.cam.get_interface_id())

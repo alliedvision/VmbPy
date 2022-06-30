@@ -135,3 +135,19 @@ class InterfaceTest(VmbPyTestCase):
         inter = self.vimba.get_all_interfaces()[0]
         self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
         self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
+
+    def test_interface_get_transport_layer_type(self):
+        # Expectation: The transport layer returned by `get_transport_layer` has correct type
+        for inter in self.vimba.get_all_interfaces():
+            self.assertIsInstance(inter.get_transport_layer(),
+                                  TransportLayer)
+
+    def test_interface_get_cameras_type(self):
+        # Expectation: All cameras returned by `get_cameras` have correct type
+        for inter in self.vimba.get_all_interfaces():
+            with self.subTest(f'interface={inter}'):
+                cameras = inter.get_cameras()
+                if not cameras:
+                    self.skipTest(f'Could not test because {inter} did not provide any cameras')
+                for cam in cameras:
+                    self.assertIsInstance(cam, Camera)
