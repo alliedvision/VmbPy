@@ -136,7 +136,7 @@ class _StateInit(_State):
 
             try:
                 call_vmb_c('VmbFrameAnnounce', self.context.cam_handle, byref(frame_handle),
-                             sizeof(frame_handle))
+                           sizeof(frame_handle))
                 if frame._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
                     assert frame_handle.buffer is not None
                     frame._set_buffer(frame_handle.buffer)
@@ -155,7 +155,7 @@ class _StateAnnounced(_State):
 
             try:
                 call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                             self.context.frames_callback)
+                           self.context.frames_callback)
 
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, e)
@@ -243,7 +243,7 @@ class _StateAcquiring(_State):
 
             try:
                 call_vmb_c('VmbCaptureFrameWait', self.context.cam_handle, byref(frame_handle),
-                             timeout_ms)
+                           timeout_ms)
 
             except VmbCError as e:
                 raise _build_camera_error(self.context.cam, e) from e
@@ -254,7 +254,7 @@ class _StateAcquiring(_State):
 
         try:
             call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                         self.context.frames_callback)
+                       self.context.frames_callback)
 
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, e) from e
@@ -895,7 +895,7 @@ class Camera:
         settings.persistType = VmbFeaturePersist(persist_type)
 
         call_vmb_c('VmbCameraSettingsSave', self.__handle, file.encode('utf-8'), byref(settings),
-                     sizeof(settings))
+                   sizeof(settings))
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -924,14 +924,14 @@ class Camera:
         settings.persistType = VmbFeaturePersist(persist_type)
 
         call_vmb_c('VmbCameraSettingsLoad', self.__handle, file.encode('utf-8'), byref(settings),
-                     sizeof(settings))
+                   sizeof(settings))
 
     @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
         try:
             call_vmb_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
-                         byref(self.__handle))
+                       byref(self.__handle))
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -988,9 +988,9 @@ class Camera:
         info = VmbCameraInfo()
         try:
             call_vmb_c('VmbCameraInfoQuery',
-                         self.get_id().encode('utf-8'),
-                         byref(info),
-                         sizeof(info))
+                       self.get_id().encode('utf-8'),
+                       byref(info),
+                       sizeof(info))
 
         except VmbCError as e:
             raise VmbCameraError(str(e.get_error_code())) from e
@@ -1028,6 +1028,7 @@ class Camera:
                 msg += 'raised by: {}'.format(context.frames_handler)
                 Log.get_instance().error(msg)
                 raise e
+
 
 def _cam_handle_accessor(cam: Camera) -> VmbHandle:
     # Supress mypi warning. This access is valid although mypi warns about it.
