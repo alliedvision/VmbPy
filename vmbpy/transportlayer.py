@@ -27,11 +27,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import enum
-from ctypes import byref, sizeof
-from typing import List, Tuple, TYPE_CHECKING, Dict
+from typing import Tuple, TYPE_CHECKING, Dict
 
-from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbUint32, VmbHandle, call_vmb_c, \
-                       decode_cstr
+from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbHandle, decode_cstr
 from .feature import discover_features, FeaturesTuple
 from .shared import attach_feature_accessors
 from .util import TraceEnable

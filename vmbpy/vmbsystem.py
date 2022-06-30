@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import threading
 from ctypes import byref, sizeof
 from typing import List, Dict, Tuple
+
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE, VmbUint32, VmbCError
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature

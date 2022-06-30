@@ -28,8 +28,8 @@ from __future__ import annotations
 
 import enum
 from typing import Tuple, Callable, Dict, TYPE_CHECKING
-from .c_binding import call_vmb_c, byref, sizeof, decode_cstr
-from .c_binding import VmbInterfaceInfo, VmbHandle, VmbUint32
+
+from .c_binding import decode_cstr, VmbInterfaceInfo, VmbHandle
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \

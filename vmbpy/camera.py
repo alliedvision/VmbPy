@@ -33,11 +33,11 @@ import threading
 
 from ctypes import POINTER
 from typing import Tuple, List, Callable, cast, Optional, Union, Dict, TYPE_CHECKING
+
 from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VMB_C_HANDLE, VmbAccessMode, \
-                       VmbCError, VmbError, VmbFrame, VmbFeaturePersist, VmbFeaturePersistSettings
-from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple, \
-                     FeatureTypeTypes
+from .c_binding import VmbCameraInfo, VmbHandle, VmbAccessMode, VmbCError, VmbError, VmbFrame, \
+                       VmbFeaturePersist, VmbFeaturePersistSettings
+from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
