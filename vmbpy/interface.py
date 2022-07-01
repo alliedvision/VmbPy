@@ -35,12 +35,13 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
+from .transportlayer import TransportLayerType
 from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple
-    from .transportlayer import TransportLayer, TransportLayerType
+    from .transportlayer import TransportLayer
 
 __all__ = [
     'Interface',
