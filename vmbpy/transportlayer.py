@@ -39,9 +39,16 @@ if TYPE_CHECKING:
     from .interface import InterfacesTuple
 
 
+__all__ = [
+    'TransportLayer',
+    'TransportLayerType',
+    'TransportLayersTuple',
+    'TransportLayersDict'
+]
+
 # Forward declarations
 TransportLayersTuple = Tuple['TransportLayer', ...]
-TransportLayerDict = Dict[VmbHandle, 'TransportLayer']
+TransportLayersDict = Dict[VmbHandle, 'TransportLayer']
 
 
 class TransportLayerType(enum.IntEnum):

@@ -36,7 +36,7 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_aff
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
-from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayerDict, \
+from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
                             VmbTransportLayerInfo
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
                        InterfacesDict, VmbInterfaceInfo
@@ -66,7 +66,7 @@ class VmbSystem:
             """Do not call directly. Use VmbSystem.get_instance() instead."""
             self.__feats: FeaturesTuple = ()
 
-            self.__transport_layers: TransportLayerDict = {}
+            self.__transport_layers: TransportLayersDict = {}
             self.__inters: InterfacesDict = {}
             self.__inters_lock: threading.Lock = threading.Lock()
             self.__inters_handlers: List[InterfaceChangeHandler] = []
@@ -687,7 +687,7 @@ class VmbSystem:
                         raise e
 
         @TraceEnable()
-        def __discover_transport_layers(self) -> TransportLayerDict:
+        def __discover_transport_layers(self) -> TransportLayersDict:
             """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
             result = {}
             transport_layers_count = VmbUint32(0)
