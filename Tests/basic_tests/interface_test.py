@@ -88,10 +88,10 @@ class InterfaceTest(VmbPyTestCase):
             self.skipTest('Test requires Feature \'DeviceCount\'.')
 
         self.assertTrue(affects_feats.has_affected_features())
-        self.assertNotEquals(inter.get_features_affected_by(affects_feats), ())
+        self.assertNotEqual(inter.get_features_affected_by(affects_feats), ())
 
         self.assertFalse(not_affects_feats.has_affected_features())
-        self.assertEquals(inter.get_features_affected_by(not_affects_feats), ())
+        self.assertEqual(inter.get_features_affected_by(not_affects_feats), ())
 
     def test_interface_get_features_selected_by(self):
         # Expectation: Call get_features_selected_by raises RuntimeError outside of with.
@@ -111,10 +111,10 @@ class InterfaceTest(VmbPyTestCase):
             self.skipTest('Test requires Feature \'DeviceCount\'.')
 
         self.assertTrue(selects_feats.has_selected_features())
-        self.assertNotEquals(inter.get_features_selected_by(selects_feats), ())
+        self.assertNotEqual(inter.get_features_selected_by(selects_feats), ())
 
         self.assertFalse(not_selects_feats.has_selected_features())
-        self.assertEquals(inter.get_features_selected_by(not_selects_feats), ())
+        self.assertEqual(inter.get_features_selected_by(not_selects_feats), ())
 
     def test_interface_get_features_by_type(self):
         # Expectation: Call get_features_by_type raises RuntimeError outside of with

@@ -58,8 +58,8 @@ class VimbaTest(VmbPyTestCase):
         # Expectation: Getting a camera by id should return the expected camera
         with self.vmb:
             for cam in self.vmb.get_all_cameras():
-                self.assertEquals(cam,
-                                  self.vmb.get_camera_by_id(cam.get_id()))
+                self.assertEqual(cam,
+                                 self.vmb.get_camera_by_id(cam.get_id()))
 
     def test_get_camera_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
@@ -77,8 +77,8 @@ class VimbaTest(VmbPyTestCase):
         # Expectation: Getting an interface by id should return the expected interface
         with self.vmb:
             for inter in self.vmb.get_all_interfaces():
-                self.assertEquals(inter,
-                                  self.vmb.get_interface_by_id(inter.get_id()))
+                self.assertEqual(inter,
+                                 self.vmb.get_interface_by_id(inter.get_id()))
 
     def test_get_interface_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable interface must throw an
@@ -97,8 +97,8 @@ class VimbaTest(VmbPyTestCase):
         # Expectation: Getting a transport layer by id should return the expected tl
         with self.vmb:
             for tl in self.vmb.get_all_transport_layers():
-                self.assertEquals(tl,
-                                  self.vmb.get_transport_layer_by_id(tl.get_id()))
+                self.assertEqual(tl,
+                                 self.vmb.get_transport_layer_by_id(tl.get_id()))
 
     def test_get_transport_layer_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable Transport Layer must throw an

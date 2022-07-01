@@ -127,10 +127,10 @@ class CamFrameTest(VmbPyTestCase):
         # else it must return the image_size as int.
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
-                self.assertEquals(Frame(0, allocation_mode).get_image_size(), 0)
+                self.assertEqual(Frame(0, allocation_mode).get_image_size(), 0)
 
                 with self.cam:
-                    self.assertNotEquals(
+                    self.assertNotEqual(
                         self.cam.get_frame(allocation_mode=allocation_mode).get_image_size(), 0)
 
     def test_deepcopy(self):
@@ -144,30 +144,30 @@ class CamFrameTest(VmbPyTestCase):
                 frame_cpy = copy.deepcopy(frame)
 
                 # Ensure frames and their members are not the same object
-                self.assertNotEquals(id(frame), id(frame_cpy))
-                self.assertNotEquals(id(frame._buffer), id(frame_cpy._buffer))
-                self.assertNotEquals(id(frame._frame), id(frame_cpy._frame))
+                self.assertNotEqual(id(frame), id(frame_cpy))
+                self.assertNotEqual(id(frame._buffer), id(frame_cpy._buffer))
+                self.assertNotEqual(id(frame._frame), id(frame_cpy._frame))
 
                 # Ensure that both buffers have the same size and contain the same data.
-                self.assertEquals(frame.get_buffer_size(), frame_cpy.get_buffer_size())
+                self.assertEqual(frame.get_buffer_size(), frame_cpy.get_buffer_size())
                 self.assertTrue(all(a == b for a, b in zip(frame.get_buffer(),
                                                            frame_cpy.get_buffer())))
 
                 # Ensure that internal Frame Pointer points to correct buffer.
-                self.assertEquals(frame._frame.buffer,
+                self.assertEqual(frame._frame.buffer,
                                   ctypes.cast(frame._buffer, ctypes.c_void_p).value)
 
-                self.assertEquals(frame_cpy._frame.buffer,
+                self.assertEqual(frame_cpy._frame.buffer,
                                   ctypes.cast(frame_cpy._buffer, ctypes.c_void_p).value)
 
-                self.assertEquals(frame._frame.bufferSize, frame_cpy._frame.bufferSize)
+                self.assertEqual(frame._frame.bufferSize, frame_cpy._frame.bufferSize)
 
     def test_get_pixel_format(self):
         # Expectation: Frames have an image format set after acquisition
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 with self.cam:
-                    self.assertNotEquals(
+                    self.assertNotEqual(
                         self.cam.get_frame(allocation_mode=allocation_mode).get_pixel_format(), 0)
 
     def test_incompatible_formats_value_error(self):
@@ -206,8 +206,8 @@ class CamFrameTest(VmbPyTestCase):
                 with self.subTest(f'convert {repr(original_fmt)} to {repr(expected_fmt)}'):
                     transformed_frame = frame.convert_pixel_format(expected_fmt)
 
-                    self.assertEquals(expected_fmt, transformed_frame.get_pixel_format())
-                    self.assertEquals(original_fmt, frame.get_pixel_format())
+                    self.assertEqual(expected_fmt, transformed_frame.get_pixel_format())
+                    self.assertEqual(original_fmt, frame.get_pixel_format())
 
                     # Ensure that width and height of frames are identical (if both formats can be
                     # represented as numpy arrays)
