@@ -107,7 +107,7 @@ def setup_camera(cam: Camera):
             pass
 
 
-def frame_handler(cam: Camera, frame: Frame):
+def frame_handler(cam: Camera, stream: Stream, frame: Frame):
     print('{} acquired {}'.format(cam, frame), flush=True)
 
     cam.queue_frame(frame)

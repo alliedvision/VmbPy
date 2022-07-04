@@ -137,7 +137,7 @@ class CamBaseFeatureTest(VmbPyTestCase):
         # features may be writeable even during streaming!)
         self.assertTrue(self.height.is_writeable())
         try:
-            self.cam.start_streaming(lambda cam, frame: cam.queue_frame(frame))
+            self.cam.start_streaming(lambda cam, stream, frame: cam.queue_frame(frame))
             self.assertFalse(self.height.is_writeable())
         finally:
             self.cam.stop_streaming()

@@ -107,7 +107,7 @@ def get_command_sender(interface_id):
     return inter
 
 
-def frame_handler(cam: Camera, frame: Frame):
+def frame_handler(cam: Camera, stream: Stream, frame: Frame):
     if frame.get_status() == FrameStatus.Complete:
         print('Frame(ID: {}) has been received.'.format(frame.get_id()), flush=True)
 

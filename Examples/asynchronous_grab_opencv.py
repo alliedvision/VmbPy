@@ -150,7 +150,7 @@ class Handler:
     def __init__(self):
         self.shutdown_event = threading.Event()
 
-    def __call__(self, cam: Camera, frame: Frame):
+    def __call__(self, cam: Camera, stream: Stream, frame: Frame):
         ENTER_KEY_CODE = 13
 
         key = cv2.waitKey(1)

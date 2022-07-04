@@ -294,7 +294,7 @@ class CamCameraTest(VmbPyTestCase):
                 self.frame_count = frame_count
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, stream, frame: Frame):
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
                 print(cam, stream, frame)
                 self.cnt += 1
 
