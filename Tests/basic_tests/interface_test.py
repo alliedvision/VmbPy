@@ -35,52 +35,46 @@ from helpers import VmbPyTestCase
 
 class InterfaceTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
-        inters = self.vimba.get_all_interfaces()
+        inters = self.vmb.get_all_interfaces()
 
         if not inters:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('No Interface available to test against. Abort.')
 
     def tearDown(self):
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_interface_decode_id(self):
         # Expectation all interface ids can be decoded in something not ''
-        for i in self.vimba.get_all_interfaces():
+        for i in self.vmb.get_all_interfaces():
             self.assertNotEqual(i.get_id(), '')
 
     def test_interface_decode_type(self):
-        # Expectation all interface types be in interface types
-        excpected = (
-            InterfaceType.Firewire,
-            InterfaceType.Ethernet,
-            InterfaceType.Usb,
-            InterfaceType.CL,
-            InterfaceType.CSI2,
-        )
-
-        for i in self.vimba.get_all_interfaces():
-            self.assertIn(i.get_type(), excpected)
+        # Expectation all interface types be in transport layer types
+        # instances of Interface are enumerated by the TransportLayer class. Because of this the
+        # transport layer decides the type of the interface
+        for i in self.vmb.get_all_interfaces():
+            self.assertIn(i.get_type(), TransportLayerType)
 
     def test_interface_decode_name(self):
         # Expectation all interface names  can be decoded in something not ''
-        for i in self.vimba.get_all_interfaces():
+        for i in self.vmb.get_all_interfaces():
             self.assertNotEqual(i.get_name(), '')
 
     def test_interface_get_all_features(self):
         # Expectation: Call get_all_features raises RuntimeError outside of with
         # Inside of with return a non empty set
-        inter = self.vimba.get_all_interfaces()[0]
+        inter = self.vmb.get_all_interfaces()[0]
         self.assertNotEqual(inter.get_all_features(), ())
 
     def test_interface_get_features_affected_by(self):
         # Expectation: Call get_features_affected_by raises RuntimeError outside of with.
         # Inside with it must either return and empty set if the given feature has no affected
         # Feature or a set off affected features
-        inter = self.vimba.get_all_interfaces()[0]
+        inter = self.vmb.get_all_interfaces()[0]
         try:
             affects_feats = inter.get_feature_by_name('DeviceUpdateList')
 
@@ -94,16 +88,16 @@ class InterfaceTest(VmbPyTestCase):
             self.skipTest('Test requires Feature \'DeviceCount\'.')
 
         self.assertTrue(affects_feats.has_affected_features())
-        self.assertNotEquals(inter.get_features_affected_by(affects_feats), ())
+        self.assertNotEqual(inter.get_features_affected_by(affects_feats), ())
 
         self.assertFalse(not_affects_feats.has_affected_features())
-        self.assertEquals(inter.get_features_affected_by(not_affects_feats), ())
+        self.assertEqual(inter.get_features_affected_by(not_affects_feats), ())
 
     def test_interface_get_features_selected_by(self):
         # Expectation: Call get_features_selected_by raises RuntimeError outside of with.
         # Inside with it must either return and empty set if the given feature has no selected
         # Feature or a set off affected features
-        inter = self.vimba.get_all_interfaces()[0]
+        inter = self.vmb.get_all_interfaces()[0]
         try:
             selects_feats = inter.get_feature_by_name('DeviceSelector')
 
@@ -117,27 +111,43 @@ class InterfaceTest(VmbPyTestCase):
             self.skipTest('Test requires Feature \'DeviceCount\'.')
 
         self.assertTrue(selects_feats.has_selected_features())
-        self.assertNotEquals(inter.get_features_selected_by(selects_feats), ())
+        self.assertNotEqual(inter.get_features_selected_by(selects_feats), ())
 
         self.assertFalse(not_selects_feats.has_selected_features())
-        self.assertEquals(inter.get_features_selected_by(not_selects_feats), ())
+        self.assertEqual(inter.get_features_selected_by(not_selects_feats), ())
 
     def test_interface_get_features_by_type(self):
         # Expectation: Call get_features_by_type raises RuntimeError outside of with
         # Inside of with return a non empty set for IntFeature (DeviceCount is IntFeature)
-        inter = self.vimba.get_all_interfaces()[0]
+        inter = self.vmb.get_all_interfaces()[0]
         self.assertNotEqual(inter.get_features_by_type(IntFeature), ())
 
     def test_interface_get_features_by_category(self):
         # Expectation: Call get_features_by_category raises RuntimeError outside of with
         # Inside of with return a non empty set for /DeviceEnumeration)
-        inter = self.vimba.get_all_interfaces()[0]
+        inter = self.vmb.get_all_interfaces()[0]
         self.assertNotEqual(inter.get_features_by_category('/DeviceEnumeration'), ())
 
     def test_interface_get_feature_by_name(self):
         # Expectation: Call get_feature_by_name raises RuntimeError outside of with
         # Inside of with return dont raise VimbaFeatureError for 'DeviceCount'
         # A invalid name must raise VimbaFeatureError
-        inter = self.vimba.get_all_interfaces()[0]
+        inter = self.vmb.get_all_interfaces()[0]
         self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
         self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
+
+    def test_interface_get_transport_layer_type(self):
+        # Expectation: The transport layer returned by `get_transport_layer` has correct type
+        for inter in self.vmb.get_all_interfaces():
+            self.assertIsInstance(inter.get_transport_layer(),
+                                  TransportLayer)
+
+    def test_interface_get_cameras_type(self):
+        # Expectation: All cameras returned by `get_cameras` have correct type
+        for inter in self.vmb.get_all_interfaces():
+            with self.subTest(f'interface={inter}'):
+                cameras = inter.get_cameras()
+                if not cameras:
+                    self.skipTest(f'Could not test because {inter} did not provide any cameras')
+                for cam in cameras:
+                    self.assertIsInstance(cam, Camera)

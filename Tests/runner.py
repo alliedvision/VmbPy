@@ -101,6 +101,7 @@ def main():
     import basic_tests.vimba_common_test
     import basic_tests.vimba_test
     import basic_tests.interface_test
+    import basic_tests.transport_layer_test
 
     import real_cam_tests.vimba_test
     import real_cam_tests.feature_test
@@ -116,7 +117,8 @@ def main():
         basic_tests.util_context_decorator_test,
         basic_tests.vimba_common_test,
         basic_tests.vimba_test,
-        basic_tests.interface_test
+        basic_tests.interface_test,
+        basic_tests.transport_layer_test
     ]
 
     REAL_CAM_TEST_MODS = [

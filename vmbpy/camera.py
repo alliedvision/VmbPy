@@ -24,6 +24,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from __future__ import annotations
 
 import enum
 import os
@@ -31,12 +32,12 @@ import copy
 import threading
 
 from ctypes import POINTER
-from typing import Tuple, List, Callable, cast, Optional, Union, Dict
+from typing import Tuple, List, Callable, cast, Optional, Union, Dict, TYPE_CHECKING
+
 from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, VmbUint32, G_VMB_C_HANDLE, VmbAccessMode, \
-                       VmbCError, VmbError, VmbFrame, VmbFeaturePersist, VmbFeaturePersistSettings
-from .feature import discover_features, discover_feature, FeatureTypes, FeaturesTuple, \
-                     FeatureTypeTypes
+from .c_binding import VmbCameraInfo, VmbHandle, VmbAccessMode, VmbCError, VmbError, VmbFrame, \
+                       VmbFeaturePersist, VmbFeaturePersistSettings
+from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
                     filter_selected_features, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors, read_memory, \
@@ -46,6 +47,9 @@ from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, 
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 
+if TYPE_CHECKING:
+    from .interface import Interface
+    from .transportlayer import TransportLayer
 
 __all__ = [
     'AccessMode',
@@ -56,8 +60,6 @@ __all__ = [
     'CamerasTuple',
     'CamerasList',
     'CameraChangeHandler',
-    'discover_cameras',
-    'discover_camera'
 ]
 
 
@@ -134,7 +136,7 @@ class _StateInit(_State):
 
             try:
                 call_vmb_c('VmbFrameAnnounce', self.context.cam_handle, byref(frame_handle),
-                             sizeof(frame_handle))
+                           sizeof(frame_handle))
                 if frame._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
                     assert frame_handle.buffer is not None
                     frame._set_buffer(frame_handle.buffer)
@@ -153,7 +155,7 @@ class _StateAnnounced(_State):
 
             try:
                 call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                             self.context.frames_callback)
+                           self.context.frames_callback)
 
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, e)
@@ -241,7 +243,7 @@ class _StateAcquiring(_State):
 
             try:
                 call_vmb_c('VmbCaptureFrameWait', self.context.cam_handle, byref(frame_handle),
-                             timeout_ms)
+                           timeout_ms)
 
             except VmbCError as e:
                 raise _build_camera_error(self.context.cam, e) from e
@@ -252,7 +254,7 @@ class _StateAcquiring(_State):
 
         try:
             call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                         self.context.frames_callback)
+                       self.context.frames_callback)
 
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, e) from e
@@ -361,8 +363,9 @@ class Camera:
     """
     @TraceEnable()
     @LeaveContextOnCall()
-    def __init__(self, info: VmbCameraInfo):
+    def __init__(self, info: VmbCameraInfo, interface: Interface):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
+        self.__interface = interface
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
@@ -427,10 +430,22 @@ class Camera:
         """Get a set of all access modes the camera can be accessed with."""
         return decode_flags(AccessMode, self.__info.permittedAccess)
 
+    def get_transport_layer(self) -> TransportLayer:
+        return self.get_interface().get_transport_layer()
+
+    def get_interface(self) -> Interface:
+        return self.__interface
+
     def get_interface_id(self) -> str:
         """Get ID of the Interface this camera is connected to, for example, VimbaUSBInterface_0x0
         """
-        return decode_cstr(self.__info.interfaceIdString)
+        return self.get_interface().get_id()
+
+    def get_streams(self):
+        raise NotImplementedError
+
+    def get_local_device(self):
+        raise NotImplementedError
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -880,7 +895,7 @@ class Camera:
         settings.persistType = VmbFeaturePersist(persist_type)
 
         call_vmb_c('VmbCameraSettingsSave', self.__handle, file.encode('utf-8'), byref(settings),
-                     sizeof(settings))
+                   sizeof(settings))
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -909,14 +924,14 @@ class Camera:
         settings.persistType = VmbFeaturePersist(persist_type)
 
         call_vmb_c('VmbCameraSettingsLoad', self.__handle, file.encode('utf-8'), byref(settings),
-                     sizeof(settings))
+                   sizeof(settings))
 
     @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
         try:
             call_vmb_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
-                         byref(self.__handle))
+                       byref(self.__handle))
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -973,9 +988,9 @@ class Camera:
         info = VmbCameraInfo()
         try:
             call_vmb_c('VmbCameraInfoQuery',
-                         self.get_id().encode('utf-8'),
-                         byref(info),
-                         sizeof(info))
+                       self.get_id().encode('utf-8'),
+                       byref(info),
+                       sizeof(info))
 
         except VmbCError as e:
             raise VmbCameraError(str(e.get_error_code())) from e
@@ -1013,44 +1028,6 @@ class Camera:
                 msg += 'raised by: {}'.format(context.frames_handler)
                 Log.get_instance().error(msg)
                 raise e
-
-
-@TraceEnable()
-def discover_cameras() -> CamerasList:
-    """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
-
-    result = []
-    cams_count = VmbUint32(0)
-
-    call_vmb_c('VmbCamerasList', None, 0, byref(cams_count), 0)
-
-    if cams_count:
-        cams_found = VmbUint32(0)
-        cams_infos = (VmbCameraInfo * cams_count.value)()
-
-        call_vmb_c('VmbCamerasList', cams_infos, cams_count, byref(cams_found),
-                     sizeof(VmbCameraInfo))
-
-        for info in cams_infos[:cams_found.value]:
-            result.append(Camera(info))
-
-    return result
-
-
-@TraceEnable()
-def discover_camera(id_: str) -> Camera:
-    """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
-
-    info = VmbCameraInfo()
-
-    # Try to lookup Camera with given ID. If this function
-    try:
-        call_vmb_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
-
-    except VmbCError as e:
-        raise VmbCameraError(str(e.get_error_code())) from e
-
-    return Camera(info)
 
 
 def _cam_handle_accessor(cam: Camera) -> VmbHandle:

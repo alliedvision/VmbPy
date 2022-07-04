@@ -182,12 +182,18 @@ class CBindingVimbaCTypesTest(VmbPyTestCase):
         self.assertEqual(VmbPixelFormat.YCbCr8_CbYCr, 0x0218003A)
 
     def test_enum_vmb_interface(self):
-        self.assertEqual(VmbInterface.Unknown, 0)
-        self.assertEqual(VmbInterface.Firewire, 1)
-        self.assertEqual(VmbInterface.Ethernet, 2)
-        self.assertEqual(VmbInterface.Usb, 3)
-        self.assertEqual(VmbInterface.CL, 4)
-        self.assertEqual(VmbInterface.CSI2, 5)
+        self.assertEqual(VmbTransportLayer.Unknown, 0)
+        self.assertEqual(VmbTransportLayer.GEV, 1)
+        self.assertEqual(VmbTransportLayer.CL, 2)
+        self.assertEqual(VmbTransportLayer.IIDC, 3)
+        self.assertEqual(VmbTransportLayer.UVC, 4)
+        self.assertEqual(VmbTransportLayer.CXP, 5)
+        self.assertEqual(VmbTransportLayer.CLHS, 6)
+        self.assertEqual(VmbTransportLayer.U3V, 7)
+        self.assertEqual(VmbTransportLayer.Ethernet, 8)
+        self.assertEqual(VmbTransportLayer.PCI, 9)
+        self.assertEqual(VmbTransportLayer.Custom, 10)
+        self.assertEqual(VmbTransportLayer.Mixed, 11)
 
     def test_enum_vmb_access_mode(self):
         self.assertEqual(VmbAccessMode.None_, 0)

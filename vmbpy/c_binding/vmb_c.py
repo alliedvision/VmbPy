@@ -29,17 +29,18 @@ import copy
 import ctypes
 from typing import Callable, Any, Tuple
 from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
+
 from ..util import TraceEnable
 from ..error import VmbSystemError
 from .vmb_common import Uint32Enum, Int32Enum, VmbUint8, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
-    VmbHandle, VmbBool, VmbDouble, VmbError, VmbCError, VmbPixelFormat, \
-    fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib
+                        VmbHandle, VmbBool, VmbDouble, VmbError, VmbCError, VmbPixelFormat, \
+                        fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib
 
 __version__ = None
 
 __all__ = [
     'VmbPixelFormat',
-    'VmbInterface',
+    'VmbTransportLayer',
     'VmbAccessMode',
     'VmbFeatureData',
     'VmbFeaturePersist',
@@ -48,6 +49,7 @@ __all__ = [
     'VmbFrameStatus',
     'VmbFrameFlags',
     'VmbVersionInfo',
+    'VmbTransportLayerInfo',
     'VmbInterfaceInfo',
     'VmbCameraInfo',
     'VmbFeatureInfo',
@@ -63,22 +65,34 @@ __all__ = [
 
 
 # Types
-class VmbInterface(Uint32Enum):
+class VmbTransportLayer(Uint32Enum):
     """
     Camera Interface Types:
         Unknown  - Interface is not known to this version of the API
-        Firewire - 1394
-        Ethernet - GigE
-        Usb      - USB 3.0
+        GEV      - GigE Vision
         CL       - Camera Link
-        CSI2     - CSI-2
+        IIDC     - IIDC 1394
+        UVC      - USB video class
+        CXP      - CoaXPress
+        CLHS     - Camera Link HS
+        U3V      - USB3 Vision Standard
+        Ethernet - Generic Ethernet
+        PCI      - PCI / PCIe
+        Custom   - Non standard
+        Mixed    - Mixed (transport layer only)
     """
     Unknown = 0
-    Firewire = 1
-    Ethernet = 2
-    Usb = 3
-    CL = 4
-    CSI2 = 5
+    GEV = 1
+    CL = 2
+    IIDC = 3
+    UVC = 4
+    CXP = 5
+    CLHS = 6
+    U3V = 7
+    Ethernet = 8
+    PCI = 9
+    Custom = 10
+    Mixed = 11
 
     def __str__(self):
         return self._name_
@@ -281,6 +295,50 @@ class VmbVersionInfo(ctypes.Structure):
         return rep
 
 
+class VmbTransportLayerInfo(ctypes.Structure):
+    """
+        Fields:
+            transportLayerIdString  - Type: c_char_p
+                                      Info: Unique id of the transport layer
+            transportLayerName      - Type: c_char_p
+                                      Info: Name of the transport layer
+            transportLayerModelName - Type: c_char_p
+                                      Info: Model name of the transport layer
+            transportLayerVendor    - Type: c_char_p
+                                      Info: Vendor of the transport layer
+            transportLayerVersion   - Type: c_char_p
+                                      Info: Version of the transport layer
+            transportLayerPath      - Type: c_char_p
+                                      Info: Full path of the transport layer
+            transportLayerHandle    - Type: VmbHandle
+                                      Info: Handle of the transport layer for feature access
+            transportLayerType      - Type: VmbTransportLayer (VmbUint32)
+                                      Info: The type of the transport layer
+    """
+    _fields_ = [
+        ("transportLayerIdString", c_char_p),
+        ("transportLayerName", c_char_p),
+        ("transportLayerModelName", c_char_p),
+        ("transportLayerVendor", c_char_p),
+        ("transportLayerVersion", c_char_p),
+        ("transportLayerPath", c_char_p),
+        ("transportLayerHandle", VmbHandle),
+        ("transportLayerType", VmbUint32)
+    ]
+
+    def __repr__(self):
+        rep = 'VmbTransportLayerInfo'
+        rep += fmt_repr('(transportLayerIdString={}', self.transportLayerIdString)
+        rep += fmt_repr(',transportLayerName={}', self.transportLayerName)
+        rep += fmt_repr(',transportLayerModelName={}', self.transportLayerModelName)
+        rep += fmt_repr(',transportLayerVendor={}', self.transportLayerVendor)
+        rep += fmt_repr(',transportLayerVersion={}', self.transportLayerVersion)
+        rep += fmt_repr(',transportLayerPath={}', self.transportLayerPath)
+        rep += fmt_repr(',transportLayerHandle={}', self.transportLayerHandle)
+        rep += fmt_enum_repr(',transportLayerType={}', VmbTransportLayer, self.transportLayerType)
+        return rep
+
+
 class VmbInterfaceInfo(ctypes.Structure):
     """
     Interface information. Holds read-only information about an interface.
@@ -293,8 +351,8 @@ class VmbInterfaceInfo(ctypes.Structure):
                                    Info: Handle of the interface for feature access
             transportLayerHandle - Type: VmbHandle
                                    Info: Handle of the related transport layer for feature access
-            interfaceType        - Type: VmbInterface (VmbUint32)
-                                   Info: Interface type, see VmbInterface
+            interfaceType        - Type: VmbTransportLayer (VmbUint32)
+                                   Info: Interface type, see VmbTransportLayer
     """
     _fields_ = [
         ("interfaceIdString", c_char_p),
@@ -310,7 +368,7 @@ class VmbInterfaceInfo(ctypes.Structure):
         rep += fmt_repr(',interfaceName={}', self.interfaceName)
         rep += fmt_repr(',interfaceHandle={}', self.interfaceHandle)
         rep += fmt_repr(',transportLayerHandle={}', self.transportLayerHandle)
-        rep += fmt_enum_repr(',interfaceType={}', VmbInterface, self.interfaceType)
+        rep += fmt_enum_repr(',interfaceType={}', VmbTransportLayer, self.interfaceType)
         rep += ')'
         return rep
 
@@ -642,7 +700,7 @@ _SIGNATURES = {
     'VmbFeatureAccessQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbBool), c_ptr(VmbBool)]),
     'VmbFeatureIntGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
     'VmbFeatureIntSet': (VmbError, [VmbHandle, c_str, VmbInt64]),
-    'VmbFeatureIntRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64), c_ptr(VmbInt64)]),                              # noqa: E501
+    'VmbFeatureIntRangeQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64), c_ptr(VmbInt64)]),
     'VmbFeatureIntIncrementQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbInt64)]),
     'VmbFeatureFloatGet': (VmbError, [VmbHandle, c_str, c_ptr(VmbDouble)]),
     'VmbFeatureFloatSet': (VmbError, [VmbHandle, c_str, VmbDouble]),
@@ -665,7 +723,7 @@ _SIGNATURES = {
     'VmbFeatureRawGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),
     'VmbFeatureRawSet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32]),
     'VmbFeatureRawLengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
-    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),                      # noqa: E501
+    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),
     'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, c_void_p]),
     'VmbFrameAnnounce': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbFrameRevoke': (VmbError, [VmbHandle, c_ptr(VmbFrame)]),
@@ -675,11 +733,12 @@ _SIGNATURES = {
     'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), c_void_p]),
     'VmbCaptureFrameWait': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbCaptureQueueFlush': (VmbError, [VmbHandle]),
+    'VmbTransportLayersList': (VmbError, [c_ptr(VmbTransportLayerInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),             # noqa: E501
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
     'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
-    'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
-    'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),                     # noqa: E501
+    'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
+    'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
     # TODO: add 'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), c_void_p <- This callback is not void. Returns VmbError_t, c_void_p])
 }
 

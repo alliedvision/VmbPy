@@ -59,7 +59,7 @@ class RankVimbaXHomeCandidatesTest(VmbPyTestCase):
     def test_single_good_vimba_home_candidate(self):
         candidates = ['/opt/VimbaX_3_1']
         expected = '/opt/VimbaX_3_1'
-        self.assertEquals(expected, _select_vimbax_home(candidates))
+        self.assertEqual(expected, _select_vimbax_home(candidates))
 
     def test_presorted_vimba_home_candidates(self):
         candidates = ['/home/username/VimbaX_4_0', '/opt/some/other/gentl/provider']

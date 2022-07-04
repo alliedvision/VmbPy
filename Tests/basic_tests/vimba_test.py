@@ -35,83 +35,142 @@ from helpers import VmbPyTestCase
 
 class VimbaTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
+        self.vmb = VmbSystem.get_instance()
 
     def tearDown(self):
         pass
 
     def test_singleton(self):
         # Expected behavior: Multiple calls to Vimba.get_instance() return the same object.
-        self.assertEqual(self.vimba, VmbSystem.get_instance())
+        self.assertEqual(self.vmb, VmbSystem.get_instance())
 
     def test_get_version(self):
         # Expectation: Returned Version is not empty and does not raise any exceptions.
-        self.assertNotEqual(self.vimba.get_version(), "")
+        self.assertNotEqual(self.vmb.get_version(), "")
+
+    def test_get_all_cameras_type(self):
+        # Expectation: All camera instances returned by `get_all_cameras` have correct type
+        with self.vmb:
+            for cam in self.vmb.get_all_cameras():
+                self.assertIsInstance(cam, Camera)
+
+    def test_get_camera_by_id(self):
+        # Expectation: Getting a camera by id should return the expected camera
+        with self.vmb:
+            for cam in self.vmb.get_all_cameras():
+                self.assertEqual(cam,
+                                 self.vmb.get_camera_by_id(cam.get_id()))
 
     def test_get_camera_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
         # VimbaCameraError
-        with self.vimba:
-            self.assertRaises(VmbCameraError, self.vimba.get_camera_by_id, 'Invalid ID')
+        with self.vmb:
+            self.assertRaises(VmbCameraError, self.vmb.get_camera_by_id, 'Invalid ID')
+
+    def test_get_all_interfaces_type(self):
+        # Expectation: All interface instances returned by `get_all_interfaces` have correct type
+        with self.vmb:
+            for inter in self.vmb.get_all_interfaces():
+                self.assertIsInstance(inter, Interface)
+
+    def test_get_interface_by_id(self):
+        # Expectation: Getting an interface by id should return the expected interface
+        with self.vmb:
+            for inter in self.vmb.get_all_interfaces():
+                self.assertEqual(inter,
+                                 self.vmb.get_interface_by_id(inter.get_id()))
 
     def test_get_interface_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable interface must throw an
         # VimbaInterfaceError
-        with self.vimba:
-            self.assertRaises(VmbInterfaceError, self.vimba.get_interface_by_id, 'Invalid ID')
+        with self.vmb:
+            self.assertRaises(VmbInterfaceError, self.vmb.get_interface_by_id, 'Invalid ID')
+
+    def test_get_all_transport_layers_type(self):
+        # Expectation: All transport layer instances returned by `get_all_transport_layers` have
+        # correct type
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertIsInstance(tl, TransportLayer)
+
+    def test_get_transport_layer_by_id(self):
+        # Expectation: Getting a transport layer by id should return the expected tl
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertEqual(tl,
+                                 self.vmb.get_transport_layer_by_id(tl.get_id()))
+
+    def test_get_transport_layer_by_id_failure(self):
+        # Expected behavior: Lookup of a currently unavailable Transport Layer must throw an
+        # VmbTransportLayerError
+        with self.vmb:
+            self.assertRaises(VmbTransportLayerError,
+                              self.vmb.get_transport_layer_by_id,
+                              'Invalid ID')
 
     def test_get_feature_by_name_failure(self):
         # Expected behavior: Lookup of a currently unavailable feature must throw an
         # VimbaFeatureError
-        with self.vimba:
-            self.assertRaises(VmbFeatureError, self.vimba.get_feature_by_name, 'Invalid ID')
+        with self.vmb:
+            self.assertRaises(VmbFeatureError, self.vmb.get_feature_by_name, 'Invalid ID')
 
     def test_runtime_check_failure(self):
-        with self.vimba:
+        with self.vmb:
             # All functions with RuntimeTypeCheckEnable must return a TypeError on Failure
-            self.assertRaises(TypeError, self.vimba.get_camera_by_id, 0)
-            self.assertRaises(TypeError, self.vimba.get_interface_by_id, 1)
-            self.assertRaises(TypeError, self.vimba.get_feature_by_name, 0)
-            self.assertRaises(TypeError, self.vimba.enable_log, '-1')
+            self.assertRaises(TypeError, self.vmb.get_transport_layer_by_id, 0)
+            self.assertRaises(TypeError, self.vmb.get_camera_by_id, 0)
+            self.assertRaises(TypeError, self.vmb.get_cameras_by_tl, 0)
+            self.assertRaises(TypeError, self.vmb.get_cameras_by_interface, 0)
+            self.assertRaises(TypeError, self.vmb.get_interface_by_id, 1)
+            self.assertRaises(TypeError, self.vmb.get_interfaces_by_tl, 1)
+            self.assertRaises(TypeError, self.vmb.get_feature_by_name, 0)
+            self.assertRaises(TypeError, self.vmb.enable_log, '-1')
 
-            self.assertRaises(TypeError, self.vimba.get_features_affected_by, '-1')
-            self.assertRaises(TypeError, self.vimba.get_features_selected_by, '-1')
-            self.assertRaises(TypeError, self.vimba.get_features_by_type, [])
-            self.assertRaises(TypeError, self.vimba.register_camera_change_handler, 0)
-            self.assertRaises(TypeError, self.vimba.unregister_camera_change_handler, 0)
-            self.assertRaises(TypeError, self.vimba.register_interface_change_handler, 0)
-            self.assertRaises(TypeError, self.vimba.unregister_interface_change_handler, 0)
+            self.assertRaises(TypeError, self.vmb.get_features_affected_by, '-1')
+            self.assertRaises(TypeError, self.vmb.get_features_selected_by, '-1')
+            self.assertRaises(TypeError, self.vmb.get_features_by_type, [])
+            self.assertRaises(TypeError, self.vmb.register_camera_change_handler, 0)
+            self.assertRaises(TypeError, self.vmb.unregister_camera_change_handler, 0)
+            self.assertRaises(TypeError, self.vmb.register_interface_change_handler, 0)
+            self.assertRaises(TypeError, self.vmb.unregister_interface_change_handler, 0)
 
     def test_vimba_context_manager_reentrancy(self):
         # Expectation: Implemented Context Manager must be reentrant, not causing
         # multiple starts of the Vimba API (would cause C-Errors)
 
-        with self.vimba:
-            with self.vimba:
-                with self.vimba:
+        with self.vmb:
+            with self.vmb:
+                with self.vmb:
                     pass
 
     def test_vimba_api_context_sensitity_inside_context(self):
         # Expectation: Vimba has functions that shall only be callable inside the Context and
         # calling outside must cause a runtime error. This test check only if the RuntimeErrors
         # are triggered then called Outside of the with block.
-        self.assertRaises(RuntimeError, self.vimba.read_memory, 0, 0)
-        self.assertRaises(RuntimeError, self.vimba.write_memory, 0, b'foo')
-        self.assertRaises(RuntimeError, self.vimba.read_registers, ())
-        self.assertRaises(RuntimeError, self.vimba.write_registers, {0: 0})
-        self.assertRaises(RuntimeError, self.vimba.get_all_interfaces)
-        self.assertRaises(RuntimeError, self.vimba.get_interface_by_id, 'id')
-        self.assertRaises(RuntimeError, self.vimba.get_all_cameras)
-        self.assertRaises(RuntimeError, self.vimba.get_camera_by_id, 'id')
-        self.assertRaises(RuntimeError, self.vimba.get_all_features)
+        self.assertRaises(RuntimeError, self.vmb.read_memory, 0, 0)
+        self.assertRaises(RuntimeError, self.vmb.write_memory, 0, b'foo')
+        self.assertRaises(RuntimeError, self.vmb.read_registers, ())
+        self.assertRaises(RuntimeError, self.vmb.write_registers, {0: 0})
+        self.assertRaises(RuntimeError, self.vmb.get_all_transport_layers)
+        self.assertRaises(RuntimeError, self.vmb.get_transport_layer_by_id)
+        self.assertRaises(RuntimeError, self.vmb.get_all_interfaces)
+        self.assertRaises(RuntimeError, self.vmb.get_interface_by_id, 'id')
+        self.assertRaises(RuntimeError, self.vmb.get_all_cameras)
+        self.assertRaises(RuntimeError, self.vmb.get_camera_by_id, 'id')
+        self.assertRaises(RuntimeError, self.vmb.get_all_features)
 
-        # Enter scope to get handle on Features as valid parameters for the test:
-        # Don't to this in production code because the feature will be invalid if use.
-        with self.vimba:
-            feat = self.vimba.get_all_features()[0]
+        # Enter scope to get handle on TransportLayer/Interface/Features as valid parameters for the
+        # test: Don't to this in production code because the feature will be invalid if use.
+        with self.vmb:
+            tl = self.vmb.get_all_transport_layers()[0]
+            inter = self.vmb.get_all_interfaces()[0]
+            feat = self.vmb.get_all_features()[0]
 
-        self.assertRaises(RuntimeError, self.vimba.get_features_affected_by, feat)
-        self.assertRaises(RuntimeError, self.vimba.get_features_selected_by, feat)
-        self.assertRaises(RuntimeError, self.vimba.get_features_by_type, IntFeature)
-        self.assertRaises(RuntimeError, self.vimba.get_features_by_category, 'foo')
-        self.assertRaises(RuntimeError, self.vimba.get_feature_by_name, 'foo')
+        self.assertRaises(RuntimeError, self.vmb.get_interfaces_by_tl, tl)
+        self.assertRaises(RuntimeError, self.vmb.get_cameras_by_tl, tl)
+        self.assertRaises(RuntimeError, self.vmb.get_cameras_by_interface, inter)
+        self.assertRaises(RuntimeError, self.vmb.get_features_affected_by, feat)
+        self.assertRaises(RuntimeError, self.vmb.get_features_selected_by, feat)
+        self.assertRaises(RuntimeError, self.vmb.get_features_by_type, IntFeature)
+        self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')
+        self.assertRaises(RuntimeError, self.vmb.get_feature_by_name, 'foo')
