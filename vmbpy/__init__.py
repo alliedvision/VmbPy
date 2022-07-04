@@ -34,6 +34,7 @@ __all__ = [
     'VmbSystem',
     'Stream',
     'Camera',
+    'LocalDevice',
     'CameraChangeHandler',
     'CameraEvent',
     'AccessMode',
@@ -109,6 +110,8 @@ from .vmbsystem import VmbSystem
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
 
 from .stream import Stream
+
+from .localdevice import LocalDevice
 
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 
