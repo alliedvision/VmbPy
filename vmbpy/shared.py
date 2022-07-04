@@ -35,7 +35,6 @@ from .error import VmbFeatureError
 from .util import TraceEnable
 
 __all__ = [
-    'filter_affected_features',
     'filter_selected_features',
     'filter_features_by_name',
     'filter_features_by_type',
@@ -47,49 +46,6 @@ __all__ = [
     'read_registers',
     'write_registers'
 ]
-
-
-@TraceEnable()
-def filter_affected_features(feats: FeaturesTuple, feat: FeatureTypes) -> FeaturesTuple:
-    """Search for all Features affected by a given feature within a feature set.
-
-    Arguments:
-        feats: Feature set to search in.
-        feat: Feature that might affect Features within 'feats'.
-
-    Returns:
-        A set of all features that are affected by 'feat'.
-
-    Raises:
-        VmbFeatureError if 'feat' is not stored within 'feats'.
-    """
-
-    if feat not in feats:
-        raise VmbFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
-
-    result = []
-
-    if feat.has_affected_features():
-        feats_count = VmbUint32()
-        feats_handle = feat._handle
-        feats_name = feat._info.name
-
-        # Query affected features from given Feature
-        call_vmb_c('VmbFeatureListAffected', feats_handle, feats_name, None, 0,
-                     byref(feats_count), sizeof(VmbFeatureInfo))
-
-        feats_found = VmbUint32(0)
-        feats_infos = (VmbFeatureInfo * feats_count.value)()
-
-        call_vmb_c('VmbFeatureListAffected', feats_handle, feats_name, feats_infos, feats_count,
-                     byref(feats_found), sizeof(VmbFeatureInfo))
-
-        # Search affected features in given feature set
-        for info, feature in itertools.product(feats_infos[:feats_found.value], feats):
-            if info.name == feature._info.name:
-                result.append(feature)
-
-    return tuple(result)
 
 
 @TraceEnable()

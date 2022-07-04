@@ -70,29 +70,6 @@ class InterfaceTest(VmbPyTestCase):
         inter = self.vmb.get_all_interfaces()[0]
         self.assertNotEqual(inter.get_all_features(), ())
 
-    def test_interface_get_features_affected_by(self):
-        # Expectation: Call get_features_affected_by raises RuntimeError outside of with.
-        # Inside with it must either return and empty set if the given feature has no affected
-        # Feature or a set off affected features
-        inter = self.vmb.get_all_interfaces()[0]
-        try:
-            affects_feats = inter.get_feature_by_name('DeviceUpdateList')
-
-        except VmbFeatureError:
-            self.skipTest('Test requires Feature \'DeviceUpdateList\'.')
-
-        try:
-            not_affects_feats = inter.get_feature_by_name('DeviceCount')
-
-        except VmbFeatureError:
-            self.skipTest('Test requires Feature \'DeviceCount\'.')
-
-        self.assertTrue(affects_feats.has_affected_features())
-        self.assertNotEqual(inter.get_features_affected_by(affects_feats), ())
-
-        self.assertFalse(not_affects_feats.has_affected_features())
-        self.assertEqual(inter.get_features_affected_by(not_affects_feats), ())
-
     def test_interface_get_features_selected_by(self):
         # Expectation: Call get_features_selected_by raises RuntimeError outside of with.
         # Inside with it must either return and empty set if the given feature has no selected

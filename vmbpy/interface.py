@@ -31,9 +31,8 @@ from typing import Tuple, Callable, Dict, TYPE_CHECKING
 
 from .c_binding import decode_cstr, VmbInterfaceInfo, VmbHandle
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
-from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, filter_features_by_category, \
-                    attach_feature_accessors, read_memory, \
+from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
+                    filter_features_by_category, attach_feature_accessors, read_memory, \
                     write_memory, read_registers, write_registers
 from .transportlayer import TransportLayerType
 from .util import TraceEnable, RuntimeTypeCheckEnable
@@ -199,23 +198,6 @@ class Interface:
         done to avoid importing `VmbSystem` here which would lead to a circular dependency.
         """
         raise NotImplementedError
-
-    @TraceEnable()
-    @RuntimeTypeCheckEnable()
-    def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-        """Get all features affected by a specific interface feature.
-
-        Arguments:
-            feat - Feature to find features that are affected by 'feat'.
-
-        Returns:
-            A set of features affected by changes on 'feat'.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            VmbFeatureError if 'feat' is not a feature of this interface.
-        """
-        return filter_affected_features(self.__feats, feat)
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()

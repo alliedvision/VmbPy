@@ -38,10 +38,10 @@ from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cs
 from .c_binding import VmbCameraInfo, VmbHandle, VmbAccessMode, VmbCError, VmbError, VmbFrame, \
                        VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
-from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, filter_features_by_category, \
-                    attach_feature_accessors, remove_feature_accessors, read_memory, \
-                    write_memory, read_registers, write_registers
+from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
+                    filter_features_by_category, attach_feature_accessors, \
+                    remove_feature_accessors, read_memory, write_memory, read_registers, \
+                    write_registers
 from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
@@ -538,25 +538,6 @@ class Camera:
             RuntimeError if called outside "with" - statement scope.
         """
         return self.__feats
-
-    @TraceEnable()
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-        """Get all features affected by a specific camera feature.
-
-        Arguments:
-            feat - Feature used, find features that are affected by 'feat'.
-
-        Returns:
-            A set of features affected by changes on 'feat'.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            VmbFeatureError if 'feat' is not a feature of this camera.
-        """
-        return filter_affected_features(self.__feats, feat)
 
     @TraceEnable()
     @RaiseIfOutsideContext()
