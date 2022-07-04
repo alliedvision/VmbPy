@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from helpers import VmbPyTestCase
 
 
-def dummy_frame_handler(cam: Camera, frame: Frame):
+def dummy_frame_handler(cam: Camera, stream: Stream, frame: Frame):
     pass
 
 
@@ -283,7 +283,8 @@ class CamCameraTest(VmbPyTestCase):
                 self.frame_count = frame_count
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, frame: Frame):
+            def __call__(self, cam: Camera, stream, frame: Frame):
+                print(cam, stream, frame)
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
@@ -312,7 +313,7 @@ class CamCameraTest(VmbPyTestCase):
                 self.frame_count = frame_count
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, frame: Frame):
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
@@ -346,7 +347,7 @@ class CamCameraTest(VmbPyTestCase):
                 self._test_instance = test_instance
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, frame: Frame):
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
                 # If the frame callback for the first frame is not triggered, this assertion will
                 # fail the test case because the frame will have ID 1 instead of the expected value
                 # of 0
@@ -372,13 +373,16 @@ class CamCameraTest(VmbPyTestCase):
                 self.cam.stop_streaming()
 
     def test_camera_runtime_type_check(self):
-        def valid_handler(cam, frame):
+        def valid_handler(cam, stream, frame):
             pass
 
         def invalid_handler_1(cam):
             pass
 
-        def invalid_handler_2(cam, frame, extra):
+        def invalid_handler_2(cam, stream):
+            pass
+
+        def invalid_handler_3(cam, stream, frame, extra):
             pass
 
         self.assertRaises(TypeError, self.cam.set_access_mode, -1)
@@ -394,6 +398,7 @@ class CamCameraTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.cam.start_streaming, valid_handler, 'no int')
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_1)
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_2)
+            self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_3)
             self.assertRaises(TypeError, self.cam.save_settings, 0, PersistType.All)
             self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
 

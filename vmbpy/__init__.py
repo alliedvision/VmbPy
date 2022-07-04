@@ -32,6 +32,7 @@ __version__ = '0.0.1'
 
 __all__ = [
     'VmbSystem',
+    'Stream',
     'Camera',
     'CameraChangeHandler',
     'CameraEvent',
@@ -106,6 +107,8 @@ __all__ = [
 from .vmbsystem import VmbSystem
 
 from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
+
+from .stream import Stream
 
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 
