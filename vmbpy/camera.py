@@ -46,6 +46,8 @@ from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
+from .stream import Stream, StreamsList
+from .localdevice import LocalDevice
 
 if TYPE_CHECKING:
     from .interface import Interface
@@ -365,7 +367,9 @@ class Camera:
     @LeaveContextOnCall()
     def __init__(self, info: VmbCameraInfo, interface: Interface):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
-        self.__interface = interface
+        self.__interface: Interface = interface
+        self.__streams: StreamsList = []
+        self.__local_device: Optional[LocalDevice] = None
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
@@ -441,11 +445,13 @@ class Camera:
         """
         return self.get_interface().get_id()
 
-    def get_streams(self):
-        raise NotImplementedError
+    @RaiseIfOutsideContext()
+    def get_streams(self) -> StreamsList:
+        return self.__streams
 
-    def get_local_device(self):
-        raise NotImplementedError
+    @RaiseIfOutsideContext()
+    def get_local_device(self) -> LocalDevice:
+        return self.__local_device
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -930,6 +936,24 @@ class Camera:
 
             raise exc from e
 
+        try:
+            info = VmbCameraInfo()
+            call_vmb_c('VmbCameraInfoQueryByHandle', self.__handle, byref(info), sizeof(info))
+        except VmbCError as e:
+            err = e.get_error_code()
+            if err == VmbError.BadHandle:
+                msg = 'Invalid handle used to query camera info. Used handel: {}'
+                msg = msg.format(self.__handle)
+                exc - VmbCameraError(msg)
+            else:
+                exc = VmbCameraError(repr(err))
+            raise exc from e
+
+        for i in range(info.streamCount):
+            # TODO: check if we can just iterate over info.streamHandles directly?
+            # The stream at index 0 is automatically opened
+            self.__streams.append(Stream(info.streamHandles[i], is_open=(i == 0)))
+        self.__local_device = LocalDevice(info.localDeviceHandle)
         self.__feats = discover_features(self.__handle)
         attach_feature_accessors(self, self.__feats)
 

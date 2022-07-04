@@ -180,6 +180,17 @@ class CamCameraTest(VmbPyTestCase):
         # Expectation: get interface Id this camera is connected to
         self.assertTrue(self.cam.get_interface_id())
 
+    def test_camera_get_streams_type(self):
+        # Expectation: returns instances of Stream for Camera instance
+        with self.cam:
+            for stream in self.cam.get_streams():
+                self.assertIsInstance(stream, Stream)
+
+    def test_camera_get_local_device_type(self):
+        # Expectation: returns instance of LocalDevice for Camera instance
+        with self.cam:
+            self.assertIsInstance(self.cam.get_local_device(), LocalDevice)
+
     def test_camera_frame_generator_limit_set(self):
         # Expectation: The Frame generator fetches the given number of images.
         with self.cam:
@@ -479,6 +490,8 @@ class CamCameraTest(VmbPyTestCase):
     def test_camera_api_context_sensitity_inside_context(self):
         # Expectation: Most Camera related functions are only valid then called within the given
         # Context. If called from Outside a runtime error must be raised.
+        self.assertRaises(RuntimeError, self.cam.get_streams)
+        self.assertRaises(RuntimeError, self.cam.get_local_device)
         self.assertRaises(RuntimeError, self.cam.read_memory)
         self.assertRaises(RuntimeError, self.cam.write_memory)
         self.assertRaises(RuntimeError, self.cam.read_registers)
