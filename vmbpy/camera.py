@@ -925,6 +925,7 @@ class Camera:
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
             # In reality VmbError.NotImplemented_ is sometimes returned.
+            # TODO: Check that these error codes are correct
             if (err == VmbError.InvalidAccess) or (err == VmbError.NotImplemented_):
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
