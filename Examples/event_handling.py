@@ -88,12 +88,12 @@ def get_camera(cam_id: Optional[str]):
 
             cam = cams[0]
 
-        # This example works only with GigE Cameras. Verify that Camera is connected to an
-        # Ethernet Interface.
+        # This example works only with GigE Cameras. Verify that Camera is connected to a GigE
+        # Vision Interface.
         inter = vimba.get_interface_by_id(cam.get_interface_id())
 
-        if inter.get_type() != TransportLayerType.Ethernet:
-            abort('Example supports only GigE Cameras. Abort.')
+        if inter.get_type() != TransportLayerType.GEV:
+            abort('Example supports only GEV Cameras. Abort.')
 
         return cam
 

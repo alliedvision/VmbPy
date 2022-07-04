@@ -87,22 +87,22 @@ def get_camera(camera_id: str) -> Camera:
 
 
 def get_command_sender(interface_id):
-    # If given interface_id is ALL, ActionCommand shall be sent from all Ethernet Interfaces.
+    # If given interface_id is ALL, ActionCommand shall be sent from all GigE Vision Interfaces.
     # This is achieved by run ActionCommand on the Vimba instance.
     if interface_id == 'ALL':
         return VmbSystem.get_instance()
 
     with VmbSystem.get_instance() as vimba:
-        # A specific Interface was given. Lookup via given Interface id and verify that
-        # it is an Ethernet Interface. Running ActionCommand will be only send from this Interface.
+        # A specific Interface was given. Lookup via given Interface id and verify that it is a GigE
+        # Vision Interface. Running ActionCommand will be only send from this Interface.
         try:
             inter = vimba.get_interface_by_id(interface_id)
 
         except VmbInterfaceError:
             abort('Failed to access Interface {}. Abort.'.format(interface_id))
 
-        if inter.get_type() != TransportLayerType.Ethernet:
-            abort('Given Interface {} is no Ethernet Interface. Abort.'.format(interface_id))
+        if inter.get_type() != TransportLayerType.GEV:
+            abort('Given Interface {} is not a GigE Vision Interface. Abort.'.format(interface_id))
 
     return inter
 
