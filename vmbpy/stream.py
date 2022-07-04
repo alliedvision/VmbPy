@@ -24,11 +24,20 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+from typing import List
+
+from .c_binding import VmbHandle
+
 
 __all__ = [
-    'Stream'
+    'Stream',
+    'StreamsList'
 ]
+
+StreamsList = List['Stream']
 
 
 class Stream:
-    pass
+    def __init__(self, stream_handle: VmbHandle, is_open: bool) -> None:
+        self.__handle: VmbHandle = stream_handle
+        self.__is_open: bool = is_open
