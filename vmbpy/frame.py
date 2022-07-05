@@ -642,7 +642,10 @@ class Frame:
 
     def get_buffer(self) -> ctypes.Array:
         """Get internal buffer object containing image data."""
+        # TODO: Do we need to consider the imageData pointer here? In VmbCPP the docstring references image and chunk data!
         return self._buffer
+
+    # TODO: Do we need to add a get_image method similar to VmbCPP where the chunk data at the beginning of the buffer is cut off?
 
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
@@ -662,6 +665,7 @@ class Frame:
             None if Frame contains no ancillary data.
             AncillaryData if Frame contains ancillary data.
         """
+        # TODO: this probably needs to be reworked
         if not self._frame.ancillarySize:
             return None
 

@@ -591,7 +591,7 @@ class VmbFrame(ctypes.Structure):
         ("receiveStatus", VmbInt32),
         ("frameID", VmbUint64),
         ("timestamp", VmbUint64),
-        ("imageData", VmbUint8),
+        ("imageData", c_ptr(VmbUint8)),
         ("receiveFlags", VmbUint32),
         ("pixelFormat", VmbUint32),
         ("width", VmbUint32),
@@ -633,7 +633,7 @@ class VmbFrame(ctypes.Structure):
         setattr(result, 'receiveStatus', copy.deepcopy(self.receiveStatus, memo))
         setattr(result, 'frameID', copy.deepcopy(self.frameID, memo))
         setattr(result, 'timestamp', copy.deepcopy(self.timestamp, memo))
-        setattr(result, 'imageData', copy.deepcopy(self.imageData, memo))
+        result.imageData = None  # TODO: Fix this to point to the correct position
         setattr(result, 'receiveFlags', copy.deepcopy(self.receiveFlags, memo))
         setattr(result, 'pixelFormat', copy.deepcopy(self.pixelFormat, memo))
         setattr(result, 'width', copy.deepcopy(self.width, memo))
