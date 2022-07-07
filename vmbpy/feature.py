@@ -182,10 +182,6 @@ class _BaseFeature:
         """Indicates if a feature can be stored in /loaded from a file."""
         return self._info.isStreamable
 
-    def has_affected_features(self) -> bool:
-        """Indicates if this feature can affect other features."""
-        return self._info.hasAffectedFeatures
-
     def has_selected_features(self) -> bool:
         """Indicates if this feature selects other features."""
         return self._info.hasSelectedFeatures

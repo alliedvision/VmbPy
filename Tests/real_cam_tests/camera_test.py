@@ -180,34 +180,6 @@ class CamCameraTest(VmbPyTestCase):
         # Expectation: get interface Id this camera is connected to
         self.assertTrue(self.cam.get_interface_id())
 
-    def test_camera_get_features_affected(self):
-        # Expectation: Features that affect other features shall return a set of affected feature
-        # Features that don't affect other features shall return (). If a Feature is supplied that
-        # is not associated with that camera, a TypeError must be raised.
-
-        with self.cam:
-            try:
-                affect = self.cam.get_feature_by_name('Height')
-
-            except VmbFeatureError as e:
-                raise unittest.SkipTest('Failed to lookup Feature Height') from e
-
-            try:
-                not_affect = self.cam.get_feature_by_name('AcquisitionFrameCount')
-
-            except VmbFeatureError as e:
-                raise unittest.SkipTest('Failed to lookup Feature AcquisitionFrameCount') from e
-
-            self.assertEqual(self.cam.get_features_affected_by(not_affect), ())
-
-            try:
-                payload_size = self.cam.get_feature_by_name('PayloadSize')
-
-            except VmbFeatureError as e:
-                raise unittest.SkipTest('Failed to lookup Feature PayloadSize') from e
-
-            self.assertIn(payload_size, self.cam.get_features_affected_by(affect))
-
     def test_camera_frame_generator_limit_set(self):
         # Expectation: The Frame generator fetches the given number of images.
         with self.cam:
@@ -414,7 +386,6 @@ class CamCameraTest(VmbPyTestCase):
         with self.cam:
             # Expectation: raise TypeError on passing invalid parameters
             self.assertRaises(TypeError, self.cam.get_frame, 'hi')
-            self.assertRaises(TypeError, self.cam.get_features_affected_by, 'No Feature')
             self.assertRaises(TypeError, self.cam.get_features_selected_by, 'No Feature')
             self.assertRaises(TypeError, self.cam.get_features_by_type, 0.0)
             self.assertRaises(TypeError, self.cam.get_feature_by_name, 0)
@@ -508,7 +479,6 @@ class CamCameraTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.cam.read_registers)
         self.assertRaises(RuntimeError, self.cam.write_registers)
         self.assertRaises(RuntimeError, self.cam.get_all_features)
-        self.assertRaises(RuntimeError, self.cam.get_features_affected_by)
         self.assertRaises(RuntimeError, self.cam.get_features_selected_by)
         self.assertRaises(RuntimeError, self.cam.get_features_by_type)
         self.assertRaises(RuntimeError, self.cam.get_features_by_category)

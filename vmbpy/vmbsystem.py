@@ -32,10 +32,10 @@ from typing import List, Dict, Tuple
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE, VmbUint32, VmbCError
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
-from .shared import filter_features_by_name, filter_features_by_type, filter_affected_features, \
-                    filter_selected_features, filter_features_by_category, \
-                    attach_feature_accessors, remove_feature_accessors, read_memory, \
-                    write_memory, read_registers, write_registers
+from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
+                    filter_features_by_category, attach_feature_accessors, \
+                    remove_feature_accessors, read_memory, write_memory, read_registers, \
+                    write_registers
 from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
                             VmbTransportLayerInfo
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
@@ -390,25 +390,6 @@ class VmbSystem:
                 RuntimeError then called outside of "with" - statement.
             """
             return self.__feats
-
-        @TraceEnable()
-        @RaiseIfOutsideContext()
-        @RuntimeTypeCheckEnable()
-        def get_features_affected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-            """Get all system features affected by a specific system feature.
-
-            Arguments:
-                feat - Feature used find features that are affected by feat.
-
-            Returns:
-                A set of features affected by changes on 'feat'.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                VmbFeatureError if 'feat' is not a system feature.
-            """
-            return filter_affected_features(self.__feats, feat)
 
         @TraceEnable()
         @RaiseIfOutsideContext()

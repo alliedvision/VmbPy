@@ -126,7 +126,6 @@ class VimbaTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.vmb.get_feature_by_name, 0)
             self.assertRaises(TypeError, self.vmb.enable_log, '-1')
 
-            self.assertRaises(TypeError, self.vmb.get_features_affected_by, '-1')
             self.assertRaises(TypeError, self.vmb.get_features_selected_by, '-1')
             self.assertRaises(TypeError, self.vmb.get_features_by_type, [])
             self.assertRaises(TypeError, self.vmb.register_camera_change_handler, 0)
@@ -169,7 +168,6 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_interfaces_by_tl, tl)
         self.assertRaises(RuntimeError, self.vmb.get_cameras_by_tl, tl)
         self.assertRaises(RuntimeError, self.vmb.get_cameras_by_interface, inter)
-        self.assertRaises(RuntimeError, self.vmb.get_features_affected_by, feat)
         self.assertRaises(RuntimeError, self.vmb.get_features_selected_by, feat)
         self.assertRaises(RuntimeError, self.vmb.get_features_by_type, IntFeature)
         self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')

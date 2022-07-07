@@ -116,10 +116,6 @@ class CamBaseFeatureTest(VmbPyTestCase):
         # Expectation: Streamable features shall return True, others False
         self.assertNoRaise(self.height.is_streamable)
 
-    def test_has_affected_features(self):
-        # Expectation:Features that affect features shall return True, others False
-        self.assertTrue(self.height.has_affected_features())
-
     def test_has_selected_features(self):
         # Expectation:Features that select features shall return True, others False
         self.assertFalse(self.height.has_selected_features())
