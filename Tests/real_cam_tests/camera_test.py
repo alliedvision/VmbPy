@@ -413,6 +413,33 @@ class CamCameraTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.cam.save_settings, 0, PersistType.All)
             self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
 
+    def test_callback_parameter_types(self):
+        # Expectation: All parameters of the frame callback are of instances of their expected type
+        class FrameHandler:
+            def __init__(self, test_instance):
+                self._test_instance = test_instance
+                self.event = threading.Event()
+
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
+                self._test_instance.assertIsInstance(cam, Camera)
+                self._test_instance.assertIsInstance(stream, Stream)
+                self._test_instance.assertIsInstance(frame, Frame)
+
+                self.event.set()
+
+        timeout = 5.0
+        frame_count = 5
+        handler = FrameHandler(self)
+        with self.cam:
+            try:
+                self.cam.start_streaming(handler, frame_count)
+
+                # Wait until the FrameHandler has been executed for each queued frame
+                self.assertTrue(handler.event.wait(timeout))
+
+            finally:
+                self.cam.stop_streaming()
+
     def test_camera_save_load_settings(self):
         # Expectation: After settings export a settings change must be reverted by loading a
         # Previously saved configuration.

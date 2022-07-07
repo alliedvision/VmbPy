@@ -24,17 +24,21 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-from typing import List
+from typing import List, Tuple, Dict
 
 from .c_binding import VmbHandle
 
 
 __all__ = [
     'Stream',
-    'StreamsList'
+    'StreamsList',
+    'StreamsTuple',
+    'StreamsDict'
 ]
 
 StreamsList = List['Stream']
+StreamsTuple = Tuple['Stream', ...]
+StreamsDict = Dict[VmbHandle, 'Stream']
 
 
 class Stream:
