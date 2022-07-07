@@ -657,10 +657,6 @@ class Frame:
         """Get byte size of internal buffer."""
         return self._frame.bufferSize
 
-    def get_image_size(self) -> int:
-        """Get byte size of image data stored in buffer."""
-        return self._frame.imageSize
-
     def get_ancillary_data(self) -> Optional[AncillaryData]:
         """Get AncillaryData.
 

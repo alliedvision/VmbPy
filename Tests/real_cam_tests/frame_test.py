@@ -122,17 +122,6 @@ class CamFrameTest(VmbPyTestCase):
                     self.assertIsNotNone(frame.get_width())
                     self.assertIsNotNone(frame.get_height())
 
-    def test_get_image_size(self):
-        # Expectation: get_image_size() must return 0 if locally constructed
-        # else it must return the image_size as int.
-        for allocation_mode in AllocationMode:
-            with self.subTest(f'allocation_mode={str(allocation_mode)}'):
-                self.assertEqual(Frame(0, allocation_mode).get_image_size(), 0)
-
-                with self.cam:
-                    self.assertNotEqual(
-                        self.cam.get_frame(allocation_mode=allocation_mode).get_image_size(), 0)
-
     def test_deepcopy(self):
         # Expectation: a deepcopy must clone the frame buffer with its contents an
         # update the internally store pointer in VmbFrame struct.
