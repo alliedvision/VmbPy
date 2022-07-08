@@ -576,9 +576,9 @@ class VmbSystem:
 
             call_vmb_c('VmbShutdown')
 
-        def __cam_cb_wrapper(self, cam_event: EnumFeature):   # coverage: skip
+        def __cam_cb_wrapper(self, _):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-            event = CameraEvent(int(cam_event.get()))
+            event = CameraEvent(int(self.get_feature_by_name('EventCameraDiscoveryType').get()))
             cam = None
             cam_id = self.get_feature_by_name('EventCameraDiscoveryCameraID').get()
             log = Log.get_instance()
@@ -595,7 +595,7 @@ class VmbSystem:
             # Existing camera lost. Remove it from active cameras
             elif event == CameraEvent.Missing:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id == c.get_id()].pop()
+                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()
                     cam._disconnected = True
                     self.__cams.remove(cam)
 
@@ -604,7 +604,7 @@ class VmbSystem:
             # Camera access mode changed. Need to update cached permitted access modes
             elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id == c.get_id()].pop()
+                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()
                     cam._update_permitted_access_modes()
 
                 log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
@@ -625,9 +625,9 @@ class VmbSystem:
                         Log.get_instance().error(msg)
                         raise e
 
-        def __inter_cb_wrapper(self, inter_event: EnumFeature):   # coverage: skip
+        def __inter_cb_wrapper(self, _):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-            event = InterfaceEvent(int(inter_event.get()))
+            event = InterfaceEvent(int(self.get_feature_by_name('EventInterfaceDiscoveryType').get()))
             inter = None
             inter_id = self.get_feature_by_name('EventInterfaceDiscoveryInterfaceID').get()
             log = Log.get_instance()
@@ -637,7 +637,6 @@ class VmbSystem:
                 inter = self.__discover_interface(inter_id)
 
                 with self.__inters_lock:
-                    # TODO: Test that this works as intended
                     self.__inters[inter._Interface__handle] = inter
 
                 log.info('Added interface \"{}\" to active interfaces'.format(inter_id))
@@ -646,7 +645,6 @@ class VmbSystem:
             elif event == InterfaceEvent.Missing:
                 with self.__inters_lock:
                     inter = [i for i in self.__inters.values() if inter_id == i.get_id()].pop()
-                    # TODO: Test that this works as intended
                     del self.__inters[inter._get_handle()]
 
                 log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
@@ -758,7 +756,7 @@ class VmbSystem:
             except VmbCError as e:
                 raise VmbCameraError(str(e.get_error_code())) from e
 
-            return Camera(info)
+            return Camera(info, self.__inters[info.interfaceHandle])
 
     __instance = __Impl()
 
