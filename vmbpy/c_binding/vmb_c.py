@@ -564,7 +564,7 @@ class VmbFrame(ctypes.Structure):
                                Info: Unique ID of this frame in this stream
             timestamp        - Type: VmbUint64
                                Info: Timestamp set by the camera
-            imageData        - Type: VmbUint8
+            imageData        - Type: c_ptr(VmbUint8)
                                Info: The start of the image data, if present, or null
             receiveFlags     - Type: VmbFrameFlags (VmbUint32)
                                Info: Flags indicating which additional frame information is
