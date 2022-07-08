@@ -580,7 +580,7 @@ class VmbSystem:
             # Skip coverage because it can't be measured. This is called from C-Context
             event = CameraEvent(int(cam_event.get()))
             cam = None
-            cam_id = self.get_feature_by_name('DiscoveryCameraIdent').get()
+            cam_id = self.get_feature_by_name('EventCameraDiscoveryCameraID').get()
             log = Log.get_instance()
 
             # New camera found: Add it to camera list
@@ -629,7 +629,7 @@ class VmbSystem:
             # Skip coverage because it can't be measured. This is called from C-Context
             event = InterfaceEvent(int(inter_event.get()))
             inter = None
-            inter_id = self.get_feature_by_name('DiscoveryInterfaceIdent').get()
+            inter_id = self.get_feature_by_name('EventInterfaceDiscoveryInterfaceID').get()
             log = Log.get_instance()
 
             # New interface found: Add it to interface list
