@@ -414,6 +414,10 @@ class Camera:
         """Get Camera Id, for example, DEV_1AB22C00041B"""
         return decode_cstr(self.__info.cameraIdString)
 
+    def get_extended_id(self) -> str:
+        """Get the extended (globally unique) ID of a Camera"""
+        return decode_cstr(self.__info.cameraIdExtended)
+
     def get_name(self) -> str:
         """Get Camera Name, for example, Allied Vision 1800 U-500m"""
         return decode_cstr(self.__info.cameraName)

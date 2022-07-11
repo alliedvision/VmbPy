@@ -142,12 +142,12 @@ class CamCameraTest(VmbPyTestCase):
 
         # Additional change handler that will inform us when our camera became "Unreachable"
         def _device_unreachable_informer(cam_event):
-            cam_id = self.vmb.get_feature_by_name('DiscoveryCameraIdent').get()
+            cam_id = self.vmb.get_feature_by_name('EventCameraDiscoveryCameraID').get()
             if (cam_id == self.cam.get_id()
                     and CameraEvent(int(cam_event.get())) == CameraEvent.Unreachable):
                 device_unreachable_event.set()
 
-        self.vmb.DiscoveryCameraEvent.register_change_handler(_device_unreachable_informer)
+        self.vmb.EventCameraDiscovery.register_change_handler(_device_unreachable_informer)
 
         # Prepare a process that will open the camera for us so we can observe the change in
         # permitted access modes. Must be a separate process, separate thread is not enough.
@@ -159,14 +159,15 @@ class CamCameraTest(VmbPyTestCase):
         # Open camera in separate process to trigger a CameraEvent.Unreachable
         p.start()
         # Wait for a CameraEvent.Unreachable to be triggered for our device
-        device_unreachable_event.wait(timeout=5)
+        self.assertTrue(device_unreachable_event.wait(timeout=500),
+                        'Waiting for the device discovery timed out')
         # Camera is now open in separate process. Make sure our permitted access modes reflects this
         self.assertNotIn(AccessMode.Full, self.cam.get_permitted_access_modes())
         # Tell spawned process to close camera and wait for it to shut down
         shutdown_request.set()
         p.join()
         # Remove the additional change handler we registered
-        self.vmb.DiscoveryCameraEvent.unregister_change_handler(_device_unreachable_informer)
+        self.vmb.EventCameraDiscovery.unregister_change_handler(_device_unreachable_informer)
 
     def test_camera_get_transport_layer_type(self):
         # Expectation: returns instance of transport layer for Camera instance
