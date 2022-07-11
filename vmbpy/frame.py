@@ -39,8 +39,8 @@ from .c_binding import call_vmb_c, call_vmb_image_transform, VmbFrameStatus, Vmb
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, LeaveContextOnCall, \
-                  RaiseIfOutsideContext
+from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, leave_context_on_call, \
+                  raise_if_outside_context
 from .error import VmbFrameError, VmbFeatureError
 
 try:
@@ -436,7 +436,7 @@ class AncillaryData:
     Ancillary Data are Features stored within a Frame.
     """
     @TraceEnable()
-    @LeaveContextOnCall()
+    @leave_context_on_call
     def __init__(self, handle: VmbFrame):
         """Do not call directly. Get Object via Frame access method"""
         self.__handle: VmbFrame = handle
@@ -459,7 +459,7 @@ class AncillaryData:
         if not self.__context_cnt:
             self._close()
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def get_all_features(self) -> FeaturesTuple:
         """Get all features in ancillary data.
 
@@ -471,7 +471,7 @@ class AncillaryData:
         """
         return self.__feats
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all features in ancillary data of a specific type.
@@ -491,7 +491,7 @@ class AncillaryData:
         """
         return filter_features_by_type(self.__feats, feat_type)
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all features in ancillary data of a specific category.
@@ -508,7 +508,7 @@ class AncillaryData:
         """
         return filter_features_by_category(self.__feats, category)
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get a features in ancillary data by its name.
@@ -532,7 +532,7 @@ class AncillaryData:
         return feat
 
     @TraceEnable()
-    @EnterContextOnCall()
+    @enter_context_on_call
     def _open(self):
         call_vmb_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
@@ -540,7 +540,7 @@ class AncillaryData:
         attach_feature_accessors(self, self.__feats)
 
     @TraceEnable()
-    @LeaveContextOnCall()
+    @leave_context_on_call
     def _close(self):
         remove_feature_accessors(self, self.__feats)
         self.__feats = ()

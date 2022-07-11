@@ -42,8 +42,8 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_sel
                     filter_features_by_category, attach_feature_accessors, \
                     remove_feature_accessors, read_memory, write_memory
 from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
-from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
+from .util import Log, TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
+                  leave_context_on_call, raise_if_inside_context, raise_if_outside_context
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 from .stream import Stream, StreamsTuple, StreamsDict
 from .localdevice import LocalDevice
@@ -363,7 +363,7 @@ class Camera:
     Static Camera properties like Name and Model can be accessed outside the context.
     """
     @TraceEnable()
-    @LeaveContextOnCall()
+    @leave_context_on_call
     def __init__(self, info: VmbCameraInfo, interface: Interface):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
         self.__interface: Interface = interface
@@ -395,7 +395,7 @@ class Camera:
     def __str__(self):
         return 'Camera(id={})'.format(self.get_id())
 
-    @RaiseIfInsideContext()
+    @raise_if_inside_context
     @RuntimeTypeCheckEnable()
     def set_access_mode(self, access_mode: AccessMode):
         """Set camera access mode.
@@ -448,16 +448,16 @@ class Camera:
         """
         return self.get_interface().get_id()
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def get_streams(self) -> StreamsTuple:
         return tuple(self.__streams.values())
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def get_local_device(self) -> LocalDevice:
         return self.__local_device
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:  # coverage: skip
         """Read a byte sequence from a given memory address.
@@ -480,7 +480,7 @@ class Camera:
         return read_memory(self.__handle, addr, max_bytes)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):  # coverage: skip
         """Write a byte sequence to a given memory address.
@@ -497,7 +497,7 @@ class Camera:
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this camera.
 
@@ -510,7 +510,7 @@ class Camera:
         return self.__feats
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
         """Get all features selected by a specific camera feature.
@@ -528,7 +528,7 @@ class Camera:
         """
         return filter_selected_features(self.__feats, feat)
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all camera features of a specific feature type.
@@ -548,7 +548,7 @@ class Camera:
         """
         return filter_features_by_type(self.__feats, feat_type)
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all camera features of a specific category.
@@ -566,7 +566,7 @@ class Camera:
         """
         return filter_features_by_category(self.__feats, category)
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get a camera feature by its name.
@@ -590,7 +590,7 @@ class Camera:
         return feat
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_frame_generator(self,
                             limit: Optional[int] = None,
@@ -627,7 +627,7 @@ class Camera:
         return _frame_generator(self, limit, timeout_ms, allocation_mode)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def get_frame(self,
                   timeout_ms: int = 2000,
@@ -651,7 +651,7 @@ class Camera:
         return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def start_streaming(self,
                         handler: FrameHandler,
@@ -702,7 +702,7 @@ class Camera:
             raise exc
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def stop_streaming(self):
         """Leave streaming mode.
 
@@ -731,7 +731,7 @@ class Camera:
         return self.__capture_fsm is not None and not self._disconnected
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def queue_frame(self, frame: Frame):
         """Reuse acquired frame in streaming mode.
@@ -758,7 +758,7 @@ class Camera:
         self.__capture_fsm.queue_frame(frame)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def get_pixel_formats(self) -> FormatTuple:
         """Get supported pixel formats from Camera.
 
@@ -785,7 +785,7 @@ class Camera:
         return tuple(result)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def get_pixel_format(self):
         """Get current pixel format.
 
@@ -799,7 +799,7 @@ class Camera:
                 return PixelFormat[k]
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def set_pixel_format(self, fmt: PixelFormat):
         """Set current pixel format.
@@ -823,7 +823,7 @@ class Camera:
                 feat.set(entry)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def save_settings(self, file: str, persist_type: PersistType):
         """Save camera settings to XML - File
@@ -849,7 +849,7 @@ class Camera:
                    sizeof(settings))
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     @RuntimeTypeCheckEnable()
     def load_settings(self, file: str, persist_type: PersistType):
         """Load camera settings from XML file
@@ -878,7 +878,7 @@ class Camera:
                    sizeof(settings))
 
     @TraceEnable()
-    @EnterContextOnCall()
+    @enter_context_on_call
     def _open(self):
         try:
             call_vmb_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
@@ -939,7 +939,7 @@ class Camera:
                 pass
 
     @TraceEnable()
-    @LeaveContextOnCall()
+    @leave_context_on_call
     def _close(self):
         if self.is_streaming():
             self.stop_streaming()

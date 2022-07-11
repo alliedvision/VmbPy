@@ -34,23 +34,23 @@ from helpers import VmbPyTestCase
 
 
 class TestObj:
-    @LeaveContextOnCall()
+    @leave_context_on_call
     def __init__(self):
         pass
 
-    @EnterContextOnCall()
+    @enter_context_on_call
     def __enter__(self):
         pass
 
-    @LeaveContextOnCall()
+    @leave_context_on_call
     def __exit__(self, _1, _2, _3):
         pass
 
-    @RaiseIfOutsideContext()
+    @raise_if_outside_context
     def works_inside_context(self):
         pass
 
-    @RaiseIfInsideContext()
+    @raise_if_inside_context
     def works_outside_context(self):
         pass
 
