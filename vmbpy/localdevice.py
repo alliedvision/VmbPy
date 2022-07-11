@@ -26,12 +26,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from .c_binding import VmbHandle
+from .featurecontainer import PersistableFeatureContainer
 
 __all__ = [
     'LocalDevice'
 ]
 
 
-class LocalDevice:
+class LocalDevice(PersistableFeatureContainer):
     def __init__(self, handle: VmbHandle) -> None:
+        super().__init__()
         self.__handle: VmbHandle = handle

@@ -31,6 +31,7 @@ from typing import Tuple, Callable, Dict, TYPE_CHECKING
 
 from .c_binding import decode_cstr, VmbInterfaceInfo, VmbHandle
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
+from .featurecontainer import PersistableFeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
                     filter_features_by_category, attach_feature_accessors, read_memory, \
                     write_memory
@@ -72,17 +73,18 @@ class InterfaceEvent(enum.IntEnum):
     Unreachable = 3
 
 
-class Interface:
+class Interface(PersistableFeatureContainer):
     """This class allows access to an interface such as USB detected by Vimba."""
 
     @TraceEnable()
     def __init__(self, info: VmbInterfaceInfo, transport_layer: TransportLayer):
         """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
+        super().__init__()
         self.__transport_layer = transport_layer
         self.__info: VmbInterfaceInfo = info
         self.__handle: VmbHandle = self.__info.interfaceHandle
-        self.__feats = discover_features(self.__handle)
-        attach_feature_accessors(self, self.__feats)
+        self._feats = discover_features(self.__handle)
+        attach_feature_accessors(self, self._feats)
 
     def __str__(self):
         return 'Interface(id={})'.format(self.get_id())
@@ -143,14 +145,6 @@ class Interface:
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
 
-    def get_all_features(self) -> FeaturesTuple:
-        """Get access to all discovered features of this Interface.
-
-        Returns:
-            A set of all currently detected features.
-        """
-        return self.__feats
-
     def get_transport_layer(self) -> TransportLayer:
         """Get the Transport Layer associated with this instance of Interface
         """
@@ -163,77 +157,6 @@ class Interface:
         done to avoid importing `VmbSystem` here which would lead to a circular dependency.
         """
         raise NotImplementedError
-
-    @TraceEnable()
-    @RuntimeTypeCheckEnable()
-    def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-        """Get all features selected by a specific interface feature.
-
-        Arguments:
-            feat - Feature to find features that are selected by 'feat'.
-
-        Returns:
-            A set of features selected by changes on 'feat'.
-
-        Raises:
-            TypeError if 'feat' is not of any feature type.
-            VmbFeatureError if 'feat' is not a feature of this interface.
-        """
-        return filter_selected_features(self.__feats, feat)
-
-    @RuntimeTypeCheckEnable()
-    def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
-        """Get all interface features of a specific feature type.
-
-        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
-        EnumFeature, CommandFeature, RawFeature
-
-        Arguments:
-            feat_type - FeatureType used find features of that type.
-
-        Returns:
-            A set of features of type 'feat_type'.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-        """
-        return filter_features_by_type(self.__feats, feat_type)
-
-    @RuntimeTypeCheckEnable()
-    def get_features_by_category(self, category: str) -> FeaturesTuple:
-        """Get all interface features of a specific category.
-
-        Arguments:
-            category - category for filtering.
-
-        Returns:
-            A set of features of category 'category'.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-        """
-        return filter_features_by_category(self.__feats, category)
-
-    @RuntimeTypeCheckEnable()
-    def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """Get an interface feature by its name.
-
-        Arguments:
-            feat_name - Name to find a feature.
-
-        Returns:
-            Feature with the associated name.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            VmbFeatureError if no feature is associated with 'feat_name'.
-        """
-        feat = filter_features_by_name(self.__feats, feat_name)
-
-        if not feat:
-            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
-
-        return feat
 
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of interface"""

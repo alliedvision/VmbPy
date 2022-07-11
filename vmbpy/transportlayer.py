@@ -31,6 +31,7 @@ from typing import Tuple, TYPE_CHECKING, Dict
 
 from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbHandle, decode_cstr
 from .feature import discover_features, FeaturesTuple
+from .featurecontainer import PersistableFeatureContainer
 from .shared import attach_feature_accessors
 from .util import TraceEnable
 
@@ -82,16 +83,17 @@ class TransportLayerType(enum.IntEnum):
     Mixed = VmbTransportLayer.Mixed
 
 
-class TransportLayer:
+class TransportLayer(PersistableFeatureContainer):
     """This class allows access to a Transport Layer."""
 
     @TraceEnable()
     def __init__(self, info: VmbTransportLayerInfo):
         """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
+        super().__init__()
         self.__info: VmbTransportLayerInfo = info
         self.__handle: VmbHandle = self.__info.transportLayerHandle
-        self.__feats: FeaturesTuple = discover_features(self.__handle)
-        attach_feature_accessors(self, self.__feats)
+        self._feats: FeaturesTuple = discover_features(self.__handle)
+        attach_feature_accessors(self, self._feats)
 
     def __str__(self):
         return 'TransportLayer(id={})'.format(self.get_id())

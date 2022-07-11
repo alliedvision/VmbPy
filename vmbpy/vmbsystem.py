@@ -32,6 +32,7 @@ from typing import List, Dict, Tuple
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE, VmbUint32, VmbCError
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
+from .featurecontainer import FeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
                     filter_features_by_category, attach_feature_accessors, \
                     remove_feature_accessors, read_memory, write_memory
@@ -53,7 +54,7 @@ __all__ = [
 
 
 class VmbSystem:
-    class __Impl:
+    class __Impl(FeatureContainer):
         """This class allows access to the entire Vimba System.
         VmbSystem is meant be used in conjunction with the "with" - Statement, upon entering the
         context, all system features, connected cameras and interfaces are detected and can be used.
@@ -63,7 +64,7 @@ class VmbSystem:
         @leave_context_on_call
         def __init__(self):
             """Do not call directly. Use VmbSystem.get_instance() instead."""
-            self.__feats: FeaturesTuple = ()
+            super().__init__()
 
             self.__transport_layers: TransportLayersDict = {}
             self.__inters: InterfacesDict = {}
@@ -339,97 +340,6 @@ class VmbSystem:
 
             return cams
 
-        @raise_if_outside_context
-        def get_all_features(self) -> FeaturesTuple:
-            """Get access to all discovered system features:
-
-            Returns:
-                A set of all currently detected Features.
-
-            Raises:
-                RuntimeError then called outside of "with" - statement.
-            """
-            return self.__feats
-
-        @TraceEnable()
-        @raise_if_outside_context
-        @RuntimeTypeCheckEnable()
-        def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-            """Get all system features selected by a specific system feature.
-
-            Arguments:
-                feat - Feature used find features that are selected by feat.
-
-            Returns:
-                A set of features selected by 'feat'.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                VmbFeatureError if 'feat' is not a system feature.
-            """
-            return filter_selected_features(self.__feats, feat)
-
-        @raise_if_outside_context
-        @RuntimeTypeCheckEnable()
-        def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
-            """Get all system features of a specific feature type.
-
-            Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
-            EnumFeature, CommandFeature, RawFeature
-
-            Arguments:
-                feat_type - FeatureType used find features of that type.
-
-            Returns:
-                A set of features of type 'feat_type'.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-            """
-            return filter_features_by_type(self.__feats, feat_type)
-
-        @raise_if_outside_context
-        @RuntimeTypeCheckEnable()
-        def get_features_by_category(self, category: str) -> FeaturesTuple:
-            """Get all system features of a specific category.
-
-            Arguments:
-                category - Category that should be used for filtering.
-
-            Returns:
-                A set of features of category 'category'.
-
-            Returns:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-            """
-            return filter_features_by_category(self.__feats, category)
-
-        @raise_if_outside_context
-        @RuntimeTypeCheckEnable()
-        def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-            """Get a system feature by its name.
-
-            Arguments:
-                feat_name - Name used to find a feature.
-
-            Returns:
-                Feature with the associated name.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                VmbFeatureError if no feature is associated with 'feat_name'.
-            """
-            feat = filter_features_by_name(self.__feats, feat_name)
-
-            if not feat:
-                raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
-
-            return feat
-
         @RuntimeTypeCheckEnable()
         def register_camera_change_handler(self, handler: CameraChangeHandler):
             """Add Callable what is executed on camera connect/disconnect
@@ -509,8 +419,8 @@ class VmbSystem:
             self.__transport_layers = self.__discover_transport_layers()
             self.__inters = self.__discover_interfaces()
             self.__cams = self.__discover_cameras()
-            self.__feats = discover_features(G_VMB_C_HANDLE)
-            attach_feature_accessors(self, self.__feats)
+            self._feats = discover_features(G_VMB_C_HANDLE)
+            attach_feature_accessors(self, self._feats)
 
             feat = self.get_feature_by_name('EventInterfaceDiscovery')
             feat.register_change_handler(self.__inter_cb_wrapper)
@@ -524,11 +434,11 @@ class VmbSystem:
             self.unregister_all_camera_change_handlers()
             self.unregister_all_interface_change_handlers()
 
-            for feat in self.__feats:
+            for feat in self._feats:
                 feat.unregister_all_change_handlers()
 
-            remove_feature_accessors(self, self.__feats)
-            self.__feats = ()
+            remove_feature_accessors(self, self._feats)
+            self._feats = ()
             self.__cams_handlers = []
             self.__cams = ()
             self.__inters_handlers = []
@@ -717,6 +627,13 @@ class VmbSystem:
                 raise VmbCameraError(str(e.get_error_code())) from e
 
             return Camera(info, self.__inters[info.interfaceHandle])
+
+        # Add decorators to inherited methods
+        get_all_features = raise_if_outside_context(FeatureContainer.get_all_features)
+        get_features_selected_by = raise_if_outside_context(FeatureContainer.get_features_selected_by)
+        get_features_by_type = raise_if_outside_context(FeatureContainer.get_features_by_type)
+        get_features_by_category = raise_if_outside_context(FeatureContainer.get_features_by_category)
+        get_feature_by_name = raise_if_outside_context(FeatureContainer.get_feature_by_name)
 
     __instance = __Impl()
 

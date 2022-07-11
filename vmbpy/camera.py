@@ -38,6 +38,7 @@ from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cs
 from .c_binding import VmbCameraInfo, VmbHandle, VmbAccessMode, VmbCError, VmbError, VmbFrame, \
                        VmbFeaturePersist, VmbFeaturePersistSettings
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
+from .featurecontainer import PersistableFeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
                     filter_features_by_category, attach_feature_accessors, \
                     remove_feature_accessors, read_memory, write_memory
@@ -356,7 +357,7 @@ def _frame_generator(cam, limit: Optional[int], timeout_ms: int, allocation_mode
             raise exc
 
 
-class Camera:
+class Camera(PersistableFeatureContainer):
     """This class allows access to a Camera detected by Vimba.
     Camera is meant be used in conjunction with the "with" - statement.
     On entering a context, all Camera features are detected and can be accessed within the context.
@@ -366,13 +367,13 @@ class Camera:
     @leave_context_on_call
     def __init__(self, info: VmbCameraInfo, interface: Interface):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
+        super().__init__()
         self.__interface: Interface = interface
         self.__streams: StreamsDict = {}
         self.__local_device: Optional[LocalDevice] = None
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
-        self.__feats: FeaturesTuple = ()
         self.__context_cnt: int = 0
         self.__capture_fsm: Optional[_CaptureFsm] = None
         self._disconnected = False
@@ -496,98 +497,6 @@ class Camera:
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
-
-    @raise_if_outside_context
-    def get_all_features(self) -> FeaturesTuple:
-        """Get access to all discovered features of this camera.
-
-        Returns:
-            A set of all currently detected features.
-
-        Raises:
-            RuntimeError if called outside "with" - statement scope.
-        """
-        return self.__feats
-
-    @TraceEnable()
-    @raise_if_outside_context
-    @RuntimeTypeCheckEnable()
-    def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-        """Get all features selected by a specific camera feature.
-
-        Arguments:
-            feat - Feature to find features that are selected by 'feat'.
-
-        Returns:
-            A feature set selected by changes on 'feat'.
-
-        Raises:
-            TypeError if 'feat' is not of any feature type.
-            RuntimeError if called outside "with" - statement scope.
-            VmbFeatureError if 'feat' is not a feature of this camera.
-        """
-        return filter_selected_features(self.__feats, feat)
-
-    @raise_if_outside_context
-    @RuntimeTypeCheckEnable()
-    def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
-        """Get all camera features of a specific feature type.
-
-        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
-        EnumFeature, CommandFeature, RawFeature
-
-        Arguments:
-            feat_type - FeatureType to find features of that type.
-
-        Returns:
-            A feature set of type 'feat_type'.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-        """
-        return filter_features_by_type(self.__feats, feat_type)
-
-    @raise_if_outside_context
-    @RuntimeTypeCheckEnable()
-    def get_features_by_category(self, category: str) -> FeaturesTuple:
-        """Get all camera features of a specific category.
-
-        Arguments:
-            category - Category for filtering features.
-
-        Returns:
-            A feature set of category 'category'. Can be an empty set if there is
-            no camera feature of that category.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-        """
-        return filter_features_by_category(self.__feats, category)
-
-    @raise_if_outside_context
-    @RuntimeTypeCheckEnable()
-    def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """Get a camera feature by its name.
-
-        Arguments:
-            feat_name - Name to find a feature.
-
-        Returns:
-            Feature with the associated name.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            VmbFeatureError if no feature is associated with 'feat_name'.
-        """
-        feat = filter_features_by_name(self.__feats, feat_name)
-
-        if not feat:
-            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
-
-        return feat
 
     @TraceEnable()
     @raise_if_outside_context
@@ -919,11 +828,11 @@ class Camera:
             # The stream at index 0 is automatically opened
             self.__streams[info.streamHandles[i]] = Stream(info.streamHandles[i], is_open=(i == 0))
         self.__local_device = LocalDevice(info.localDeviceHandle)
-        self.__feats = discover_features(self.__handle)
-        attach_feature_accessors(self, self.__feats)
+        self._feats = discover_features(self.__handle)
+        attach_feature_accessors(self, self._feats)
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
-        feat = filter_features_by_name(self.__feats, 'GVSPPacketSize')
+        feat = filter_features_by_name(self._feats, 'GVSPPacketSize')
         if feat:
             try:
                 min_ = 1400
@@ -944,11 +853,11 @@ class Camera:
         if self.is_streaming():
             self.stop_streaming()
 
-        for feat in self.__feats:
+        for feat in self._feats:
             feat.unregister_all_change_handlers()
 
-        remove_feature_accessors(self, self.__feats)
-        self.__feats = ()
+        remove_feature_accessors(self, self._feats)
+        self._feats = ()
 
         call_vmb_c('VmbCameraClose', self.__handle)
         self.__handle = VmbHandle(0)
