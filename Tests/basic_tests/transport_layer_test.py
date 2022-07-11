@@ -108,3 +108,52 @@ class TransportLayerTest(VmbPyTestCase):
         with self.vmb:
             for tl in self.vmb.get_all_transport_layers():
                 self.assertIn(tl.get_type(), TransportLayerType)
+
+    def test_transport_layer_get_all_features(self):
+        # Expectation: Call get_all_features returns a non empty set
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertNotEqual(tl.get_all_features(), ())
+
+    def test_transport_layer_get_features_selected_by(self):
+        # Expectation: Call get_features_selected_by must either return and empty set if the given
+        # feature has no selected Feature or a set of affected features
+        with self.vmb:
+            tl = self.vmb.get_all_transport_layers()[0]
+            try:
+                selects_feats = tl.get_feature_by_name('InterfaceSelector')
+
+            except VmbFeatureError:
+                self.skipTest('Test requires Feature \'InterfaceSelector\'.')
+
+            try:
+                not_selects_feats = tl.get_feature_by_name('TLID')
+
+            except VmbFeatureError:
+                self.skipTest('Test requires Feature \'TLID\'.')
+
+            self.assertTrue(selects_feats.has_selected_features())
+            self.assertNotEqual(tl.get_features_selected_by(selects_feats), ())
+
+            self.assertFalse(not_selects_feats.has_selected_features())
+            self.assertEqual(tl.get_features_selected_by(not_selects_feats), ())
+
+    def test_transport_layer_get_features_by_type(self):
+        # Expectation: Call get_features_by_type returns a non empty set for StringFeature
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertNotEqual(tl.get_features_by_type(StringFeature), ())
+
+    def test_transport_layer_get_features_by_category(self):
+        # Expectation: Call get_features_by_category returns a non empty set for /SystemInformation)
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertNotEqual(tl.get_features_by_category('/SystemInformation'), ())
+
+    def test_transport_layer_get_feature_by_name(self):
+        # Expectation: Call get_feature_by_name does not raise an exception for valid feature names,
+        # raises a `VmbFeatureError` for invalid feature names
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                self.assertNoRaise(tl.get_feature_by_name, 'TLID')
+                self.assertRaises(VmbFeatureError, tl.get_feature_by_name, 'Invalid Name')
