@@ -42,9 +42,7 @@ __all__ = [
     'attach_feature_accessors',
     'remove_feature_accessors',
     'read_memory',
-    'write_memory',
-    'read_registers',
-    'write_registers'
+    'write_memory'
 ]
 
 
@@ -227,78 +225,6 @@ def write_memory(handle: VmbHandle, addr: int, data: bytes):  # coverage: skip
     except VmbCError as e:
         msg = 'Memory write access at {} failed with C-Error: {}.'
         raise ValueError(msg.format(hex(addr), repr(e.get_error_code()))) from e
-
-
-@TraceEnable()
-def read_registers(handle: VmbHandle, addrs: Tuple[int, ...]) -> Dict[int, int]:  # coverage: skip
-    """Read contents of multiple registers.
-
-    Arguments:
-        handle: Handle on entity providing registers to access.
-        addrs: Sequence of addresses that should be read iteratively.
-
-    Return:
-        Dictionary containing a mapping from given address to the read register values.
-
-    Raises:
-        ValueError if any address in addrs is negative.
-        ValueError if the register access was invalid.
-    """
-    # Note: Coverage is skipped. Function is untestable in a generic way.
-    for addr in addrs:
-        _verify_addr(addr)
-
-    size = len(addrs)
-    valid_reads = VmbUint32()
-
-    c_addrs = (VmbUint64 * size)()
-    c_values = (VmbUint64 * size)()
-
-    for i, addr in enumerate(addrs):
-        c_addrs[i] = addr
-
-    try:
-        call_vmb_c('VmbRegistersRead', handle, size, c_addrs, c_values, byref(valid_reads))
-
-    except VmbCError as e:
-        msg = 'Register read access failed with C-Error: {}.'
-        raise ValueError(msg.format(repr(e.get_error_code()))) from e
-
-    return dict(zip(c_addrs, c_values))
-
-
-@TraceEnable()
-def write_registers(handle: VmbHandle, addrs_values: Dict[int, int]):  # coverage: skip
-    """Write data to multiple Registers.
-
-    Arguments:
-        handle: Handle on entity providing registers to access.
-        addrs_values: Mapping between Register addresses and the data to write.
-
-    Raises:
-        ValueError if any address in addrs_values is negative.
-        ValueError if the register access was invalid.
-    """
-    # Note: Coverage is skipped. Function is untestable in a generic way.
-    for addr in addrs_values:
-        _verify_addr(addr)
-
-    size = len(addrs_values)
-    valid_writes = VmbUint32()
-
-    addrs = (VmbUint64 * size)()
-    values = (VmbUint64 * size)()
-
-    for i, addr in enumerate(addrs_values):
-        addrs[i] = addr
-        values[i] = addrs_values[addr]
-
-    try:
-        call_vmb_c('VmbRegistersWrite', handle, size, addrs, values, byref(valid_writes))
-
-    except VmbCError as e:
-        msg = 'Register write access failed with C-Error: {}.'
-        raise ValueError(msg.format(repr(e.get_error_code()))) from e
 
 
 def _verify_addr(addr: int):  # coverage: skip
