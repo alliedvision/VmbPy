@@ -371,7 +371,7 @@ class Camera(PersistableFeatureContainer):
         self.__interface: Interface = interface
         self.__streams: StreamsDict = {}
         self.__local_device: Optional[LocalDevice] = None
-        self.__handle: VmbHandle = VmbHandle(0)
+        self._handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
         self.__context_cnt: int = 0
@@ -478,7 +478,7 @@ class Camera(PersistableFeatureContainer):
             ValueError if the memory access was invalid.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
-        return read_memory(self.__handle, addr, max_bytes)
+        return read_memory(self._handle, addr, max_bytes)
 
     @TraceEnable()
     @raise_if_outside_context
@@ -496,7 +496,7 @@ class Camera(PersistableFeatureContainer):
             ValueError if addr is negative.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
-        return write_memory(self.__handle, addr, data)
+        return write_memory(self._handle, addr, data)
 
     @TraceEnable()
     @raise_if_outside_context
@@ -754,7 +754,7 @@ class Camera(PersistableFeatureContainer):
         settings = VmbFeaturePersistSettings()
         settings.persistType = VmbFeaturePersist(persist_type)
 
-        call_vmb_c('VmbCameraSettingsSave', self.__handle, file.encode('utf-8'), byref(settings),
+        call_vmb_c('VmbCameraSettingsSave', self._handle, file.encode('utf-8'), byref(settings),
                    sizeof(settings))
 
     @TraceEnable()
@@ -783,7 +783,7 @@ class Camera(PersistableFeatureContainer):
         settings = VmbFeaturePersistSettings()
         settings.persistType = VmbFeaturePersist(persist_type)
 
-        call_vmb_c('VmbCameraSettingsLoad', self.__handle, file.encode('utf-8'), byref(settings),
+        call_vmb_c('VmbCameraSettingsLoad', self._handle, file.encode('utf-8'), byref(settings),
                    sizeof(settings))
 
     @TraceEnable()
@@ -791,7 +791,7 @@ class Camera(PersistableFeatureContainer):
     def _open(self):
         try:
             call_vmb_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
-                       byref(self.__handle))
+                       byref(self._handle))
 
         except VmbCError as e:
             err = e.get_error_code()
@@ -812,12 +812,12 @@ class Camera(PersistableFeatureContainer):
 
         try:
             info = VmbCameraInfo()
-            call_vmb_c('VmbCameraInfoQueryByHandle', self.__handle, byref(info), sizeof(info))
+            call_vmb_c('VmbCameraInfoQueryByHandle', self._handle, byref(info), sizeof(info))
         except VmbCError as e:
             err = e.get_error_code()
             if err == VmbError.BadHandle:
-                msg = 'Invalid handle used to query camera info. Used handel: {}'
-                msg = msg.format(self.__handle)
+                msg = 'Invalid handle used to query camera info. Used handle: {}'
+                msg = msg.format(self._handle)
                 exc - VmbCameraError(msg)
             else:
                 exc = VmbCameraError(repr(err))
@@ -828,7 +828,7 @@ class Camera(PersistableFeatureContainer):
             # The stream at index 0 is automatically opened
             self.__streams[info.streamHandles[i]] = Stream(info.streamHandles[i], is_open=(i == 0))
         self.__local_device = LocalDevice(info.localDeviceHandle)
-        self._feats = discover_features(self.__handle)
+        self._feats = discover_features(self._handle)
         attach_feature_accessors(self, self._feats)
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
@@ -859,8 +859,8 @@ class Camera(PersistableFeatureContainer):
         remove_feature_accessors(self, self._feats)
         self._feats = ()
 
-        call_vmb_c('VmbCameraClose', self.__handle)
-        self.__handle = VmbHandle(0)
+        call_vmb_c('VmbCameraClose', self._handle)
+        self._handle = VmbHandle(0)
 
     @TraceEnable()
     def _update_permitted_access_modes(self):
@@ -913,7 +913,7 @@ def _cam_handle_accessor(cam: Camera) -> VmbHandle:
     # Supress mypi warning. This access is valid although mypi warns about it.
     # In this case it is okay to unmangle the name because the raw handle should not be
     # exposed.
-    return cam._Camera__handle  # type: ignore
+    return cam._handle  # type: ignore
 
 
 def _frame_handle_accessor(frame: Frame) -> VmbFrame:

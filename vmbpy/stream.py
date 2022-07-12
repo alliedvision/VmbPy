@@ -45,5 +45,5 @@ StreamsDict = Dict[VmbHandle, 'Stream']
 class Stream(PersistableFeatureContainer):
     def __init__(self, stream_handle: VmbHandle, is_open: bool) -> None:
         super().__init__()
-        self.__handle: VmbHandle = stream_handle
+        self._handle: VmbHandle = stream_handle
         self.__is_open: bool = is_open

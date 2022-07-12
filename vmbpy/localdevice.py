@@ -36,4 +36,4 @@ __all__ = [
 class LocalDevice(PersistableFeatureContainer):
     def __init__(self, handle: VmbHandle) -> None:
         super().__init__()
-        self.__handle: VmbHandle = handle
+        self._handle: VmbHandle = handle

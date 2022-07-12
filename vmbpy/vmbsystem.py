@@ -30,7 +30,7 @@ from ctypes import byref, sizeof
 from typing import List, Dict, Tuple
 
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
-                       G_VMB_C_HANDLE, VmbUint32, VmbCError
+                       G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbHandle
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .featurecontainer import FeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
@@ -66,6 +66,9 @@ class VmbSystem:
             """Do not call directly. Use VmbSystem.get_instance() instead."""
             super().__init__()
 
+            # self._handle is required so the inheritance from FeatureContainer works as expected to
+            # automatically detect and attach/remove feature accessors
+            self._handle: VmbHandle = G_VMB_C_HANDLE
             self.__transport_layers: TransportLayersDict = {}
             self.__inters: InterfacesDict = {}
             self.__inters_lock: threading.Lock = threading.Lock()

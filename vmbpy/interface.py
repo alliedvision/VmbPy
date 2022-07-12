@@ -82,7 +82,7 @@ class Interface(PersistableFeatureContainer):
         super().__init__()
         self.__transport_layer = transport_layer
         self.__info: VmbInterfaceInfo = info
-        self.__handle: VmbHandle = self.__info.interfaceHandle
+        self._handle: VmbHandle = self.__info.interfaceHandle
         self._feats = discover_features(self.__handle)
         attach_feature_accessors(self, self._feats)
 
@@ -91,7 +91,7 @@ class Interface(PersistableFeatureContainer):
 
     def __repr__(self):
         rep = 'Interface'
-        rep += '(__handle=' + repr(self.__handle)
+        rep += '(_handle=' + repr(self._handle)
         rep += ',__info=' + repr(self.__info)
         rep += ')'
         return rep
@@ -127,7 +127,7 @@ class Interface(PersistableFeatureContainer):
             ValueError if the memory access was invalid.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
-        return read_memory(self.__handle, addr, max_bytes)
+        return read_memory(self._handle, addr, max_bytes)
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
@@ -143,7 +143,7 @@ class Interface(PersistableFeatureContainer):
             ValueError if addr is negative.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
-        return write_memory(self.__handle, addr, data)
+        return write_memory(self._handle, addr, data)
 
     def get_transport_layer(self) -> TransportLayer:
         """Get the Transport Layer associated with this instance of Interface
@@ -160,4 +160,4 @@ class Interface(PersistableFeatureContainer):
 
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of interface"""
-        return self.__handle
+        return self._handle

@@ -91,7 +91,7 @@ class TransportLayer(PersistableFeatureContainer):
         """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
         super().__init__()
         self.__info: VmbTransportLayerInfo = info
-        self.__handle: VmbHandle = self.__info.transportLayerHandle
+        self._handle: VmbHandle = self.__info.transportLayerHandle
         self._feats: FeaturesTuple = discover_features(self.__handle)
         attach_feature_accessors(self, self._feats)
 
@@ -100,7 +100,7 @@ class TransportLayer(PersistableFeatureContainer):
 
     def __repr__(self) -> str:
         rep = 'TransportLayer'
-        rep += '(__handle=' + repr(self.__handle)
+        rep += '(_handle=' + repr(self._handle)
         rep += ',__info=' + repr(self.__info)
         rep += ')'
         return rep
@@ -151,4 +151,4 @@ class TransportLayer(PersistableFeatureContainer):
 
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of Transport Layer"""
-        return self.__handle
+        return self._handle
