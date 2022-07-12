@@ -382,6 +382,7 @@ class Camera(PersistableFeatureContainer):
     def __enter__(self):
         if not self.__context_cnt:
             self._open()
+            super().__enter__()
 
         self.__context_cnt += 1
         return self
@@ -391,6 +392,7 @@ class Camera(PersistableFeatureContainer):
         self.__context_cnt -= 1
 
         if not self.__context_cnt:
+            super().__exit__(exc_type, exc_value, exc_traceback)
             self._close()
 
     def __str__(self):
@@ -907,6 +909,13 @@ class Camera(PersistableFeatureContainer):
                 msg += 'raised by: {}'.format(context.frames_handler)
                 Log.get_instance().error(msg)
                 raise e
+
+    # Add decorators to inherited methods
+    get_all_features = raise_if_outside_context(PersistableFeatureContainer.get_all_features)
+    get_features_selected_by = raise_if_outside_context(PersistableFeatureContainer.get_features_selected_by)
+    get_features_by_type = raise_if_outside_context(PersistableFeatureContainer.get_features_by_type)
+    get_features_by_category = raise_if_outside_context(PersistableFeatureContainer.get_features_by_category)
+    get_feature_by_name = raise_if_outside_context(PersistableFeatureContainer.get_feature_by_name)
 
 
 def _cam_handle_accessor(cam: Camera) -> VmbHandle:

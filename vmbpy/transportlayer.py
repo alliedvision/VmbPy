@@ -92,8 +92,7 @@ class TransportLayer(PersistableFeatureContainer):
         super().__init__()
         self.__info: VmbTransportLayerInfo = info
         self._handle: VmbHandle = self.__info.transportLayerHandle
-        self._feats: FeaturesTuple = discover_features(self.__handle)
-        attach_feature_accessors(self, self._feats)
+        super().__enter__()
 
     def __str__(self):
         return 'TransportLayer(id={})'.format(self.get_id())

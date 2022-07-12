@@ -47,3 +47,5 @@ class Stream(PersistableFeatureContainer):
         super().__init__()
         self._handle: VmbHandle = stream_handle
         self.__is_open: bool = is_open
+        if self.__is_open:
+            super().__enter__()

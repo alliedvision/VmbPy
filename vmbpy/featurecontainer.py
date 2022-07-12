@@ -1,7 +1,7 @@
 from .error import VmbFeatureError
-from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
+from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
-                    filter_features_by_category
+                    filter_features_by_category, attach_feature_accessors, remove_feature_accessors
 from .util import TraceEnable, RuntimeTypeCheckEnable
 
 
@@ -14,6 +14,24 @@ __all__ = [
 class FeatureContainer:
     def __init__(self) -> None:
         self._feats: FeaturesTuple = ()
+
+        self.__context_cnt: int = 0
+
+    @TraceEnable()
+    def __enter__(self):
+        if not self.__context_cnt:
+            self._feats = discover_features(self._handle)
+            attach_feature_accessors(self, self._feats)
+
+        self.__context_cnt += 1
+        return self
+
+    @TraceEnable()
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.__context_cnt -= 1
+
+        if not self.__context_cnt:
+            remove_feature_accessors(self, self._feats)
 
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered system features:

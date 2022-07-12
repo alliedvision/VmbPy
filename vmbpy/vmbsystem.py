@@ -422,8 +422,7 @@ class VmbSystem:
             self.__transport_layers = self.__discover_transport_layers()
             self.__inters = self.__discover_interfaces()
             self.__cams = self.__discover_cameras()
-            self._feats = discover_features(G_VMB_C_HANDLE)
-            attach_feature_accessors(self, self._feats)
+            super().__enter__()
 
             feat = self.get_feature_by_name('EventInterfaceDiscovery')
             feat.register_change_handler(self.__inter_cb_wrapper)
@@ -440,8 +439,7 @@ class VmbSystem:
             for feat in self._feats:
                 feat.unregister_all_change_handlers()
 
-            remove_feature_accessors(self, self._feats)
-            self._feats = ()
+            super().__exit__(None, None, None)
             self.__cams_handlers = []
             self.__cams = ()
             self.__inters_handlers = []

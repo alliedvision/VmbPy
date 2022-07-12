@@ -83,8 +83,7 @@ class Interface(PersistableFeatureContainer):
         self.__transport_layer = transport_layer
         self.__info: VmbInterfaceInfo = info
         self._handle: VmbHandle = self.__info.interfaceHandle
-        self._feats = discover_features(self.__handle)
-        attach_feature_accessors(self, self._feats)
+        super().__enter__()
 
     def __str__(self):
         return 'Interface(id={})'.format(self.get_id())
