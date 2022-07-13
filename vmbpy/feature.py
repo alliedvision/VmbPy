@@ -26,15 +26,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import inspect
-import enum
 import ctypes
 import threading
 
 from typing import Tuple, Union, List, Callable, Optional, cast, Type
 from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, decode_cstr, \
                        decode_flags, build_callback_type
-from .c_binding import VmbFeatureInfo, VmbFeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
-                       VmbFeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
+from .c_binding import VmbFeatureInfo, FeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
+                       FeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
                        VmbError, VmbCError, VmbDouble
 
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable
@@ -63,42 +62,6 @@ __all__ = [
 
 
 ChangeHandler = Callable[['FeatureTypes'], None]
-
-
-class FeatureFlags(enum.IntEnum):
-    """Enumeration specifying additional information on the feature.
-
-    Enumeration values:
-        None_       - No additional information is provided
-        Read        - Static info about read access.
-        Write       - Static info about write access.
-        Volatile    - Value may change at any time
-        ModifyWrite - Value may change after a write
-    """
-
-    None_ = VmbFeatureFlags.None_
-    Read = VmbFeatureFlags.Read
-    Write = VmbFeatureFlags.Write
-    Volatile = VmbFeatureFlags.Volatile
-    ModifyWrite = VmbFeatureFlags.ModifyWrite
-
-
-class FeatureVisibility(enum.IntEnum):
-    """Enumeration specifying UI feature visibility.
-
-    Enumeration values:
-        Unknown   - Feature visibility is not known
-        Beginner  - Feature is visible in feature list (beginner level)
-        Expert    - Feature is visible in feature list (expert level)
-        Guru      - Feature is visible in feature list (guru level)
-        Invisible - Feature is not visible in feature listSu
-    """
-
-    Unknown = VmbFeatureVisibility.Unknown
-    Beginner = VmbFeatureVisibility.Beginner
-    Expert = VmbFeatureVisibility.Expert
-    Guru = VmbFeatureVisibility.Guru
-    Invisible = VmbFeatureVisibility.Invisible
 
 
 class _BaseFeature:

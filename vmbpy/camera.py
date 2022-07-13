@@ -35,8 +35,8 @@ from ctypes import POINTER
 from typing import Tuple, List, Callable, cast, Optional, Union, Dict, TYPE_CHECKING
 
 from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, VmbAccessMode, VmbCError, VmbError, VmbFrame, \
-                       VmbFeaturePersist, VmbFeaturePersistSettings
+from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError, VmbFrame, \
+                       VmbFeaturePersist, VmbFeaturePersistSettings, PersistType
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .featurecontainer import PersistableFeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
@@ -72,22 +72,6 @@ CamerasList = List['Camera']
 FrameHandler = Callable[['Camera', 'Stream', Frame], None]
 
 
-class AccessMode(enum.IntEnum):
-    """Enum specifying all available camera access modes.
-
-    Enum values:
-        None_  - No access.
-        Full   - Read and write access. Use this mode to configure the camera features and
-                 to acquire images (Camera Link cameras: configuration only).
-        Read   - Read-only access. Setting features is not possible.
-        Config - Configuration access to configure the IP address of your GigE camera.
-    """
-    None_ = VmbAccessMode.None_
-    Full = VmbAccessMode.Full
-    Read = VmbAccessMode.Read
-    Config = VmbAccessMode.Config
-
-
 class CameraEvent(enum.IntEnum):
     """Enum specifying a Camera Event
 
@@ -101,18 +85,6 @@ class CameraEvent(enum.IntEnum):
     Detected = 1
     Reachable = 2
     Unreachable = 3
-
-
-class PersistType(enum.IntEnum):
-    """Persistence Type for camera configuration storing and loading.
-    Enum values:
-        All        - Save all features including lookup tables
-        Streamable - Save only features tagged with Streamable
-        NoLUT      - Save all features except lookup tables.
-    """
-    All = VmbFeaturePersist.All
-    Streamable = VmbFeaturePersist.Streamable
-    NoLUT = VmbFeaturePersist.NoLUT
 
 
 class _Context:

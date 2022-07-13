@@ -26,10 +26,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import annotations
 
-import enum
 from typing import Tuple, TYPE_CHECKING, Dict
 
-from .c_binding import VmbTransportLayer, VmbTransportLayerInfo, VmbHandle, decode_cstr
+from .c_binding import TransportLayerType, VmbTransportLayerInfo, VmbHandle, decode_cstr
 from .feature import discover_features, FeaturesTuple
 from .featurecontainer import PersistableFeatureContainer
 from .shared import attach_feature_accessors
@@ -50,37 +49,6 @@ __all__ = [
 # Forward declarations
 TransportLayersTuple = Tuple['TransportLayer', ...]
 TransportLayersDict = Dict[VmbHandle, 'TransportLayer']
-
-
-class TransportLayerType(enum.IntEnum):
-    """Enum specifying all interface types.
-
-    Enum values:
-        Unknown  - Interface is not known to this version of the API
-        GEV      - GigE Vision
-        CL       - Camera Link
-        IIDC     - IIDC 1394
-        UVC      - USB video class
-        CXP      - CoaXPress
-        CLHS     - Camera Link HS
-        U3V      - USB3 Vision Standard
-        Ethernet - Generic Ethernet
-        PCI      - PCI / PCIe
-        Custom   - Non standard
-        Mixed    - Mixed (transport layer only)
-    """
-    Unknown = VmbTransportLayer.Unknown
-    GEV = VmbTransportLayer.GEV
-    CL = VmbTransportLayer.CL
-    IIDC = VmbTransportLayer.IIDC
-    UVC = VmbTransportLayer.UVC
-    CXP = VmbTransportLayer.CXP
-    CLHS = VmbTransportLayer.CLHS
-    U3V = VmbTransportLayer.U3V
-    Ethernet = VmbTransportLayer.Ethernet
-    PCI = VmbTransportLayer.PCI
-    Custom = VmbTransportLayer.Custom
-    Mixed = VmbTransportLayer.Mixed
 
 
 class TransportLayer(PersistableFeatureContainer):

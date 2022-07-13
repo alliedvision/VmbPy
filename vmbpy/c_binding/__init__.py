@@ -95,6 +95,16 @@ __all__ = [
     'LAYOUT_TO_PIXEL_FORMAT',
     'PIXEL_FORMAT_CONVERTIBILITY_MAP',
 
+    # Exports from wrapped_types
+    'AccessMode',
+    'Debayer',
+    'FeatureFlags',
+    'FeatureVisibility',
+    'FrameStatus',
+    'PersistType',
+    'PixelFormat',
+    'TransportLayerType',
+
     # Exports from ctypes
     'byref',
     'sizeof',
@@ -117,5 +127,9 @@ from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
                                  EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, VmbTransformInfo, \
                                  call_vmb_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
                                  LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILITY_MAP
+
+from .wrapped_types import AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus, \
+                           PersistType, PixelFormat, TransportLayerType
+
 
 from ctypes import byref, sizeof, create_string_buffer
