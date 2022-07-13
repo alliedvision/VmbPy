@@ -28,25 +28,19 @@ from __future__ import annotations
 
 import enum
 import os
-import copy
-import threading
 
-from ctypes import POINTER
-from typing import Tuple, List, Callable, cast, Optional, Union, Dict, TYPE_CHECKING
+from typing import Tuple, List, Callable, Optional, Dict, TYPE_CHECKING
 
-from .c_binding import call_vmb_c, build_callback_type, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError, VmbFrame, \
-                       VmbFeaturePersist, VmbFeaturePersistSettings, PersistType
-from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
+from .c_binding import call_vmb_c, byref, sizeof, decode_cstr, decode_flags
+from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError, PersistType, \
+                       VmbFeaturePersistSettings, VmbFeaturePersist
 from .featurecontainer import PersistableFeatureContainer
-from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
-                    filter_features_by_category, attach_feature_accessors, \
-                    remove_feature_accessors, read_memory, write_memory
-from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
-from .util import Log, TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
+from .shared import read_memory, write_memory
+from .frame import FormatTuple, PixelFormat, Frame, AllocationMode
+from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
                   leave_context_on_call, raise_if_inside_context, raise_if_outside_context
-from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
-from .stream import Stream, StreamsTuple, StreamsDict
+from .error import VmbCameraError
+from .stream import Stream, StreamsTuple, StreamsList, FrameHandler
 from .localdevice import LocalDevice
 
 if TYPE_CHECKING:
@@ -56,7 +50,6 @@ if TYPE_CHECKING:
 __all__ = [
     'AccessMode',
     'PersistType',
-    'FrameHandler',
     'Camera',
     'CameraEvent',
     'CamerasTuple',
@@ -69,7 +62,6 @@ __all__ = [
 CameraChangeHandler = Callable[['Camera', 'CameraEvent'], None]
 CamerasTuple = Tuple['Camera', ...]
 CamerasList = List['Camera']
-FrameHandler = Callable[['Camera', 'Stream', Frame], None]
 
 
 class CameraEvent(enum.IntEnum):
@@ -87,248 +79,6 @@ class CameraEvent(enum.IntEnum):
     Unreachable = 3
 
 
-class _Context:
-    def __init__(self, cam, frames, handler, callback):
-        self.cam = cam
-        self.cam_handle = _cam_handle_accessor(cam)
-        self.frames = frames
-        self.frames_lock = threading.Lock()
-        self.frames_handler = handler
-        self.frames_callback = callback
-
-
-class _State:
-    def __init__(self, context: _Context):
-        self.context = context
-
-
-class _StateInit(_State):
-    @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbFrameAnnounce', self.context.cam_handle, byref(frame_handle),
-                           sizeof(frame_handle))
-                if frame._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
-                    assert frame_handle.buffer is not None
-                    frame._set_buffer(frame_handle.buffer)
-
-            except VmbCError as e:
-                return _build_camera_error(self.context.cam, e)
-
-        return _StateAnnounced(self.context)
-
-
-class _StateAnnounced(_State):
-    @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                           self.context.frames_callback)
-
-            except VmbCError as e:
-                return _build_camera_error(self.context.cam, e)
-
-        return _StateQueued(self.context)
-
-    @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbFrameRevoke', self.context.cam_handle, byref(frame_handle))
-
-            except VmbCError as e:
-                return _build_camera_error(self.context.cam, e)
-
-        return _StateInit(self.context)
-
-
-class _StateQueued(_State):
-    @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
-        try:
-            call_vmb_c('VmbCaptureStart', self.context.cam_handle)
-
-        except VmbCError as e:
-            return _build_camera_error(self.context.cam, e)
-
-        return _StateCaptureStarted(self.context)
-
-    @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
-        try:
-            call_vmb_c('VmbCaptureQueueFlush', self.context.cam_handle)
-
-        except VmbCError as e:
-            return _build_camera_error(self.context.cam, e)
-
-        return _StateAnnounced(self.context)
-
-
-class _StateCaptureStarted(_State):
-    @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
-        try:
-            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
-            if self.context.cam.get_access_mode() != AccessMode.Read:
-                self.context.cam.get_feature_by_name('AcquisitionStart').run()
-
-        except BaseException as e:
-            return VmbCameraError(str(e))
-
-        return _StateAcquiring(self.context)
-
-    @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
-        try:
-            call_vmb_c('VmbCaptureEnd', self.context.cam_handle)
-
-        except VmbCError as e:
-            return _build_camera_error(self.context.cam, e)
-
-        return _StateQueued(self.context)
-
-
-class _StateAcquiring(_State):
-    @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
-        try:
-            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
-            cam = self.context.cam
-            if cam.get_access_mode() != AccessMode.Read:
-                cam.get_feature_by_name('AcquisitionStop').run()
-
-        except BaseException as e:
-            return VmbCameraError(str(e))
-
-        return _StateCaptureStarted(self.context)
-
-    @TraceEnable()
-    def wait_for_frames(self, timeout_ms: int):
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbCaptureFrameWait', self.context.cam_handle, byref(frame_handle),
-                           timeout_ms)
-
-            except VmbCError as e:
-                raise _build_camera_error(self.context.cam, e) from e
-
-    @TraceEnable()
-    def queue_frame(self, frame):
-        frame_handle = _frame_handle_accessor(frame)
-
-        try:
-            call_vmb_c('VmbCaptureFrameQueue', self.context.cam_handle, byref(frame_handle),
-                       self.context.frames_callback)
-
-        except VmbCError as e:
-            raise _build_camera_error(self.context.cam, e) from e
-
-
-class _CaptureFsm:
-    def __init__(self, context: _Context):
-        self.__context = context
-        self.__state = _StateInit(self.__context)
-
-    def get_context(self) -> _Context:
-        return self.__context
-
-    def enter_capturing_mode(self):
-        # Forward state machine until the end or an error occurs
-        exc = None
-
-        while not exc:
-            try:
-                state_or_exc = self.__state.forward()
-
-            except AttributeError:
-                break
-
-            if isinstance(state_or_exc, _State):
-                self.__state = state_or_exc
-
-            else:
-                exc = state_or_exc
-
-        return exc
-
-    def leave_capturing_mode(self):
-        # Revert state machine until the initial state is reached or an error occurs
-        exc = None
-
-        while not exc:
-            try:
-                state_or_exc = self.__state.backward()
-
-            except AttributeError:
-                break
-
-            if isinstance(state_or_exc, _State):
-                self.__state = state_or_exc
-
-            else:
-                exc = state_or_exc
-
-        return exc
-
-    def wait_for_frames(self, timeout_ms: int):
-        # Wait for Frames only in AcquiringMode
-        if isinstance(self.__state, _StateAcquiring):
-            self.__state.wait_for_frames(timeout_ms)
-
-    def queue_frame(self, frame):
-        # Queue Frame only in AcquiringMode
-        if isinstance(self.__state, _StateAcquiring):
-            self.__state.queue_frame(frame)
-
-
-@TraceEnable()
-def _frame_generator(cam, limit: Optional[int], timeout_ms: int, allocation_mode: AllocationMode):
-    if cam.is_streaming():
-        raise VmbCameraError('Operation not supported while streaming.')
-
-    frame_data_size = cam.get_feature_by_name('PayloadSize').get()
-    try:
-        buffer_alignment = cam.get_feature_by_name('StreamBufferAlignment').get()
-    except VmbFeatureError:
-        buffer_alignment = 1
-    frames = (Frame(frame_data_size, allocation_mode, buffer_alignment=buffer_alignment), )
-    fsm = _CaptureFsm(_Context(cam, frames, None, None))
-    cnt = 0
-
-    try:
-        while True if limit is None else cnt < limit:
-            # Enter Capturing mode
-            exc = fsm.enter_capturing_mode()
-            if exc:
-                raise exc
-
-            fsm.wait_for_frames(timeout_ms)
-
-            # Return copy of internally used frame to keep them independent.
-            frame_copy = copy.deepcopy(frames[0])
-            fsm.leave_capturing_mode()
-            frame_copy._frame.frameID = cnt
-            cnt += 1
-
-            yield frame_copy
-
-    finally:
-        # Leave Capturing mode
-        exc = fsm.leave_capturing_mode()
-        if exc:
-            raise exc
-
-
 class Camera(PersistableFeatureContainer):
     """This class allows access to a Camera detected by Vimba.
     Camera is meant be used in conjunction with the "with" - statement.
@@ -341,20 +91,17 @@ class Camera(PersistableFeatureContainer):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
         super().__init__()
         self.__interface: Interface = interface
-        self.__streams: StreamsDict = {}
+        self.__streams: StreamsList = []
         self.__local_device: Optional[LocalDevice] = None
         self._handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
         self.__context_cnt: int = 0
-        self.__capture_fsm: Optional[_CaptureFsm] = None
-        self._disconnected = False
 
     @TraceEnable()
     def __enter__(self):
         if not self.__context_cnt:
             self._open()
-            super().__enter__()
 
         self.__context_cnt += 1
         return self
@@ -364,7 +111,6 @@ class Camera(PersistableFeatureContainer):
         self.__context_cnt -= 1
 
         if not self.__context_cnt:
-            super().__exit__(exc_type, exc_value, exc_traceback)
             self._close()
 
     def __str__(self):
@@ -425,7 +171,7 @@ class Camera(PersistableFeatureContainer):
 
     @raise_if_outside_context
     def get_streams(self) -> StreamsTuple:
-        return tuple(self.__streams.values())
+        return tuple(self.__streams)
 
     @raise_if_outside_context
     def get_local_device(self) -> LocalDevice:
@@ -501,13 +247,9 @@ class Camera(PersistableFeatureContainer):
             VmbTimeout if Frame acquisition timed out.
             VmbCameraError if Camera is streaming while executing the generator.
         """
-        if limit and (limit < 0):
-            raise ValueError('Given Limit {} is not >= 0'.format(limit))
-
-        if timeout_ms <= 0:
-            raise ValueError('Given Timeout {} is not > 0'.format(timeout_ms))
-
-        return _frame_generator(self, limit, timeout_ms, allocation_mode)
+        return self.__streams[0].get_frame_generator(limit=limit,
+                                                     timeout_ms=timeout_ms,
+                                                     allocation_mode=allocation_mode)
 
     @TraceEnable()
     @raise_if_outside_context
@@ -559,30 +301,10 @@ class Camera(PersistableFeatureContainer):
             VmbCameraError if the camera is already streaming.
             VmbCameraError if anything went wrong on entering streaming mode.
         """
-        if buffer_count <= 0:
-            raise ValueError('Given buffer_count {} must be positive'.format(buffer_count))
+        self.__streams[0].start_streaming(handler=handler,
+                                          buffer_count=buffer_count,
+                                          allocation_mode=allocation_mode)
 
-        if self.is_streaming():
-            raise VmbCameraError('Camera \'{}\' already streaming.'.format(self.get_id()))
-
-        # Setup capturing fsm
-        payload_size = self.get_feature_by_name('PayloadSize').get()
-        try:
-            buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
-        except VmbFeatureError:
-            buffer_alignment = 1
-        frames = tuple([Frame(payload_size, allocation_mode, buffer_alignment=buffer_alignment)
-                        for _ in range(buffer_count)])
-        callback = build_callback_type(None, VmbHandle, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
-
-        self.__capture_fsm = _CaptureFsm(_Context(self, frames, handler, callback))
-
-        # Try to enter streaming mode. If this fails perform cleanup and raise error
-        exc = self.__capture_fsm.enter_capturing_mode()
-        if exc:
-            self.__capture_fsm.leave_capturing_mode()
-            self.__capture_fsm = None
-            raise exc
 
     @TraceEnable()
     @raise_if_outside_context
@@ -596,22 +318,16 @@ class Camera(PersistableFeatureContainer):
             RuntimeError if called outside "with" - statement scope.
             VmbCameraError if anything went wrong on leaving streaming mode.
         """
-        if not self.is_streaming():
-            return
-
-        # Leave Capturing mode. If any error occurs, report it and cleanup
-        try:
-            exc = self.__capture_fsm.leave_capturing_mode()
-            if exc:
-                raise exc
-
-        finally:
-            self.__capture_fsm = None
+        self.__streams[0].stop_streaming()
 
     @TraceEnable()
     def is_streaming(self) -> bool:
         """Returns True if the camera is currently in streaming mode. If not, returns False."""
-        return self.__capture_fsm is not None and not self._disconnected
+        try:
+            return self.__streams[0].is_streaming()
+        except IndexError:
+            # No streams are opened. So the camera connection is not open. Cam is not streaming
+            return False
 
     @TraceEnable()
     @raise_if_outside_context
@@ -632,13 +348,7 @@ class Camera(PersistableFeatureContainer):
             RuntimeError if called outside "with" - statement scope.
             VmbCameraError if reusing the frame was unsuccessful.
         """
-        if self.__capture_fsm is None:
-            return
-
-        if frame not in self.__capture_fsm.get_context().frames:
-            raise ValueError('Given Frame is not from Queue')
-
-        self.__capture_fsm.queue_frame(frame)
+        self.__streams[0].queue_frame(frame=frame)
 
     @TraceEnable()
     @raise_if_outside_context
@@ -721,7 +431,6 @@ class Camera(PersistableFeatureContainer):
             RuntimeError if called outside "with" - statement scope.
             ValueError if argument path is no ".xml"- File.
          """
-
         if not file.endswith('.xml'):
             raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file))
 
@@ -747,7 +456,6 @@ class Camera(PersistableFeatureContainer):
             RuntimeError if called outside "with" - statement scope.
             ValueError if argument path is no ".xml" file.
          """
-
         if not file.endswith('.xml'):
             raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file))
 
@@ -785,8 +493,7 @@ class Camera(PersistableFeatureContainer):
             raise exc from e
 
         try:
-            info = VmbCameraInfo()
-            call_vmb_c('VmbCameraInfoQueryByHandle', self._handle, byref(info), sizeof(info))
+            call_vmb_c('VmbCameraInfoQueryByHandle', self._handle, byref(self.__info), sizeof(self.__info))
         except VmbCError as e:
             err = e.get_error_code()
             if err == VmbError.BadHandle:
@@ -797,41 +504,45 @@ class Camera(PersistableFeatureContainer):
                 exc = VmbCameraError(repr(err))
             raise exc from e
 
-        for i in range(info.streamCount):
+        for i in range(self.__info.streamCount):
             # TODO: check if we can just iterate over info.streamHandles directly?
             # The stream at index 0 is automatically opened
-            self.__streams[info.streamHandles[i]] = Stream(info.streamHandles[i], is_open=(i == 0))
-        self.__local_device = LocalDevice(info.localDeviceHandle)
-        self._feats = discover_features(self._handle)
-        attach_feature_accessors(self, self._feats)
+            self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
+                                         is_open=(i == 0),
+                                         parent_cam=self))
+        self.__local_device = LocalDevice(self.__info.localDeviceHandle)
+        super().__enter__()
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
-        feat = filter_features_by_name(self._feats, 'GVSPPacketSize')
-        if feat:
-            try:
-                min_ = 1400
-                max_ = 1600
-                size = feat.get()
+        # feat = filter_features_by_name(self._feats, 'GVSPPacketSize')
+        # if feat:
+        #     try:
+        #         min_ = 1400
+        #         max_ = 1600
+        #         size = feat.get()
 
-                if (min_ < size) and (size < max_):
-                    msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
-                           'Enable jumbo packets for improved performance.')
-                    Log.get_instance().info(msg.format(self.get_id()))
+        #         if (min_ < size) and (size < max_):
+        #             msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
+        #                    'Enable jumbo packets for improved performance.')
+        #             Log.get_instance().info(msg.format(self.get_id()))
 
-            except VmbFeatureError:
-                pass
+        #     except VmbFeatureError:
+        #         pass
 
     @TraceEnable()
     @leave_context_on_call
     def _close(self):
-        if self.is_streaming():
-            self.stop_streaming()
+        for stream in self.__streams:
+            if stream.is_streaming():
+                stream.stop_streaming()
 
         for feat in self._feats:
             feat.unregister_all_change_handlers()
 
-        remove_feature_accessors(self, self._feats)
-        self._feats = ()
+        super().__exit__(None, None, None)
+
+        self.__streams = []
+        # TODO: Any closing of Streams necessary?
 
         call_vmb_c('VmbCameraClose', self._handle)
         self._handle = VmbHandle(0)
@@ -849,82 +560,9 @@ class Camera(PersistableFeatureContainer):
             raise VmbCameraError(str(e.get_error_code())) from e
         self.__info.permittedAccess = info.permittedAccess
 
-    def __frame_cb_wrapper(self, _: VmbHandle, stream_handle: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
-        # Skip coverage because it can't be measured. This is called from C-Context.
-
-        # ignore callback if camera has been disconnected
-        if self.__capture_fsm is None:
-            return
-
-        context = self.__capture_fsm.get_context()
-
-        with context.frames_lock:
-            raw_frame = raw_frame_ptr.contents
-            frame = None
-
-            for f in context.frames:
-                # Access Frame internals to compare if both point to the same buffer
-                if raw_frame.buffer == _frame_handle_accessor(f).buffer:
-                    frame = f
-                    break
-
-            # Execute registered handler
-            assert frame is not None
-
-            try:
-                context.frames_handler(self, self.__streams[stream_handle], frame)
-
-            except Exception as e:
-                msg = 'Caught Exception in handler: '
-                msg += 'Type: {}, '.format(type(e))
-                msg += 'Value: {}, '.format(e)
-                msg += 'raised by: {}'.format(context.frames_handler)
-                Log.get_instance().error(msg)
-                raise e
-
     # Add decorators to inherited methods
     get_all_features = raise_if_outside_context(PersistableFeatureContainer.get_all_features)
     get_features_selected_by = raise_if_outside_context(PersistableFeatureContainer.get_features_selected_by)
     get_features_by_type = raise_if_outside_context(PersistableFeatureContainer.get_features_by_type)
     get_features_by_category = raise_if_outside_context(PersistableFeatureContainer.get_features_by_category)
     get_feature_by_name = raise_if_outside_context(PersistableFeatureContainer.get_feature_by_name)
-
-
-def _cam_handle_accessor(cam: Camera) -> VmbHandle:
-    # Supress mypi warning. This access is valid although mypi warns about it.
-    # In this case it is okay to unmangle the name because the raw handle should not be
-    # exposed.
-    return cam._handle  # type: ignore
-
-
-def _frame_handle_accessor(frame: Frame) -> VmbFrame:
-    return frame._frame
-
-
-def _build_camera_error(cam: Camera, orig_exc: VmbCError) -> VmbCameraError:
-    err = orig_exc.get_error_code()
-
-    if err == VmbError.ApiNotStarted:
-        msg = 'System not ready. \'{}\' accessed outside of system context. Abort.'
-        exc = cast(VmbCameraError, VmbSystemError(msg.format(cam.get_id())))
-
-    elif err == VmbError.DeviceNotOpen:
-        msg = 'Camera \'{}\' accessed outside of context. Abort.'
-        exc = VmbCameraError(msg.format(cam.get_id()))
-
-    elif err == VmbError.BadHandle:
-        msg = 'Invalid Camera. \'{}\' might be disconnected. Abort.'
-        exc = VmbCameraError(msg.format(cam.get_id()))
-
-    elif err == VmbError.InvalidAccess:
-        msg = 'Invalid Access Mode on camera \'{}\'. Abort.'
-        exc = VmbCameraError(msg.format(cam.get_id()))
-
-    elif err == VmbError.Timeout:
-        msg = 'Frame capturing on Camera \'{}\' timed out.'
-        exc = cast(VmbCameraError, VmbTimeout(msg.format(cam.get_id())))
-
-    else:
-        exc = VmbCameraError(repr(err))
-
-    return exc

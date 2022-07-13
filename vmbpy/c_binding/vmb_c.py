@@ -725,6 +725,7 @@ _SIGNATURES = {
     'VmbFeatureRawLengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
     'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),
     'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, c_void_p]),
+    'VmbPayloadSizeGet': (VmbError, [VmbHandle, c_ptr(VmbUint32)]),
     'VmbFrameAnnounce': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbFrameRevoke': (VmbError, [VmbHandle, c_ptr(VmbFrame)]),
     'VmbFrameRevokeAll': (VmbError, [VmbHandle]),

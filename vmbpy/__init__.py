@@ -107,9 +107,9 @@ __all__ = [
 # Import everything exported from the top level module
 from .vmbsystem import VmbSystem
 
-from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent, FrameHandler
+from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent
 
-from .stream import Stream
+from .stream import Stream, FrameHandler
 
 from .localdevice import LocalDevice
 
