@@ -98,8 +98,8 @@ class CamCameraTest(VmbPyTestCase):
                 with self.cam:
                     pass
 
-            except BaseException:
-                self.fail()
+            except BaseException as e:
+                self.fail(f'Failed due to exception: {e}')
 
     def test_camera_context_manager_feature_discovery(self):
         # Expectation: Outside of context, all features must be cleared,
@@ -230,7 +230,7 @@ class CamCameraTest(VmbPyTestCase):
             self.assertRaises(ValueError, self.cam.get_frame, -1)
 
             self.assertNoRaise(self.cam.get_frame)
-            self.assertEqual(type(self.cam.get_frame()), Frame)
+            self.assertIsInstance(self.cam.get_frame(), Frame)
 
     def test_camera_capture_error_outside_vimba_scope(self):
         # Expectation: Camera access outside of Vimba scope must lead to a RuntimeError
@@ -296,7 +296,6 @@ class CamCameraTest(VmbPyTestCase):
                 self.event = threading.Event()
 
             def __call__(self, cam: Camera, stream: Stream, frame: Frame):
-                print(cam, stream, frame)
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
@@ -311,7 +310,8 @@ class CamCameraTest(VmbPyTestCase):
                 self.cam.start_streaming(handler, frame_count)
 
                 # Wait until the FrameHandler has been executed for each queued frame
-                self.assertTrue(handler.event.wait(timeout))
+                self.assertTrue(handler.event.wait(timeout),
+                                'Handler event was not set. Frame count was not reached')
 
             finally:
                 self.cam.stop_streaming()
