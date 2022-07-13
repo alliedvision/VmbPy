@@ -31,11 +31,9 @@ from typing import List, Dict, Tuple
 
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbHandle
-from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
+from .feature import EnumFeature
 from .featurecontainer import FeatureContainer
-from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
-                    filter_features_by_category, attach_feature_accessors, \
-                    remove_feature_accessors, read_memory, write_memory
+from .shared import read_memory, write_memory
 from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
                             VmbTransportLayerInfo
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
@@ -44,7 +42,7 @@ from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, Camer
                     VmbCameraInfo
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
                   leave_context_on_call, raise_if_outside_context
-from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError, VmbFeatureError
+from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError
 from . import __version__ as VMBPY_VERSION
 
 
@@ -630,11 +628,11 @@ class VmbSystem:
             return Camera(info, self.__inters[info.interfaceHandle])
 
         # Add decorators to inherited methods
-        get_all_features = raise_if_outside_context(FeatureContainer.get_all_features)
-        get_features_selected_by = raise_if_outside_context(FeatureContainer.get_features_selected_by)
-        get_features_by_type = raise_if_outside_context(FeatureContainer.get_features_by_type)
-        get_features_by_category = raise_if_outside_context(FeatureContainer.get_features_by_category)
-        get_feature_by_name = raise_if_outside_context(FeatureContainer.get_feature_by_name)
+        get_all_features = raise_if_outside_context(FeatureContainer.get_all_features)                  # noqa: E501
+        get_features_selected_by = raise_if_outside_context(FeatureContainer.get_features_selected_by)  # noqa: E501
+        get_features_by_type = raise_if_outside_context(FeatureContainer.get_features_by_type)          # noqa: E501
+        get_features_by_category = raise_if_outside_context(FeatureContainer.get_features_by_category)  # noqa: E501
+        get_feature_by_name = raise_if_outside_context(FeatureContainer.get_feature_by_name)            # noqa: E501
 
     __instance = __Impl()
 

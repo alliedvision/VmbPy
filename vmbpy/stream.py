@@ -375,14 +375,19 @@ class Stream(PersistableFeatureContainer):
             buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
         except VmbFeatureError:
             buffer_alignment = 1
-        frames = tuple([Frame(payload_size.value, allocation_mode, buffer_alignment=buffer_alignment)
-                        for _ in range(buffer_count)])
+        frames = tuple([Frame(payload_size.value,
+                              allocation_mode,
+                              buffer_alignment=buffer_alignment) for _ in range(buffer_count)])
         callback = build_callback_type(None,
                                        VmbHandle,
                                        VmbHandle,
                                        POINTER(VmbFrame))(self.__frame_cb_wrapper)
 
-        self.__capture_fsm = _CaptureFsm(_Context(self._parent_cam, self, frames, handler, callback))
+        self.__capture_fsm = _CaptureFsm(_Context(self._parent_cam,
+                                                  self,
+                                                  frames,
+                                                  handler,
+                                                  callback))
 
         # Try to enter streaming mode. If this fails perform cleanup and raise error
         exc = self.__capture_fsm.enter_capturing_mode()
@@ -417,7 +422,10 @@ class Stream(PersistableFeatureContainer):
 
         self.__capture_fsm.queue_frame(frame)
 
-    def __frame_cb_wrapper(self, _: VmbHandle, stream_handle: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
+    def __frame_cb_wrapper(self,
+                           cam_handle: VmbHandle,
+                           stream_handle: VmbHandle,
+                           raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
         # ignore callback if camera has been disconnected
         if self.__capture_fsm is None:

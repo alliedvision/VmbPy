@@ -161,6 +161,7 @@ class VmbFeaturePersist(Uint32Enum):
     def __str__(self):
         return self._name_
 
+
 class VmbModulePersistFlags(Uint32Enum):
     """
     Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad
@@ -183,6 +184,7 @@ class VmbModulePersistFlags(Uint32Enum):
 
     def __str__(self):
         return self._name_
+
 
 class VmbFeatureVisibility(Uint32Enum):
     """
@@ -254,7 +256,8 @@ class VmbFrameFlags(Uint32Enum):
         Timestamp        - Frame's timestamp is provided
         ImageData        - Frame's imageData is provided
         PayloadType      - Frame's payloadType is provided
-        ChunkDataPresent - Frame's chunkDataPresent is set based on info provided by the transport layer
+        ChunkDataPresent - Frame's chunkDataPresent is set based on info provided by the transport
+                           layer
     """
     None_ = 0
     Dimension = 1
@@ -582,7 +585,8 @@ class VmbFrame(ctypes.Structure):
             payloadType      - Type: VmbPayloadType (VmbUint32)
                                Info: The type of payload
             chunkDataPresent - Type: VmbBool
-                               Info: True if the transport layer reported chunk data to be present in the buffer
+                               Info: True if the transport layer reported chunk data to be present
+                                     in the buffer
     """
     _fields_ = [
         ("buffer", c_void_p),
@@ -670,7 +674,9 @@ class VmbFeaturePersistSettings(ctypes.Structure):
     def __repr__(self):
         rep = 'VmbFrame'
         rep += fmt_enum_repr('(persistType={}', VmbFeaturePersist, self.persistType)
-        rep += fmt_enum_repr('(modulePersistFlags={}', VmbModulePersistFlags, self.persistmodulePersistFlagsType)
+        rep += fmt_enum_repr('(modulePersistFlags={}',
+                             VmbModulePersistFlags,
+                             self.persistmodulePersistFlagsType)
         rep += fmt_repr(',maxIterations={}', self.maxIterations)
         rep += fmt_repr(',loggingLevel={}', self.loggingLevel)
         rep += ')'

@@ -305,7 +305,6 @@ class Camera(PersistableFeatureContainer):
                                           buffer_count=buffer_count,
                                           allocation_mode=allocation_mode)
 
-
     @TraceEnable()
     @raise_if_outside_context
     def stop_streaming(self):
@@ -493,7 +492,10 @@ class Camera(PersistableFeatureContainer):
             raise exc from e
 
         try:
-            call_vmb_c('VmbCameraInfoQueryByHandle', self._handle, byref(self.__info), sizeof(self.__info))
+            call_vmb_c('VmbCameraInfoQueryByHandle',
+                       self._handle,
+                       byref(self.__info),
+                       sizeof(self.__info))
         except VmbCError as e:
             err = e.get_error_code()
             if err == VmbError.BadHandle:
@@ -561,8 +563,8 @@ class Camera(PersistableFeatureContainer):
         self.__info.permittedAccess = info.permittedAccess
 
     # Add decorators to inherited methods
-    get_all_features = raise_if_outside_context(PersistableFeatureContainer.get_all_features)
-    get_features_selected_by = raise_if_outside_context(PersistableFeatureContainer.get_features_selected_by)
-    get_features_by_type = raise_if_outside_context(PersistableFeatureContainer.get_features_by_type)
-    get_features_by_category = raise_if_outside_context(PersistableFeatureContainer.get_features_by_category)
-    get_feature_by_name = raise_if_outside_context(PersistableFeatureContainer.get_feature_by_name)
+    get_all_features = raise_if_outside_context(PersistableFeatureContainer.get_all_features)                   # noqa: E501
+    get_features_selected_by = raise_if_outside_context(PersistableFeatureContainer.get_features_selected_by)   # noqa: E501
+    get_features_by_type = raise_if_outside_context(PersistableFeatureContainer.get_features_by_type)           # noqa: E501
+    get_features_by_category = raise_if_outside_context(PersistableFeatureContainer.get_features_by_category)   # noqa: E501
+    get_feature_by_name = raise_if_outside_context(PersistableFeatureContainer.get_feature_by_name)             # noqa: E501

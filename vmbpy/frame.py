@@ -39,8 +39,8 @@ from .c_binding import call_vmb_c, call_vmb_image_transform, FrameStatus, VmbFra
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
-from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, leave_context_on_call, \
-                  raise_if_outside_context
+from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
+                  leave_context_on_call, raise_if_outside_context
 from .error import VmbFrameError, VmbFeatureError
 
 try:
@@ -414,10 +414,12 @@ class Frame:
 
     def get_buffer(self) -> ctypes.Array:
         """Get internal buffer object containing image data."""
-        # TODO: Do we need to consider the imageData pointer here? In VmbCPP the docstring references image and chunk data!
+        # TODO: Do we need to consider the imageData pointer here? In VmbCPP the docstring
+        # references image and chunk data!
         return self._buffer
 
-    # TODO: Do we need to add a get_image method similar to VmbCPP where the chunk data at the beginning of the buffer is cut off?
+    # TODO: Do we need to add a get_image method similar to VmbCPP where the chunk data at the
+    # beginning of the buffer is cut off?
 
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
@@ -576,7 +578,7 @@ class Frame:
         c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
 
         call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
-                                   byref(c_src_image))
+                                 byref(c_src_image))
 
         # 3) Specify Transformation Output Image
         c_dst_image = VmbImage()
@@ -585,7 +587,7 @@ class Frame:
         layout, bits = PIXEL_FORMAT_TO_LAYOUT[VmbPixelFormat(target_fmt)]
 
         call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
-                                   bits, byref(c_dst_image))
+                                 bits, byref(c_dst_image))
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
@@ -600,11 +602,11 @@ class Frame:
         transform_info = VmbTransformInfo()
         if debayer_mode and (fmt in BAYER_PIXEL_FORMATS):
             call_vmb_image_transform('VmbSetDebayerMode', VmbDebayerMode(debayer_mode),
-                                       byref(transform_info))
+                                     byref(transform_info))
 
         # 6) Perform Transformation
         call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
-                                   byref(transform_info), 1)
+                                 byref(transform_info), 1)
 
         # 7) Copy ancillary data if existing
         if anc_size:
@@ -643,7 +645,7 @@ class Frame:
         c_image.Size = sizeof(c_image)
 
         call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
-                                   byref(c_image))
+                                 byref(c_image))
 
         layout = PIXEL_FORMAT_TO_LAYOUT.get(fmt)
 
