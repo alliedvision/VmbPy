@@ -42,25 +42,25 @@ def dummy_frame_handler(cam: Camera, stream: Stream, frame: Frame):
 class StreamTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
-        self.vmb.__enter__()
+        self.vmb._startup()
 
         try:
             self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vmb.__exit__(None, None, None)
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
-            self.cam.__enter__()
+            self.cam._open()
             self.streams = self.cam.get_streams()
         except VmbCameraError as e:
-            self.cam.__exit__(None, None, None)
+            self.cam._close()
             raise Exception ('Failed to open Camera {}.'.format(self.cam)) from e
 
     def tearDown(self):
-        self.cam.__exit__(None, None, None)
-        self.vmb.__exit__(None, None, None)
+        self.cam._close()
+        self.vmb._shutdown()
 
     def test_stream_feature_discovery(self):
         # Expectation: Outside of context, all features must be cleared,
@@ -107,47 +107,44 @@ class StreamTest(VmbPyTestCase):
 
     def test_stream_frame_generator_limit_set(self):
         # Expectation: The Frame generator fetches the given number of images.
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    self.assertEqual(len([i for i in stream.get_frame_generator(0)]), 0)
-                    self.assertEqual(len([i for i in stream.get_frame_generator(1)]), 1)
-                    self.assertEqual(len([i for i in stream.get_frame_generator(7)]), 7)
-                    self.assertEqual(len([i for i in stream.get_frame_generator(11)]), 11)
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                self.assertEqual(len([i for i in stream.get_frame_generator(0)]), 0)
+                self.assertEqual(len([i for i in stream.get_frame_generator(1)]), 1)
+                self.assertEqual(len([i for i in stream.get_frame_generator(7)]), 7)
+                self.assertEqual(len([i for i in stream.get_frame_generator(11)]), 11)
 
     def test_stream_frame_generator_error(self):
         # Expectation: The Frame generator raises a ValueError on a negative limit
 
         # generator execution must throw if streaming is enabled
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    # Check limits
-                    self.assertRaises(ValueError, stream.get_frame_generator, -1)
-                    self.assertRaises(ValueError, stream.get_frame_generator, 1, 0)
-                    self.assertRaises(ValueError, stream.get_frame_generator, 1, -1)
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                # Check limits
+                self.assertRaises(ValueError, stream.get_frame_generator, -1)
+                self.assertRaises(ValueError, stream.get_frame_generator, 1, 0)
+                self.assertRaises(ValueError, stream.get_frame_generator, 1, -1)
 
-                    self.cam.start_streaming(dummy_frame_handler, 5)
+                self.cam.start_streaming(dummy_frame_handler, 5)
 
-                    self.assertRaises(VmbCameraError, stream.get_frame)
-                    self.assertRaises(VmbCameraError, next, stream.get_frame_generator(1))
+                self.assertRaises(VmbCameraError, stream.get_frame)
+                self.assertRaises(VmbCameraError, next, stream.get_frame_generator(1))
 
-                    # Stop Streaming: Everything should be fine.
-                    self.cam.stop_streaming()
-                    self.assertNoRaise(stream.get_frame)
-                    self.assertNoRaise(next, stream.get_frame_generator(1))
+                # Stop Streaming: Everything should be fine.
+                self.cam.stop_streaming()
+                self.assertNoRaise(stream.get_frame)
+                self.assertNoRaise(next, stream.get_frame_generator(1))
 
     def test_stream_get_frame(self):
         # Expectation: Gets single Frame without any exception. Image data must be set.
         # If a zero or negative timeouts must lead to a ValueError.
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    self.assertRaises(ValueError, stream.get_frame, 0)
-                    self.assertRaises(ValueError, stream.get_frame, -1)
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                self.assertRaises(ValueError, stream.get_frame, 0)
+                self.assertRaises(ValueError, stream.get_frame, -1)
 
-                    self.assertNoRaise(stream.get_frame)
-                    self.assertIsInstance(stream.get_frame(), Frame)
+                self.assertNoRaise(stream.get_frame)
+                self.assertIsInstance(stream.get_frame(), Frame)
 
     def test_stream_is_streaming(self):
         # Expectation: After start_streaming() is_streaming() must return true. After stop it must
@@ -156,38 +153,42 @@ class StreamTest(VmbPyTestCase):
 
         # self.cam was already entered in the setUp method. Exit here for clean context manager
         # state so that leaving the context closes the Camera as expected
-        self.cam.__exit__(None, None, None)
+        # self.cam._close()
 
         # Normal Operation
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    self.cam.start_streaming(dummy_frame_handler)
-                    self.assertEqual(stream.is_streaming(), True)
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                self.cam.start_streaming(dummy_frame_handler)
+                self.assertEqual(stream.is_streaming(), True)
 
-                    self.cam.stop_streaming()
-                    self.assertEqual(stream.is_streaming(), False)
+                self.cam.stop_streaming()
+                self.assertEqual(stream.is_streaming(), False)
 
         # Missing the stream stop. Close must stop all active streams
         streams = []
-        with self.cam:
-            for stream in self.cam.get_streams():
-                streams.append(stream)
-                stream.start_streaming(dummy_frame_handler, 5)
-                self.assertEqual(stream.is_streaming(), True)
+        for stream in self.cam.get_streams():
+            streams.append(stream)
+            stream.start_streaming(dummy_frame_handler, 5)
+            self.assertEqual(stream.is_streaming(), True)
+
+        # Closing camera connection must stop all active streams
+        self.cam._close()
 
         for stream in streams:
             # This is actually not how users should use the Stream class. Camera is closed and the
             # Stream class is useless without an open Camera connection!
             self.assertEqual(stream.is_streaming(), False)
 
+        # Open camera again so tests tearDown method works correctly
+        self.cam._open()
+
     def test_stream_streaming_error_frame_count(self):
         # Expectation: A negative or zero frame_count must lead to an value error
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    self.assertRaises(ValueError, stream.start_streaming, dummy_frame_handler, 0)
-                    self.assertRaises(ValueError, stream.start_streaming, dummy_frame_handler, -1)
+        # with self.cam:
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                self.assertRaises(ValueError, stream.start_streaming, dummy_frame_handler, 0)
+                self.assertRaises(ValueError, stream.start_streaming, dummy_frame_handler, -1)
 
     def test_stream_streaming(self):
         # Expectation: A given frame_handler must be executed for each buffered frame.
@@ -208,18 +209,17 @@ class StreamTest(VmbPyTestCase):
         frame_count = 10
         handler = FrameHandler(frame_count)
 
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    try:
-                        self.cam.start_streaming(handler, frame_count)
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                try:
+                    self.cam.start_streaming(handler, frame_count)
 
-                        # Wait until the FrameHandler has been executed for each queued frame
-                        self.assertTrue(handler.event.wait(timeout),
-                                        'Handler event was not set. Frame count was not reached')
+                    # Wait until the FrameHandler has been executed for each queued frame
+                    self.assertTrue(handler.event.wait(timeout),
+                                    'Handler event was not set. Frame count was not reached')
 
-                    finally:
-                        self.cam.stop_streaming()
+                finally:
+                    self.cam.stop_streaming()
 
     def test_stream_streaming_requeue(self):
         # Expectation: A given frame must be reused if it is enqueued again.
@@ -243,15 +243,14 @@ class StreamTest(VmbPyTestCase):
         frame_reuse = 2
         handler = FrameHandler(frame_count * frame_reuse)
 
-        with self.cam:
-            for stream in self.cam.get_streams():
-                with self.subTest(f'Stream={stream}'):
-                    try:
-                        stream.start_streaming(handler, frame_count)
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                try:
+                    stream.start_streaming(handler, frame_count)
 
-                        # Wait until the FrameHandler has been executed for each queued frame
-                        self.assertTrue(handler.event.wait(timeout),
-                                        'Handler event was not set. Frame count was not reached')
+                    # Wait until the FrameHandler has been executed for each queued frame
+                    self.assertTrue(handler.event.wait(timeout),
+                                    'Handler event was not set. Frame count was not reached')
 
-                    finally:
-                        stream.stop_streaming()
+                finally:
+                    stream.stop_streaming()

@@ -70,20 +70,20 @@ def _open_camera(id: str,
 class CamCameraTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
-        self.vmb.__enter__()
+        self.vmb._startup()
 
         try:
             self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vmb.__exit__(None, None, None)
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         self.cam.set_access_mode(AccessMode.Full)
 
     def tearDown(self):
         self.cam.set_access_mode(AccessMode.Full)
-        self.vmb.__exit__(None, None, None)
+        self.vmb._shutdown()
 
     def test_camera_context_manager_access_mode(self):
         # Expectation: Entering Context must not throw in cases where the current access mode is

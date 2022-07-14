@@ -36,25 +36,25 @@ from helpers import VmbPyTestCase
 class LocalDeviceTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
-        self.vmb.__enter__()
+        self.vmb._startup()
 
         try:
             self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vmb.__exit__(None, None, None)
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
-            self.cam.__enter__()
+            self.cam._open()
             self.local_device = self.cam.get_local_device()
         except VmbCameraError as e:
-            self.cam.__exit__(None, None, None)
+            self.cam._close()
             raise Exception ('Failed to open Camera {}.'.format(self.cam)) from e
 
     def tearDown(self):
-        self.cam.__exit__(None, None, None)
-        self.vmb.__exit__(None, None, None)
+        self.cam._close()
+        self.vmb._shutdown()
 
     def test_local_device_feature_discovery(self):
         # Expectation: Features are detected for the LocalDevice

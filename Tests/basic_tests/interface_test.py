@@ -36,16 +36,16 @@ from helpers import VmbPyTestCase
 class InterfaceTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
-        self.vmb.__enter__()
+        self.vmb._startup()
 
         inters = self.vmb.get_all_interfaces()
 
         if not inters:
-            self.vmb.__exit__(None, None, None)
+            self.vmb._shutdown()
             self.skipTest('No Interface available to test against. Abort.')
 
     def tearDown(self):
-        self.vmb.__exit__(None, None, None)
+        self.vmb._shutdown()
 
     def test_interface_decode_id(self):
         # Expectation all interface ids can be decoded in something not ''
