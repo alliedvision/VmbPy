@@ -12,6 +12,12 @@ __all__ = [
 
 
 class FeatureContainer:
+    """This class provides access to VmbC features available via self._handle
+
+    By inheriting from this class and entering the context manager for it, features discovered by
+    VmbC for self._handle are attached to self. This requires that the VmbHandle for the object is
+    stored in self._handle. Detected features are stored in self._feats.
+    """
     def __init__(self) -> None:
         self._feats: FeaturesTuple = ()
 
@@ -121,6 +127,8 @@ class FeatureContainer:
 
 
 class PersistableFeatureContainer(FeatureContainer):
+    """Inheriting from this class adds load/save settings methods to the subclass
+    """
     def load_settings(self):
         pass
 

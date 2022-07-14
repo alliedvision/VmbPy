@@ -34,6 +34,8 @@ __all__ = [
 
 
 class LocalDevice(PersistableFeatureContainer):
+    """This class provides access to the Local Device of a Camera
+    """
     def __init__(self, handle: VmbHandle) -> None:
         super().__init__()
         self._handle: VmbHandle = handle

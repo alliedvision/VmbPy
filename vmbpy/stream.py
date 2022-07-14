@@ -310,6 +310,8 @@ def _frame_generator(cam: Camera,
 
 
 class Stream(PersistableFeatureContainer):
+    """This class provides access to a Stream of a Camera
+    """
     def __init__(self, stream_handle: VmbHandle, is_open: bool, parent_cam: Camera) -> None:
         super().__init__()
         self._parent_cam: Camera = parent_cam

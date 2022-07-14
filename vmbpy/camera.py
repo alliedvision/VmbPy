@@ -80,10 +80,11 @@ class CameraEvent(enum.IntEnum):
 
 
 class Camera(PersistableFeatureContainer):
-    """This class allows access to a Camera detected by Vimba.
-    Camera is meant be used in conjunction with the "with" - statement.
-    On entering a context, all Camera features are detected and can be accessed within the context.
-    Static Camera properties like Name and Model can be accessed outside the context.
+    """This class provides access to a Camera. It corresponds to the GenTL Remote Device
+
+    Camera is intended be used in conjunction with the "with" - statement. On entering the context,
+    all Camera features are detected and can be accessed within the context. Static Camera
+    properties like Name and Model can be accessed outside the context.
     """
     @TraceEnable()
     @leave_context_on_call
