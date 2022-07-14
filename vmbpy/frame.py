@@ -40,7 +40,7 @@ from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_fea
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
 from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, raise_if_outside_context
+                  leave_context_on_call, RaiseIfOutsideContext
 from .error import VmbFrameError, VmbFeatureError
 
 try:
@@ -225,7 +225,7 @@ class AncillaryData:
         if not self.__context_cnt:
             self._close()
 
-    @raise_if_outside_context
+    @RaiseIfOutsideContext()
     def get_all_features(self) -> FeaturesTuple:
         """Get all features in ancillary data.
 
@@ -237,7 +237,7 @@ class AncillaryData:
         """
         return self.__feats
 
-    @raise_if_outside_context
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all features in ancillary data of a specific type.
@@ -257,7 +257,7 @@ class AncillaryData:
         """
         return filter_features_by_type(self.__feats, feat_type)
 
-    @raise_if_outside_context
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all features in ancillary data of a specific category.
@@ -274,7 +274,7 @@ class AncillaryData:
         """
         return filter_features_by_category(self.__feats, category)
 
-    @raise_if_outside_context
+    @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get a features in ancillary data by its name.

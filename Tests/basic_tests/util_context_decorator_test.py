@@ -46,7 +46,7 @@ class TestObj:
     def __exit__(self, _1, _2, _3):
         pass
 
-    @raise_if_outside_context
+    @RaiseIfOutsideContext()
     def works_inside_context(self):
         pass
 

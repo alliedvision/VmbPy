@@ -41,7 +41,7 @@ from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, Interf
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
                     VmbCameraInfo
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, raise_if_outside_context
+                  leave_context_on_call, RaiseIfOutsideContext
 from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError
 from . import __version__ as VMBPY_VERSION
 
@@ -117,7 +117,7 @@ class VmbSystem:
             Log.get_instance().disable()
 
         @TraceEnable()
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def read_memory(self, addr: int, max_bytes: int) -> bytes:  # coverage: skip
             """Read a byte sequence from a given memory address.
@@ -140,7 +140,7 @@ class VmbSystem:
             return read_memory(G_VMB_C_HANDLE, addr, max_bytes)
 
         @TraceEnable()
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def write_memory(self, addr: int, data: bytes):  # coverage: skip
             """ Write a byte sequence to a given memory address.
@@ -157,7 +157,7 @@ class VmbSystem:
             # Note: Coverage is skipped. Function is untestable in a generic way.
             return write_memory(G_VMB_C_HANDLE, addr, data)
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         def get_all_transport_layers(self) -> TransportLayersTuple:
             """Get access to all loaded Transport Layers
 
@@ -169,7 +169,7 @@ class VmbSystem:
             """
             return tuple(self.__transport_layers.values())
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_transport_layer_by_id(self, id_: str) -> TransportLayer:
             """Lookup Transport Layer with given ID.
@@ -193,7 +193,7 @@ class VmbSystem:
 
             return tls.pop()
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
             """Get access to all discovered Interfaces:
 
@@ -206,7 +206,7 @@ class VmbSystem:
             with self.__inters_lock:
                 return tuple(self.__inters.values())
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interface_by_id(self, id_: str) -> Interface:
             """Lookup Interface with given ID.
@@ -230,7 +230,7 @@ class VmbSystem:
 
             return inter.pop()
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interfaces_by_tl(self, tl_: TransportLayer) -> InterfacesTuple:
             """Get access to interfaces associated with the given Transport Layer
@@ -250,7 +250,7 @@ class VmbSystem:
 
             return inters
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         def get_all_cameras(self) -> CamerasTuple:
             """Get access to all discovered Cameras.
 
@@ -263,7 +263,7 @@ class VmbSystem:
             with self.__cams_lock:
                 return tuple(self.__cams)
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_camera_by_id(self, id_: str) -> Camera:
             """Lookup Camera with given ID.
@@ -301,7 +301,7 @@ class VmbSystem:
 
             raise VmbCameraError('No Camera with Id \'{}\' available.'.format(id_))
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_tl(self, tl_: TransportLayer) -> CamerasTuple:
             """Get access to cameras associated with the given Transport Layer
@@ -321,7 +321,7 @@ class VmbSystem:
 
             return cams
 
-        @raise_if_outside_context
+        @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_interface(self, inter_: Interface):
             """Get access to cameras associated with the given interface
@@ -628,11 +628,11 @@ class VmbSystem:
             return Camera(info, self.__inters[info.interfaceHandle])
 
         # Add decorators to inherited methods
-        get_all_features = raise_if_outside_context(FeatureContainer.get_all_features)                  # noqa: E501
-        get_features_selected_by = raise_if_outside_context(FeatureContainer.get_features_selected_by)  # noqa: E501
-        get_features_by_type = raise_if_outside_context(FeatureContainer.get_features_by_type)          # noqa: E501
-        get_features_by_category = raise_if_outside_context(FeatureContainer.get_features_by_category)  # noqa: E501
-        get_feature_by_name = raise_if_outside_context(FeatureContainer.get_feature_by_name)            # noqa: E501
+        get_all_features = RaiseIfOutsideContext()(FeatureContainer.get_all_features)                  # noqa: E501
+        get_features_selected_by = RaiseIfOutsideContext()(FeatureContainer.get_features_selected_by)  # noqa: E501
+        get_features_by_type = RaiseIfOutsideContext()(FeatureContainer.get_features_by_type)          # noqa: E501
+        get_features_by_category = RaiseIfOutsideContext()(FeatureContainer.get_features_by_category)  # noqa: E501
+        get_feature_by_name = RaiseIfOutsideContext()(FeatureContainer.get_feature_by_name)            # noqa: E501
 
     __instance = __Impl()
 

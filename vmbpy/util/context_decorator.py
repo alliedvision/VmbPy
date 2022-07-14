@@ -31,7 +31,7 @@ __all__ = [
     'enter_context_on_call',
     'leave_context_on_call',
     'raise_if_inside_context',
-    'raise_if_outside_context'
+    'RaiseIfOutsideContext'
 ]
 
 
@@ -71,18 +71,16 @@ def raise_if_inside_context(func):
     return wrapper
 
 
-def raise_if_outside_context(func):
-    """Raising RuntimeError is decorated Method is called outside with-statement.
+class RaiseIfOutsideContext:
+    def __init__(self, msg='Called \'{}()\' outside of \'with\' - statement scope.'):
+        self.msg = msg
 
-    Note This Decorator shall work only on Object implementing a Context Manger.
-    For this to work object must offer a boolean attribute called __context_entered
-    """
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        if not args[0]._context_entered:
-            msg = 'Called \'{}()\' outside of \'with\' - statement scope.'
-            msg = msg.format('{}'.format(func.__qualname__))
-            raise RuntimeError(msg)
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if not args[0]._context_entered:
+                msg = self.msg.format('{}'.format(func.__qualname__))
+                raise RuntimeError(msg)
 
-        return func(*args, **kwargs)
-    return wrapper
+            return func(*args, **kwargs)
+        return wrapper
