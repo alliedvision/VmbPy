@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from helpers import VmbPyTestCase
 
 
-def dummy_frame_handler(cam: Camera, frame: Frame):
+def dummy_frame_handler(cam: Camera, stream: Stream, frame: Frame):
     pass
 
 
@@ -181,6 +181,17 @@ class CamCameraTest(VmbPyTestCase):
         # Expectation: get interface Id this camera is connected to
         self.assertTrue(self.cam.get_interface_id())
 
+    def test_camera_get_streams_type(self):
+        # Expectation: returns instances of Stream for Camera instance
+        with self.cam:
+            for stream in self.cam.get_streams():
+                self.assertIsInstance(stream, Stream)
+
+    def test_camera_get_local_device_type(self):
+        # Expectation: returns instance of LocalDevice for Camera instance
+        with self.cam:
+            self.assertIsInstance(self.cam.get_local_device(), LocalDevice)
+
     def test_camera_frame_generator_limit_set(self):
         # Expectation: The Frame generator fetches the given number of images.
         with self.cam:
@@ -284,7 +295,8 @@ class CamCameraTest(VmbPyTestCase):
                 self.frame_count = frame_count
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, frame: Frame):
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
+                print(cam, stream, frame)
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
@@ -313,7 +325,7 @@ class CamCameraTest(VmbPyTestCase):
                 self.frame_count = frame_count
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, frame: Frame):
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
                 self.cnt += 1
 
                 if self.cnt == self.frame_count:
@@ -347,7 +359,7 @@ class CamCameraTest(VmbPyTestCase):
                 self._test_instance = test_instance
                 self.event = threading.Event()
 
-            def __call__(self, cam: Camera, frame: Frame):
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
                 # If the frame callback for the first frame is not triggered, this assertion will
                 # fail the test case because the frame will have ID 1 instead of the expected value
                 # of 0
@@ -373,13 +385,16 @@ class CamCameraTest(VmbPyTestCase):
                 self.cam.stop_streaming()
 
     def test_camera_runtime_type_check(self):
-        def valid_handler(cam, frame):
+        def valid_handler(cam, stream, frame):
             pass
 
         def invalid_handler_1(cam):
             pass
 
-        def invalid_handler_2(cam, frame, extra):
+        def invalid_handler_2(cam, stream):
+            pass
+
+        def invalid_handler_3(cam, stream, frame, extra):
             pass
 
         self.assertRaises(TypeError, self.cam.set_access_mode, -1)
@@ -395,8 +410,36 @@ class CamCameraTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.cam.start_streaming, valid_handler, 'no int')
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_1)
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_2)
+            self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_3)
             self.assertRaises(TypeError, self.cam.save_settings, 0, PersistType.All)
             self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
+
+    def test_callback_parameter_types(self):
+        # Expectation: All parameters of the frame callback are of instances of their expected type
+        class FrameHandler:
+            def __init__(self, test_instance):
+                self._test_instance = test_instance
+                self.event = threading.Event()
+
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
+                self._test_instance.assertIsInstance(cam, Camera)
+                self._test_instance.assertIsInstance(stream, Stream)
+                self._test_instance.assertIsInstance(frame, Frame)
+
+                self.event.set()
+
+        timeout = 5.0
+        frame_count = 5
+        handler = FrameHandler(self)
+        with self.cam:
+            try:
+                self.cam.start_streaming(handler, frame_count)
+
+                # Wait until the FrameHandler has been executed for each queued frame
+                self.assertTrue(handler.event.wait(timeout))
+
+            finally:
+                self.cam.stop_streaming()
 
     def test_camera_save_load_settings(self):
         # Expectation: After settings export a settings change must be reverted by loading a
@@ -475,6 +518,8 @@ class CamCameraTest(VmbPyTestCase):
     def test_camera_api_context_sensitity_inside_context(self):
         # Expectation: Most Camera related functions are only valid then called within the given
         # Context. If called from Outside a runtime error must be raised.
+        self.assertRaises(RuntimeError, self.cam.get_streams)
+        self.assertRaises(RuntimeError, self.cam.get_local_device)
         self.assertRaises(RuntimeError, self.cam.read_memory)
         self.assertRaises(RuntimeError, self.cam.write_memory)
         self.assertRaises(RuntimeError, self.cam.read_registers)

@@ -564,7 +564,7 @@ class VmbFrame(ctypes.Structure):
                                Info: Unique ID of this frame in this stream
             timestamp        - Type: VmbUint64
                                Info: Timestamp set by the camera
-            imageData        - Type: VmbUint8
+            imageData        - Type: c_ptr(VmbUint8)
                                Info: The start of the image data, if present, or null
             receiveFlags     - Type: VmbFrameFlags (VmbUint32)
                                Info: Flags indicating which additional frame information is
@@ -591,7 +591,7 @@ class VmbFrame(ctypes.Structure):
         ("receiveStatus", VmbInt32),
         ("frameID", VmbUint64),
         ("timestamp", VmbUint64),
-        ("imageData", VmbUint8),
+        ("imageData", c_ptr(VmbUint8)),
         ("receiveFlags", VmbUint32),
         ("pixelFormat", VmbUint32),
         ("width", VmbUint32),
@@ -604,20 +604,20 @@ class VmbFrame(ctypes.Structure):
 
     def __repr__(self):
         rep = 'VmbFrame'
-        rep += fmt_repr('(buffer={}', self.buffer)
+        rep += fmt_repr('(buffer={}', hex(self.buffer))
         rep += fmt_repr(',bufferSize={}', self.bufferSize)
         rep += fmt_repr(',context={}', self.context)
-        rep += fmt_enum_repr('receiveStatus: {}', VmbFrameStatus, self.receiveStatus)
+        rep += fmt_enum_repr(',receiveStatus: {}', VmbFrameStatus, self.receiveStatus)
         rep += fmt_repr(',frameID={}', self.frameID)
         rep += fmt_repr(',timestamp={}', self.timestamp)
-        rep += fmt_repr(',imageData={}', self.imageData)
+        rep += fmt_repr(',imageData={}', hex(ctypes.addressof(self.imageData.contents)))
         rep += fmt_flags_repr(',receiveFlags={}', VmbFrameFlags, self.receiveFlags)
         rep += fmt_enum_repr(',pixelFormat={}', VmbPixelFormat, self.pixelFormat)
         rep += fmt_repr(',width={}', self.width)
         rep += fmt_repr(',height={}', self.height)
         rep += fmt_repr(',offsetX={}', self.offsetX)
         rep += fmt_repr(',offsetY={}', self.offsetY)
-        rep += fmt_repr('payloadType={}', self.payloadType)
+        rep += fmt_repr(',payloadType={}', self.payloadType)
         rep += fmt_repr('chunkDataPresent={}', self.chunkDataPresent)
         rep += ')'
         return rep
@@ -633,7 +633,7 @@ class VmbFrame(ctypes.Structure):
         setattr(result, 'receiveStatus', copy.deepcopy(self.receiveStatus, memo))
         setattr(result, 'frameID', copy.deepcopy(self.frameID, memo))
         setattr(result, 'timestamp', copy.deepcopy(self.timestamp, memo))
-        setattr(result, 'imageData', copy.deepcopy(self.imageData, memo))
+        result.imageData = None
         setattr(result, 'receiveFlags', copy.deepcopy(self.receiveFlags, memo))
         setattr(result, 'pixelFormat', copy.deepcopy(self.pixelFormat, memo))
         setattr(result, 'width', copy.deepcopy(self.width, memo))

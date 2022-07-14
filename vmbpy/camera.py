@@ -46,6 +46,8 @@ from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
+from .stream import Stream, StreamsTuple, StreamsDict
+from .localdevice import LocalDevice
 
 if TYPE_CHECKING:
     from .interface import Interface
@@ -67,7 +69,7 @@ __all__ = [
 CameraChangeHandler = Callable[['Camera', 'CameraEvent'], None]
 CamerasTuple = Tuple['Camera', ...]
 CamerasList = List['Camera']
-FrameHandler = Callable[['Camera', Frame], None]
+FrameHandler = Callable[['Camera', 'Stream', Frame], None]
 
 
 class AccessMode(enum.IntEnum):
@@ -365,7 +367,9 @@ class Camera:
     @LeaveContextOnCall()
     def __init__(self, info: VmbCameraInfo, interface: Interface):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
-        self.__interface = interface
+        self.__interface: Interface = interface
+        self.__streams: StreamsDict = {}
+        self.__local_device: Optional[LocalDevice] = None
         self.__handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
@@ -445,11 +449,13 @@ class Camera:
         """
         return self.get_interface().get_id()
 
-    def get_streams(self):
-        raise NotImplementedError
+    @RaiseIfOutsideContext()
+    def get_streams(self) -> StreamsTuple:
+        return tuple(self.__streams.values())
 
-    def get_local_device(self):
-        raise NotImplementedError
+    @RaiseIfOutsideContext()
+    def get_local_device(self) -> LocalDevice:
+        return self.__local_device
 
     @TraceEnable()
     @RaiseIfOutsideContext()
@@ -724,7 +730,7 @@ class Camera:
             buffer_alignment = 1
         frames = tuple([Frame(payload_size, allocation_mode, buffer_alignment=buffer_alignment)
                         for _ in range(buffer_count)])
-        callback = build_callback_type(None, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
+        callback = build_callback_type(None, VmbHandle, VmbHandle, POINTER(VmbFrame))(self.__frame_cb_wrapper)
 
         self.__capture_fsm = _CaptureFsm(_Context(self, frames, handler, callback))
 
@@ -923,6 +929,7 @@ class Camera:
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
             # In reality VmbError.NotImplemented_ is sometimes returned.
+            # TODO: Check that these error codes are correct
             if (err == VmbError.InvalidAccess) or (err == VmbError.NotImplemented_):
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
@@ -934,6 +941,24 @@ class Camera:
 
             raise exc from e
 
+        try:
+            info = VmbCameraInfo()
+            call_vmb_c('VmbCameraInfoQueryByHandle', self.__handle, byref(info), sizeof(info))
+        except VmbCError as e:
+            err = e.get_error_code()
+            if err == VmbError.BadHandle:
+                msg = 'Invalid handle used to query camera info. Used handel: {}'
+                msg = msg.format(self.__handle)
+                exc - VmbCameraError(msg)
+            else:
+                exc = VmbCameraError(repr(err))
+            raise exc from e
+
+        for i in range(info.streamCount):
+            # TODO: check if we can just iterate over info.streamHandles directly?
+            # The stream at index 0 is automatically opened
+            self.__streams[info.streamHandles[i]] = Stream(info.streamHandles[i], is_open=(i == 0))
+        self.__local_device = LocalDevice(info.localDeviceHandle)
         self.__feats = discover_features(self.__handle)
         attach_feature_accessors(self, self.__feats)
 
@@ -981,7 +1006,7 @@ class Camera:
             raise VmbCameraError(str(e.get_error_code())) from e
         self.__info.permittedAccess = info.permittedAccess
 
-    def __frame_cb_wrapper(self, _: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
+    def __frame_cb_wrapper(self, _: VmbHandle, stream_handle: VmbHandle, raw_frame_ptr: VmbFrame):   # coverage: skip
         # Skip coverage because it can't be measured. This is called from C-Context.
 
         # ignore callback if camera has been disconnected
@@ -1004,7 +1029,7 @@ class Camera:
             assert frame is not None
 
             try:
-                context.frames_handler(self, frame)
+                context.frames_handler(self, self.__streams[stream_handle], frame)
 
             except Exception as e:
                 msg = 'Caught Exception in handler: '

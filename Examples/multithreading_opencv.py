@@ -127,7 +127,7 @@ class FrameProducer(threading.Thread):
         self.frame_queue = frame_queue
         self.killswitch = threading.Event()
 
-    def __call__(self, cam: Camera, frame: Frame):
+    def __call__(self, cam: Camera, stream: Stream, frame: Frame):
         # This method is executed within VimbaC context. All incoming frames
         # are reused for later frame acquisition. If a frame shall be queued, the
         # frame must be copied and the copy must be sent, otherwise the acquired

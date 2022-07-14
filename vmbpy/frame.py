@@ -34,7 +34,8 @@ from typing import Optional, Tuple
 from .c_binding import byref, sizeof, decode_flags
 from .c_binding import call_vmb_c, call_vmb_image_transform, VmbFrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, VmbImage, VmbDebayerMode, \
-                       VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT
+                       VmbTransformInfo, PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT, \
+                       VmbUint8
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
@@ -629,6 +630,11 @@ class Frame:
 
         result._frame.buffer = ctypes.cast(result._buffer, ctypes.c_void_p)
         result._frame.bufferSize = sizeof(result._buffer)
+        # calculate offset of original imageData pointer into original buffer
+        image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)  # noqa 501: E501
+        # set new imageData pointer to same offset into new buffer
+        result._frame.imageData = ctypes.cast(ctypes.byref(result._buffer, image_data_offset),
+                                              ctypes.POINTER(VmbUint8))
 
         return result
 
@@ -642,15 +648,14 @@ class Frame:
 
     def get_buffer(self) -> ctypes.Array:
         """Get internal buffer object containing image data."""
+        # TODO: Do we need to consider the imageData pointer here? In VmbCPP the docstring references image and chunk data!
         return self._buffer
+
+    # TODO: Do we need to add a get_image method similar to VmbCPP where the chunk data at the beginning of the buffer is cut off?
 
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
         return self._frame.bufferSize
-
-    def get_image_size(self) -> int:
-        """Get byte size of image data stored in buffer."""
-        return self._frame.imageSize
 
     def get_ancillary_data(self) -> Optional[AncillaryData]:
         """Get AncillaryData.
@@ -662,6 +667,7 @@ class Frame:
             None if Frame contains no ancillary data.
             AncillaryData if Frame contains ancillary data.
         """
+        # TODO: this probably needs to be reworked
         if not self._frame.ancillarySize:
             return None
 
@@ -862,7 +868,7 @@ class Frame:
         if numpy is None:
             raise ImportError('\'Frame.as_numpy_ndarray()\' requires module \'numpy\'.')
 
-        # Construct numpy overlay on underlaying image buffer
+        # Construct numpy overlay on underlying image buffer
         height = self._frame.height
         width = self._frame.width
         fmt = self._frame.pixelFormat
@@ -882,9 +888,15 @@ class Frame:
 
         bits_per_channel = layout[1]
         channels_per_pixel = c_image.ImageInfo.PixelInfo.BitsPerPixel // bits_per_channel
+        image_size = width * height * channels_per_pixel * (bits_per_channel // 8)
 
+        # ctypes arrays have the size encoded in their type. Define the full image data type here
+        # for this frame
+        array_type = ctypes.c_uint8 * image_size
+        # cast the imageData pointer to a suitable type to create a numpy array from it
+        image_data = ctypes.cast(self._frame.imageData, ctypes.POINTER(array_type))
         return numpy.ndarray(shape=(height, width, channels_per_pixel),
-                             buffer=self._buffer,  # type: ignore
+                             buffer=image_data.contents,  # type: ignore
                              dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
 
     def as_opencv_image(self) -> 'numpy.ndarray':
