@@ -888,11 +888,8 @@ class Frame:
 
         bits_per_channel = layout[1]
         channels_per_pixel = c_image.ImageInfo.PixelInfo.BitsPerPixel // bits_per_channel
+        image_size = width * height * channels_per_pixel * (bits_per_channel // 8)
 
-        # The beginning of the buffer may contain non-image data. So the image size corresponds to
-        # distance from the imageData pointer to the end of the buffer
-        image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)  # noqa: E501
-        image_size = self._buffer._length_ - image_data_offset
         # ctypes arrays have the size encoded in their type. Define the full image data type here
         # for this frame
         array_type = ctypes.c_uint8 * image_size
