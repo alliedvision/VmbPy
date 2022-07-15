@@ -36,7 +36,8 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_sel
                     filter_features_by_category, attach_feature_accessors, read_memory, \
                     write_memory
 from .transportlayer import TransportLayerType
-from .util import TraceEnable, RuntimeTypeCheckEnable
+from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
+                  leave_context_on_call, RaiseIfOutsideContext
 from .error import VmbFeatureError
 
 if TYPE_CHECKING:
@@ -83,7 +84,17 @@ class Interface(PersistableFeatureContainer):
         self.__transport_layer = transport_layer
         self.__info: VmbInterfaceInfo = info
         self._handle: VmbHandle = self.__info.interfaceHandle
+        self._open()
+
+    @TraceEnable()
+    @enter_context_on_call
+    def _open(self):
         self._attach_feature_accessors()
+
+    @TraceEnable()
+    @leave_context_on_call
+    def _close(self):
+        self._remove_feature_accessors()
 
     def __str__(self):
         return 'Interface(id={})'.format(self.get_id())
@@ -160,3 +171,10 @@ class Interface(PersistableFeatureContainer):
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of interface"""
         return self._handle
+
+    _msg = 'Called \'{}()\' outside of VmbSystems \'with\' - statement scope.'
+    get_all_features = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
+    get_features_selected_by = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
+    get_features_by_type = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
+    get_features_by_category = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_by_category)  # noqa: E501
+    get_feature_by_name = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_feature_by_name)            # noqa: E501

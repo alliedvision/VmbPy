@@ -441,7 +441,9 @@ class VmbSystem:
             self.__cams_handlers = []
             self.__cams = ()
             self.__inters_handlers = []
-            self.__inters = ()
+            for inter in self.__inters.values():
+                inter._close()
+            self.__inters.clear()
             for tl in self.__transport_layers.values():
                 tl._close()
             self.__transport_layers.clear()

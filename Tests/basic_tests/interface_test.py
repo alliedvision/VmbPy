@@ -128,3 +128,44 @@ class InterfaceTest(VmbPyTestCase):
                     self.skipTest(f'Could not test because {inter} did not provide any cameras')
                 for cam in cameras:
                     self.assertIsInstance(cam, Camera)
+
+    def test_interface_context_sensitivity(self):
+        # Expectation: Call get_all_features and similar methods outside of VmbSystem context raises
+        # a RuntimeError and the error message references the VmbSystem context
+
+        # Manually manage VmbSystem context for this test
+        self.vmb._shutdown()
+
+        inters_and_feats = []
+        with self.vmb:
+            for inter in self.vmb.get_all_interfaces():
+                feat = inter.get_all_features()[0]
+                inters_and_feats.append((inter, feat))
+
+        for inter, feat in inters_and_feats:
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   inter.get_all_features)
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   inter.get_features_selected_by,
+                                   feat)
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   inter.get_features_by_type,
+                                   IntFeature)
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   inter.get_features_by_category,
+                                   'foo')
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   inter.get_feature_by_name,
+                                   'foo')
+
+        # Start VmbSystem again so tearDown method works as expected
+        self.vmb._startup()
