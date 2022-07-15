@@ -72,10 +72,12 @@ class TransportLayer(PersistableFeatureContainer):
         rep += ')'
         return rep
 
+    @TraceEnable()
     @enter_context_on_call
     def _open(self):
         self._attach_feature_accessors()
 
+    @TraceEnable()
     @leave_context_on_call
     def _close(self):
         self._remove_feature_accessors()
