@@ -127,3 +127,10 @@ class TransportLayer(PersistableFeatureContainer):
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of Transport Layer"""
         return self._handle
+
+    _msg = 'Called \'{}()\' outside of VmbSystems \'with\' - statement scope.'
+    get_all_features = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
+    get_features_selected_by = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
+    get_features_by_type = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
+    get_features_by_category = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_by_category)  # noqa: E501
+    get_feature_by_name = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_feature_by_name)            # noqa: E501

@@ -157,3 +157,37 @@ class TransportLayerTest(VmbPyTestCase):
             for tl in self.vmb.get_all_transport_layers():
                 self.assertNoRaise(tl.get_feature_by_name, 'TLID')
                 self.assertRaises(VmbFeatureError, tl.get_feature_by_name, 'Invalid Name')
+
+    def test_transport_layer_context_sensitivity(self):
+        # Expectation: Call get_all_features outside of VmbSystem context raises a RuntimeError and
+        # the error message references the VmbSystem context
+        tls_and_feats = []
+        with self.vmb:
+            for tl in self.vmb.get_all_transport_layers():
+                feat = tl.get_all_features()[0]
+                tls_and_feats.append((tl, feat))
+
+        for tl, feat in tls_and_feats:
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   tl.get_all_features)
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   tl.get_features_selected_by,
+                                   feat)
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   tl.get_features_by_type,
+                                   IntFeature)
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   tl.get_features_by_category,
+                                   'foo')
+
+            self.assertRaisesRegex(RuntimeError,
+                                   'outside of VmbSystem.* scope',
+                                   tl.get_feature_by_name,
+                                   'foo')
