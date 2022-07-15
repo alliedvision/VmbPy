@@ -510,12 +510,12 @@ class CamCameraTest(VmbPyTestCase):
                 with self.cam:
                     pass
 
-    def test_camera_api_context_sensitity_outside_context(self):
+    def test_camera_api_context_sensitivity_outside_context(self):
         # Expectation: Call set_access_mode withing with scope must raise a RuntimeError
         with self.cam:
             self.assertRaises(RuntimeError, self.cam.set_access_mode)
 
-    def test_camera_api_context_sensitity_inside_context(self):
+    def test_camera_api_context_sensitivity_inside_context(self):
         # Expectation: Most Camera related functions are only valid then called within the given
         # Context. If called from Outside a runtime error must be raised.
         self.assertRaises(RuntimeError, self.cam.get_streams)
