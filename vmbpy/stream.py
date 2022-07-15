@@ -312,6 +312,7 @@ def _frame_generator(cam: Camera,
 class Stream(PersistableFeatureContainer):
     """This class provides access to a Stream of a Camera
     """
+    @TraceEnable()
     def __init__(self, stream_handle: VmbHandle, is_open: bool, parent_cam: Camera) -> None:
         super().__init__()
         self._parent_cam: Camera = parent_cam
@@ -335,6 +336,8 @@ class Stream(PersistableFeatureContainer):
             self._remove_feature_accessors()
             self.__is_open = False
 
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def get_frame_generator(self,
                             limit: Optional[int] = None,
                             timeout_ms: int = 2000,
@@ -347,6 +350,8 @@ class Stream(PersistableFeatureContainer):
 
         return _frame_generator(self._parent_cam, self, limit, timeout_ms, allocation_mode)
 
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def get_frame(self,
                   timeout_ms: int = 2000,
                   allocation_mode: AllocationMode = AllocationMode.AnnounceFrame) -> Frame:
@@ -368,6 +373,8 @@ class Stream(PersistableFeatureContainer):
         """
         return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
 
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def start_streaming(self,
                         handler: FrameHandler,
                         buffer_count: int = 5,
@@ -412,6 +419,7 @@ class Stream(PersistableFeatureContainer):
             self.__capture_fsm = None
             raise exc
 
+    @TraceEnable()
     def stop_streaming(self):
         if not self.is_streaming():
             return
@@ -425,10 +433,13 @@ class Stream(PersistableFeatureContainer):
         finally:
             self.__capture_fsm = None
 
+    @TraceEnable()
     def is_streaming(self) -> bool:
         """Returns True if the camera is currently in streaming mode. If not, returns False."""
         return self.__capture_fsm is not None
 
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
     def queue_frame(self, frame: Frame):
         if self.__capture_fsm is None:
             return

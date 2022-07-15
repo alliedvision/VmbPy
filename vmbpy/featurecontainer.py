@@ -18,6 +18,7 @@ class FeatureContainer:
     VmbC for self._handle are attached to self. This requires that the VmbHandle for the object is
     stored in self._handle. Detected features are stored in self._feats.
     """
+    @TraceEnable()
     def __init__(self) -> None:
         self._feats: FeaturesTuple = ()
 
@@ -39,6 +40,7 @@ class FeatureContainer:
         if not self.__context_cnt:
             remove_feature_accessors(self, self._feats)
 
+    @TraceEnable()
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered system features:
 
@@ -68,6 +70,7 @@ class FeatureContainer:
         """
         return filter_selected_features(self._feats, feat)
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
         """Get all system features of a specific feature type.
@@ -87,6 +90,7 @@ class FeatureContainer:
         """
         return filter_features_by_type(self._feats, feat_type)
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
         """Get all system features of a specific category.
@@ -103,6 +107,7 @@ class FeatureContainer:
         """
         return filter_features_by_category(self._feats, category)
 
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
         """Get a system feature by its name.
