@@ -420,7 +420,7 @@ class VmbSystem:
             self.__transport_layers = self.__discover_transport_layers()
             self.__inters = self.__discover_interfaces()
             self.__cams = self.__discover_cameras()
-            super().__enter__()
+            self._attach_feature_accessors()
 
             feat = self.get_feature_by_name('EventInterfaceDiscovery')
             feat.register_change_handler(self.__inter_cb_wrapper)
@@ -437,11 +437,14 @@ class VmbSystem:
             for feat in self._feats:
                 feat.unregister_all_change_handlers()
 
-            super().__exit__(None, None, None)
+            self._remove_feature_accessors()
             self.__cams_handlers = []
             self.__cams = ()
             self.__inters_handlers = []
             self.__inters = ()
+            for tl in self.__transport_layers.values():
+                tl._close()
+            self.__transport_layers.clear()
 
             call_vmb_c('VmbShutdown')
 

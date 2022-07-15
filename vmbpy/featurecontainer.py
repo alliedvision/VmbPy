@@ -24,7 +24,7 @@ class FeatureContainer:
         self.__context_cnt: int = 0
 
     @TraceEnable()
-    def __enter__(self):
+    def _attach_feature_accessors(self):
         if not self.__context_cnt:
             self._feats = discover_features(self._handle)
             attach_feature_accessors(self, self._feats)
@@ -33,7 +33,7 @@ class FeatureContainer:
         return self
 
     @TraceEnable()
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def _remove_feature_accessors(self):
         self.__context_cnt -= 1
 
         if not self.__context_cnt:

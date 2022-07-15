@@ -37,7 +37,7 @@ from .c_binding import call_vmb_c, byref, sizeof, \
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 from .featurecontainer import PersistableFeatureContainer
 from .frame import Frame, AllocationMode
-from .util import TraceEnable, Log
+from .util import TraceEnable, Log, RuntimeTypeCheckEnable, enter_context_on_call, leave_context_on_call
 
 if TYPE_CHECKING:
     from .camera import Camera
@@ -316,10 +316,24 @@ class Stream(PersistableFeatureContainer):
         super().__init__()
         self._parent_cam: Camera = parent_cam
         self._handle: VmbHandle = stream_handle
-        self.__is_open: bool = is_open
-        if self.__is_open:
-            super().__enter__()
         self.__capture_fsm: Optional[_CaptureFsm] = None
+        self.__is_open: bool = False
+        if is_open:
+            self.open()
+
+    @TraceEnable()
+    @enter_context_on_call
+    def open(self):
+        if not self.__is_open:
+            self._attach_feature_accessors()
+            self.__is_open = True
+
+    @TraceEnable()
+    @leave_context_on_call
+    def close(self):
+        if self.__is_open:
+            self._remove_feature_accessors()
+            self.__is_open = False
 
     def get_frame_generator(self,
                             limit: Optional[int] = None,

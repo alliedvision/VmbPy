@@ -514,7 +514,7 @@ class Camera(PersistableFeatureContainer):
                                          is_open=(i == 0),
                                          parent_cam=self))
         self.__local_device = LocalDevice(self.__info.localDeviceHandle)
-        super().__enter__()
+        self._attach_feature_accessors()
 
         # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
         # feat = filter_features_by_name(self._feats, 'GVSPPacketSize')
@@ -542,7 +542,7 @@ class Camera(PersistableFeatureContainer):
         for feat in self._feats:
             feat.unregister_all_change_handlers()
 
-        super().__exit__(None, None, None)
+        self._remove_feature_accessors()
 
         self.__streams = []
         # TODO: Any closing of Streams necessary?

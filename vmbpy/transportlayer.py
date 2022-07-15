@@ -32,7 +32,7 @@ from .c_binding import TransportLayerType, VmbTransportLayerInfo, VmbHandle, dec
 from .feature import discover_features, FeaturesTuple
 from .featurecontainer import PersistableFeatureContainer
 from .shared import attach_feature_accessors
-from .util import TraceEnable
+from .util import TraceEnable, enter_context_on_call, leave_context_on_call, RaiseIfOutsideContext
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple
@@ -60,7 +60,7 @@ class TransportLayer(PersistableFeatureContainer):
         super().__init__()
         self.__info: VmbTransportLayerInfo = info
         self._handle: VmbHandle = self.__info.transportLayerHandle
-        super().__enter__()
+        self._open()
 
     def __str__(self):
         return 'TransportLayer(id={})'.format(self.get_id())
@@ -71,6 +71,14 @@ class TransportLayer(PersistableFeatureContainer):
         rep += ',__info=' + repr(self.__info)
         rep += ')'
         return rep
+
+    @enter_context_on_call
+    def _open(self):
+        self._attach_feature_accessors()
+
+    @leave_context_on_call
+    def _close(self):
+        self._remove_feature_accessors()
 
     def get_interfaces(self) -> InterfacesTuple:
         """Get all interfaces associated with the Transport Layer instance

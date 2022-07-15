@@ -39,4 +39,4 @@ class LocalDevice(PersistableFeatureContainer):
     def __init__(self, handle: VmbHandle) -> None:
         super().__init__()
         self._handle: VmbHandle = handle
-        super().__enter__()
+        self._attach_feature_accessors()
