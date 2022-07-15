@@ -37,7 +37,8 @@ from .c_binding import call_vmb_c, byref, sizeof, \
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 from .featurecontainer import PersistableFeatureContainer
 from .frame import Frame, AllocationMode
-from .util import TraceEnable, Log, RuntimeTypeCheckEnable, enter_context_on_call, leave_context_on_call
+from .util import TraceEnable, Log, RuntimeTypeCheckEnable, enter_context_on_call, \
+                  leave_context_on_call, RaiseIfOutsideContext
 
 if TYPE_CHECKING:
     from .camera import Camera
@@ -270,17 +271,19 @@ def _frame_generator(cam: Camera,
     if stream.is_streaming():
         raise VmbCameraError('Operation not supported while streaming.')
 
+    try:
+        # TODO: replace with filter_features_by_name to prevent logged error?
+        buffer_alignment = stream.get_feature_by_name('StreamBufferAlignment').get()
+    except VmbFeatureError:
+        buffer_alignment = 1
+
     # frame_data_size = stream.get_feature_by_name('PayloadSize').get()
     frame_data_size = VmbUint32(0)
     try:
         call_vmb_c('VmbPayloadSizeGet', stream._handle, byref(frame_data_size))
-
     except VmbCError as e:
         raise _build_camera_error(cam, stream, e) from e
-    try:
-        buffer_alignment = stream.get_feature_by_name('StreamBufferAlignment').get()
-    except VmbFeatureError:
-        buffer_alignment = 1
+
     frames = (Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment), )
     fsm = _CaptureFsm(_Context(cam, stream, frames, None, None))
     cnt = 0
@@ -312,6 +315,8 @@ def _frame_generator(cam: Camera,
 class Stream(PersistableFeatureContainer):
     """This class provides access to a Stream of a Camera
     """
+    __msg = 'Called \'{}()\' outside of Cameras \'with\' - statement scope.'
+
     @TraceEnable()
     def __init__(self, stream_handle: VmbHandle, is_open: bool, parent_cam: Camera) -> None:
         super().__init__()
@@ -337,6 +342,7 @@ class Stream(PersistableFeatureContainer):
             self.__is_open = False
 
     @TraceEnable()
+    @RaiseIfOutsideContext(msg=__msg)
     @RuntimeTypeCheckEnable()
     def get_frame_generator(self,
                             limit: Optional[int] = None,
@@ -351,6 +357,7 @@ class Stream(PersistableFeatureContainer):
         return _frame_generator(self._parent_cam, self, limit, timeout_ms, allocation_mode)
 
     @TraceEnable()
+    @RaiseIfOutsideContext(msg=__msg)
     @RuntimeTypeCheckEnable()
     def get_frame(self,
                   timeout_ms: int = 2000,
@@ -374,6 +381,7 @@ class Stream(PersistableFeatureContainer):
         return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
 
     @TraceEnable()
+    @RaiseIfOutsideContext(msg=__msg)
     @RuntimeTypeCheckEnable()
     def start_streaming(self,
                         handler: FrameHandler,
@@ -387,17 +395,19 @@ class Stream(PersistableFeatureContainer):
                                  ''.format(self, self._parent_cam.get_id()))
 
         # Setup capturing fsm
-        # payload_size = self.get_feature_by_name('PayloadSize').get()
+        try:
+            # TODO: replace with filter_features_by_name to prevent logged error?
+            buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
+        except VmbFeatureError:
+            buffer_alignment = 1
+
         payload_size = VmbUint32(0)
         try:
             call_vmb_c('VmbPayloadSizeGet', self._handle, byref(payload_size))
 
         except VmbCError as e:
             raise _build_camera_error(self._parent_cam, self, e) from e
-        try:
-            buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
-        except VmbFeatureError:
-            buffer_alignment = 1
+
         frames = tuple([Frame(payload_size.value,
                               allocation_mode,
                               buffer_alignment=buffer_alignment) for _ in range(buffer_count)])
@@ -420,6 +430,7 @@ class Stream(PersistableFeatureContainer):
             raise exc
 
     @TraceEnable()
+    @RaiseIfOutsideContext(msg=__msg)
     def stop_streaming(self):
         if not self.is_streaming():
             return
@@ -439,6 +450,7 @@ class Stream(PersistableFeatureContainer):
         return self.__capture_fsm is not None
 
     @TraceEnable()
+    @RaiseIfOutsideContext(msg=__msg)
     @RuntimeTypeCheckEnable()
     def queue_frame(self, frame: Frame):
         if self.__capture_fsm is None:
@@ -483,6 +495,12 @@ class Stream(PersistableFeatureContainer):
                 msg += 'raised by: {}'.format(context.frames_handler)
                 Log.get_instance().error(msg)
                 raise e
+
+    get_all_features = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
+    get_features_selected_by = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
+    get_features_by_type = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
+    get_features_by_category = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_category)  # noqa: E501
+    get_feature_by_name = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_feature_by_name)            # noqa: E501
 
 
 def _frame_handle_accessor(frame: Frame) -> VmbFrame:

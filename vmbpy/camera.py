@@ -535,9 +535,11 @@ class Camera(PersistableFeatureContainer):
     @TraceEnable()
     @leave_context_on_call
     def _close(self):
-        for stream in self.__streams:
-            if stream.is_streaming():
-                stream.stop_streaming()
+        if self.__streams:
+            # Stop and close stream[0] automatically when camera is closed
+            if self.__streams[0].is_streaming():
+                self.__streams[0].stop_streaming()
+            self.__streams[0].close()
 
         for feat in self._feats:
             feat.unregister_all_change_handlers()
@@ -545,7 +547,6 @@ class Camera(PersistableFeatureContainer):
         self._remove_feature_accessors()
 
         self.__streams = []
-        # TODO: Any closing of Streams necessary?
 
         call_vmb_c('VmbCameraClose', self._handle)
         self._handle = VmbHandle(0)

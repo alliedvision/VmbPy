@@ -254,3 +254,47 @@ class StreamTest(VmbPyTestCase):
 
                 finally:
                     stream.stop_streaming()
+
+    def test_stream_context_sensitivity(self):
+        # Expectation: Call get_all_features outside of Camera context raises a RuntimeError and
+        # the error message references the Camera context
+        stream = self.cam.get_streams()[0]
+        feat = stream.get_all_features()[0]
+        feat_name = feat.get_name()
+
+        # Ensure that normal calls work while context is still open
+        self.assertNoRaise(stream.get_all_features)
+        self.assertNoRaise(stream.get_features_selected_by, feat)
+        self.assertNoRaise(stream.get_features_by_type, IntFeature)
+        self.assertNoRaise(stream.get_features_by_category, 'foo')
+        self.assertNoRaise(stream.get_feature_by_name, feat_name)
+
+        # This closes the stream[0] of self.cam implicitly. Alternatively it is possible to call
+        # stream.close() here if that implicit behavior should not be relied upon
+        self.cam._close()
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.get_all_features)
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.get_features_selected_by,
+                               feat)
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.get_features_by_type,
+                               IntFeature)
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.get_features_by_category,
+                               'foo')
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.get_feature_by_name,
+                               feat_name)
+
+        # open camera context again so tearDown works as expected
+        self.cam._open()
