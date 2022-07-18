@@ -160,9 +160,11 @@ class Camera(PersistableFeatureContainer):
         return decode_flags(AccessMode, self.__info.permittedAccess)
 
     def get_transport_layer(self) -> TransportLayer:
+        """Get the `TransportLayer` instance for this Camera."""
         return self.get_interface().get_transport_layer()
 
     def get_interface(self) -> Interface:
+        """Get the `Interface` instance for this Camera."""
         return self.__interface
 
     def get_interface_id(self) -> str:
@@ -172,10 +174,12 @@ class Camera(PersistableFeatureContainer):
 
     @RaiseIfOutsideContext()
     def get_streams(self) -> StreamsTuple:
+        """Returns a Tuple containing all instances of `Stream` associated with this Camera."""
         return tuple(self.__streams)
 
     @RaiseIfOutsideContext()
     def get_local_device(self) -> LocalDevice:
+        """Returns the instance of `LocalDevice` associated with this Camera."""
         return self.__local_device
 
     @TraceEnable()
