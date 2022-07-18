@@ -93,7 +93,7 @@ class Camera(PersistableFeatureContainer):
         super().__init__()
         self.__interface: Interface = interface
         self.__streams: StreamsList = []
-        self.__local_device: Optional[LocalDevice] = None
+        self.__local_device: LocalDevice = None  # type: ignore
         self._handle: VmbHandle = VmbHandle(0)
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
