@@ -272,10 +272,10 @@ def _frame_generator(cam: Camera,
     if stream.is_streaming():
         raise VmbCameraError('Operation not supported while streaming.')
 
-    try:
-        # TODO: replace with filter_features_by_name to prevent logged error?
-        buffer_alignment = stream.get_feature_by_name('StreamBufferAlignment').get()
-    except VmbFeatureError:
+    feat = filter_features_by_name(stream.get_all_features(), 'StreamBufferAlignment')
+    if feat:
+        buffer_alignment = feat.get()
+    else:
         buffer_alignment = 1
 
     # frame_data_size = stream.get_feature_by_name('PayloadSize').get()
@@ -412,10 +412,10 @@ class Stream(PersistableFeatureContainer):
                                  ''.format(self, self._parent_cam.get_id()))
 
         # Setup capturing fsm
-        try:
-            # TODO: replace with filter_features_by_name to prevent logged error?
-            buffer_alignment = self.get_feature_by_name('StreamBufferAlignment').get()
-        except VmbFeatureError:
+        feat = filter_features_by_name(self.get_all_features(), 'StreamBufferAlignment')
+        if feat:
+            buffer_alignment = feat.get()
+        else:
             buffer_alignment = 1
 
         payload_size = VmbUint32(0)
