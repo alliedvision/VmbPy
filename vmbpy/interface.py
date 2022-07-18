@@ -143,6 +143,14 @@ class Interface:
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
 
+    def get_all_features(self) -> FeaturesTuple:
+        """Get access to all discovered features of this Interface.
+
+        Returns:
+            A set of all currently detected features.
+        """
+        return self.__feats
+
     def get_transport_layer(self) -> TransportLayer:
         """Get the Transport Layer associated with this instance of Interface
         """

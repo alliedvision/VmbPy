@@ -497,6 +497,17 @@ class Camera:
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
 
+    @RaiseIfOutsideContext()
+    def get_all_features(self) -> FeaturesTuple:
+        """Get access to all discovered features of this camera.
+
+        Returns:
+            A set of all currently detected features.
+
+        Raises:
+            RuntimeError if called outside "with" - statement scope.
+        """
+        return self.__feats
 
     @TraceEnable()
     @RaiseIfOutsideContext()
