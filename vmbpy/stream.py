@@ -37,6 +37,7 @@ from .c_binding import call_vmb_c, byref, sizeof, \
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 from .featurecontainer import PersistableFeatureContainer
 from .frame import Frame, AllocationMode
+from .shared import filter_features_by_name
 from .util import TraceEnable, Log, RuntimeTypeCheckEnable, enter_context_on_call, \
                   leave_context_on_call, RaiseIfOutsideContext
 
@@ -333,6 +334,22 @@ class Stream(PersistableFeatureContainer):
         if not self.__is_open:
             self._attach_feature_accessors()
             self.__is_open = True
+
+        # Determine current PacketSize (GigE - only) is somewhere between 1500 bytes
+        feat = filter_features_by_name(self._feats, 'GVSPPacketSize')
+        if feat:
+            try:
+                min_ = 1400
+                max_ = 1600
+                size = feat.get()
+
+                if (min_ < size) and (size < max_):
+                    msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
+                           'Enable jumbo packets for improved performance.')
+                    Log.get_instance().info(msg.format(self.get_id()))
+
+            except VmbFeatureError:
+                pass
 
     @TraceEnable()
     @leave_context_on_call
