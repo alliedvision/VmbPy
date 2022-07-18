@@ -548,6 +548,9 @@ class Camera(PersistableFeatureContainer):
 
         self.__streams = []
 
+        self.__local_device._close()
+        self.__local_device = None
+
         call_vmb_c('VmbCameraClose', self._handle)
         self._handle = VmbHandle(0)
 

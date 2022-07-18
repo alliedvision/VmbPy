@@ -87,3 +87,46 @@ class LocalDeviceTest(VmbPyTestCase):
         except IndexError:
             self.skipTest('Could not find feature with \'selected features\'')
         self.assertNotEqual(self.local_device.get_features_selected_by(feat), ())
+
+    def test_local_device_context_sensitivity(self):
+        # Expectation: Call get_all_features outside of Camera context raises a RuntimeError and
+        # the error message references the Camera context
+        local_device = self.cam.get_local_device()
+        feat = local_device.get_all_features()[0]
+        feat_name = feat.get_name()
+
+        # Ensure that normal calls work while context is still open
+        self.assertNoRaise(local_device.get_all_features)
+        self.assertNoRaise(local_device.get_features_selected_by, feat)
+        self.assertNoRaise(local_device.get_features_by_type, IntFeature)
+        self.assertNoRaise(local_device.get_features_by_category, 'foo')
+        self.assertNoRaise(local_device.get_feature_by_name, feat_name)
+
+        # This closes the local device of self.cam implicitly. Alternatively it is possible to call
+        # local_device._close here if that implicit behavior should not be relied upon
+        self.cam._close()
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.get_all_features)
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.get_features_selected_by,
+                               feat)
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.get_features_by_type,
+                               IntFeature)
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.get_features_by_category,
+                               'foo')
+
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.get_feature_by_name,
+                               feat_name)
+        # open camera context again so tearDown works as expected
+        self.cam._open()

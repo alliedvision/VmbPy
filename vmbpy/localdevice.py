@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .c_binding import VmbHandle
 from .featurecontainer import PersistableFeatureContainer
+from .util import enter_context_on_call, leave_context_on_call, RaiseIfOutsideContext
 
 __all__ = [
     'LocalDevice'
@@ -39,4 +40,19 @@ class LocalDevice(PersistableFeatureContainer):
     def __init__(self, handle: VmbHandle) -> None:
         super().__init__()
         self._handle: VmbHandle = handle
+        self._open()
+
+    @enter_context_on_call
+    def _open(self):
         self._attach_feature_accessors()
+
+    @leave_context_on_call
+    def _close(self):
+        self._remove_feature_accessors()
+
+    __msg = 'Called \'{}()\' outside of Cameras \'with\' - statement scope.'
+    get_all_features = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
+    get_features_selected_by = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
+    get_features_by_type = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
+    get_features_by_category = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_category)  # noqa: E501
+    get_feature_by_name = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_feature_by_name)            # noqa: E501
