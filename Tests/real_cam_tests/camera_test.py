@@ -143,7 +143,7 @@ class CamCameraTest(VmbPyTestCase):
         # Additional change handler that will inform us when our camera became "Unreachable"
         def _device_unreachable_informer(cam_event):
             cam_id = self.vmb.get_feature_by_name('EventCameraDiscoveryCameraID').get()
-            if (cam_id == self.cam.get_id()
+            if (cam_id in (self.cam.get_id(), self.cam.get_extended_id())
                     and CameraEvent(int(cam_event.get())) == CameraEvent.Unreachable):
                 device_unreachable_event.set()
 
@@ -159,7 +159,7 @@ class CamCameraTest(VmbPyTestCase):
         # Open camera in separate process to trigger a CameraEvent.Unreachable
         p.start()
         # Wait for a CameraEvent.Unreachable to be triggered for our device
-        self.assertTrue(device_unreachable_event.wait(timeout=500),
+        self.assertTrue(device_unreachable_event.wait(timeout=5),
                         'Waiting for the device discovery timed out')
         # Camera is now open in separate process. Make sure our permitted access modes reflects this
         self.assertNotIn(AccessMode.Full, self.cam.get_permitted_access_modes())
