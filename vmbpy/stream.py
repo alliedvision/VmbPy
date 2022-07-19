@@ -278,7 +278,6 @@ def _frame_generator(cam: Camera,
     else:
         buffer_alignment = 1
 
-    # frame_data_size = stream.get_feature_by_name('PayloadSize').get()
     frame_data_size = VmbUint32(0)
     try:
         call_vmb_c('VmbPayloadSizeGet', stream._handle, byref(frame_data_size))
