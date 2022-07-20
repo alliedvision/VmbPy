@@ -161,11 +161,19 @@ class Interface(PersistableFeatureContainer):
         return self.__transport_layer
 
     def get_cameras(self) -> CamerasTuple:
-        """Get the cameras associated with this instance of Interface
+        """Get access to cameras associated with the Interface instance
 
-        This method relies on functionality of `VmbSystem` and is overwritten from there. This is
-        done to avoid importing `VmbSystem` here which would lead to a circular dependency.
+        Returns:
+            A tuple of all cameras associated with this Interface
+
+        Raises:
+            RuntimeError then called outside of VmbSystem "with" - context.
         """
+        return self._get_cameras()
+
+    def _get_cameras(self):
+        # This method relies on functionality of `VmbSystem` and is overwritten from there. This is
+        # done to avoid importing `VmbSystem` here which would lead to a circular dependency.
         raise NotImplementedError
 
     def _get_handle(self) -> VmbHandle:

@@ -85,17 +85,34 @@ class TransportLayer(PersistableFeatureContainer):
     def get_interfaces(self) -> InterfacesTuple:
         """Get all interfaces associated with the Transport Layer instance
 
-        This method relies on functionality of `VmbSystem` and is overwritten from there. This is
-        done to avoid importing `VmbSystem` here which would lead to a circular dependency.
+        Returns:
+            A tuple of all interfaces associated with this Transport Layer
+
+        Raises:
+            RuntimeError then called outside of VmbSystem "with" - context
         """
+        return self._get_interfaces()
+
+    def _get_interfaces(self):
+        # This method is implemented using functionality of `VmbSystem`. This is just a placeholder
+        # that is overwritten from `VmbSystem`. This is done to avoid importing `VmbSystem` here
+        # which would lead to a circular dependency.
         raise NotImplementedError
 
     def get_cameras(self) -> CamerasTuple:
-        """Get all cameras associated with the Transport Layer instance
+        """Get access to cameras associated with the Transport Layer instance
 
-        This method relies on functionality of `VmbSystem` and is overwritten from there. This is
-        done to avoid importing `VmbSystem` here which would lead to a circular dependency.
+        Returns:
+            A tuple of all cameras associated with this Transport Layer
+
+        Raises:
+            RuntimeError then called outside of VmbSystem "with" - context.
         """
+        return self._get_cameras()
+
+    def _get_cameras(self):
+        # This method relies on functionality of `VmbSystem` and is overwritten from there. This is
+        # done to avoid importing `VmbSystem` here which would lead to a circular dependency.
         raise NotImplementedError
 
     def get_id(self) -> str:
