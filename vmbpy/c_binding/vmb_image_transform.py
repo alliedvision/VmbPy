@@ -363,7 +363,7 @@ def _check_version(lib_handle):
            loaded_version[1] >= expected_version[1]):
         msg = 'Invalid VmbImageTransform Version: Expected: {}, Found:{}'
         raise VmbSystemError(msg.format(EXPECTED_VMB_IMAGE_TRANSFORM_VERSION,
-                                          VMB_IMAGE_TRANSFORM_VERSION))
+                                        VMB_IMAGE_TRANSFORM_VERSION))
 
     return lib_handle
 
@@ -476,7 +476,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
     src_image.Size = sizeof(src_image)
 
     call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', pixel_format, 0, 0,
-                               byref(src_image))
+                             byref(src_image))
 
     dst_image = VmbImage()
     dst_image.Size = sizeof(dst_image)
@@ -485,7 +485,7 @@ def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, 
 
         try:
             call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(src_image), layout,
-                                       bits, byref(dst_image))
+                                     bits, byref(dst_image))
 
             fmt = LAYOUT_TO_PIXEL_FORMAT[(layout, bits)]
 

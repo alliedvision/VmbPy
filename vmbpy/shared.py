@@ -72,13 +72,13 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
 
         # Query selected features from given feature
         call_vmb_c('VmbFeatureListSelected', feats_handle, feats_name, None, 0,
-                     byref(feats_count), sizeof(VmbFeatureInfo))
+                   byref(feats_count), sizeof(VmbFeatureInfo))
 
         feats_found = VmbUint32(0)
         feats_infos = (VmbFeatureInfo * feats_count.value)()
 
         call_vmb_c('VmbFeatureListSelected', feats_handle, feats_name, feats_infos, feats_count,
-                     byref(feats_found), sizeof(VmbFeatureInfo))
+                   byref(feats_found), sizeof(VmbFeatureInfo))
 
         # Search selected features in given feature set
         for info, feature in itertools.product(feats_infos[:feats_found.value], feats):

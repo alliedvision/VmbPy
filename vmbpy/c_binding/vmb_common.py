@@ -639,10 +639,10 @@ def _select_vimbax_home(candidates: List[str]) -> str:
 
     if len(most_likely_candidates) == 0:
         raise VmbSystemError('No suitable VimbaX installation found. The following paths '
-                               'were considered: {}'.format(candidates))
+                             'were considered: {}'.format(candidates))
     elif len(most_likely_candidates) > 1:
         raise VmbSystemError('Multiple VimbaX installations found. Can\'t decide which to select: '
-                               '{}'.format(most_likely_candidates))
+                             '{}'.format(most_likely_candidates))
 
     return most_likely_candidates[0]
 
