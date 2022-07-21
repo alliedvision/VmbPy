@@ -14,9 +14,11 @@ __all__ = [
 class FeatureContainer:
     """This class provides access to VmbC features available via self._handle
 
-    By inheriting from this class and entering the context manager for it, features discovered by
-    VmbC for self._handle are attached to self. This requires that the VmbHandle for the object is
-    stored in self._handle. Detected features are stored in self._feats.
+    Features discovery must be performed manually by calling `_attach_feature_accessors`. This
+    should be done when an appropriate classes context is entered.  This requires that the VmbHandle
+    for the object is stored in self._handle. Detected features are stored in self._feats and
+    attached as class members. Removing the attached features again is done via
+    `_remove_feature_accessors`. This should be done when the above mentioned context is left.
     """
     @TraceEnable()
     def __init__(self) -> None:
