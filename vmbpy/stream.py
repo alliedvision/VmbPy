@@ -38,8 +38,8 @@ from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 from .featurecontainer import PersistableFeatureContainer
 from .frame import Frame, AllocationMode
 from .shared import filter_features_by_name
-from .util import TraceEnable, Log, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, RaiseIfOutsideContext
+from .util import TraceEnable, Log, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfOutsideContext
 
 if TYPE_CHECKING:
     from .camera import Camera
@@ -328,7 +328,7 @@ class Stream(PersistableFeatureContainer):
             self.open()
 
     @TraceEnable()
-    @enter_context_on_call
+    @EnterContextOnCall()
     def open(self):
         if not self.__is_open:
             self._attach_feature_accessors()
@@ -351,7 +351,7 @@ class Stream(PersistableFeatureContainer):
                 pass
 
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def close(self):
         if self.__is_open:
             self._remove_feature_accessors()

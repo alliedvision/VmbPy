@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .c_binding import VmbHandle
 from .featurecontainer import PersistableFeatureContainer
-from .util import enter_context_on_call, leave_context_on_call, RaiseIfOutsideContext
+from .util import EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext
 
 __all__ = [
     'LocalDevice'
@@ -42,11 +42,11 @@ class LocalDevice(PersistableFeatureContainer):
         self._handle: VmbHandle = handle
         self._open()
 
-    @enter_context_on_call
+    @EnterContextOnCall()
     def _open(self):
         self._attach_feature_accessors()
 
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def _close(self):
         self._remove_feature_accessors()
 

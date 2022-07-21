@@ -37,8 +37,8 @@ from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError
 from .featurecontainer import PersistableFeatureContainer
 from .shared import read_memory, write_memory
 from .frame import FormatTuple, PixelFormat, Frame, AllocationMode
-from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, raise_if_inside_context, RaiseIfOutsideContext
+from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
 from .error import VmbCameraError
 from .stream import Stream, StreamsTuple, StreamsList, FrameHandler
 from .localdevice import LocalDevice
@@ -87,7 +87,7 @@ class Camera(PersistableFeatureContainer):
     properties like Name and Model can be accessed outside the context.
     """
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def __init__(self, info: VmbCameraInfo, interface: Interface):
         """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
         super().__init__()
@@ -117,7 +117,7 @@ class Camera(PersistableFeatureContainer):
     def __str__(self):
         return 'Camera(id={})'.format(self.get_id())
 
-    @raise_if_inside_context
+    @RaiseIfInsideContext()
     @RuntimeTypeCheckEnable()
     def set_access_mode(self, access_mode: AccessMode):
         """Set camera access mode.
@@ -473,7 +473,7 @@ class Camera(PersistableFeatureContainer):
                    sizeof(settings))
 
     @TraceEnable()
-    @enter_context_on_call
+    @EnterContextOnCall()
     def _open(self):
         try:
             call_vmb_c('VmbCameraOpen', self.__info.cameraIdString, self.__access_mode,
@@ -521,7 +521,7 @@ class Camera(PersistableFeatureContainer):
         self._attach_feature_accessors()
 
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def _close(self):
         if self.__streams:
             # Stop and close stream[0] automatically when camera is closed

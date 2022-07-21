@@ -39,8 +39,8 @@ from .c_binding import call_vmb_c, call_vmb_image_transform, FrameStatus, VmbFra
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
-from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, RaiseIfOutsideContext
+from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfOutsideContext
 from .error import VmbFrameError, VmbFeatureError
 
 try:
@@ -202,7 +202,7 @@ class AncillaryData:
     Ancillary Data are Features stored within a Frame.
     """
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def __init__(self, handle: VmbFrame):
         """Do not call directly. Get Object via Frame access method"""
         self.__handle: VmbFrame = handle
@@ -298,7 +298,7 @@ class AncillaryData:
         return feat
 
     @TraceEnable()
-    @enter_context_on_call
+    @EnterContextOnCall()
     def _open(self):
         call_vmb_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
 
@@ -306,7 +306,7 @@ class AncillaryData:
         attach_feature_accessors(self, self.__feats)
 
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def _close(self):
         remove_feature_accessors(self, self.__feats)
         self.__feats = ()

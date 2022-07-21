@@ -36,8 +36,8 @@ from .shared import filter_features_by_name, filter_features_by_type, filter_sel
                     filter_features_by_category, attach_feature_accessors, read_memory, \
                     write_memory
 from .transportlayer import TransportLayerType
-from .util import TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, RaiseIfOutsideContext
+from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfOutsideContext
 from .error import VmbFeatureError
 
 if TYPE_CHECKING:
@@ -87,12 +87,12 @@ class Interface(PersistableFeatureContainer):
         self._open()
 
     @TraceEnable()
-    @enter_context_on_call
+    @EnterContextOnCall()
     def _open(self):
         self._attach_feature_accessors()
 
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def _close(self):
         self._remove_feature_accessors()
 

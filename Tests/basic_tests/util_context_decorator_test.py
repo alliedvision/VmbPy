@@ -34,15 +34,15 @@ from helpers import VmbPyTestCase
 
 
 class TestObj:
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def __init__(self):
         pass
 
-    @enter_context_on_call
+    @EnterContextOnCall()
     def __enter__(self):
         pass
 
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def __exit__(self, _1, _2, _3):
         pass
 
@@ -50,7 +50,7 @@ class TestObj:
     def works_inside_context(self):
         pass
 
-    @raise_if_inside_context
+    @RaiseIfInsideContext()
     def works_outside_context(self):
         pass
 

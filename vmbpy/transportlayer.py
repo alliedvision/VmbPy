@@ -32,7 +32,7 @@ from .c_binding import TransportLayerType, VmbTransportLayerInfo, VmbHandle, dec
 from .feature import discover_features, FeaturesTuple
 from .featurecontainer import PersistableFeatureContainer
 from .shared import attach_feature_accessors
-from .util import TraceEnable, enter_context_on_call, leave_context_on_call, RaiseIfOutsideContext
+from .util import TraceEnable, EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple
@@ -73,12 +73,12 @@ class TransportLayer(PersistableFeatureContainer):
         return rep
 
     @TraceEnable()
-    @enter_context_on_call
+    @EnterContextOnCall()
     def _open(self):
         self._attach_feature_accessors()
 
     @TraceEnable()
-    @leave_context_on_call
+    @LeaveContextOnCall()
     def _close(self):
         self._remove_feature_accessors()
 

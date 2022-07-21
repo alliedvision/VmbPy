@@ -40,8 +40,8 @@ from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, Interf
                        InterfacesDict, VmbInterfaceInfo
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
                     VmbCameraInfo
-from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, enter_context_on_call, \
-                  leave_context_on_call, RaiseIfOutsideContext
+from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
+                  LeaveContextOnCall, RaiseIfOutsideContext
 from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError
 from . import __version__ as VMBPY_VERSION
 
@@ -59,7 +59,7 @@ class VmbSystem:
         """
 
         @TraceEnable()
-        @leave_context_on_call
+        @LeaveContextOnCall()
         def __init__(self):
             """Do not call directly. Use VmbSystem.get_instance() instead."""
             super().__init__()
@@ -410,7 +410,7 @@ class VmbSystem:
                     self.__inters_handlers.remove(handler)
 
         @TraceEnable()
-        @enter_context_on_call
+        @EnterContextOnCall()
         def _startup(self):
             Log.get_instance().info('Starting {}'.format(self.get_version()))
 
@@ -429,7 +429,7 @@ class VmbSystem:
             feat.register_change_handler(self.__cam_cb_wrapper)
 
         @TraceEnable()
-        @leave_context_on_call
+        @LeaveContextOnCall()
         def _shutdown(self):
             self.unregister_all_camera_change_handlers()
             self.unregister_all_interface_change_handlers()
