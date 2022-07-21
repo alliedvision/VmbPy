@@ -115,8 +115,7 @@ class VmbError(Int32Enum):
         NoTL                    - No transport layers are found
         NotImplemented          - API feature is not implemented
         NotSupported            - API feature is not supported
-        Incomplete              - The current operation was not completed (e.g. a multiple registers
-                                  read or write)
+        Incomplete              - The current operation was not completed
         IO                      - Low level IO error in transport layer
         ValidValueSetNotPresent - The valid value set could not be retrieved, since the feature does
                                   not provide this property

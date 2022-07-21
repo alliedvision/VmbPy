@@ -34,8 +34,7 @@ from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes, EnumFeature
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
                     filter_features_by_category, attach_feature_accessors, \
-                    remove_feature_accessors, read_memory, write_memory, read_registers, \
-                    write_registers
+                    remove_feature_accessors, read_memory, write_memory
 from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
                             VmbTransportLayerInfo
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
@@ -155,45 +154,6 @@ class VmbSystem:
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
             return write_memory(G_VMB_C_HANDLE, addr, data)
-
-        @TraceEnable()
-        @RaiseIfOutsideContext()
-        @RuntimeTypeCheckEnable()
-        def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:  # coverage: skip
-            """Read contents of multiple registers.
-
-            Arguments:
-                addrs: Sequence of addresses that should be read iteratively.
-
-            Return:
-                Dictionary containing a mapping from given address to the read register values.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                ValueError if any address in addrs_values is negative.
-                ValueError if the register access was invalid.
-            """
-            # Note: Coverage is skipped. Function is untestable in a generic way.
-            return read_registers(G_VMB_C_HANDLE, addrs)
-
-        @TraceEnable()
-        @RaiseIfOutsideContext()
-        @RuntimeTypeCheckEnable()
-        def write_registers(self, addrs_values: Dict[int, int]):  # coverage: skip
-            """Write data to multiple Registers.
-
-            Arguments:
-                addrs_values: Mapping between Register addresses and the data to write.
-
-            Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                ValueError if any address in addrs is negative.
-                ValueError if the register access was invalid.
-            """
-            # Note: Coverage is skipped. Function is untestable in a generic way.
-            return write_registers(G_VMB_C_HANDLE, addrs_values)
 
         @RaiseIfOutsideContext()
         def get_all_transport_layers(self) -> TransportLayersTuple:

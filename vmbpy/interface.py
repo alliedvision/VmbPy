@@ -33,7 +33,7 @@ from .c_binding import decode_cstr, VmbInterfaceInfo, VmbHandle
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
                     filter_features_by_category, attach_feature_accessors, read_memory, \
-                    write_memory, read_registers, write_registers
+                    write_memory
 from .transportlayer import TransportLayerType
 from .util import TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
@@ -142,41 +142,6 @@ class Interface:
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
-
-    @TraceEnable()
-    @RuntimeTypeCheckEnable()
-    def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:  # coverage: skip
-        """Read contents of multiple registers.
-
-        Arguments:
-            addrs: Sequence of addresses that should be read iteratively.
-
-        Returns:
-            Dictionary containing a mapping from given address to the read register values.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            ValueError if any address in addrs is negative.
-            ValueError if the register access was invalid.
-        """
-        # Note: Coverage is skipped. Function is untestable in a generic way.
-        return read_registers(self.__handle, addrs)
-
-    @TraceEnable()
-    @RuntimeTypeCheckEnable()
-    def write_registers(self, addrs_values: Dict[int, int]):  # coverage: skip
-        """Write data to multiple registers.
-
-        Arguments:
-            addrs_values: Mapping between register addresses and the data to write.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            ValueError if any address in addrs_values is negative.
-            ValueError if the register access was invalid.
-        """
-        # Note: Coverage is skipped. Function is untestable in a generic way.
-        return write_registers(self.__handle, addrs_values)
 
     def get_all_features(self) -> FeaturesTuple:
         """Get access to all discovered features of this Interface.

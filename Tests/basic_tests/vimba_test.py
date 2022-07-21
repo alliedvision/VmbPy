@@ -148,8 +148,6 @@ class VimbaTest(VmbPyTestCase):
         # are triggered then called Outside of the with block.
         self.assertRaises(RuntimeError, self.vmb.read_memory, 0, 0)
         self.assertRaises(RuntimeError, self.vmb.write_memory, 0, b'foo')
-        self.assertRaises(RuntimeError, self.vmb.read_registers, ())
-        self.assertRaises(RuntimeError, self.vmb.write_registers, {0: 0})
         self.assertRaises(RuntimeError, self.vmb.get_all_transport_layers)
         self.assertRaises(RuntimeError, self.vmb.get_transport_layer_by_id)
         self.assertRaises(RuntimeError, self.vmb.get_all_interfaces)

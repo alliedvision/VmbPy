@@ -522,8 +522,6 @@ class CamCameraTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.cam.get_local_device)
         self.assertRaises(RuntimeError, self.cam.read_memory)
         self.assertRaises(RuntimeError, self.cam.write_memory)
-        self.assertRaises(RuntimeError, self.cam.read_registers)
-        self.assertRaises(RuntimeError, self.cam.write_registers)
         self.assertRaises(RuntimeError, self.cam.get_all_features)
         self.assertRaises(RuntimeError, self.cam.get_features_selected_by)
         self.assertRaises(RuntimeError, self.cam.get_features_by_type)

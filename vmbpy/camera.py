@@ -40,8 +40,7 @@ from .c_binding import VmbCameraInfo, VmbHandle, VmbAccessMode, VmbCError, VmbEr
 from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
                     filter_features_by_category, attach_feature_accessors, \
-                    remove_feature_accessors, read_memory, write_memory, read_registers, \
-                    write_registers
+                    remove_feature_accessors, read_memory, write_memory
 from .frame import Frame, FormatTuple, PixelFormat, AllocationMode
 from .util import Log, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
@@ -497,45 +496,6 @@ class Camera:
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self.__handle, addr, data)
-
-    @TraceEnable()
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def read_registers(self, addrs: Tuple[int, ...]) -> Dict[int, int]:  # coverage: skip
-        """Read contents of multiple registers.
-
-        Arguments:
-            addrs: Sequence of addresses to be read iteratively.
-
-        Returns:
-            Dictionary containing a mapping from given address to the read register values.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if any address in addrs is negative.
-            ValueError if the register access was invalid.
-        """
-        # Note: Coverage is skipped. Function is untestable in a generic way.
-        return read_registers(self.__handle, addrs)
-
-    @TraceEnable()
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def write_registers(self, addrs_values: Dict[int, int]):  # coverage: skip
-        """Write data to multiple registers.
-
-        Arguments:
-            addrs_values: Mapping between register addresses and the data to write.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if any address in addrs_values is negative.
-            ValueError if the register access was invalid.
-        """
-        # Note: Coverage is skipped. Function is untestable in a generic way.
-        return write_registers(self.__handle, addrs_values)
 
     @RaiseIfOutsideContext()
     def get_all_features(self) -> FeaturesTuple:
