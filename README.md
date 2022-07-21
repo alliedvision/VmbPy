@@ -146,3 +146,29 @@ example.
 
       export VIMBAPYTHON_DEVICE_ID=DEV_PLACEHOLDER
       python -m unittest discover -v -p *_test.py
+
+# Creating distribution packages
+
+VmbPy follows the conventions laid out in the ["Packaging Python
+Projects"](https://packaging.python.org/en/latest/tutorials/packaging-projects/) tutorial by the
+PyPA. The configuration ov VmbPy is contained in `setup.cfg` and the additional configuration for
+creating the distribution packages can be found in `pyproject.toml`.
+
+Creating the distribution packages requires a python interpreter that has the [`build`
+package](https://pypi.org/project/build/) installed via pip. With that dependency installed, the distribution packages can be created by running
+```
+python -m build
+```
+in the root directory of the VmbPy repository with a Python version >3.8.7 (see [Absolute paths in
+the source distribution](#Absolute-paths-in-the-source-distribution)). This will generate two files
+in the `dist` directory. The generated `.tar.gz` file is a source distribution, the `.whl` file is a
+built distribution. Newer pip versions will prefer using the built distribution, but can fall back
+to using source distributions for installation.
+
+## Absolute paths in the source distribution
+
+Generating the distribution packages as described above with Python 3.7 creates `.tar.gz` source
+distributions, that include an absolute path inside the `.tar` file. This is caused by an issue in
+the `tarfile` library of Python. The issue does not impact the generated `.whl` built distribution.
+The behavior was [fixed for Python >3.8.7](https://github.com/pypa/setuptools/issues/1185#issuecomment-750900805)
+but is not backported to Python 3.7.
