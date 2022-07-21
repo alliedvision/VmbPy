@@ -30,15 +30,11 @@ import enum
 from typing import Tuple, Callable, Dict, TYPE_CHECKING
 
 from .c_binding import decode_cstr, VmbInterfaceInfo, VmbHandle
-from .feature import discover_features, FeatureTypes, FeaturesTuple, FeatureTypeTypes
 from .featurecontainer import PersistableFeatureContainer
-from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
-                    filter_features_by_category, attach_feature_accessors, read_memory, \
-                    write_memory
+from .shared import read_memory, write_memory
 from .transportlayer import TransportLayerType
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfOutsideContext
-from .error import VmbFeatureError
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple

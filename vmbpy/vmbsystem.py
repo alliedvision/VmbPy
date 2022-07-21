@@ -27,11 +27,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import threading
 from ctypes import byref, sizeof
-from typing import List, Dict, Tuple
+from typing import List
 
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
                        G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbHandle
-from .feature import EnumFeature
 from .featurecontainer import FeatureContainer
 from .shared import read_memory, write_memory
 from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \

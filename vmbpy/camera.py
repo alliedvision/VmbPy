@@ -29,7 +29,7 @@ from __future__ import annotations
 import enum
 import os
 
-from typing import Tuple, List, Callable, Optional, Dict, TYPE_CHECKING
+from typing import Tuple, List, Callable, Optional, TYPE_CHECKING
 
 from .c_binding import call_vmb_c, byref, sizeof, decode_cstr, decode_flags
 from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError, PersistType, \

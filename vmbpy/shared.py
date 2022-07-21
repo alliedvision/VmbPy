@@ -27,8 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import itertools
 
-from typing import Dict, Tuple
-from .c_binding import VmbUint32, VmbUint64, VmbHandle, VmbFeatureInfo
+from .c_binding import VmbUint32, VmbHandle, VmbFeatureInfo
 from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, VmbCError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
 from .error import VmbFeatureError

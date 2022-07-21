@@ -29,9 +29,7 @@ from __future__ import annotations
 from typing import Tuple, TYPE_CHECKING, Dict
 
 from .c_binding import TransportLayerType, VmbTransportLayerInfo, VmbHandle, decode_cstr
-from .feature import discover_features, FeaturesTuple
 from .featurecontainer import PersistableFeatureContainer
-from .shared import attach_feature_accessors
 from .util import TraceEnable, EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext
 
 if TYPE_CHECKING:
