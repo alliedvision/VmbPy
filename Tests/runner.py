@@ -99,7 +99,7 @@ def main():
     import basic_tests.util_tracer_test
     import basic_tests.util_context_decorator_test
     import basic_tests.vimba_common_test
-    import basic_tests.vimba_test
+    import basic_tests.vmbsystem_test
     import basic_tests.interface_test
     import basic_tests.transport_layer_test
 
@@ -116,7 +116,7 @@ def main():
         basic_tests.util_tracer_test,
         basic_tests.util_context_decorator_test,
         basic_tests.vimba_common_test,
-        basic_tests.vimba_test,
+        basic_tests.vmbsystem_test,
         basic_tests.interface_test,
         basic_tests.transport_layer_test
     ]
