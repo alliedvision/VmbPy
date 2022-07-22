@@ -48,6 +48,41 @@ class VimbaTest(VmbPyTestCase):
         # Expectation: Returned Version is not empty and does not raise any exceptions.
         self.assertNotEqual(self.vmb.get_version(), "")
 
+    def test_set_path_configuration(self):
+        # Expectation: Internal path configuration starts out as None and is updated using correct
+        # path separator depending on operating system. Testing that VmbC actually uses this value
+        # as expected is not really possible in a generic way
+
+        # VmbC expects separator on Windows to be ";". For other platforms it should be ":"
+        sep = ';' if sys.platform == 'win32' else ':'
+
+        self.assertIsNone(self.vmb._Impl__path_configuration)
+        self.vmb.set_path_configuration('foo')
+        self.assertEquals(self.vmb._Impl__path_configuration, 'foo')
+        self.vmb.set_path_configuration('foo', 'bar')
+        self.assertEquals(self.vmb._Impl__path_configuration, 'foo' + sep + 'bar')
+        # Crude check to see that configuration is applied: Try to start API with this invalid
+        # configuration. If no TLs are found, that is probably a sign that the configuration is
+        # honored
+        with self.assertRaises(VmbTransportLayerError):
+            with self.vmb:
+                pass
+
+        # Explicitly reset path configuration to None so we do not impact subsequent test cases
+        self.vmb._Impl__path_configuration = None
+
+    def test_set_path_configuration_while_entering_context(self):
+        # Expectation: `set_configuration_path` returns the `VmbSystem` instance to allow setting
+        # the configuration while entering the context manager. This tests sets an invalid
+        # configuration and catches the raised `VmbTransportLayerError` to ensure that the
+        # configuration is applied as expected
+        with self.assertRaises(VmbTransportLayerError):
+            with self.vmb.set_path_configuration('foo', 'bar'):
+                pass
+
+        # Explicitly reset path configuration to None so we do not impact subsequent test cases
+        self.vmb._Impl__path_configuration = None
+
     def test_get_all_cameras_type(self):
         # Expectation: All camera instances returned by `get_all_cameras` have correct type
         with self.vmb:
@@ -170,3 +205,10 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_features_by_type, IntFeature)
         self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')
         self.assertRaises(RuntimeError, self.vmb.get_feature_by_name, 'foo')
+
+    def test_vimba_api_context_sensitivity_outside_context(self):
+        # Expectation: Vimba has functions that shall only be callable outside the Context and
+        # calling inside must cause a runtime error. This test check only if the RuntimeErrors are
+        # triggered then called inside of the with block.
+        with self.vmb:
+            self.assertRaises(RuntimeError, self.vmb.set_path_configuration, 'foo')
