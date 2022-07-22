@@ -97,8 +97,8 @@ class VmbSystem:
                 self._shutdown()
 
         def get_version(self) -> str:
-            """ Returns version string of vmbpy and underlaying dependencies."""
-            msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
+            """ Returns version string of vmbpy and underlying dependencies."""
+            msg = 'vmbpy: {} (using VmbC: {}, VmbImageTransform: {})'
             return msg.format(VMBPY_VERSION, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION)
 
         @RuntimeTypeCheckEnable()
