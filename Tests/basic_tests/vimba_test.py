@@ -177,7 +177,7 @@ class VimbaTest(VmbPyTestCase):
                 with self.vmb:
                     pass
 
-    def test_vimba_api_context_sensitity_inside_context(self):
+    def test_vimba_api_context_sensitivity_inside_context(self):
         # Expectation: Vimba has functions that shall only be callable inside the Context and
         # calling outside must cause a runtime error. This test check only if the RuntimeErrors
         # are triggered then called Outside of the with block.
