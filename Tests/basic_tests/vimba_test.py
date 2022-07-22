@@ -33,7 +33,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from helpers import VmbPyTestCase
 
 
-class VimbaTest(VmbPyTestCase):
+class VmbSystemTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
 
@@ -41,7 +41,7 @@ class VimbaTest(VmbPyTestCase):
         pass
 
     def test_singleton(self):
-        # Expected behavior: Multiple calls to Vimba.get_instance() return the same object.
+        # Expected behavior: Multiple calls to VmbSystemTest.get_instance() return the same object.
         self.assertEqual(self.vmb, VmbSystem.get_instance())
 
     def test_get_version(self):
@@ -98,7 +98,7 @@ class VimbaTest(VmbPyTestCase):
 
     def test_get_camera_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable camera must throw an
-        # VimbaCameraError
+        # VmbCameraError
         with self.vmb:
             self.assertRaises(VmbCameraError, self.vmb.get_camera_by_id, 'Invalid ID')
 
@@ -117,7 +117,7 @@ class VimbaTest(VmbPyTestCase):
 
     def test_get_interface_by_id_failure(self):
         # Expected behavior: Lookup of a currently unavailable interface must throw an
-        # VimbaInterfaceError
+        # VmbInterfaceError
         with self.vmb:
             self.assertRaises(VmbInterfaceError, self.vmb.get_interface_by_id, 'Invalid ID')
 
@@ -145,7 +145,7 @@ class VimbaTest(VmbPyTestCase):
 
     def test_get_feature_by_name_failure(self):
         # Expected behavior: Lookup of a currently unavailable feature must throw an
-        # VimbaFeatureError
+        # VmbFeatureError
         with self.vmb:
             self.assertRaises(VmbFeatureError, self.vmb.get_feature_by_name, 'Invalid ID')
 
@@ -168,17 +168,17 @@ class VimbaTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.vmb.register_interface_change_handler, 0)
             self.assertRaises(TypeError, self.vmb.unregister_interface_change_handler, 0)
 
-    def test_vimba_context_manager_reentrancy(self):
+    def test_vmbsystem_context_manager_reentrancy(self):
         # Expectation: Implemented Context Manager must be reentrant, not causing
-        # multiple starts of the Vimba API (would cause C-Errors)
+        # multiple starts of the API (would cause C-Errors)
 
         with self.vmb:
             with self.vmb:
                 with self.vmb:
                     pass
 
-    def test_vimba_api_context_sensitivity_inside_context(self):
-        # Expectation: Vimba has functions that shall only be callable inside the Context and
+    def test_vmbsystem_api_context_sensitivity_inside_context(self):
+        # Expectation: VmbSystem has functions that shall only be callable inside the Context and
         # calling outside must cause a runtime error. This test check only if the RuntimeErrors
         # are triggered then called Outside of the with block.
         self.assertRaises(RuntimeError, self.vmb.read_memory, 0, 0)
@@ -206,8 +206,8 @@ class VimbaTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.vmb.get_features_by_category, 'foo')
         self.assertRaises(RuntimeError, self.vmb.get_feature_by_name, 'foo')
 
-    def test_vimba_api_context_sensitivity_outside_context(self):
-        # Expectation: Vimba has functions that shall only be callable outside the Context and
+    def test_vmbsystem_api_context_sensitivity_outside_context(self):
+        # Expectation: VmbSystem has functions that shall only be callable outside the Context and
         # calling inside must cause a runtime error. This test check only if the RuntimeErrors are
         # triggered then called inside of the with block.
         with self.vmb:
