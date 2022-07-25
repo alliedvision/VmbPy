@@ -137,7 +137,9 @@ class PersistableFeatureContainer(FeatureContainer):
     """Inheriting from this class adds load/save settings methods to the subclass
     """
     def load_settings(self):
-        pass
+        """TODO"""
+        raise NotImplementedError('TODO')
 
     def save_settings(self):
-        pass
+        """TODO"""
+        raise NotImplementedError('TODO')
