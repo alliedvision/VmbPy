@@ -85,7 +85,7 @@ class VmbInterfaceError(_LoggedError):
 
 
 class VmbFeatureError(_LoggedError):
-    """Error related to Feature access.
+    """Error related to Feature access
 
     Error type to indicate invalid Feature access like:
     - Invalid access mode on Feature access.
@@ -101,10 +101,10 @@ class VmbFrameError(_LoggedError):
 
 
 class VmbTimeout(_LoggedError):
-    """Indicates that an operation timed out."""
+    """Indicates that an operation timed out"""
     pass
 
 
 class VmbChunkError(_LoggedError):
-    """Errors related to chunk data and chunk access."""
+    """Errors related to chunk data and chunk access"""
     pass
