@@ -24,6 +24,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import os
 import sys
 import threading
 from ctypes import byref, sizeof
@@ -140,8 +141,7 @@ class VmbSystem:
                     # do something
                 ```
             """
-            sep = ';' if sys.platform == 'win32' else ':'
-            self.__path_configuration = sep.join(args)
+            self.__path_configuration = os.pathsep.join(args)
             return self
 
         @TraceEnable()
