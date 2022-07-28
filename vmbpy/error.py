@@ -103,3 +103,8 @@ class VmbFrameError(_LoggedError):
 class VmbTimeout(_LoggedError):
     """Indicates that an operation timed out."""
     pass
+
+
+class VmbChunkError(_LoggedError):
+    """Errors related to chunk data and chunk access."""
+    pass

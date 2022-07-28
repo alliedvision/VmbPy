@@ -70,6 +70,7 @@ __all__ = [
     'VmbFeatureError',
     'VmbFrameError',
     'VmbTimeout',
+    'VmbChunkError',
 
     'IntFeature',
     'FloatFeature',
@@ -124,7 +125,7 @@ from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PI
                    AllocationMode
 
 from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbInterfaceError, \
-                   VmbFeatureError, VmbFrameError, VmbTimeout
+                   VmbFeatureError, VmbFrameError, VmbTimeout, VmbChunkError
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature
