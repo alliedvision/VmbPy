@@ -24,13 +24,14 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
+import os
+import sys
 import threading
 from ctypes import byref, sizeof
-from typing import List
+from typing import List, Optional
 
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
-                       G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbHandle
+                       G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbError, VmbHandle
 from .featurecontainer import FeatureContainer
 from .shared import read_memory, write_memory
 from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
@@ -40,8 +41,8 @@ from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, Interf
 from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
                     VmbCameraInfo
 from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext
-from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError
+                  LeaveContextOnCall, RaiseIfOutsideContext, RaiseIfInsideContext
+from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError, VmbSystemError
 from . import __version__ as VMBPY_VERSION
 
 
@@ -66,6 +67,8 @@ class VmbSystem:
             # self._handle is required so the inheritance from FeatureContainer works as expected to
             # automatically detect and attach/remove feature accessors
             self._handle: VmbHandle = G_VMB_C_HANDLE
+            self.__path_configuration: Optional[str] = None
+
             self.__transport_layers: TransportLayersDict = {}
             self.__inters: InterfacesDict = {}
             self.__inters_lock: threading.Lock = threading.Lock()
@@ -95,8 +98,8 @@ class VmbSystem:
                 self._shutdown()
 
         def get_version(self) -> str:
-            """ Returns version string of vmbpy and underlaying dependencies."""
-            msg = 'vmbpy: {} (using VimbaC: {}, VimbaImageTransform: {})'
+            """ Returns version string of vmbpy and underlying dependencies."""
+            msg = 'vmbpy: {} (using VmbC: {}, VmbImageTransform: {})'
             return msg.format(VMBPY_VERSION, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION)
 
         @RuntimeTypeCheckEnable()
@@ -114,6 +117,32 @@ class VmbSystem:
         def disable_log(self):
             """Disable vmbpy's logging mechanism."""
             Log.get_instance().disable()
+
+        @TraceEnable()
+        @RaiseIfInsideContext()
+        def set_path_configuration(self, *args: str):
+            """Set the path_configuration parameter that can be passed to VmbStartup.
+
+            Using this is optional. If no path configuration is set, the GENICAM_GENTL{32|64}_PATH
+            environment variables are considered
+
+            Arguments:
+                args - Paths of directories that should be included in the path configuration. Each
+                       path should be a separate argument. The paths contain directories to search
+                       for .cti files, paths to .cti files and optionally the path to a
+                       configuration xml file.
+            Returns:
+                An instance of self. This allows setting the path configuration while entering the
+                `VmbSystem` `with:` - context at the same time.
+
+                Usage example:
+                ```
+                with vmbpy.VmbSytem.get_instance().set_path_configuration('/foo', '/bar'):
+                    # do something
+                ```
+            """
+            self.__path_configuration = os.pathsep.join(args)
+            return self
 
         @TraceEnable()
         @RaiseIfOutsideContext()
@@ -413,8 +442,26 @@ class VmbSystem:
         def _startup(self):
             Log.get_instance().info('Starting {}'.format(self.get_version()))
 
-            # TODO: Implement passing optional pathConfiguration to VmbStartup
-            call_vmb_c('VmbStartup', None)
+            path_configuration = None
+            if self.__path_configuration:
+                if sys.platform == 'win32':
+                    path_configuration = self.__path_configuration
+                else:
+                    path_configuration = self.__path_configuration.encode('utf-8')
+
+            try:
+                call_vmb_c('VmbStartup', path_configuration)
+            except VmbCError as e:
+                err = e.get_error_code()
+                if err in (VmbError.NoTL, VmbError.TLNotFound):
+                    Exc = VmbTransportLayerError
+                    msg = 'Encountered an error loading Transport Layers during VmbStartup'
+                else:
+                    Exc = VmbSystemError
+                    msg = 'Encountered an error during VmbStartup'
+                if self.__path_configuration:
+                    msg += f'. "path_configuration" was set to "{self.__path_configuration}"'
+                raise Exc(msg) from e
 
             self.__transport_layers = self.__discover_transport_layers()
             self.__inters = self.__discover_interfaces()

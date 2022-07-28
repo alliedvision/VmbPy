@@ -33,8 +33,8 @@ from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p
 from ..util import TraceEnable
 from ..error import VmbSystemError
 from .vmb_common import Uint32Enum, Int32Enum, VmbUint8, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
-                        VmbHandle, VmbBool, VmbDouble, VmbError, VmbCError, VmbPixelFormat, \
-                        fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib
+                        VmbHandle, VmbBool, VmbDouble, VmbFilePathChar, VmbError, VmbCError, \
+                        VmbPixelFormat, fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib
 
 __version__ = None
 
@@ -694,7 +694,7 @@ EXPECTED_VMB_C_VERSION = '0.1.0'
 # check of flake8
 _SIGNATURES = {
     'VmbVersionQuery': (VmbError, [c_ptr(VmbVersionInfo), VmbUint32]),
-    'VmbStartup': (VmbError, [c_str]),  # TODO: make sure c_str is correct (VmbFilePathChar_t in VmbC)
+    'VmbStartup': (VmbError, [c_ptr(VmbFilePathChar)]),
     'VmbShutdown': (None, None),
     'VmbCamerasList': (VmbError, [c_ptr(VmbCameraInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),
     'VmbCameraInfoQuery': (VmbError, [c_str, c_ptr(VmbCameraInfo), VmbUint32]),

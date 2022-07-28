@@ -90,6 +90,10 @@ VmbBool = ctypes.c_bool
 VmbUchar = ctypes.c_char
 VmbFloat = ctypes.c_float
 VmbDouble = ctypes.c_double
+if sys.platform == 'win32':
+    VmbFilePathChar = ctypes.c_wchar
+else:
+    VmbFilePathChar = ctypes.c_char
 
 
 class VmbError(Int32Enum):
