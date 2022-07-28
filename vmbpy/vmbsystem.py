@@ -123,7 +123,7 @@ class VmbSystem:
             """Set the path_configuration parameter that can be passed to VmbStartup.
 
             Using this is optional. If no path configuration is set, the GENICAM_GENTL{32|64}_PATH
-            environment variable are considered
+            environment variables are considered
 
             Arguments:
                 args - Paths of directories that should be included in the path configuration. Each
