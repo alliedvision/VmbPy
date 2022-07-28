@@ -32,8 +32,8 @@ import threading
 from typing import List, Tuple, Dict, Union, Optional, cast, Callable, TYPE_CHECKING
 
 from .c_binding import call_vmb_c, byref, sizeof, \
-                       VmbHandle, VmbCError, VmbFrame, VmbError, AccessMode, build_callback_type, \
-                       VmbUint32
+                       VmbHandle, VmbCError, VmbFrame, VmbError, AccessMode, VmbUint32
+from .c_binding.vmb_c import FRAME_CALLBACK_TYPE
 from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
 from .featurecontainer import PersistableFeatureContainer
 from .frame import Frame, AllocationMode
@@ -285,7 +285,9 @@ def _frame_generator(cam: Camera,
         raise _build_camera_error(cam, stream, e) from e
 
     frames = (Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment), )
-    fsm = _CaptureFsm(_Context(cam, stream, frames, None, None))
+    # FRAME_CALLBACK_TYPE() is equivalent to passing None (i.e. nullptr), but allows ctypes to still
+    # perform type checking
+    fsm = _CaptureFsm(_Context(cam, stream, frames, None, FRAME_CALLBACK_TYPE()))
     cnt = 0
 
     try:
@@ -427,10 +429,7 @@ class Stream(PersistableFeatureContainer):
         frames = tuple([Frame(payload_size.value,
                               allocation_mode,
                               buffer_alignment=buffer_alignment) for _ in range(buffer_count)])
-        callback = build_callback_type(None,
-                                       VmbHandle,
-                                       VmbHandle,
-                                       POINTER(VmbFrame))(self.__frame_cb_wrapper)
+        callback = FRAME_CALLBACK_TYPE(self.__frame_cb_wrapper)
 
         self.__capture_fsm = _CaptureFsm(_Context(self._parent_cam,
                                                   self,

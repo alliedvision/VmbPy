@@ -60,9 +60,15 @@ __all__ = [
     'VMB_C_VERSION',
     'EXPECTED_VMB_C_VERSION',
     'call_vmb_c',
-    'build_callback_type'
 ]
 
+# TODO: Test that this also works on a 32bit Python version/System
+G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
+
+VMB_C_VERSION = None
+EXPECTED_VMB_C_VERSION = '0.1.0'
+
+_lib_instance = load_vimbax_lib('VmbC')
 
 # Types
 class VmbTransportLayer(Uint32Enum):
@@ -683,11 +689,25 @@ class VmbFeaturePersistSettings(ctypes.Structure):
         return rep
 
 
-# TODO: Test that this also works on a 32bit Python version/System
-G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
+def _build_callback_type(*args):
+    global _lib_instance
 
-VMB_C_VERSION = None
-EXPECTED_VMB_C_VERSION = '0.1.0'
+    lib_type = type(_lib_instance)
+
+    if lib_type == ctypes.CDLL:
+        return ctypes.CFUNCTYPE(*args)
+
+    elif lib_type == ctypes.WinDLL:
+        return ctypes.WINFUNCTYPE(*args)
+
+    else:
+        raise VmbSystemError('Unknown Library Type. Abort.')
+
+
+CHUNK_CALLBACK_TYPE = _build_callback_type(VmbUint32, VmbHandle, ctypes.c_void_p)
+INVALIDATION_CALLBACK_TYPE = _build_callback_type(None, VmbHandle, ctypes.c_char_p, ctypes.c_void_p)
+FRAME_CALLBACK_TYPE = _build_callback_type(None, VmbHandle, VmbHandle, ctypes.POINTER(VmbFrame))
+
 
 # For detailed information on the signatures see "VmbC.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
@@ -729,15 +749,15 @@ _SIGNATURES = {
     'VmbFeatureRawGet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32, c_ptr(VmbUint32)]),
     'VmbFeatureRawSet': (VmbError, [VmbHandle, c_str, c_str, VmbUint32]),
     'VmbFeatureRawLengthQuery': (VmbError, [VmbHandle, c_str, c_ptr(VmbUint32)]),
-    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, c_void_p, c_void_p]),
-    'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, c_void_p]),
+    'VmbFeatureInvalidationRegister': (VmbError, [VmbHandle, c_str, INVALIDATION_CALLBACK_TYPE, c_void_p]),                   # noqa: E501
+    'VmbFeatureInvalidationUnregister': (VmbError, [VmbHandle, c_str, INVALIDATION_CALLBACK_TYPE]),
     'VmbPayloadSizeGet': (VmbError, [VmbHandle, c_ptr(VmbUint32)]),
     'VmbFrameAnnounce': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbFrameRevoke': (VmbError, [VmbHandle, c_ptr(VmbFrame)]),
     'VmbFrameRevokeAll': (VmbError, [VmbHandle]),
     'VmbCaptureStart': (VmbError, [VmbHandle]),
     'VmbCaptureEnd': (VmbError, [VmbHandle]),
-    'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), c_void_p]),
+    'VmbCaptureFrameQueue': (VmbError, [VmbHandle, c_ptr(VmbFrame), FRAME_CALLBACK_TYPE]),
     'VmbCaptureFrameWait': (VmbError, [VmbHandle, c_ptr(VmbFrame), VmbUint32]),
     'VmbCaptureQueueFlush': (VmbError, [VmbHandle]),
     'VmbTransportLayersList': (VmbError, [c_ptr(VmbTransportLayerInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),             # noqa: E501
@@ -746,7 +766,7 @@ _SIGNATURES = {
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
     'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
-    # TODO: add 'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), c_void_p <- This callback is not void. Returns VmbError_t, c_void_p])
+    'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), CHUNK_CALLBACK_TYPE, c_void_p])
 }
 
 
@@ -786,7 +806,7 @@ def _eval_vmberror(result: VmbError, func: Callable[..., Any], *args: Tuple[Any,
         raise VmbCError(result)
 
 
-_lib_instance = _check_version(_attach_signatures(load_vimbax_lib('VmbC')))
+_lib_instance = _check_version(_attach_signatures(_lib_instance))
 
 
 @TraceEnable()
@@ -860,18 +880,3 @@ def call_vmb_c(func_name: str, *args):
     """
     global _lib_instance
     getattr(_lib_instance, func_name)(*args)
-
-
-def build_callback_type(*args):
-    global _lib_instance
-
-    lib_type = type(_lib_instance)
-
-    if lib_type == ctypes.CDLL:
-        return ctypes.CFUNCTYPE(*args)
-
-    elif lib_type == ctypes.WinDLL:
-        return ctypes.WINFUNCTYPE(*args)
-
-    else:
-        raise VmbSystemError('Unknown Library Type. Abort.')

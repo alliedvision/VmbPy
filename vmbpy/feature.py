@@ -31,7 +31,8 @@ import threading
 
 from typing import Tuple, Union, List, Callable, Optional, cast, Type
 from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, decode_cstr, \
-                       decode_flags, build_callback_type
+                       decode_flags
+from .c_binding.vmb_c import INVALIDATION_CALLBACK_TYPE
 from .c_binding import VmbFeatureInfo, FeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
                        FeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
                        VmbError, VmbCError, VmbDouble
@@ -77,8 +78,7 @@ class _BaseFeature:
         self.__handlers: List[ChangeHandler] = []
         self.__handlers_lock = threading.Lock()
 
-        CallbackType = build_callback_type(None, VmbHandle, ctypes.c_char_p, ctypes.c_void_p)
-        self.__feature_callback = CallbackType(self.__feature_cb_wrapper)
+        self.__feature_callback = INVALIDATION_CALLBACK_TYPE(self.__feature_cb_wrapper)
 
     def __repr__(self):
         rep = 'Feature'
