@@ -30,18 +30,20 @@ import ctypes
 import copy
 import functools
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable
 from .c_binding import byref, sizeof, decode_flags
 from .c_binding import call_vmb_c, call_vmb_image_transform, FrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, PixelFormat, VmbImage, VmbDebayerMode, \
                        Debayer, VmbTransformInfo, PIXEL_FORMAT_TO_LAYOUT, \
-                       VmbUint8
+                       VmbUint8, VmbCError, VmbError
+from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
+from .featurecontainer import FeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
                   LeaveContextOnCall, RaiseIfOutsideContext
-from .error import VmbFrameError, VmbFeatureError
+from .error import VmbFrameError, VmbFeatureError, VmbChunkError
 
 try:
     import numpy  # type: ignore
@@ -74,6 +76,7 @@ __all__ = [
 # Forward declarations
 FrameTuple = Tuple['Frame', ...]
 FormatTuple = Tuple['PixelFormat', ...]
+ChunkCallback = Callable[[FeatureContainer], None]
 
 
 MONO_PIXEL_FORMATS = (
@@ -532,6 +535,83 @@ class Frame:
             return None
 
         return self._frame.timestamp
+
+    # TODO: Could we implement a decorator to protect this? Something like
+    # @RaiseIfOutsideFrameCallback?
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
+    def access_chunk_data(self, callback: ChunkCallback):
+        """Access chunk data for a frame
+
+        This function may only be called inside a frame callback.
+
+        Parameters:
+            callback - A callback function that takes one argument. That argument will be a
+                       populated `FeatureContainer` instance. Only inside this callback is it
+                       possible to access the chunk features of the `Frame` instance.
+
+        Raises:
+            VmbChunkError if the frame does not contain any chunk data
+
+            TODO: More generic error???
+        """
+        try:
+            call_vmb_c('VmbChunkDataAccess',
+                       byref(self._frame),
+                       # assign user provided callback as closure to the lambda function. The lambda
+                       # itself will be called from VmbC context and will provide access to the
+                       # intended user provided callback in __chunk_cb_wrapper
+                       CHUNK_CALLBACK_TYPE(lambda handle, _: self.__chunk_cb_wrapper(handle,
+                                                                                     _,
+                                                                                     callback)),
+                       None)
+        except VmbCError as e:
+            # The chunk access function returned an error code other than `VmbError.Success`
+            # TODO: determine how error handling should be done here
+            err = e.get_error_code()
+            if err == VmbError.NoChunkData:
+                raise VmbChunkError('No chunk data available') from e
+            else:
+                raise VmbCError('Could not handle error in chunk callback') from e
+        pass
+
+    def __chunk_cb_wrapper(self,
+                           handle: VmbHandle,
+                           _: ctypes.c_void_p,
+                           user_callback: ChunkCallback) -> VmbError:
+        """Internal helper Function for chunk access
+
+        Returns:
+            VmbError code that is interpreted by VmbC to check, if the chunk callback executed
+            successfully. On successful execution this returns VmbError.Success. If an exception
+            occurred in the user supplied callback, an <TODO> error code is returned. If an error
+            code other than Success is returned here, this will in turn raise an Exception in
+            `Frame.access_chunk_data`
+        """
+        feats = FeatureContainer()
+        feats._handle = handle
+        # TODO: Should this actually be encased in a `try ... except ... finally` or should we just
+        # let the exception happen?
+        try:
+            feats._attach_feature_accessors()
+            user_callback(feats)
+        # This is how errors are formatted and logged in the frame_cb_wrapper
+        # except Exception as e:
+        #     msg = 'Caught Exception in handler: '
+        #     msg += 'Type: {}, '.format(type(e))
+        #     msg += 'Value: {}, '.format(e)
+        #     msg += 'raised by: {}'.format(context.frames_handler)
+        #     Log.get_instance().error(msg)
+        #     raise e
+        except Exception as e:
+            # TODO: we can only communicate error codes back to VmbC. Should we map possible
+            # exception types to error codes here? Seems like it is very hard to generalize for a
+            # user defined callback
+            return VmbError.Unspecified
+        finally:
+            feats._remove_feature_accessors()
+
+        return VmbError.Success
 
     @RuntimeTypeCheckEnable()
     def convert_pixel_format(self, target_fmt: PixelFormat,
