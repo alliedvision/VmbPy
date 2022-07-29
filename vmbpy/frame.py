@@ -572,7 +572,10 @@ class Frame:
             # The chunk access function returned an error code other than `VmbError.Success`
             err = e.get_error_code()
             if err >= VmbError.Custom and self.__chunk_cb_exception:
-                raise self.__chunk_cb_exception
+                # Reset stored exception to None so we cannot mistake it as a new exception later on
+                exc = self.__chunk_cb_exception
+                self.__chunk_cb_exception = None
+                raise exc
             elif err == VmbError.NoChunkData:
                 raise VmbFrameError('No chunk data available') from e
             else:
