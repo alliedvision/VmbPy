@@ -99,7 +99,7 @@ class ChunkAccessTest(VmbPyTestCase):
                           f'({handler.frame_callbacks_executed}) does not equal number of '
                           f'executed chunk callbacks ({handler.chunk_callbacks_executed})')
 
-    def test_error_raised_if_chunk_is_no_active(self):
+    def test_error_raised_if_chunk_is_not_active(self):
         self.chunk_mode.set(False)
 
         class FrameHandler:
