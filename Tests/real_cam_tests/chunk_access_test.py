@@ -67,8 +67,7 @@ class ChunkAccessTest(VmbPyTestCase):
         self.vmb._shutdown()
 
     def test_chunk_callback_is_executed(self):
-        self.chunk_mode.set(True)
-
+        # Expectation: The chunk callback is executed for every call to `Frame.access_chunk_data`
         class FrameHandler:
             def __init__(self) -> None:
                 self.frame_callbacks_executed = 0
@@ -83,9 +82,10 @@ class ChunkAccessTest(VmbPyTestCase):
                 if self.frame_callbacks_executed >= 5:
                     self.is_done.set()
 
-            def chunk_callback(self, feats):
+            def chunk_callback(self, feats: FeatureContainer):
                 self.chunk_callbacks_executed += 1
 
+        self.chunk_mode.set(True)
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)
@@ -100,23 +100,27 @@ class ChunkAccessTest(VmbPyTestCase):
                           f'executed chunk callbacks ({handler.chunk_callbacks_executed})')
 
     def test_error_raised_if_chunk_is_not_active(self):
-        self.chunk_mode.set(False)
-
+        # Expectation: If the frame does not contain chunk data `VmbFrameError` is raised upon
+        # calling `Frame.access_chunk_data`
         class FrameHandler:
             def __init__(self, test_instance: VmbPyTestCase) -> None:
-                self.__test_instance = test_instance
+                self.expected_exception_raised = False
                 self.is_done = threading.Event()
 
             def __call__(self, cam: Camera, stream: Stream, frame: Frame):
-                # TODO: make sure errors here are reported in test log
-                self.__test_instance.assertRaises(VmbChunkError,
-                                                  frame.access_chunk_data,
-                                                  self.chunk_callback)
+                try:
+                    frame.access_chunk_data(self.chunk_callback)
+                except VmbFrameError:
+                    self.expected_exception_raised = True
+                finally:
+                    self.is_done.set()
                 self.is_done.set()
 
-            def chunk_callback(self, feats):
+            def chunk_callback(self, feats: FeatureContainer):
+                # Will never be called because the C-API raises an error before we get this far
                 pass
 
+        self.chunk_mode.set(False)
         handler = FrameHandler(self)
         try:
             self.cam.start_streaming(handler)
@@ -124,3 +128,5 @@ class ChunkAccessTest(VmbPyTestCase):
                             'Frame handler did not finish before timeout')
         finally:
             self.cam.stop_streaming()
+        self.assertTrue(handler.expected_exception_raised,
+                        'The expected Exception type was not raised by `access_chunk_data`')
