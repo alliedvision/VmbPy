@@ -42,7 +42,7 @@ from .featurecontainer import FeatureContainer
 from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
                     attach_feature_accessors, remove_feature_accessors
 from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext
+                  LeaveContextOnCall, RaiseIfOutsideContext, Log
 from .error import VmbFrameError, VmbFeatureError, VmbChunkError
 
 try:
@@ -380,6 +380,7 @@ class Frame:
             # Set buffer pointer to NULL and inform Transport Layer of size it should allocate
             self._frame.buffer = None
             self._frame.bufferSize = buffer_size
+        self.__chunk_cb_exception: Optional[Exception] = None
 
     def __str__(self):
         msg = 'Frame(id={}, status={}, buffer={})'
@@ -540,7 +541,7 @@ class Frame:
     # @RaiseIfOutsideFrameCallback?
     @TraceEnable()
     @RuntimeTypeCheckEnable()
-    def access_chunk_data(self, callback: ChunkCallback):
+    def access_chunk_data(self, callback: ChunkCallback) -> None:
         """Access chunk data for a frame
 
         This function may only be called inside a frame callback.
@@ -551,9 +552,11 @@ class Frame:
                        possible to access the chunk features of the `Frame` instance.
 
         Raises:
-            VmbChunkError if the frame does not contain any chunk data
+            Any Exception raised in the user supplied callback
 
-            TODO: More generic error???
+            VmbFrameError if the frame does not contain any chunk data
+
+            VmbChunkError if some other error occurred during chunk handling
         """
         try:
             call_vmb_c('VmbChunkDataAccess',
@@ -567,13 +570,13 @@ class Frame:
                        None)
         except VmbCError as e:
             # The chunk access function returned an error code other than `VmbError.Success`
-            # TODO: determine how error handling should be done here
             err = e.get_error_code()
-            if err == VmbError.NoChunkData:
-                raise VmbChunkError('No chunk data available') from e
+            if err >= VmbError.Custom and self.__chunk_cb_exception:
+                raise self.__chunk_cb_exception
+            elif err == VmbError.NoChunkData:
+                raise VmbFrameError('No chunk data available') from e
             else:
-                raise VmbCError('Could not handle error in chunk callback') from e
-        pass
+                raise VmbChunkError('Error during chunk handling') from e
 
     def __chunk_cb_wrapper(self,
                            handle: VmbHandle,
@@ -581,33 +584,34 @@ class Frame:
                            user_callback: ChunkCallback) -> VmbError:
         """Internal helper Function for chunk access
 
+        Arguments:
+            handle: VmbHandle that can be used to access Features via VmbC. Adding it to a
+                    `FeatureContainer` and attaching features will grant access as expected.
+            _: A void pointer used in the C-API to allow users to pass context. Not used in VmbPy
+            user_callback: The user provided function that should be called to access chunk features
+
         Returns:
             VmbError code that is interpreted by VmbC to check, if the chunk callback executed
             successfully. On successful execution this returns VmbError.Success. If an exception
-            occurred in the user supplied callback, an <TODO> error code is returned. If an error
-            code other than Success is returned here, this will in turn raise an Exception in
-            `Frame.access_chunk_data`
+            occurred in the user supplied callback, a VmbError.Custom is returned. If an error code
+            other than Success is returned here, this will in turn raise an Exception in
+            `Frame.access_chunk_data`. Exceptions raised by the user in their user_callback are
+            stored and re-raised by `Frame.access_chunk_data`
         """
         feats = FeatureContainer()
         feats._handle = handle
-        # TODO: Should this actually be encased in a `try ... except ... finally` or should we just
-        # let the exception happen?
         try:
             feats._attach_feature_accessors()
             user_callback(feats)
-        # This is how errors are formatted and logged in the frame_cb_wrapper
-        # except Exception as e:
-        #     msg = 'Caught Exception in handler: '
-        #     msg += 'Type: {}, '.format(type(e))
-        #     msg += 'Value: {}, '.format(e)
-        #     msg += 'raised by: {}'.format(context.frames_handler)
-        #     Log.get_instance().error(msg)
-        #     raise e
         except Exception as e:
-            # TODO: we can only communicate error codes back to VmbC. Should we map possible
-            # exception types to error codes here? Seems like it is very hard to generalize for a
-            # user defined callback
-            return VmbError.Unspecified
+            msg = 'Caught Exception in chunk access function: '
+            msg += 'Type: {}, '.format(type(e))
+            msg += 'Value: {}, '.format(e)
+            msg += 'raised by: {}'.format(user_callback)
+            Log.get_instance().error(msg)
+            # Store exception so it is accessible in `Frame.access_chunk_data`
+            self.__chunk_cb_exception = e
+            return VmbError.Custom
         finally:
             feats._remove_feature_accessors()
 

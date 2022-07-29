@@ -130,3 +130,41 @@ class ChunkAccessTest(VmbPyTestCase):
             self.cam.stop_streaming()
         self.assertTrue(handler.expected_exception_raised,
                         'The expected Exception type was not raised by `access_chunk_data`')
+
+    def test_exceptions_raised_in_callback_are_propagated(self):
+        # Expectation: If an exception is raised in the user supplied chunk callback that is
+        # propagated and raised from the call to `Frame.access_chunk_data`
+        class _CustomException(Exception):
+            pass
+
+        class FrameHandler:
+            def __init__(self) -> None:
+                self.expected_exception_raised = False
+                self.exception_message_as_expected = False
+                self.is_done = threading.Event()
+                self.__exception_message = 'foo'
+
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
+                try:
+                    frame.access_chunk_data(self.chunk_callback)
+                except _CustomException as e:
+                    self.expected_exception_raised = True
+                    self.exception_message_as_expected = str(e) == self.__exception_message
+                finally:
+                    self.is_done.set()
+
+            def chunk_callback(self, feats: FeatureContainer):
+                raise _CustomException(self.__exception_message)
+
+        self.chunk_mode.set(True)
+        handler = FrameHandler()
+        try:
+            self.cam.start_streaming(handler)
+            self.assertTrue(handler.is_done.wait(timeout=5),
+                            'Frame handler did not finish before timeout')
+        finally:
+            self.cam.stop_streaming()
+        self.assertTrue(handler.expected_exception_raised,
+                        'The expected Exception type was not raised by `access_chunk_data`')
+        self.assertTrue(handler.exception_message_as_expected,
+                        'The exception did not contain the expected message')
