@@ -41,9 +41,9 @@ FRAME_WIDTH = 480
 
 
 def print_preamble():
-    print('////////////////////////////////////////////')
-    print('/// Vimba API Multithreading Example ///////')
-    print('////////////////////////////////////////////\n')
+    print('////////////////////////////////////////')
+    print('/// VmbPy Multithreading Example ///////')
+    print('////////////////////////////////////////\n')
     print(flush=True)
 
 
@@ -128,7 +128,7 @@ class FrameProducer(threading.Thread):
         self.killswitch = threading.Event()
 
     def __call__(self, cam: Camera, stream: Stream, frame: Frame):
-        # This method is executed within VimbaC context. All incoming frames
+        # This method is executed within VmbC context. All incoming frames
         # are reused for later frame acquisition. If a frame shall be queued, the
         # frame must be copied and the copy must be sent, otherwise the acquired
         # frame will be overridden as soon as the frame is reused.
@@ -258,14 +258,14 @@ class MainThread(threading.Thread):
         log = Log.get_instance()
         consumer = FrameConsumer(self.frame_queue)
 
-        vimba = VmbSystem.get_instance()
-        vimba.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
+        vmb = VmbSystem.get_instance()
+        vmb.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
 
         log.info('Thread \'MainThread\' started.')
 
-        with vimba:
+        with vmb:
             # Construct FrameProducer threads for all detected cameras
-            for cam in vimba.get_all_cameras():
+            for cam in vmb.get_all_cameras():
                 self.producers[cam.get_id()] = FrameProducer(cam, self.frame_queue)
 
             # Start FrameProducer threads
@@ -274,10 +274,10 @@ class MainThread(threading.Thread):
                     producer.start()
 
             # Start and wait for consumer to terminate
-            vimba.register_camera_change_handler(self)
+            vmb.register_camera_change_handler(self)
             consumer.start()
             consumer.join()
-            vimba.unregister_camera_change_handler(self)
+            vmb.unregister_camera_change_handler(self)
 
             # Stop all FrameProducer threads
             with self.producers_lock:

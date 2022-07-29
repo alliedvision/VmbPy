@@ -31,9 +31,9 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('////////////////////////////////////////////')
-    print('/// Vimba API Load Save Settings Example ///')
-    print('////////////////////////////////////////////\n')
+    print('////////////////////////////////////////')
+    print('/// VmbPy Load Save Settings Example ///')
+    print('////////////////////////////////////////\n')
 
 
 def print_usage():
@@ -71,16 +71,16 @@ def parse_args() -> Optional[str]:
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
-    with VmbSystem.get_instance() as vimba:
+    with VmbSystem.get_instance() as vmb:
         if camera_id:
             try:
-                return vimba.get_camera_by_id(camera_id)
+                return vmb.get_camera_by_id(camera_id)
 
             except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
-            cams = vimba.get_all_cameras()
+            cams = vmb.get_all_cameras()
             if not cams:
                 abort('No Cameras accessible. Abort.')
 
@@ -92,7 +92,7 @@ def main():
     cam_id = parse_args()
 
     with VmbSystem.get_instance():
-        print("--> Vimba has been started")
+        print("--> VmbSystem context has been entered")
 
         with get_camera(cam_id) as cam:
             print("--> Camera has been opened (%s)" % cam.get_id())
