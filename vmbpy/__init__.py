@@ -81,6 +81,8 @@ __all__ = [
     'CommandFeature',
     'RawFeature',
 
+    'FeatureContainer',
+
     'LogLevel',
     'LogConfig',
     'Log',
@@ -129,6 +131,8 @@ from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbIn
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature
+
+from .featurecontainer import FeatureContainer
 
 from .util import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \
                   LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_INFO_CONSOLE_ONLY, \
