@@ -168,3 +168,45 @@ class ChunkAccessTest(VmbPyTestCase):
                         'The expected Exception type was not raised by `access_chunk_data`')
         self.assertTrue(handler.exception_message_as_expected,
                         'The exception did not contain the expected message')
+
+    def test_raising_exceptions_does_not_impact_later_chunk_access(self):
+        # Expectation: An exception that was raised on a previous chunk access does not prevent
+        # later chunk access
+        class _CustomException(Exception):
+            pass
+
+        class FrameHandler:
+            def __init__(self) -> None:
+                self.__frame_count = 0
+                self.exception_was_raised_once = False
+                self.later_access_worked = False
+                self.is_done = threading.Event()
+
+            def __call__(self, cam: Camera, stream: Stream, frame: Frame):
+                try:
+                    frame.access_chunk_data(self.chunk_callback)
+                    if self.exception_was_raised_once:
+                        self.later_access_worked = True
+                except _CustomException:
+                    self.exception_was_raised_once = True
+                finally:
+                    self.__frame_count += 1
+                    if self.__frame_count >= 5:
+                        self.is_done.set()
+
+            def chunk_callback(self, feats: FeatureContainer):
+                if self.__frame_count == 0:
+                    raise _CustomException()
+
+        self.chunk_mode.set(True)
+        handler = FrameHandler()
+        try:
+            self.cam.start_streaming(handler)
+            self.assertTrue(handler.is_done.wait(timeout=5),
+                            'Frame handler did not finish before timeout')
+        finally:
+            self.cam.stop_streaming()
+        self.assertTrue(handler.exception_was_raised_once,
+                        'The expected Exception was never raised by `access_chunk_data`')
+        self.assertTrue(handler.later_access_worked,
+                        'Access to the chunk data in later calls did not work')
