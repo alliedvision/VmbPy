@@ -28,7 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import enum
 import ctypes
 import copy
-import functools
 
 from typing import Optional, Tuple, Callable
 from .c_binding import byref, sizeof, decode_flags
@@ -37,13 +36,9 @@ from .c_binding import call_vmb_c, call_vmb_image_transform, FrameStatus, VmbFra
                        Debayer, VmbTransformInfo, PIXEL_FORMAT_TO_LAYOUT, \
                        VmbUint8, VmbCError, VmbError
 from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
-from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .featurecontainer import FeatureContainer
-from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
-                    attach_feature_accessors, remove_feature_accessors
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext, Log
-from .error import VmbFrameError, VmbFeatureError, VmbChunkError
+from .util import TraceEnable, RuntimeTypeCheckEnable, Log
+from .error import VmbFrameError, VmbChunkError
 
 try:
     import numpy  # type: ignore
@@ -200,160 +195,6 @@ class AllocationMode(enum.IntEnum):
     AllocAndAnnounceFrame = 1
 
 
-class AncillaryData:
-    """Ancillary Data are created after enabling a Cameras 'ChunkModeActive' Feature.
-    Ancillary Data are Features stored within a Frame.
-    """
-    @TraceEnable()
-    @LeaveContextOnCall()
-    def __init__(self, handle: VmbFrame):
-        """Do not call directly. Get Object via Frame access method"""
-        self.__handle: VmbFrame = handle
-        self.__data_handle: VmbHandle = VmbHandle()
-        self.__feats: FeaturesTuple = ()
-        self.__context_cnt: int = 0
-
-    @TraceEnable()
-    def __enter__(self):
-        if not self.__context_cnt:
-            self._open()
-
-        self.__context_cnt += 1
-        return self
-
-    @TraceEnable()
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.__context_cnt -= 1
-
-        if not self.__context_cnt:
-            self._close()
-
-    @RaiseIfOutsideContext()
-    def get_all_features(self) -> FeaturesTuple:
-        """Get all features in ancillary data.
-
-        Returns:
-            A set of all currently features stored in Ancillary Data.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-        """
-        return self.__feats
-
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
-        """Get all features in ancillary data of a specific type.
-
-        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
-        EnumFeature, CommandFeature, RawFeature
-
-        Arguments:
-            feat_type - FeatureType used find features of that type.
-
-        Returns:
-            A all features of type 'feat_type'.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-            TypeError if parameters do not match their type hint.
-        """
-        return filter_features_by_type(self.__feats, feat_type)
-
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_features_by_category(self, category: str) -> FeaturesTuple:
-        """Get all features in ancillary data of a specific category.
-
-        Arguments:
-            category - Category that should be used for filtering.
-
-        Returns:
-            A all features of category 'category'.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-            TypeError if parameters do not match their type hint.
-        """
-        return filter_features_by_category(self.__feats, category)
-
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """Get a features in ancillary data by its name.
-
-        Arguments:
-            feat_name - Name used to find a feature.
-
-        Returns:
-            Feature with the associated name.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-            TypeError if parameters do not match their type hint.
-            VmbFeatureError if no feature is associated with 'feat_name'.
-        """
-        feat = filter_features_by_name(self.__feats, feat_name)
-
-        if not feat:
-            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
-
-        return feat
-
-    @TraceEnable()
-    @EnterContextOnCall()
-    def _open(self):
-        call_vmb_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
-
-        self.__feats = _replace_invalid_feature_calls(discover_features(self.__data_handle))
-        attach_feature_accessors(self, self.__feats)
-
-    @TraceEnable()
-    @LeaveContextOnCall()
-    def _close(self):
-        remove_feature_accessors(self, self.__feats)
-        self.__feats = ()
-
-        call_vmb_c('VmbAncillaryDataClose', self.__data_handle)
-        self.__data_handle = VmbHandle()
-
-
-def _replace_invalid_feature_calls(feats: FeaturesTuple) -> FeaturesTuple:
-    # AncillaryData are basically "lightweight" features. Calling most feature related
-    # Functions with a AncillaryData - Handle leads to VimbaC Errors. This method decorates
-    # all Methods that are unsafe to call with a decorator raising a RuntimeError.
-    to_wrap = [
-        'get_access_mode',
-        'is_readable',
-        'is_writeable',
-        'register_change_handler',
-        'get_increment',
-        'get_range',
-        'set'
-    ]
-
-    # Decorator raising a RuntimeError instead of delegating call to inner function.
-    def invalid_call(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            msg = 'Calling \'{}\' is invalid for AncillaryData Features.'
-            raise RuntimeError(msg.format(func.__name__))
-
-        return wrapper
-
-    # Replace original implementation by injecting a surrounding decorator and
-    # binding the resulting function as a method to the Feature instance.
-    for f, a in [(f, a) for f in feats for a in to_wrap]:
-        try:
-            fn = invalid_call(getattr(f, a))
-            setattr(f, a, fn.__get__(f))
-
-        except AttributeError:
-            pass
-
-    return feats
-
-
 class Frame:
     """This class allows access to Frames acquired by a camera. The Frame is basically
     a buffer that wraps image data and some metadata.
@@ -428,22 +269,6 @@ class Frame:
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
         return self._frame.bufferSize
-
-    def get_ancillary_data(self) -> Optional[AncillaryData]:
-        """Get AncillaryData.
-
-        Frames acquired with cameras where Feature ChunkModeActive is enabled can contain
-        ancillary data within the image data.
-
-        Returns:
-            None if Frame contains no ancillary data.
-            AncillaryData if Frame contains ancillary data.
-        """
-        # TODO: this probably needs to be reworked
-        if not self._frame.ancillarySize:
-            return None
-
-        return AncillaryData(self._frame)
 
     def get_status(self) -> FrameStatus:
         """Returns current frame status."""

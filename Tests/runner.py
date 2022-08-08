@@ -107,7 +107,6 @@ def main():
     import real_cam_tests.feature_test
     import real_cam_tests.camera_test
     import real_cam_tests.frame_test
-    import real_cam_tests.ancillary_data_test
     import real_cam_tests.chunk_access_test
 
     # Assign test cases to test suites
@@ -127,7 +126,6 @@ def main():
         real_cam_tests.feature_test,
         real_cam_tests.camera_test,
         real_cam_tests.frame_test,
-        real_cam_tests.ancillary_data_test,
         real_cam_tests.chunk_access_test
     ]
 

@@ -123,14 +123,13 @@ from .transportlayer import TransportLayer, TransportLayerType
 from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
                    BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \
                    BGRA_PIXEL_FORMATS, YUV_PIXEL_FORMATS, YCBCR_PIXEL_FORMATS, \
-                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, FeatureTypes, \
-                   AllocationMode
+                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, AllocationMode
 
 from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbInterfaceError, \
                    VmbFeatureError, VmbFrameError, VmbTimeout, VmbChunkError
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
-                     CommandFeature, RawFeature
+                     CommandFeature, RawFeature, FeatureTypes
 
 from .featurecontainer import FeatureContainer
 

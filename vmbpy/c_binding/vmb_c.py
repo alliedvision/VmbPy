@@ -559,7 +559,7 @@ class VmbFrame(ctypes.Structure):
     Frame delivered by Camera
         Fields (in):
             buffer     - Type: c_void_p
-                         Info: Comprises image and ancillary data
+                         Info: Comprises image and chunk data
             bufferSize - Type: VmbUint32_t
                          Info: Size of the data buffer
             context    - Type: c_void_p[4]
