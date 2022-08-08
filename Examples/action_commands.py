@@ -31,9 +31,9 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('/////////////////////////////////////////')
-    print('/// Vimba API Action Commands Example ///')
-    print('/////////////////////////////////////////\n')
+    print('/////////////////////////////////////')
+    print('/// VmbPy Action Commands Example ///')
+    print('/////////////////////////////////////\n')
 
 
 def print_usage():
@@ -78,9 +78,9 @@ def get_input() -> str:
 
 
 def get_camera(camera_id: str) -> Camera:
-    with VmbSystem.get_instance() as vimba:
+    with VmbSystem.get_instance() as vmb:
         try:
-            return vimba.get_camera_by_id(camera_id)
+            return vmb.get_camera_by_id(camera_id)
 
         except VmbCameraError:
             abort('Failed to access Camera {}. Abort.'.format(camera_id))
@@ -88,15 +88,15 @@ def get_camera(camera_id: str) -> Camera:
 
 def get_command_sender(interface_id):
     # If given interface_id is ALL, ActionCommand shall be sent from all GigE Vision Interfaces.
-    # This is achieved by run ActionCommand on the Vimba instance.
+    # This is achieved by run ActionCommand on the VmbSystem instance.
     if interface_id == 'ALL':
         return VmbSystem.get_instance()
 
-    with VmbSystem.get_instance() as vimba:
+    with VmbSystem.get_instance() as vmb:
         # A specific Interface was given. Lookup via given Interface id and verify that it is a GigE
         # Vision Interface. Running ActionCommand will be only send from this Interface.
         try:
-            inter = vimba.get_interface_by_id(interface_id)
+            inter = vmb.get_interface_by_id(interface_id)
 
         except VmbInterfaceError:
             abort('Failed to access Interface {}. Abort.'.format(interface_id))

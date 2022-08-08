@@ -31,9 +31,9 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('//////////////////////////////////')
-    print('/// Vimba API User Set Example ///')
-    print('//////////////////////////////////\n')
+    print('//////////////////////////////')
+    print('/// VmbPy User Set Example ///')
+    print('//////////////////////////////\n')
 
 
 def print_usage():
@@ -129,18 +129,18 @@ def parse_args() -> Dict[str, Any]:
 
 
 def get_camera(cam_id: Optional[str]):
-    with VmbSystem.get_instance() as vimba:
+    with VmbSystem.get_instance() as vmb:
         # Lookup Camera if it was specified.
         if cam_id:
             try:
-                return vimba.get_camera_by_id(cam_id)
+                return vmb.get_camera_by_id(cam_id)
 
             except VmbCameraError:
                 abort('Failed to access Camera {}. Abort.'.format(cam_id))
 
         # If no camera was specified, use first detected camera.
         else:
-            cams = vimba.get_all_cameras()
+            cams = vmb.get_all_cameras()
             if not cams:
                 abort('No Camera detected. Abort.')
 
