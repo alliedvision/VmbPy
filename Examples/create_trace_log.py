@@ -36,15 +36,15 @@ def main():
 
     # Enable logging mechanism, creating a trace log. The log file is
     # stored at the location this script was executed from.
-    vimba = VmbSystem.get_instance()
-    vimba.enable_log(LOG_CONFIG_TRACE_FILE_ONLY)
+    vmb = VmbSystem.get_instance()
+    vmb.enable_log(LOG_CONFIG_TRACE_FILE_ONLY)
 
     # While entering this scope, feature, camera and interface discovery occurs.
-    # All function calls to VimbaC are captured in the log file.
-    with vimba:
+    # All function calls to VmbC are captured in the log file.
+    with vmb:
         pass
 
-    vimba.disable_log()
+    vmb.disable_log()
 
 
 if __name__ == '__main__':

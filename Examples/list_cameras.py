@@ -29,9 +29,9 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('//////////////////////////////////////')
-    print('/// Vimba API List Cameras Example ///')
-    print('//////////////////////////////////////\n')
+    print('//////////////////////////////////')
+    print('/// VmbPy List Cameras Example ///')
+    print('//////////////////////////////////\n')
 
 
 def print_camera(cam: Camera):
@@ -44,8 +44,8 @@ def print_camera(cam: Camera):
 
 def main():
     print_preamble()
-    with VmbSystem.get_instance() as vimba:
-        cams = vimba.get_all_cameras()
+    with VmbSystem.get_instance() as vmb:
+        cams = vmb.get_all_cameras()
 
         print('Cameras found: {}'.format(len(cams)))
 

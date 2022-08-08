@@ -31,9 +31,9 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('///////////////////////////////////////')
-    print('/// Vimba API List Features Example ///')
-    print('///////////////////////////////////////\n')
+    print('///////////////////////////////////')
+    print('/// VmbPy List Features Example ///')
+    print('///////////////////////////////////\n')
 
 
 def print_usage():
@@ -87,16 +87,16 @@ def print_feature(feature):
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
-    with VmbSystem.get_instance() as vimba:
+    with VmbSystem.get_instance() as vmb:
         if camera_id:
             try:
-                return vimba.get_camera_by_id(camera_id)
+                return vmb.get_camera_by_id(camera_id)
 
             except VmbCameraError:
                 abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
 
         else:
-            cams = vimba.get_all_cameras()
+            cams = vmb.get_all_cameras()
             if not cams:
                 abort('No Cameras accessible. Abort.')
 
