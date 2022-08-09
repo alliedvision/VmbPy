@@ -451,6 +451,8 @@ class Frame:
         """Return a converted version of the frame in the given format.
 
         This method always returns a new frame object and leaves the original instance unchanged.
+        The returned frame object does not include the chunk data associated with the original
+        instance.
 
         Note: This method allocates a new buffer for the returned image data leading to some runtime
         overhead. For performance reasons, it might be better to set the value of the camera's
@@ -503,9 +505,7 @@ class Frame:
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
-        anc_size = self._frame.ancillarySize
-
-        output_frame = Frame(buffer_size=img_size + anc_size,
+        output_frame = Frame(buffer_size=img_size,
                              allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
         c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
@@ -520,18 +520,18 @@ class Frame:
         call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
                                  byref(transform_info), 1)
 
-        # 7) Copy ancillary data if existing
-        if anc_size:
-            src = ctypes.addressof(self._buffer) + self._frame.imageSize
-            dst = ctypes.addressof(output_frame._buffer) + img_size
-
-            ctypes.memmove(dst, src, anc_size)
-
-        # 8) Update frame metadata that changed due to transformation
+        # 7) Update frame metadata that changed due to transformation and buffer pointers that are
+        #    not yet set correctly
         output_frame._frame.buffer = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
         output_frame._frame.bufferSize = sizeof(output_frame._buffer)
         output_frame._frame.imageSize = img_size
         output_frame._frame.pixelFormat = target_fmt
+
+        # calculate offset of original imageData pointer into original buffer
+        image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)   # noqa: E501
+        # set new imageData pointer to same offset into new buffer
+        output_frame._frame.imageData = ctypes.cast(ctypes.byref(output_frame._buffer, image_data_offset),      # noqa: E501
+                                                    ctypes.POINTER(VmbUint8))
 
         return output_frame
 
