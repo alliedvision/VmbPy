@@ -369,7 +369,8 @@ class Frame:
     def access_chunk_data(self, callback: ChunkCallback) -> None:
         """Access chunk data for a frame
 
-        This function may only be called inside a frame callback.
+        This function blocks until the user supplied callback has been executed. It may only be
+        called inside a frame callback.
 
         Parameters:
             callback - A callback function that takes one argument. That argument will be a
