@@ -185,8 +185,6 @@ class ChunkAccessTest(VmbPyTestCase):
             def __call__(self, cam: Camera, stream: Stream, frame: Frame):
                 try:
                     frame.access_chunk_data(self.chunk_callback)
-                    if self.exception_was_raised_once:
-                        self.later_access_worked = True
                 except _CustomException:
                     self.exception_was_raised_once = True
                 finally:
@@ -197,6 +195,8 @@ class ChunkAccessTest(VmbPyTestCase):
             def chunk_callback(self, feats: FeatureContainer):
                 if self.__frame_count == 0:
                     raise _CustomException()
+                if self.exception_was_raised_once:
+                    self.later_access_worked = True
 
         self.chunk_mode.set(True)
         handler = FrameHandler()
