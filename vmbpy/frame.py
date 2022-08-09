@@ -362,8 +362,6 @@ class Frame:
 
         return self._frame.timestamp
 
-    # TODO: Could we implement a decorator to protect this? Something like
-    # @RaiseIfOutsideFrameCallback?
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def access_chunk_data(self, callback: ChunkCallback) -> None:
