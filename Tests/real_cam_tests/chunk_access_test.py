@@ -93,11 +93,11 @@ class ChunkAccessTest(VmbPyTestCase):
                             'Frame handler did not finish before timeout')
         finally:
             self.cam.stop_streaming()
-        self.assertEquals(handler.frame_callbacks_executed,
-                          handler.chunk_callbacks_executed,
-                          f'Number of executed frame callbacks '
-                          f'({handler.frame_callbacks_executed}) does not equal number of '
-                          f'executed chunk callbacks ({handler.chunk_callbacks_executed})')
+        self.assertEqual(handler.frame_callbacks_executed,
+                         handler.chunk_callbacks_executed,
+                         f'Number of executed frame callbacks '
+                         f'({handler.frame_callbacks_executed}) does not equal number of '
+                         f'executed chunk callbacks ({handler.chunk_callbacks_executed})')
 
     def test_error_raised_if_chunk_is_not_active(self):
         # Expectation: If the frame does not contain chunk data `VmbFrameError` is raised upon
