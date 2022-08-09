@@ -58,9 +58,9 @@ class VmbSystemTest(VmbPyTestCase):
 
         self.assertIsNone(self.vmb._Impl__path_configuration)
         self.vmb.set_path_configuration('foo')
-        self.assertEquals(self.vmb._Impl__path_configuration, 'foo')
+        self.assertEqual(self.vmb._Impl__path_configuration, 'foo')
         self.vmb.set_path_configuration('foo', 'bar')
-        self.assertEquals(self.vmb._Impl__path_configuration, 'foo' + sep + 'bar')
+        self.assertEqual(self.vmb._Impl__path_configuration, 'foo' + sep + 'bar')
         # Crude check to see that configuration is applied: Try to start API with this invalid
         # configuration. If no TLs are found, that is probably a sign that the configuration is
         # honored
