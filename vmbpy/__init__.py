@@ -70,6 +70,7 @@ __all__ = [
     'VmbFeatureError',
     'VmbFrameError',
     'VmbTimeout',
+    'VmbChunkError',
 
     'IntFeature',
     'FloatFeature',
@@ -79,6 +80,8 @@ __all__ = [
     'EnumFeature',
     'CommandFeature',
     'RawFeature',
+
+    'FeatureContainer',
 
     'LogLevel',
     'LogConfig',
@@ -120,14 +123,15 @@ from .transportlayer import TransportLayer, TransportLayerType
 from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
                    BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \
                    BGRA_PIXEL_FORMATS, YUV_PIXEL_FORMATS, YCBCR_PIXEL_FORMATS, \
-                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, FeatureTypes, \
-                   AllocationMode
+                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, AllocationMode
 
 from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbInterfaceError, \
-                   VmbFeatureError, VmbFrameError, VmbTimeout
+                   VmbFeatureError, VmbFrameError, VmbTimeout, VmbChunkError
 
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
-                     CommandFeature, RawFeature
+                     CommandFeature, RawFeature, FeatureTypes
+
+from .featurecontainer import FeatureContainer
 
 from .util import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \
                   LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_INFO_CONSOLE_ONLY, \

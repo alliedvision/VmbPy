@@ -28,20 +28,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import enum
 import ctypes
 import copy
-import functools
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Callable
 from .c_binding import byref, sizeof, decode_flags
 from .c_binding import call_vmb_c, call_vmb_image_transform, FrameStatus, VmbFrameFlags, \
                        VmbFrame, VmbHandle, VmbPixelFormat, PixelFormat, VmbImage, VmbDebayerMode, \
                        Debayer, VmbTransformInfo, PIXEL_FORMAT_TO_LAYOUT, \
-                       VmbUint8
-from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
-from .shared import filter_features_by_name, filter_features_by_type, filter_features_by_category, \
-                    attach_feature_accessors, remove_feature_accessors
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext
-from .error import VmbFrameError, VmbFeatureError
+                       VmbUint8, VmbCError, VmbError
+from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
+from .featurecontainer import FeatureContainer
+from .util import TraceEnable, RuntimeTypeCheckEnable, Log
+from .error import VmbFrameError, VmbChunkError
 
 try:
     import numpy  # type: ignore
@@ -74,6 +71,7 @@ __all__ = [
 # Forward declarations
 FrameTuple = Tuple['Frame', ...]
 FormatTuple = Tuple['PixelFormat', ...]
+ChunkCallback = Callable[[FeatureContainer], None]
 
 
 MONO_PIXEL_FORMATS = (
@@ -197,160 +195,6 @@ class AllocationMode(enum.IntEnum):
     AllocAndAnnounceFrame = 1
 
 
-class AncillaryData:
-    """Ancillary Data are created after enabling a Cameras 'ChunkModeActive' Feature.
-    Ancillary Data are Features stored within a Frame.
-    """
-    @TraceEnable()
-    @LeaveContextOnCall()
-    def __init__(self, handle: VmbFrame):
-        """Do not call directly. Get Object via Frame access method"""
-        self.__handle: VmbFrame = handle
-        self.__data_handle: VmbHandle = VmbHandle()
-        self.__feats: FeaturesTuple = ()
-        self.__context_cnt: int = 0
-
-    @TraceEnable()
-    def __enter__(self):
-        if not self.__context_cnt:
-            self._open()
-
-        self.__context_cnt += 1
-        return self
-
-    @TraceEnable()
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        self.__context_cnt -= 1
-
-        if not self.__context_cnt:
-            self._close()
-
-    @RaiseIfOutsideContext()
-    def get_all_features(self) -> FeaturesTuple:
-        """Get all features in ancillary data.
-
-        Returns:
-            A set of all currently features stored in Ancillary Data.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-        """
-        return self.__feats
-
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
-        """Get all features in ancillary data of a specific type.
-
-        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
-        EnumFeature, CommandFeature, RawFeature
-
-        Arguments:
-            feat_type - FeatureType used find features of that type.
-
-        Returns:
-            A all features of type 'feat_type'.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-            TypeError if parameters do not match their type hint.
-        """
-        return filter_features_by_type(self.__feats, feat_type)
-
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_features_by_category(self, category: str) -> FeaturesTuple:
-        """Get all features in ancillary data of a specific category.
-
-        Arguments:
-            category - Category that should be used for filtering.
-
-        Returns:
-            A all features of category 'category'.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-            TypeError if parameters do not match their type hint.
-        """
-        return filter_features_by_category(self.__feats, category)
-
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """Get a features in ancillary data by its name.
-
-        Arguments:
-            feat_name - Name used to find a feature.
-
-        Returns:
-            Feature with the associated name.
-
-        Raises:
-            RuntimeError then called outside of "with" - statement.
-            TypeError if parameters do not match their type hint.
-            VmbFeatureError if no feature is associated with 'feat_name'.
-        """
-        feat = filter_features_by_name(self.__feats, feat_name)
-
-        if not feat:
-            raise VmbFeatureError('Feature \'{}\' not found.'.format(feat_name))
-
-        return feat
-
-    @TraceEnable()
-    @EnterContextOnCall()
-    def _open(self):
-        call_vmb_c('VmbAncillaryDataOpen', byref(self.__handle), byref(self.__data_handle))
-
-        self.__feats = _replace_invalid_feature_calls(discover_features(self.__data_handle))
-        attach_feature_accessors(self, self.__feats)
-
-    @TraceEnable()
-    @LeaveContextOnCall()
-    def _close(self):
-        remove_feature_accessors(self, self.__feats)
-        self.__feats = ()
-
-        call_vmb_c('VmbAncillaryDataClose', self.__data_handle)
-        self.__data_handle = VmbHandle()
-
-
-def _replace_invalid_feature_calls(feats: FeaturesTuple) -> FeaturesTuple:
-    # AncillaryData are basically "lightweight" features. Calling most feature related
-    # Functions with a AncillaryData - Handle leads to VimbaC Errors. This method decorates
-    # all Methods that are unsafe to call with a decorator raising a RuntimeError.
-    to_wrap = [
-        'get_access_mode',
-        'is_readable',
-        'is_writeable',
-        'register_change_handler',
-        'get_increment',
-        'get_range',
-        'set'
-    ]
-
-    # Decorator raising a RuntimeError instead of delegating call to inner function.
-    def invalid_call(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            msg = 'Calling \'{}\' is invalid for AncillaryData Features.'
-            raise RuntimeError(msg.format(func.__name__))
-
-        return wrapper
-
-    # Replace original implementation by injecting a surrounding decorator and
-    # binding the resulting function as a method to the Feature instance.
-    for f, a in [(f, a) for f in feats for a in to_wrap]:
-        try:
-            fn = invalid_call(getattr(f, a))
-            setattr(f, a, fn.__get__(f))
-
-        except AttributeError:
-            pass
-
-    return feats
-
-
 class Frame:
     """This class allows access to Frames acquired by a camera. The Frame is basically
     a buffer that wraps image data and some metadata.
@@ -377,6 +221,7 @@ class Frame:
             # Set buffer pointer to NULL and inform Transport Layer of size it should allocate
             self._frame.buffer = None
             self._frame.bufferSize = buffer_size
+        self.__chunk_cb_exception: Optional[Exception] = None
 
     def __str__(self):
         msg = 'Frame(id={}, status={}, buffer={})'
@@ -424,22 +269,6 @@ class Frame:
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
         return self._frame.bufferSize
-
-    def get_ancillary_data(self) -> Optional[AncillaryData]:
-        """Get AncillaryData.
-
-        Frames acquired with cameras where Feature ChunkModeActive is enabled can contain
-        ancillary data within the image data.
-
-        Returns:
-            None if Frame contains no ancillary data.
-            AncillaryData if Frame contains ancillary data.
-        """
-        # TODO: this probably needs to be reworked
-        if not self._frame.ancillarySize:
-            return None
-
-        return AncillaryData(self._frame)
 
     def get_status(self) -> FrameStatus:
         """Returns current frame status."""
@@ -533,12 +362,96 @@ class Frame:
 
         return self._frame.timestamp
 
+    @TraceEnable()
+    @RuntimeTypeCheckEnable()
+    def access_chunk_data(self, callback: ChunkCallback) -> None:
+        """Access chunk data for a frame
+
+        This function blocks until the user supplied callback has been executed. It may only be
+        called inside a frame callback.
+
+        Parameters:
+            callback - A callback function that takes one argument. That argument will be a
+                       populated `FeatureContainer` instance. Only inside this callback is it
+                       possible to access the chunk features of the `Frame` instance.
+
+        Raises:
+            Any Exception raised in the user supplied callback
+
+            VmbFrameError if the frame does not contain any chunk data
+
+            VmbChunkError if some other error occurred during chunk handling
+        """
+        try:
+            call_vmb_c('VmbChunkDataAccess',
+                       byref(self._frame),
+                       # assign user provided callback as closure to the lambda function. The lambda
+                       # itself will be called from VmbC context and will provide access to the
+                       # intended user provided callback in __chunk_cb_wrapper
+                       CHUNK_CALLBACK_TYPE(lambda handle, _: self.__chunk_cb_wrapper(handle,
+                                                                                     _,
+                                                                                     callback)),
+                       None)
+        except VmbCError as e:
+            # The chunk access function returned an error code other than `VmbError.Success`
+            err = e.get_error_code()
+            if err >= VmbError.Custom and self.__chunk_cb_exception:
+                # Reset stored exception to None so we cannot mistake it as a new exception later on
+                exc = self.__chunk_cb_exception
+                self.__chunk_cb_exception = None
+                raise exc
+            elif err == VmbError.NoChunkData:
+                raise VmbFrameError('No chunk data available') from e
+            else:
+                raise VmbChunkError('Error during chunk handling') from e
+
+    def __chunk_cb_wrapper(self,
+                           handle: VmbHandle,
+                           _: ctypes.c_void_p,
+                           user_callback: ChunkCallback) -> VmbError:
+        """Internal helper Function for chunk access
+
+        Arguments:
+            handle: VmbHandle that can be used to access Features via VmbC. Adding it to a
+                    `FeatureContainer` and attaching features will grant access as expected.
+            _: A void pointer used in the C-API to allow users to pass context. Not used in VmbPy
+            user_callback: The user provided function that should be called to access chunk features
+
+        Returns:
+            VmbError code that is interpreted by VmbC to check, if the chunk callback executed
+            successfully. On successful execution this returns VmbError.Success. If an exception
+            occurred in the user supplied callback, a VmbError.Custom is returned. If an error code
+            other than Success is returned here, this will in turn raise an Exception in
+            `Frame.access_chunk_data`. Exceptions raised by the user in their user_callback are
+            stored and re-raised by `Frame.access_chunk_data`
+        """
+        feats = FeatureContainer()
+        feats._handle = handle
+        try:
+            feats._attach_feature_accessors()
+            user_callback(feats)
+        except Exception as e:
+            msg = 'Caught Exception in chunk access function: '
+            msg += 'Type: {}, '.format(type(e))
+            msg += 'Value: {}, '.format(e)
+            msg += 'raised by: {}'.format(user_callback)
+            Log.get_instance().error(msg)
+            # Store exception so it is accessible in `Frame.access_chunk_data`
+            self.__chunk_cb_exception = e
+            return VmbError.Custom
+        finally:
+            feats._remove_feature_accessors()
+
+        return VmbError.Success
+
     @RuntimeTypeCheckEnable()
     def convert_pixel_format(self, target_fmt: PixelFormat,
                              debayer_mode: Optional[Debayer] = None) -> 'Frame':
         """Return a converted version of the frame in the given format.
 
         This method always returns a new frame object and leaves the original instance unchanged.
+        The returned frame object does not include the chunk data associated with the original
+        instance.
 
         Note: This method allocates a new buffer for the returned image data leading to some runtime
         overhead. For performance reasons, it might be better to set the value of the camera's
@@ -591,9 +504,7 @@ class Frame:
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
-        anc_size = self._frame.ancillarySize
-
-        output_frame = Frame(buffer_size=img_size + anc_size,
+        output_frame = Frame(buffer_size=img_size,
                              allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
         c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
@@ -608,18 +519,18 @@ class Frame:
         call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
                                  byref(transform_info), 1)
 
-        # 7) Copy ancillary data if existing
-        if anc_size:
-            src = ctypes.addressof(self._buffer) + self._frame.imageSize
-            dst = ctypes.addressof(output_frame._buffer) + img_size
-
-            ctypes.memmove(dst, src, anc_size)
-
-        # 8) Update frame metadata that changed due to transformation
+        # 7) Update frame metadata that changed due to transformation and buffer pointers that are
+        #    not yet set correctly
         output_frame._frame.buffer = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
         output_frame._frame.bufferSize = sizeof(output_frame._buffer)
         output_frame._frame.imageSize = img_size
         output_frame._frame.pixelFormat = target_fmt
+
+        # calculate offset of original imageData pointer into original buffer
+        image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)   # noqa: E501
+        # set new imageData pointer to same offset into new buffer
+        output_frame._frame.imageData = ctypes.cast(ctypes.byref(output_frame._buffer, image_data_offset),      # noqa: E501
+                                                    ctypes.POINTER(VmbUint8))
 
         return output_frame
 

@@ -81,7 +81,6 @@ __all__ = [
     'VMB_C_VERSION',
     'EXPECTED_VMB_C_VERSION',
     'call_vmb_c',
-    'build_callback_type',
 
     # Exports from vmb_image_transform
     'VmbImage',
@@ -119,8 +118,7 @@ from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
                    VmbFrameFlags, VmbVersionInfo, VmbTransportLayerInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
-                   G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vmb_c, \
-                   build_callback_type
+                   G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vmb_c
 
 from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
                                  VMB_IMAGE_TRANSFORM_VERSION, \

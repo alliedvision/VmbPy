@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2019, Allied Vision Technologies GmbH
+Copyright (c) 2022, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -31,15 +31,15 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('//////////////////////////////////////////////////')
-    print('/// VmbPy List Ancillary Data Features Example ///')
-    print('//////////////////////////////////////////////////\n')
+    print('//////////////////////////////////////')
+    print('/// VmbPy Print Chunk Data Example ///')
+    print('//////////////////////////////////////\n')
 
 
 def print_usage():
     print('Usage:')
-    print('    python list_ancillary_data.py [camera_id]')
-    print('    python list_ancillary_data.py [/h] [-h]')
+    print('    python list_chunk_data.py [camera_id]')
+    print('    python list_chunk_data.py [/h] [-h]')
     print()
     print('Parameters:')
     print('    camera_id   ID of the camera to use (using first camera if not specified)')
@@ -64,10 +64,26 @@ def parse_args() -> Optional[str]:
             print_usage()
             sys.exit(0)
 
-    if len(args) > 1:
+    if argc > 1:
         abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
 
-    return args[0] if argc == 1 else None
+    return None if argc == 0 else args[0]
+
+
+def print_feature(feature):
+    try:
+        value = feature.get()
+
+    except (AttributeError, VmbFeatureError):
+        value = None
+
+    print('/// Feature name   : {}'.format(feature.get_name()))
+    print('/// Display name   : {}'.format(feature.get_display_name()))
+    print('/// Tooltip        : {}'.format(feature.get_tooltip()))
+    print('/// Description    : {}'.format(feature.get_description()))
+    print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
+    print('/// Unit           : {}'.format(feature.get_unit()))
+    print('/// Value          : {}\n'.format(str(value)))
 
 
 def get_camera(camera_id: Optional[str]) -> Camera:
@@ -99,12 +115,23 @@ def setup_camera(cam: Camera):
         except (AttributeError, VmbFeatureError):
             pass
 
-        # Try to enable ChunkMode
         try:
             cam.ChunkModeActive.set(True)
-
         except (AttributeError, VmbFeatureError):
-            abort('Failed to enable ChunkMode on Camera \'{}\'. Abort.'.format(cam.get_id()))
+            abort('Failed to enable Chunk Mode for camera \'{}\'. Abort.'.format(cam.get_id()))
+
+
+class FrameHandler:
+    def frame_callback(self, cam: Camera, stream: Stream, frame: Frame):
+        print('{} acquired {}'.format(cam, frame), flush=True)
+        frame.access_chunk_data(self.chunk_callback)
+        cam.queue_frame(frame)
+
+    def chunk_callback(self, features: FeatureContainer):
+        # Print all chunk specific features for this example. More features are available (e.g. via
+        # features.get_all_features())
+        for feat in features.get_features_by_category("/ChunkDataControl"):
+            print_feature(feat)
 
 
 def main():
@@ -113,26 +140,18 @@ def main():
 
     with VmbSystem.get_instance():
         with get_camera(cam_id) as cam:
+
             setup_camera(cam)
+            print('Press <enter> to stop Frame acquisition.')
 
-            # Capture single Frame and print all contained ancillary data
-            frame = cam.get_frame()
-            anc_data = frame.get_ancillary_data()
-            if anc_data:
-                with anc_data:
-                    print('Print ancillary data contained in Frame:')
+            try:
+                # Start Streaming
+                handler = FrameHandler()
+                cam.start_streaming(handler=handler.frame_callback, buffer_count=10)
+                input()
 
-                    for feat in anc_data.get_all_features():
-                        print('Feature Name   : {}'.format(feat.get_name()))
-                        print('Display Name   : {}'.format(feat.get_display_name()))
-                        print('Tooltip        : {}'.format(feat.get_tooltip()))
-                        print('Description    : {}'.format(feat.get_description()))
-                        print('SFNC Namespace : {}'.format(feat.get_sfnc_namespace()))
-                        print('Value          : {}'.format(feat.get()))
-                        print()
-
-            else:
-                abort('Frame {} does not contain AncillaryData. Abort'.format(frame.get_id()))
+            finally:
+                cam.stop_streaming()
 
 
 if __name__ == '__main__':
