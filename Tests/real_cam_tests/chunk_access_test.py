@@ -210,3 +210,23 @@ class ChunkAccessTest(VmbPyTestCase):
                         'The expected Exception was never raised by `access_chunk_data`')
         self.assertTrue(handler.later_access_worked,
                         'Access to the chunk data in later calls did not work')
+
+    def test_chunk_runtime_type_check(self):
+        # Expectation: A chunk callback function with incorrect number of parameters causes a
+        # TypeError to be raised
+        def valid_handler(feats):
+            pass
+
+        def invalid_handler1():
+            pass
+
+        def invalid_handler2(feats, foo):
+            pass
+
+        # Create a dummy Frame instance to call `access_chunk_data` on
+        f = Frame(buffer_size=10, allocation_mode=AllocationMode.AnnounceFrame)
+        self.assertRaises(TypeError, f.access_chunk_data, invalid_handler1)
+        self.assertRaises(TypeError, f.access_chunk_data, invalid_handler2)
+        # Even for a valid handler an error is raised. This is because the dummy frame is not
+        # announced to VmbC. But it did pass the type check!
+        self.assertRaises(VmbChunkError, f.access_chunk_data, valid_handler)
