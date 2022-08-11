@@ -323,16 +323,10 @@ else:
 # check of flake8
 _SIGNATURES = {
     'VmbGetImageTransformVersion': (VmbError, [c_ptr(VmbUint32)]),
-    'VmbGetErrorInfo': (VmbError, [VmbError, c_char_p, VmbUint32]),
-    'VmbGetApiInfoString': (VmbError, [VmbAPIInfo, c_char_p, VmbUint32]),
     'VmbSetDebayerMode': (VmbError, [VmbDebayerMode, c_ptr(VmbTransformInfo)]),
-    'VmbSetColorCorrectionMatrix3x3': (VmbError, [c_ptr(VmbFloat), c_ptr(VmbTransformInfo)]),
-    'VmbSetGammaCorrection': (VmbError, [VmbFloat, c_ptr(VmbTransformInfo)]),
-    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),                                 # noqa: E501
-    'VmbSetImageInfoFromString': (VmbError, [c_char_p, VmbUint32, VmbUint32, VmbUint32, c_ptr(VmbImage)]),                                 # noqa: E501
-    'VmbSetImageInfoFromInputParameters': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),  # noqa: E501
-    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),                            # noqa: E501
-    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32])                                # noqa: E501
+    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),       # noqa: E501
+    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),  # noqa: E501
+    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32])      # noqa: E501
 }
 
 
@@ -394,14 +388,8 @@ def call_vmb_image_transform(func_name: str, *args):
     The following functions of VmbImageTransform can be executed:
         VmbGetImageTransformVersion
         VmbGetTechnoInfo
-        VmbGetErrorInfo
-        VmbGetApiInfoString
         VmbSetDebayerMode
-        VmbSetColorCorrectionMatrix3x3
-        VmbSetGammaCorrection
         VmbSetImageInfoFromPixelFormat
-        VmbSetImageInfoFromString
-        VmbSetImageInfoFromInputParameters
         VmbSetImageInfoFromInputImage
         VmbImageTransform
     """
