@@ -34,7 +34,8 @@ from ..util import TraceEnable
 from ..error import VmbSystemError
 from .vmb_common import Uint32Enum, Int32Enum, VmbUint8, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
                         VmbHandle, VmbBool, VmbDouble, VmbFilePathChar, VmbError, VmbCError, \
-                        VmbPixelFormat, fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib
+                        VmbPixelFormat, fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib, \
+                        Uint32Flag
 
 __version__ = None
 
@@ -44,6 +45,7 @@ __all__ = [
     'VmbAccessMode',
     'VmbFeatureData',
     'VmbFeaturePersist',
+    'VmbModulePersistFlags',
     'VmbFeatureVisibility',
     'VmbFeatureFlags',
     'VmbFrameStatus',
@@ -168,7 +170,7 @@ class VmbFeaturePersist(Uint32Enum):
         return self._name_
 
 
-class VmbModulePersistFlags(Uint32Enum):
+class VmbModulePersistFlags(Uint32Flag):
     """
     Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad
 
@@ -764,8 +766,8 @@ _SIGNATURES = {
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
     'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
-    'VmbSettingsSave': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
-    'VmbSettingsLoad': (VmbError, [VmbHandle, c_str, c_ptr(VmbFeaturePersistSettings), VmbUint32]),
+    'VmbSettingsSave': (VmbError, [VmbHandle, c_ptr(VmbFilePathChar), c_ptr(VmbFeaturePersistSettings), VmbUint32]),
+    'VmbSettingsLoad': (VmbError, [VmbHandle, c_ptr(VmbFilePathChar), c_ptr(VmbFeaturePersistSettings), VmbUint32]),
     'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), CHUNK_CALLBACK_TYPE, c_void_p])
 }
 

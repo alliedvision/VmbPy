@@ -32,8 +32,7 @@ import os
 from typing import Tuple, List, Callable, Optional, TYPE_CHECKING
 
 from .c_binding import call_vmb_c, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError, PersistType, \
-                       VmbFeaturePersistSettings, VmbFeaturePersist
+from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError
 from .featurecontainer import PersistableFeatureContainer
 from .shared import read_memory, write_memory
 from .frame import FormatTuple, PixelFormat, Frame, AllocationMode
@@ -49,7 +48,6 @@ if TYPE_CHECKING:
 
 __all__ = [
     'AccessMode',
-    'PersistType',
     'Camera',
     'CameraEvent',
     'CamerasTuple',

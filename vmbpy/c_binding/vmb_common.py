@@ -76,6 +76,12 @@ class Uint32Enum(enum.IntEnum):
         return ctypes.c_uint(obj)
 
 
+class Uint32Flag(enum.IntFlag):
+    @classmethod
+    def from_param(cls, obj):
+        return ctypes.c_uint(obj)
+
+
 # Aliases for vmb base types
 VmbInt8 = ctypes.c_byte
 VmbUint8 = ctypes.c_ubyte

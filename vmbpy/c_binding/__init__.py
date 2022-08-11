@@ -65,6 +65,7 @@ __all__ = [
     'VmbAccessMode',
     'VmbFeatureData',
     'VmbFeaturePersist',
+    'VmbModulePersistFlags',
     'VmbFeatureVisibility',
     'VmbFeatureFlags',
     'VmbFrameStatus',
@@ -101,6 +102,7 @@ __all__ = [
     'FeatureVisibility',
     'FrameStatus',
     'PersistType',
+    'ModulePersistFlags',
     'PixelFormat',
     'TransportLayerType',
 
@@ -114,7 +116,7 @@ from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUin
                         VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
                         VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home
 
-from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, \
+from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, VmbModulePersistFlags, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
                    VmbFrameFlags, VmbVersionInfo, VmbTransportLayerInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
                    VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
@@ -127,7 +129,7 @@ from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
                                  LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILITY_MAP
 
 from .wrapped_types import AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus, \
-                           PersistType, PixelFormat, TransportLayerType
+                           PersistType, ModulePersistFlags, PixelFormat, TransportLayerType
 
 
 from ctypes import byref, sizeof, create_string_buffer

@@ -110,7 +110,7 @@ __all__ = [
 # Import everything exported from the top level module
 from .vmbsystem import VmbSystem
 
-from .camera import AccessMode, PersistType, Camera, CameraChangeHandler, CameraEvent
+from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent
 
 from .stream import Stream, FrameHandler
 
@@ -131,7 +131,7 @@ from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbIn
 from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
                      CommandFeature, RawFeature, FeatureTypes
 
-from .featurecontainer import FeatureContainer
+from .featurecontainer import FeatureContainer, PersistType, ModulePersistFlags
 
 from .util import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \
                   LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_INFO_CONSOLE_ONLY, \
