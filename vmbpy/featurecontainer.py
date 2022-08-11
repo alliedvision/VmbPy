@@ -159,7 +159,6 @@ class PersistableFeatureContainer(FeatureContainer):
                         file must be a file ending with ".xml".
             persist_setting - Parameter specifying which setting types to load.
             max_iterations - Number of iterations when loading settings.
-            # TODO: other parameters
 
         Raises:
             TypeError if parameters do not match their type hint.
@@ -199,7 +198,6 @@ class PersistableFeatureContainer(FeatureContainer):
             persist_type - Parameter specifying which setting types to store.
             persist_flags - Flags specifying the modules to store.
             max_iterations - Number of iterations when storing settings.
-            # TODO: other parameters
 
         Raises:
             TypeError if parameters do not match their type hint.
