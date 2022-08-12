@@ -80,6 +80,12 @@ class RankVimbaXHomeCandidatesTest(VmbPyTestCase):
         expected = '/opt/VimbaX_2022-1'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
+    def test_vimbax_and_vimba_installation(self):
+        candidates = ['/opt/Vimba_4_0',  # Installation of Allied Vision Vimba
+                      '/opt/VimbaX_2022-1']   # Installation of VimbaX. This should be selected
+        expected = '/opt/VimbaX_2022-1'
+        self.assertEqual(expected, _select_vimbax_home(candidates))
+
     def test_multiple_vimbax_home_directories(self):
         # If multiple VIMBAX_HOME directories are found an error should be raised
         candidates = ['/some/random/path',
