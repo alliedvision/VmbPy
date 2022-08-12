@@ -56,3 +56,5 @@ class LocalDevice(PersistableFeatureContainer):
     get_features_by_type = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
     get_features_by_category = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_category)  # noqa: E501
     get_feature_by_name = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_feature_by_name)            # noqa: E501
+    load_settings = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.load_settings)
+    save_settings = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.save_settings)

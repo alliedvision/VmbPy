@@ -505,3 +505,5 @@ class Camera(PersistableFeatureContainer):
     get_features_by_type = RaiseIfOutsideContext()(PersistableFeatureContainer.get_features_by_type)           # noqa: E501
     get_features_by_category = RaiseIfOutsideContext()(PersistableFeatureContainer.get_features_by_category)   # noqa: E501
     get_feature_by_name = RaiseIfOutsideContext()(PersistableFeatureContainer.get_feature_by_name)             # noqa: E501
+    load_settings = RaiseIfOutsideContext()(PersistableFeatureContainer.load_settings)
+    save_settings = RaiseIfOutsideContext()(PersistableFeatureContainer.save_settings)

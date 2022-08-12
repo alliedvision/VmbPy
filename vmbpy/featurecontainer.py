@@ -145,7 +145,6 @@ class FeatureContainer:
 class PersistableFeatureContainer(FeatureContainer):
     """Inheriting from this class adds load/save settings methods to the subclass
     """
-    # TODO: RaiseIfOutsideScope Decorator!!! better handled in inheriting classes?
     @RuntimeTypeCheckEnable()
     def load_settings(self,
                       file_path: str,
@@ -184,7 +183,6 @@ class PersistableFeatureContainer(FeatureContainer):
         call_vmb_c('VmbSettingsLoad', self._handle, _as_vmb_file_path(file_path), byref(settings),
                    sizeof(settings))
 
-    # TODO: RaiseIfOutsideScope Decorator!!! better handled in inheriting classes?
     @RuntimeTypeCheckEnable()
     def save_settings(self,
                       file_path: str,

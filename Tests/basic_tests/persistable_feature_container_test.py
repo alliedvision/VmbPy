@@ -129,3 +129,45 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
             self.assertNoRaise(tl.load_settings, path, PersistType.All)
             os.remove(path)
+
+    def test_load_settings_api_context_sensitivity_inside_context(self):
+        # Expectation: Calling load_settings outside of VmbSystem context raises a RuntimeError and
+        # the error message references the VmbSystem context
+
+        tl = self.vmb.get_all_transport_layers()[0]
+        inter = self.vmb.get_all_interfaces()[0]
+
+        # Manually manage VmbSystem context for this test
+        self.vmb._shutdown()
+
+        # Make sure that the error message for these classes references their parent scope
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of VmbSystem.* scope',
+                               tl.load_settings)
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of VmbSystem.* scope',
+                               inter.load_settings)
+
+        # Start VmbSystem again so tearDown method works as expected
+        self.vmb._startup()
+
+    def test_save_settings_api_context_sensitivity_inside_context(self):
+        # Expectation: Calling save_settings outside of VmbSystem context raises a RuntimeError and
+        # the error message references the VmbSystem context
+
+        tl = self.vmb.get_all_transport_layers()[0]
+        inter = self.vmb.get_all_interfaces()[0]
+
+        # Manually manage VmbSystem context for this test
+        self.vmb._shutdown()
+
+        # Make sure that the error message for these classes references their parent scope
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of VmbSystem.* scope',
+                               tl.save_settings)
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of VmbSystem.* scope',
+                               inter.save_settings)
+
+        # Start VmbSystem again so tearDown method works as expected
+        self.vmb._startup()

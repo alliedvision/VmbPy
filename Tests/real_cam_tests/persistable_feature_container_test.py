@@ -151,3 +151,39 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
                     self.assertNoRaise(self.cam.save_settings, fname, persist_flags=a | b)
                     self.assertTrue(os.path.isfile(fname))
                     os.remove(fname)
+
+    def test_load_settings_api_context_sensitivity_inside_context(self):
+        # Expectation: Calling load_settings outside of VmbSystem context raises a RuntimeError and
+        # the error message references the appropriate context
+
+        with self.cam:
+            stream = self.cam.get_streams()[0]
+            local_device = self.cam.get_local_device()
+
+        self.assertRaises(RuntimeError, self.cam.load_settings)
+
+        # Make sure that the error message for these classes references their parent scope
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.load_settings)
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.load_settings)
+
+    def test_save_settings_api_context_sensitivity_inside_context(self):
+        # Expectation: Calling save_settings outside of VmbSystem context raises a RuntimeError and
+        # the error message references the appropriate context
+
+        with self.cam:
+            stream = self.cam.get_streams()[0]
+            local_device = self.cam.get_local_device()
+
+        self.assertRaises(RuntimeError, self.cam.save_settings)
+
+        # Make sure that the error message for these classes references their parent scope
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               stream.save_settings)
+        self.assertRaisesRegex(RuntimeError,
+                               'outside of Camera.* scope',
+                               local_device.save_settings)
