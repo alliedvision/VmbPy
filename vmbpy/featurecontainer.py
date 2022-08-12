@@ -4,7 +4,7 @@ import sys
 from typing import Optional
 
 from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, VmbFeaturePersist, \
-                       ModulePersistFlags, VmbModulePersistFlags
+                       ModulePersistFlags, VmbModulePersistFlags, _as_vmb_file_path
 from .error import VmbFeatureError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
@@ -176,12 +176,8 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.persistFlag = persist_flags
         settings.maxIterations = max_iterations
         # TODO: also expose log level to user?
-        if sys.platform == 'win32':
-            _file_path = file_path
-        else:
-            _file_path = file_path.encode('utf-8')
 
-        call_vmb_c('VmbSettingsLoad', self._handle, _file_path, byref(settings),
+        call_vmb_c('VmbSettingsLoad', self._handle, _as_vmb_file_path(file_path), byref(settings),
                    sizeof(settings))
 
     # TODO: RaiseIfOutsideScope Decorator!!! better handled in inheriting classes?
@@ -211,10 +207,6 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.persistType = persist_type
         settings.persistFlag = persist_flags
         settings.maxIterations = max_iterations
-        if sys.platform == 'win32':
-            _file_path = file_path
-        else:
-            _file_path = file_path.encode('utf-8')
 
-        call_vmb_c('VmbSettingsSave', self._handle, _file_path, byref(settings),
+        call_vmb_c('VmbSettingsSave', self._handle, _as_vmb_file_path(file_path), byref(settings),
                    sizeof(settings))

@@ -96,6 +96,7 @@ VmbBool = ctypes.c_bool
 VmbUchar = ctypes.c_char
 VmbFloat = ctypes.c_float
 VmbDouble = ctypes.c_double
+# hint: use _as_vmb_file_path to convert a python string to VmbFilePathChar for use with VmbC
 if sys.platform == 'win32':
     VmbFilePathChar = ctypes.c_wchar
 else:
@@ -655,6 +656,27 @@ def _select_vimbax_home(candidates: List[str]) -> str:
                              '{}'.format(most_likely_candidates))
 
     return most_likely_candidates[0]
+
+
+def _as_vmb_file_path(file_path: str) -> VmbFilePathChar:
+    """
+    Encode a python string to VmbFilePathChar so it can be passed to VmbC
+
+    Parses a python string object into the appropriate VmbFilePathChar type depending on the used
+    operating system. The result of this function may be used to pass the correct encoding of some
+    path variable to VmbC functions that expect a VmbFilePathChar input parameter.
+
+    Arguments:
+        file_path - Python string containing the file path that should be passed to a VmbC function
+
+    Return:
+        Given string with correct encoding so that ctypes handles the conversion when passed to a
+        VmbC function
+    """
+    if sys.platform == 'win32':
+        return file_path
+    else:
+        return file_path.encode('utf-8')
 
 
 def _is_python_64_bit() -> bool:

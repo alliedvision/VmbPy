@@ -114,7 +114,8 @@ __all__ = [
 
 from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUint32, \
                         VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
-                        VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home
+                        VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home, \
+                        _as_vmb_file_path
 
 from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, VmbModulePersistFlags, \
                    VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \

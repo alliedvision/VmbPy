@@ -31,7 +31,8 @@ from ctypes import byref, sizeof
 from typing import List, Optional
 
 from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
-                       G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbError, VmbHandle
+                       G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbError, VmbHandle, \
+                       _as_vmb_file_path
 from .featurecontainer import FeatureContainer
 from .shared import read_memory, write_memory
 from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
@@ -442,15 +443,8 @@ class VmbSystem:
         def _startup(self):
             Log.get_instance().info('Starting {}'.format(self.get_version()))
 
-            path_configuration = None
-            if self.__path_configuration:
-                if sys.platform == 'win32':
-                    path_configuration = self.__path_configuration
-                else:
-                    path_configuration = self.__path_configuration.encode('utf-8')
-
             try:
-                call_vmb_c('VmbStartup', path_configuration)
+                call_vmb_c('VmbStartup', _as_vmb_file_path(self.__path_configuration))
             except VmbCError as e:
                 err = e.get_error_code()
                 if err in (VmbError.NoTL, VmbError.TLNotFound):
