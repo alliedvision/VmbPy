@@ -441,28 +441,6 @@ class CamCameraTest(VmbPyTestCase):
             finally:
                 self.cam.stop_streaming()
 
-    def test_camera_save_load_settings(self):
-        # Expectation: After settings export a settings change must be reverted by loading a
-        # Previously saved configuration.
-
-        file_name = 'test_save_load_settings.xml'
-
-        with self.cam:
-            feat_height = self.cam.get_feature_by_name('Height')
-            old_val = feat_height.get()
-
-            self.cam.save_settings(file_name, PersistType.All)
-
-            min_, max_ = feat_height.get_range()
-            inc = feat_height.get_increment()
-
-            feat_height.set(max_ - min_ - inc)
-
-            self.cam.load_settings(file_name, PersistType.All)
-            os.remove(file_name)
-
-            self.assertEqual(old_val, feat_height.get())
-
     def test_camera_context_manager_reentrancy(self):
         # Expectation: Camera Context Manager must be reentrant. Multiple calls to _open
         # must be prevented (would cause VimbaC - Error)
