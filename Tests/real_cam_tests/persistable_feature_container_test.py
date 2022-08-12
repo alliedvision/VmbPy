@@ -61,7 +61,8 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
             # Save initial state of all features
             old_val = feat_height.get()
-            self.cam.save_settings(fname)
+            self.assertNoRaise(self.cam.save_settings, fname)
+            self.assertTrue(os.path.isfile(fname))
 
             # Modify one of the features
             min_, max_ = feat_height.get_range()
@@ -70,7 +71,7 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
             # Load saved state from xml file. This should write the old value back to the modified
             # feature
-            self.cam.load_settings(fname)
+            self.assertNoRaise(self.cam.load_settings, fname)
             os.remove(fname)
 
             self.assertEqual(old_val, feat_height.get())
@@ -81,12 +82,13 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
             for stream in self.cam.get_streams():
                 with self.subTest(f'stream={str(stream)}'):
                     fname = 'stream.xml'
-                    stream.save_settings(fname)
+                    self.assertNoRaise(stream.save_settings, fname)
+                    self.assertTrue(os.path.isfile(fname))
                     # Room for improvement: Unfortunately there is no generic writeable feature that
                     # every stream supports that we can modify here to check that loading the
                     # settings resets the feature to the original value. So we just load again and
                     # if no errors occur assume the test to be passed.
-                    stream.load_settings(fname)
+                    self.assertNoRaise(stream.load_settings, fname)
 
                     os.remove(fname)
 
@@ -95,11 +97,57 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
         with self.cam:
             local_device = self.cam.get_local_device()
             fname = 'local_device.xml'
-            local_device.save_settings(fname)
+            self.assertNoRaise(local_device.save_settings, fname)
+            self.assertTrue(os.path.isfile(fname))
             # Room for improvement: Unfortunately there is no generic writeable feature that every
             # local device supports that we can modify here to check that loading the settings
             # resets the feature to the original value. So we just load again and if no errors occur
             # assume the test to be passed.
-            local_device.load_settings(fname)
+            self.assertNoRaise(local_device.load_settings, fname)
 
             os.remove(fname)
+
+    def test_persist_types(self):
+        # Expectation: All possible persist_types are accepted
+        # Note: The content of the XML is not checked!
+        # Room for improvement: Check that the content of the xml file actually corresponds with
+        # what is expected for each persist type
+        with self.cam:
+            fname = 'camera.xml'
+            for t in PersistType:
+                with self.subTest(f'persist_type={str(t)}'):
+                    self.assertNoRaise(self.cam.save_settings, fname, persist_type=t)
+                    self.assertTrue(os.path.isfile(fname))
+                    os.remove(fname)
+
+    def test_persist_flags(self):
+        # Expectation: All possible persist_flags are accepted
+        # Note: The content of the XML is not checked!
+        # Room for improvement: Check that the content of the xml file actually corresponds with
+        # what is expected for each persist flag
+        with self.cam:
+            fname = 'camera.xml'
+            for f in ModulePersistFlags:
+                with self.subTest(f'persist_flags={str(f)}'):
+                    self.assertNoRaise(self.cam.save_settings, fname, persist_flags=f)
+                    self.assertTrue(os.path.isfile(fname))
+                    os.remove(fname)
+
+    def test_persist_flags_combinations(self):
+        # Expectation: persist_flags can be combined via logical or
+        # Note: The content of the XML is not checked!
+        # Room for improvement: Check that the content of the xml file actually corresponds with
+        # what is expected for each persist flag
+        with self.cam:
+            fname = 'camera.xml'
+            # test some combinations below. Testing all combinations of two flag variables takes
+            # very long but can be implemented via this generator:
+            # `itertools.product(vmbpy.ModulePersistFlags, repeat=2)`
+            for a, b in ((ModulePersistFlags.None_, ModulePersistFlags.RemoteDevice),
+                         (ModulePersistFlags.RemoteDevice, ModulePersistFlags.Interface),
+                         (ModulePersistFlags.RemoteDevice, ModulePersistFlags.TransportLayer),
+                         (ModulePersistFlags.Interface, ModulePersistFlags.TransportLayer)):
+                with self.subTest(f'persist_flags={str(a)} | {str(b)}'):
+                    self.assertNoRaise(self.cam.save_settings, fname, persist_flags=a | b)
+                    self.assertTrue(os.path.isfile(fname))
+                    os.remove(fname)
