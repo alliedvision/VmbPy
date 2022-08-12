@@ -97,10 +97,13 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
         # Expectation: Valid files end with .xml and can be either a absolute path or relative
         # path to the given File. Everything else is a ValueError.
 
+        # create a temporary directory to test relative paths with subdirs
+        tmpdir = '__vmbpy_tmp_dir'
+        os.mkdir(tmpdir)
         valid_paths = (
             'valid1.xml',
             os.path.join('.', 'valid2.xml'),
-            os.path.join('Tests', 'valid3.xml'),
+            os.path.join(tmpdir, 'valid3.xml'),
             os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4.xml'),
         )
         tl = self.vmb.get_all_transport_layers()[0]
@@ -109,13 +112,18 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
         for path in valid_paths:
             self.assertNoRaise(tl.save_settings, path)
             os.remove(path)
+        os.rmdir(tmpdir)
 
     def test_load_settings_verify_path(self):
         # Expectation: Valid files end with .xml and must exist before before any execution.
+
+        # create a temporary directory to test relative paths with subdirs
+        tmpdir = '__vmbpy_tmp_dir'
+        os.mkdir(tmpdir)
         valid_paths = (
             'valid1.xml',
             os.path.join('.', 'valid2.xml'),
-            os.path.join('Tests', 'valid3.xml'),
+            os.path.join(tmpdir, 'valid3.xml'),
             os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4.xml'),
         )
         tl = self.vmb.get_all_transport_layers()[0]
@@ -129,6 +137,7 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
             self.assertNoRaise(tl.load_settings, path, PersistType.All)
             os.remove(path)
+        os.rmdir(tmpdir)
 
     def test_load_settings_api_context_sensitivity_inside_context(self):
         # Expectation: Calling load_settings outside of VmbSystem context raises a RuntimeError and
