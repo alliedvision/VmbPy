@@ -463,45 +463,6 @@ class CamCameraTest(VmbPyTestCase):
 
             self.assertEqual(old_val, feat_height.get())
 
-    def test_camera_save_settings_verify_path(self):
-        # Expectation: Valid files end with .xml and can be either a absolute path or relative
-        # path to the given File. Everything else is a ValueError.
-
-        valid_paths = (
-            'valid1.xml',
-            os.path.join('.', 'valid2.xml'),
-            os.path.join('Tests', 'valid3.xml'),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4.xml'),
-        )
-
-        with self.cam:
-            self.assertRaises(ValueError, self.cam.save_settings, 'inval.xm', PersistType.All)
-
-            for path in valid_paths:
-                self.assertNoRaise(self.cam.save_settings, path, PersistType.All)
-                os.remove(path)
-
-    def test_camera_load_settings_verify_path(self):
-        # Expectation: Valid files end with .xml and must exist before before any execution.
-        valid_paths = (
-            'valid1.xml',
-            os.path.join('.', 'valid2.xml'),
-            os.path.join('Tests', 'valid3.xml'),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4.xml'),
-        )
-
-        with self.cam:
-            self.assertRaises(ValueError, self.cam.load_settings, 'inval.xm', PersistType.All)
-
-            for path in valid_paths:
-                self.assertRaises(ValueError, self.cam.load_settings, path, PersistType.All)
-
-            for path in valid_paths:
-                self.cam.save_settings(path, PersistType.All)
-
-                self.assertNoRaise(self.cam.load_settings, path, PersistType.All)
-                os.remove(path)
-
     def test_camera_context_manager_reentrancy(self):
         # Expectation: Camera Context Manager must be reentrant. Multiple calls to _open
         # must be prevented (would cause VimbaC - Error)
