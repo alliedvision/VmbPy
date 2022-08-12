@@ -157,8 +157,13 @@ class PersistableFeatureContainer(FeatureContainer):
         Arguments:
             file_path - The location for loading current settings. The given
                         file must be a file ending with ".xml".
-            persist_setting - Parameter specifying which setting types to load.
-            max_iterations - Number of iterations when loading settings.
+            persist_type - Parameter specifying which setting types to store. For an overview of the
+                           possible values and their implication see the docstring of the
+                           PersistType enum
+            persist_flags - Flags specifying the modules to store. By default only features of the
+                            calling module itself are persisted. For an overview of available flags
+                            see the docstring of the ModulePersistFlags type
+            max_iterations - Number of iterations when storing settings.
 
         Raises:
             TypeError if parameters do not match their type hint.
@@ -191,8 +196,12 @@ class PersistableFeatureContainer(FeatureContainer):
         Arguments:
             file_path - The location for storing the current settings. The given
                         file must be a file ending with ".xml".
-            persist_type - Parameter specifying which setting types to store.
-            persist_flags - Flags specifying the modules to store.
+            persist_type - Parameter specifying which setting types to store. For an overview of the
+                           possible values and their implication see the docstring of the
+                           PersistType enum
+            persist_flags - Flags specifying the modules to store. By default only features of the
+                            calling module itself are persisted. For an overview of available flags
+                            see the docstring of the ModulePersistFlags type
             max_iterations - Number of iterations when storing settings.
 
         Raises:
