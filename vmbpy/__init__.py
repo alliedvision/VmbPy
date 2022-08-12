@@ -39,6 +39,7 @@ __all__ = [
     'CameraEvent',
     'AccessMode',
     'PersistType',
+    'ModulePersistFlags',
     'Interface',
     'TransportLayer',
     'TransportLayerType',
