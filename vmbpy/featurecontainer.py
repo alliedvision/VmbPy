@@ -207,6 +207,7 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.persistType = persist_type
         settings.persistFlag = persist_flags
         settings.maxIterations = max_iterations
+        # TODO: also expose log level to user?
 
         call_vmb_c('VmbSettingsSave', self._handle, _as_vmb_file_path(file_path), byref(settings),
                    sizeof(settings))
