@@ -322,17 +322,11 @@ else:
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
 # check of flake8
 _SIGNATURES = {
-    'VmbGetVersion': (VmbError, [c_ptr(VmbUint32)]),
-    'VmbGetErrorInfo': (VmbError, [VmbError, c_char_p, VmbUint32]),
-    'VmbGetApiInfoString': (VmbError, [VmbAPIInfo, c_char_p, VmbUint32]),
+    'VmbGetImageTransformVersion': (VmbError, [c_ptr(VmbUint32)]),
     'VmbSetDebayerMode': (VmbError, [VmbDebayerMode, c_ptr(VmbTransformInfo)]),
-    'VmbSetColorCorrectionMatrix3x3': (VmbError, [c_ptr(VmbFloat), c_ptr(VmbTransformInfo)]),
-    'VmbSetGammaCorrection': (VmbError, [VmbFloat, c_ptr(VmbTransformInfo)]),
-    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),                                 # noqa: E501
-    'VmbSetImageInfoFromString': (VmbError, [c_char_p, VmbUint32, VmbUint32, VmbUint32, c_ptr(VmbImage)]),                                 # noqa: E501
-    'VmbSetImageInfoFromInputParameters': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),  # noqa: E501
-    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),                            # noqa: E501
-    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32])                                # noqa: E501
+    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),       # noqa: E501
+    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),  # noqa: E501
+    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32])      # noqa: E501
 }
 
 
@@ -352,7 +346,7 @@ def _check_version(lib_handle):
     global VMB_IMAGE_TRANSFORM_VERSION
 
     v = VmbUint32()
-    lib_handle.VmbGetVersion(byref(v))
+    lib_handle.VmbGetImageTransformVersion(byref(v))
 
     VMB_IMAGE_TRANSFORM_VERSION = '{}.{}'.format((v.value >> 24) & 0xff, (v.value >> 16) & 0xff)
 
@@ -392,16 +386,10 @@ def call_vmb_image_transform(func_name: str, *args):
         VmbCError if the function call is valid but neither None or VmbError.Success was returned.
 
     The following functions of VmbImageTransform can be executed:
-        VmbGetVersion
+        VmbGetImageTransformVersion
         VmbGetTechnoInfo
-        VmbGetErrorInfo
-        VmbGetApiInfoString
         VmbSetDebayerMode
-        VmbSetColorCorrectionMatrix3x3
-        VmbSetGammaCorrection
         VmbSetImageInfoFromPixelFormat
-        VmbSetImageInfoFromString
-        VmbSetImageInfoFromInputParameters
         VmbSetImageInfoFromInputImage
         VmbImageTransform
     """
