@@ -182,7 +182,8 @@ class PersistableFeatureContainer(FeatureContainer):
 
     # TODO: RaiseIfOutsideScope Decorator!!! better handled in inheriting classes?
     @RuntimeTypeCheckEnable()
-    def save_settings(self, file_path: str,
+    def save_settings(self,
+                      file_path: str,
                       persist_type: PersistType = PersistType.All,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 0):
