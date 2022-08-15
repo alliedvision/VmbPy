@@ -68,7 +68,7 @@ __all__ = [
 G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
 
 VMB_C_VERSION = None
-EXPECTED_VMB_C_VERSION = '0.1.0'
+EXPECTED_VMB_C_VERSION = '1.0.0'
 
 _lib_instance = load_vimbax_lib('VmbC')
 

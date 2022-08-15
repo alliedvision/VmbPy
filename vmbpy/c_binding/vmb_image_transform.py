@@ -316,7 +316,7 @@ if sys.platform == 'linux':
     EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.0'
 
 else:
-    EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '1.7'
+    EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '2.0'
 
 # For detailed information on the signatures see "VmbTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
