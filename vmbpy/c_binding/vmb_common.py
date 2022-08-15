@@ -601,7 +601,7 @@ def _load_under_windows(vimbax_project: str):
 
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
     lib_name = '{}.dll'.format(vimbax_project)
-    lib_path = os.path.join(vimbax_home, 'Bin', lib_name)
+    lib_path = os.path.join(vimbax_home, 'api', 'bin', lib_name)
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
