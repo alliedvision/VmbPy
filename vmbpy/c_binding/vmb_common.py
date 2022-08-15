@@ -561,7 +561,7 @@ def _load_under_linux(vimbax_project: str):
     vimbax_home = _select_vimbax_home(vimbax_home_candidates)
 
     lib_name = 'lib{}.so'.format(vimbax_project)
-    lib_path = os.path.join(vimbax_home, 'bin', lib_name)
+    lib_path = os.path.join(vimbax_home, 'api', 'lib', lib_name)
 
     try:
         lib = ctypes.cdll.LoadLibrary(lib_path)
