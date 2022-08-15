@@ -64,7 +64,6 @@ __all__ = [
     'call_vmb_c',
 ]
 
-# TODO: Test that this also works on a 32bit Python version/System
 G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
 
 VMB_C_VERSION = None
