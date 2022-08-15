@@ -594,10 +594,10 @@ def _load_under_linux(vimbax_project: str):
 
 
 def _load_under_windows(vimbax_project: str):
-    vimbax_home = os.environ.get('VIMBAX_HOME')
+    vimbax_home = os.environ.get('VIMBA_X_HOME')
 
     if vimbax_home is None:
-        raise VmbSystemError('Variable VIMBAX_HOME not set. Please verify VimbaX installation.')
+        raise VmbSystemError('Variable VIMBA_X_HOME not set. Please verify VimbaX installation.')
 
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
     lib_name = '{}.dll'.format(vimbax_project)
@@ -624,17 +624,17 @@ def _load_under_windows(vimbax_project: str):
 
 def _select_vimbax_home(candidates: List[str]) -> str:
     """
-    Select the most likely candidate for VIMBAX_HOME from the given list of
+    Select the most likely candidate for VIMBA_X_HOME from the given list of
     candidates
 
     Arguments:
         candidates - List of strings pointing to possible VimbaX home directories
 
     Return:
-        Path that represents the most likely VIMBAX_HOME directory
+        Path that represents the most likely VIMBA_X_HOME directory
 
     Raises:
-        VmbSystemError if multiple VIMBAX_HOME directories were found in candidates
+        VmbSystemError if multiple VIMBA_X_HOME directories were found in candidates
     """
     most_likely_candidates = []
     for candidate in candidates:
