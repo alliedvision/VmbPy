@@ -457,7 +457,6 @@ class Camera(PersistableFeatureContainer):
             raise exc from e
 
         for i in range(self.__info.streamCount):
-            # TODO: check if we can just iterate over info.streamHandles directly?
             # The stream at index 0 is automatically opened
             self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
                                          is_open=(i == 0),
