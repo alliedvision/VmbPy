@@ -51,41 +51,47 @@ class RankVimbaXHomeCandidatesTest(VmbPyTestCase):
         with self.assertRaises(VmbSystemError):
             _select_vimbax_home(candidates)
 
-    def test_single_bad_vimba_home_candidate(self):
+    def test_single_bad_vimbax_home_candidate(self):
         candidates = ['/some/path']
         with self.assertRaises(VmbSystemError):
             _select_vimbax_home(candidates)
 
-    def test_single_good_vimba_home_candidate(self):
-        candidates = ['/opt/VimbaX_3_1']
-        expected = '/opt/VimbaX_3_1'
+    def test_single_good_vimbax_home_candidate(self):
+        candidates = ['/opt/VimbaX_2022-1']
+        expected = '/opt/VimbaX_2022-1'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
-    def test_presorted_vimba_home_candidates(self):
-        candidates = ['/home/username/VimbaX_4_0', '/opt/some/other/gentl/provider']
-        expected = '/home/username/VimbaX_4_0'
+    def test_presorted_vimbax_home_candidates(self):
+        candidates = ['/home/username/VimbaX_2022-1', '/opt/some/other/gentl/provider']
+        expected = '/home/username/VimbaX_2022-1'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
-    def test_unsorted_vimba_home_candidates(self):
-        candidates = ['/opt/some/other/gentl/provider', '/home/username/VimbaX_4_0']
-        expected = '/home/username/VimbaX_4_0'
+    def test_unsorted_vimbax_home_candidates(self):
+        candidates = ['/opt/some/other/gentl/provider', '/home/username/VimbaX_2022-1']
+        expected = '/home/username/VimbaX_2022-1'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
-    def test_many_vimba_home_candidates(self):
+    def test_many_vimbax_home_candidates(self):
         candidates = ['/some/random/path',
                       '/opt/some/gentl/provider',
-                      '/opt/VimbaX_4_0',  # This should be selected
+                      '/opt/VimbaX_2022-1',  # This should be selected
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
-        expected = '/opt/VimbaX_4_0'
+        expected = '/opt/VimbaX_2022-1'
         self.assertEqual(expected, _select_vimbax_home(candidates))
 
-    def test_multiple_vimba_home_directories(self):
-        # If multiple VIMBA_HOME directories are found an error should be raised
+    def test_vimbax_and_vimba_installation(self):
+        candidates = ['/opt/Vimba_4_0',  # Installation of Allied Vision Vimba
+                      '/opt/VimbaX_2022-1']   # Installation of VimbaX. This should be selected
+        expected = '/opt/VimbaX_2022-1'
+        self.assertEqual(expected, _select_vimbax_home(candidates))
+
+    def test_multiple_vimbax_home_directories(self):
+        # If multiple VIMBAX_HOME directories are found an error should be raised
         candidates = ['/some/random/path',
                       '/opt/some/gentl/provider',
-                      '/opt/VimbaX_4_0',  # first installation
-                      '/home/username/VimbaX_4_0',  # second installation
+                      '/opt/VimbaX_2022-1',  # first installation
+                      '/home/username/VimbaX_2023-1',  # second installation
                       '/opt/another/gentl/provider',
                       '/another/incorrect/path']
         with self.assertRaises(VmbSystemError):

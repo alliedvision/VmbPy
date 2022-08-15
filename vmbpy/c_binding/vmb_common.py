@@ -537,8 +537,6 @@ def load_vimbax_lib(vimbax_project: str):
 
 
 def _load_under_linux(vimbax_project: str):
-    # TODO: Implement loading of libVmbC.so on linux!
-    raise NotImplementedError('Linux support is not yet implemented!')
     # Construct VimbaX_Home based on TL installation paths
     path_list: List[str] = []
     tl32_path = os.environ.get('GENICAM_GENTL32_PATH', "")
@@ -558,37 +556,19 @@ def _load_under_linux(vimbax_project: str):
 
     vimbax_home_candidates: List[str] = []
     for path in path_list:
-        vimbax_home = os.path.dirname(os.path.dirname(os.path.dirname(path)))
+        # home directory is one up from the cti directory that is added to the GENICAM_GENTLXX_PATH
+        # variable
+        vimbax_home = os.path.dirname(path)
 
+        # Make sure we do not add the same directory twice
         if vimbax_home not in vimbax_home_candidates:
             vimbax_home_candidates.append(vimbax_home)
 
     # Select the most likely directory from the candidates
     vimbax_home = _select_vimbax_home(vimbax_home_candidates)
 
-    arch = platform.machine()
-
-    # Linux x86 64 Bit (Requires additional interpreter version check)
-    if arch == 'x86_64':
-        dir_ = 'x86_64bit' if _is_python_64_bit() else 'x86_32bit'
-
-    # Linux x86 32 Bit
-    elif arch in ('i386', 'i686'):
-        dir_ = 'x86_32bit'
-
-    # Linux arm 64 Bit (Requires additional interpreter version check)
-    elif arch == 'aarch64':
-        dir_ = 'arm_64bit' if _is_python_64_bit() else 'arm_32bit'
-
-    # Linux arm 32 Bit:
-    elif arch == 'armv7l':
-        dir_ = 'arm_32bit'
-
-    else:
-        raise VmbSystemError('Unknown Architecture \'{}\'. Abort'.format(arch))
-
     lib_name = 'lib{}.so'.format(vimbax_project)
-    lib_path = os.path.join(vimbax_home, vimbax_project, 'DynamicLib', dir_, lib_name)
+    lib_path = os.path.join(vimbax_home, 'api', 'lib', lib_name)
 
     try:
         lib = ctypes.cdll.LoadLibrary(lib_path)
