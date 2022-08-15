@@ -28,7 +28,7 @@ import enum
 from typing import Tuple
 
 from .vmb_c import VmbAccessMode, VmbFeaturePersist, VmbFeatureFlags, VmbFeatureVisibility, \
-                   VmbFrameStatus, VmbTransportLayer
+                   VmbFrameStatus, VmbTransportLayer, VmbModulePersistFlags
 from .vmb_image_transform import VmbPixelFormat, VmbDebayerMode, PIXEL_FORMAT_CONVERTIBILITY_MAP
 
 
@@ -39,6 +39,7 @@ __all__ = [
     'FeatureVisibility',
     'FrameStatus',
     'PersistType',
+    'ModulePersistFlags',
     'PixelFormat',
     'TransportLayerType'
 ]
@@ -147,6 +148,30 @@ class PersistType(enum.IntEnum):
     All = VmbFeaturePersist.All
     Streamable = VmbFeaturePersist.Streamable
     NoLUT = VmbFeaturePersist.NoLUT
+
+
+class ModulePersistFlags(enum.IntFlag):
+    """
+    Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad
+
+        None_          - Persist/Load features for no module
+        TransportLayer - Persist/Load the transport layer features
+        Interface      - Persist/Load the interface features
+        RemoteDevice   - Persist/Load the remote device features
+        LocalDevice    - Persist/Load the local device features
+        Streams        - Persist/Load the features of stream modules
+        All            - Persist/Load features for all modules
+    """
+    None_ = VmbModulePersistFlags.None_
+    TransportLayer = VmbModulePersistFlags.TransportLayer
+    Interface = VmbModulePersistFlags.Interface
+    RemoteDevice = VmbModulePersistFlags.RemoteDevice
+    LocalDevice = VmbModulePersistFlags.LocalDevice
+    Streams = VmbModulePersistFlags.Streams
+    All = VmbModulePersistFlags.All
+
+    def __str__(self):
+        return self._name_
 
 
 class PixelFormat(enum.IntEnum):

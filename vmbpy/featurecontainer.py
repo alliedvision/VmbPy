@@ -1,3 +1,10 @@
+from ctypes import byref, sizeof
+import os
+import sys
+from typing import Optional
+
+from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, VmbFeaturePersist, \
+                       ModulePersistFlags, VmbModulePersistFlags, _as_vmb_file_path
 from .error import VmbFeatureError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
@@ -7,7 +14,9 @@ from .util import TraceEnable, RuntimeTypeCheckEnable
 
 __all__ = [
     'FeatureContainer',
-    'PersistableFeatureContainer'
+    'PersistableFeatureContainer',
+    'PersistType',
+    'ModulePersistFlags'
 ]
 
 
@@ -136,10 +145,75 @@ class FeatureContainer:
 class PersistableFeatureContainer(FeatureContainer):
     """Inheriting from this class adds load/save settings methods to the subclass
     """
-    def load_settings(self):
-        """TODO"""
-        raise NotImplementedError('TODO')
+    @RuntimeTypeCheckEnable()
+    def load_settings(self,
+                      file_path: str,
+                      persist_type: PersistType = PersistType.All,
+                      persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
+                      max_iterations: int = 1):
+        """Load settings from XML file
 
-    def save_settings(self):
-        """TODO"""
-        raise NotImplementedError('TODO')
+        Arguments:
+            file_path - The location for loading current settings. The given
+                        file must be a file ending with ".xml".
+            persist_type - Parameter specifying which setting types to store. For an overview of the
+                           possible values and their implication see the docstring of the
+                           PersistType enum
+            persist_flags - Flags specifying the modules to store. By default only features of the
+                            calling module itself are persisted. For an overview of available flags
+                            see the docstring of the ModulePersistFlags type
+            max_iterations - Number of iterations when storing settings.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
+            ValueError if argument path is no ".xml" file.
+         """
+        if not file_path.endswith('.xml'):
+            raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file_path))
+
+        if not os.path.exists(file_path):
+            raise ValueError('Given file \'{}\' does not exist.'.format(file_path))
+
+        settings = VmbFeaturePersistSettings()
+        settings.persistType = persist_type
+        settings.persistFlag = persist_flags
+        settings.maxIterations = max_iterations
+
+        call_vmb_c('VmbSettingsLoad', self._handle, _as_vmb_file_path(file_path), byref(settings),
+                   sizeof(settings))
+
+    @RuntimeTypeCheckEnable()
+    def save_settings(self,
+                      file_path: str,
+                      persist_type: PersistType = PersistType.All,
+                      persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
+                      max_iterations: int = 0):
+        """Save settings to XML - File
+
+        Arguments:
+            file_path - The location for storing the current settings. The given
+                        file must be a file ending with ".xml".
+            persist_type - Parameter specifying which setting types to store. For an overview of the
+                           possible values and their implication see the docstring of the
+                           PersistType enum
+            persist_flags - Flags specifying the modules to store. By default only features of the
+                            calling module itself are persisted. For an overview of available flags
+                            see the docstring of the ModulePersistFlags type
+            max_iterations - Number of iterations when storing settings.
+
+        Raises:
+            TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
+            ValueError if argument path is no ".xml"- File.
+         """
+        if not file_path.endswith('.xml'):
+            raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file_path))
+
+        settings = VmbFeaturePersistSettings()
+        settings.persistType = persist_type
+        settings.persistFlag = persist_flags
+        settings.maxIterations = max_iterations
+
+        call_vmb_c('VmbSettingsSave', self._handle, _as_vmb_file_path(file_path), byref(settings),
+                   sizeof(settings))

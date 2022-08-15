@@ -32,8 +32,7 @@ import os
 from typing import Tuple, List, Callable, Optional, TYPE_CHECKING
 
 from .c_binding import call_vmb_c, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError, PersistType, \
-                       VmbFeaturePersistSettings, VmbFeaturePersist
+from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError
 from .featurecontainer import PersistableFeatureContainer
 from .shared import read_memory, write_memory
 from .frame import FormatTuple, PixelFormat, Frame, AllocationMode
@@ -49,7 +48,6 @@ if TYPE_CHECKING:
 
 __all__ = [
     'AccessMode',
-    'PersistType',
     'Camera',
     'CameraEvent',
     'CamerasTuple',
@@ -420,59 +418,6 @@ class Camera(PersistableFeatureContainer):
                 feat.set(entry)
 
     @TraceEnable()
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def save_settings(self, file: str, persist_type: PersistType):
-        """Save camera settings to XML - File
-
-        Arguments:
-            file - The location for storing the current settings. The given
-                   file must be a file ending with ".xml".
-            persist_type - Parameter specifying which setting types to store.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if argument path is no ".xml"- File.
-         """
-        if not file.endswith('.xml'):
-            raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file))
-
-        settings = VmbFeaturePersistSettings()
-        settings.persistType = VmbFeaturePersist(persist_type)
-
-        call_vmb_c('VmbCameraSettingsSave', self._handle, file.encode('utf-8'), byref(settings),
-                   sizeof(settings))
-
-    @TraceEnable()
-    @RaiseIfOutsideContext()
-    @RuntimeTypeCheckEnable()
-    def load_settings(self, file: str, persist_type: PersistType):
-        """Load camera settings from XML file
-
-        Arguments:
-            file - The location for loading current settings. The given
-                   file must be a file ending with ".xml".
-            persist_type - Parameter specifying which setting types to load.
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if argument path is no ".xml" file.
-         """
-        if not file.endswith('.xml'):
-            raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file))
-
-        if not os.path.exists(file):
-            raise ValueError('Given file \'{}\' does not exist.'.format(file))
-
-        settings = VmbFeaturePersistSettings()
-        settings.persistType = VmbFeaturePersist(persist_type)
-
-        call_vmb_c('VmbCameraSettingsLoad', self._handle, file.encode('utf-8'), byref(settings),
-                   sizeof(settings))
-
-    @TraceEnable()
     @EnterContextOnCall()
     def _open(self):
         try:
@@ -560,3 +505,5 @@ class Camera(PersistableFeatureContainer):
     get_features_by_type = RaiseIfOutsideContext()(PersistableFeatureContainer.get_features_by_type)           # noqa: E501
     get_features_by_category = RaiseIfOutsideContext()(PersistableFeatureContainer.get_features_by_category)   # noqa: E501
     get_feature_by_name = RaiseIfOutsideContext()(PersistableFeatureContainer.get_feature_by_name)             # noqa: E501
+    load_settings = RaiseIfOutsideContext()(PersistableFeatureContainer.load_settings)
+    save_settings = RaiseIfOutsideContext()(PersistableFeatureContainer.save_settings)

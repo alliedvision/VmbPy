@@ -102,12 +102,14 @@ def main():
     import basic_tests.vmbsystem_test
     import basic_tests.interface_test
     import basic_tests.transport_layer_test
+    import basic_tests.persistable_feature_container_test
 
     import real_cam_tests.vimba_test
     import real_cam_tests.feature_test
     import real_cam_tests.camera_test
     import real_cam_tests.frame_test
     import real_cam_tests.chunk_access_test
+    import real_cam_tests.persistable_feature_container_test
 
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
@@ -118,7 +120,8 @@ def main():
         basic_tests.vimba_common_test,
         basic_tests.vmbsystem_test,
         basic_tests.interface_test,
-        basic_tests.transport_layer_test
+        basic_tests.transport_layer_test,
+        basic_tests.persistable_feature_container_test
     ]
 
     REAL_CAM_TEST_MODS = [
@@ -126,7 +129,8 @@ def main():
         real_cam_tests.feature_test,
         real_cam_tests.camera_test,
         real_cam_tests.frame_test,
-        real_cam_tests.chunk_access_test
+        real_cam_tests.chunk_access_test,
+        real_cam_tests.persistable_feature_container_test
     ]
 
     # Prepare TestSuites
