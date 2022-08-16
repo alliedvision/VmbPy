@@ -52,7 +52,7 @@ class ChunkAccessTest(VmbPyTestCase):
             self.local_device = self.cam.get_local_device()
         except VmbCameraError as e:
             self.cam._close()
-            raise Exception ('Failed to open Camera {}.'.format(self.cam)) from e
+            raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
 
         try:
             self.chunk_mode = self.cam.get_feature_by_name('ChunkModeActive')
