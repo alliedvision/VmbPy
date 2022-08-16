@@ -27,19 +27,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import enum
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
-from typing import Tuple, List, Callable, Optional, TYPE_CHECKING
-
-from .c_binding import call_vmb_c, byref, sizeof, decode_cstr, decode_flags
-from .c_binding import VmbCameraInfo, VmbHandle, AccessMode, VmbCError, VmbError
-from .featurecontainer import PersistableFeatureContainer
-from .shared import read_memory, write_memory
-from .frame import FormatTuple, PixelFormat, Frame, AllocationMode
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfInsideContext, RaiseIfOutsideContext
+from .c_binding import (AccessMode, VmbCameraInfo, VmbCError, VmbError, VmbHandle, byref,
+                        call_vmb_c, decode_cstr, decode_flags, sizeof)
 from .error import VmbCameraError
-from .stream import Stream, StreamsTuple, StreamsList, FrameHandler
+from .featurecontainer import PersistableFeatureContainer
+from .frame import AllocationMode, FormatTuple, Frame, PixelFormat
 from .localdevice import LocalDevice
+from .shared import read_memory, write_memory
+from .stream import FrameHandler, Stream, StreamsList, StreamsTuple
+from .util import (EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext,
+                   RaiseIfOutsideContext, RuntimeTypeCheckEnable, TraceEnable)
 
 if TYPE_CHECKING:
     from .interface import Interface

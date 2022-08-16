@@ -24,16 +24,15 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 import copy
-import cv2
-import threading
 import queue
+import threading
+from typing import Optional
+
+import cv2
 import numpy
 
-from typing import Optional
 from vmbpy import *
-
 
 FRAME_QUEUE_SIZE = 10
 FRAME_HEIGHT = 480

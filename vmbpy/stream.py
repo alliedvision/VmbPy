@@ -28,17 +28,17 @@ from __future__ import annotations
 
 import copy
 import threading
-from typing import List, Tuple, Dict, Union, Optional, cast, Callable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union, cast
 
-from .c_binding import call_vmb_c, byref, sizeof, \
-                       VmbHandle, VmbCError, VmbFrame, VmbError, AccessMode, VmbUint32
+from .c_binding import (AccessMode, VmbCError, VmbError, VmbFrame, VmbHandle, VmbUint32, byref,
+                        call_vmb_c, sizeof)
 from .c_binding.vmb_c import FRAME_CALLBACK_TYPE
-from .error import VmbSystemError, VmbCameraError, VmbTimeout, VmbFeatureError
+from .error import VmbCameraError, VmbFeatureError, VmbSystemError, VmbTimeout
 from .featurecontainer import PersistableFeatureContainer
-from .frame import Frame, AllocationMode
+from .frame import AllocationMode, Frame
 from .shared import filter_features_by_name
-from .util import TraceEnable, Log, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext
+from .util import (EnterContextOnCall, LeaveContextOnCall, Log, RaiseIfOutsideContext,
+                   RuntimeTypeCheckEnable, TraceEnable)
 
 if TYPE_CHECKING:
     from .camera import Camera

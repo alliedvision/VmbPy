@@ -24,18 +24,21 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 import copy
 import ctypes
-from typing import Callable, Any, Tuple
-from ctypes import c_void_p, c_char_p, byref, sizeof, POINTER as c_ptr, c_char_p as c_str
+from ctypes import POINTER as c_ptr
+from ctypes import byref
+from ctypes import c_char_p
+from ctypes import c_char_p as c_str
+from ctypes import c_void_p, sizeof
+from typing import Any, Callable, Tuple
 
-from ..util import TraceEnable
 from ..error import VmbSystemError
-from .vmb_common import Uint32Enum, Int32Enum, VmbUint8, VmbInt32, VmbUint32, VmbInt64, VmbUint64, \
-                        VmbHandle, VmbBool, VmbDouble, VmbFilePathChar, VmbError, VmbCError, \
-                        VmbPixelFormat, fmt_enum_repr, fmt_repr, fmt_flags_repr, load_vimbax_lib, \
-                        Uint32Flag
+from ..util import TraceEnable
+from .vmb_common import (Int32Enum, Uint32Enum, Uint32Flag, VmbBool, VmbCError, VmbDouble, VmbError,
+                         VmbFilePathChar, VmbHandle, VmbInt32, VmbInt64, VmbPixelFormat, VmbUint8,
+                         VmbUint32, VmbUint64, fmt_enum_repr, fmt_flags_repr, fmt_repr,
+                         load_vimbax_lib)
 
 __version__ = None
 

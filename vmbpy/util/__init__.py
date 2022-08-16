@@ -58,15 +58,14 @@ __all__ = [
     'RaiseIfOutsideContext'
 ]
 
-from .log import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \
-                 LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_INFO_CONSOLE_ONLY, \
-                 LOG_CONFIG_INFO_FILE_ONLY, LOG_CONFIG_INFO, LOG_CONFIG_WARNING_CONSOLE_ONLY, \
-                 LOG_CONFIG_WARNING_FILE_ONLY, LOG_CONFIG_WARNING, LOG_CONFIG_ERROR_CONSOLE_ONLY, \
-                 LOG_CONFIG_ERROR_FILE_ONLY, LOG_CONFIG_ERROR, LOG_CONFIG_CRITICAL_CONSOLE_ONLY, \
-                 LOG_CONFIG_CRITICAL_FILE_ONLY, LOG_CONFIG_CRITICAL
-
-from .tracer import TraceEnable
-from .scoped_log import ScopedLogEnable
+from .context_decorator import (EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext,
+                                RaiseIfOutsideContext)
+from .log import (LOG_CONFIG_CRITICAL, LOG_CONFIG_CRITICAL_CONSOLE_ONLY,
+                  LOG_CONFIG_CRITICAL_FILE_ONLY, LOG_CONFIG_ERROR, LOG_CONFIG_ERROR_CONSOLE_ONLY,
+                  LOG_CONFIG_ERROR_FILE_ONLY, LOG_CONFIG_INFO, LOG_CONFIG_INFO_CONSOLE_ONLY,
+                  LOG_CONFIG_INFO_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_TRACE_CONSOLE_ONLY,
+                  LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_WARNING, LOG_CONFIG_WARNING_CONSOLE_ONLY,
+                  LOG_CONFIG_WARNING_FILE_ONLY, Log, LogConfig, LogLevel)
 from .runtime_type_check import RuntimeTypeCheckEnable
-from .context_decorator import EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext, \
-                               RaiseIfOutsideContext
+from .scoped_log import ScopedLogEnable
+from .tracer import TraceEnable

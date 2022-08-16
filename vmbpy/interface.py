@@ -27,14 +27,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import enum
-from typing import Tuple, Callable, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Dict, Tuple
 
-from .c_binding import decode_cstr, VmbInterfaceInfo, VmbHandle
+from .c_binding import VmbHandle, VmbInterfaceInfo, decode_cstr
 from .featurecontainer import PersistableFeatureContainer
 from .shared import read_memory, write_memory
 from .transportlayer import TransportLayerType
-from .util import TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext
+from .util import (EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext,
+                   RuntimeTypeCheckEnable, TraceEnable)
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple

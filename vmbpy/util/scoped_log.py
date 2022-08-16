@@ -26,9 +26,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from functools import wraps
-from typing import Any, Callable, Tuple, Optional
-from .log import LogConfig, Log
+from typing import Any, Callable, Optional, Tuple
 
+from .log import Log, LogConfig
 
 __all__ = [
     'ScopedLogEnable'

@@ -26,11 +26,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import annotations
 
-from typing import Tuple, TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING, Dict, Tuple
 
-from .c_binding import TransportLayerType, VmbTransportLayerInfo, VmbHandle, decode_cstr
+from .c_binding import TransportLayerType, VmbHandle, VmbTransportLayerInfo, decode_cstr
 from .featurecontainer import PersistableFeatureContainer
-from .util import TraceEnable, EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext
+from .util import EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext, TraceEnable
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple
