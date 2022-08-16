@@ -27,7 +27,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import copy
-from ctypes import POINTER
 import threading
 from typing import List, Tuple, Dict, Union, Optional, cast, Callable, TYPE_CHECKING
 

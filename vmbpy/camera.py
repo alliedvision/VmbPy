@@ -27,7 +27,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import enum
-import os
 
 from typing import Tuple, List, Callable, Optional, TYPE_CHECKING
 

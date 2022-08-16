@@ -1,10 +1,8 @@
 from ctypes import byref, sizeof
 import os
-import sys
-from typing import Optional
 
-from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, VmbFeaturePersist, \
-                       ModulePersistFlags, VmbModulePersistFlags, _as_vmb_file_path
+from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, ModulePersistFlags, \
+                       _as_vmb_file_path
 from .error import VmbFeatureError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
