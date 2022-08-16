@@ -430,12 +430,21 @@ class Camera(PersistableFeatureContainer):
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
             # In reality VmbError.NotImplemented_ is sometimes returned.
             # TODO: Check that these error codes are correct
-            if (err == VmbError.InvalidAccess) or (err == VmbError.NotImplemented_):
+            if err in (VmbError.InvalidAccess, VmbError.NotImplemented_):
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
                                  self.get_permitted_access_modes())
                 exc = VmbCameraError(msg)
-
+            elif err == VmbError.InUse:
+                msg = 'Accessed Camera \'{}\' is already in use. Could not be opened with access ' \
+                      'mode \'{}\'. Valid modes are: {}'
+                msg = msg.format(self.get_id(), str(self.__access_mode),
+                                 self.get_permitted_access_modes())
+                exc = VmbCameraError(msg)
+            elif err == VmbError.NotFound:
+                msg = 'Camera with ID \'{}\' could not be found.'
+                msg = msg.format(self.get_id())
+                exc = VmbCameraError(msg)
             else:
                 exc = VmbCameraError(repr(err))
 
