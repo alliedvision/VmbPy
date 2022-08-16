@@ -47,7 +47,7 @@ def static_test():
     fprint('Execute Static Test: flake8')
     subprocess.run('flake8 vmbpy', shell=True)
     subprocess.run('flake8 Examples --ignore=F405,F403', shell=True)
-    subprocess.run('flake8 Tests --ignore=F405,F403', shell=True)
+    subprocess.run('flake8 Tests --ignore=F405,F403,E402', shell=True)
     fprint('')
 
     fprint('Execute Static Test: mypy')
