@@ -261,9 +261,6 @@ class Frame:
         """Get internal buffer object containing image data and (if existent) chunk data."""
         return self._buffer
 
-    # TODO: Do we need to add a get_image method similar to VmbCPP where the chunk data at the
-    # beginning of the buffer is cut off?
-
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""
         return self._frame.bufferSize
