@@ -347,7 +347,7 @@ class Stream(PersistableFeatureContainer):
                 if (min_ < size) and (size < max_):
                     msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
                            'Enable jumbo packets for improved performance.')
-                    Log.get_instance().info(msg.format(self.get_id()))
+                    Log.get_instance().info(msg.format(self._parent_cam.get_id()))
 
             except VmbFeatureError:
                 pass
