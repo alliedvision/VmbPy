@@ -24,13 +24,12 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 import itertools
 
-from .c_binding import VmbUint32, VmbHandle, VmbFeatureInfo
-from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, VmbCError
-from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
+from .c_binding import (VmbCError, VmbFeatureInfo, VmbHandle, VmbUint32, byref, call_vmb_c,
+                        create_string_buffer, sizeof)
 from .error import VmbFeatureError
+from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes
 from .util import TraceEnable
 
 __all__ = [

@@ -24,17 +24,16 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 import ctypes
 import sys
-from ctypes import byref, sizeof, POINTER as c_ptr
-from typing import Callable, Any, Tuple, Dict, List
+from ctypes import POINTER as c_ptr
+from ctypes import byref, sizeof
+from typing import Any, Callable, Dict, List, Tuple
 
 from ..error import VmbSystemError
 from ..util import TraceEnable
-from .vmb_common import Uint32Enum, VmbUint32, VmbInt32, VmbError, VmbFloat, VmbCError, \
-    VmbPixelFormat, load_vimbax_lib, fmt_repr, fmt_enum_repr
-
+from .vmb_common import (Uint32Enum, VmbCError, VmbError, VmbFloat, VmbInt32, VmbPixelFormat,
+                         VmbUint32, fmt_enum_repr, fmt_repr, load_vimbax_lib)
 
 __all__ = [
     'VmbBayerPattern',

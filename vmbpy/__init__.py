@@ -109,37 +109,26 @@ __all__ = [
     'RuntimeTypeCheckEnable'
 ]
 
-# Import everything exported from the top level module
-from .vmbsystem import VmbSystem
-
 from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent
-
-from .stream import Stream, FrameHandler
-
-from .localdevice import LocalDevice
-
+from .error import (VmbCameraError, VmbChunkError, VmbFeatureError, VmbFrameError,
+                    VmbInterfaceError, VmbSystemError, VmbTimeout, VmbTransportLayerError)
+from .feature import (BoolFeature, CommandFeature, EnumEntry, EnumFeature, FeatureTypes,
+                      FloatFeature, IntFeature, RawFeature, StringFeature)
+from .featurecontainer import (FeatureContainer, ModulePersistFlags, PersistableFeatureContainer,
+                               PersistType)
+from .frame import (BAYER_PIXEL_FORMATS, BGR_PIXEL_FORMATS, BGRA_PIXEL_FORMATS, COLOR_PIXEL_FORMATS,
+                    MONO_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS,
+                    YCBCR_PIXEL_FORMATS, YUV_PIXEL_FORMATS, AllocationMode, Debayer, Frame,
+                    FrameStatus, PixelFormat, intersect_pixel_formats)
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
-
+from .localdevice import LocalDevice
+from .stream import FrameHandler, Stream
 from .transportlayer import TransportLayer, TransportLayerType
-
-from .frame import PixelFormat, Frame, Debayer, intersect_pixel_formats, MONO_PIXEL_FORMATS, \
-                   BAYER_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS, BGR_PIXEL_FORMATS, \
-                   BGRA_PIXEL_FORMATS, YUV_PIXEL_FORMATS, YCBCR_PIXEL_FORMATS, \
-                   COLOR_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, FrameStatus, AllocationMode
-
-from .error import VmbSystemError, VmbTransportLayerError, VmbCameraError, VmbInterfaceError, \
-                   VmbFeatureError, VmbFrameError, VmbTimeout, VmbChunkError
-
-from .feature import IntFeature, FloatFeature, StringFeature, BoolFeature, EnumEntry, EnumFeature, \
-                     CommandFeature, RawFeature, FeatureTypes
-
-from .featurecontainer import FeatureContainer, PersistableFeatureContainer, PersistType, \
-                              ModulePersistFlags
-
-from .util import Log, LogLevel, LogConfig, LOG_CONFIG_TRACE_CONSOLE_ONLY, \
-                  LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_INFO_CONSOLE_ONLY, \
-                  LOG_CONFIG_INFO_FILE_ONLY, LOG_CONFIG_INFO, LOG_CONFIG_WARNING_CONSOLE_ONLY, \
-                  LOG_CONFIG_WARNING_FILE_ONLY, LOG_CONFIG_WARNING, LOG_CONFIG_ERROR_CONSOLE_ONLY, \
-                  LOG_CONFIG_ERROR_FILE_ONLY, LOG_CONFIG_ERROR, LOG_CONFIG_CRITICAL_CONSOLE_ONLY, \
-                  LOG_CONFIG_CRITICAL_FILE_ONLY, LOG_CONFIG_CRITICAL, ScopedLogEnable, \
-                  TraceEnable, RuntimeTypeCheckEnable
+from .util import (LOG_CONFIG_CRITICAL, LOG_CONFIG_CRITICAL_CONSOLE_ONLY,
+                   LOG_CONFIG_CRITICAL_FILE_ONLY, LOG_CONFIG_ERROR, LOG_CONFIG_ERROR_CONSOLE_ONLY,
+                   LOG_CONFIG_ERROR_FILE_ONLY, LOG_CONFIG_INFO, LOG_CONFIG_INFO_CONSOLE_ONLY,
+                   LOG_CONFIG_INFO_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_TRACE_CONSOLE_ONLY,
+                   LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_WARNING, LOG_CONFIG_WARNING_CONSOLE_ONLY,
+                   LOG_CONFIG_WARNING_FILE_ONLY, Log, LogConfig, LogLevel, RuntimeTypeCheckEnable,
+                   ScopedLogEnable, TraceEnable)
+from .vmbsystem import VmbSystem

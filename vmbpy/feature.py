@@ -24,21 +24,18 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-import inspect
 import ctypes
+import inspect
 import threading
+from typing import Callable, List, Optional, Tuple, Type, Union, cast
 
-from typing import Tuple, Union, List, Callable, Optional, cast, Type
-from .c_binding import call_vmb_c, byref, sizeof, create_string_buffer, decode_cstr, \
-                       decode_flags
+from .c_binding import (FeatureFlags, FeatureVisibility, VmbBool, VmbCError, VmbDouble, VmbError,
+                        VmbFeatureData, VmbFeatureEnumEntry, VmbFeatureInfo, VmbHandle, VmbInt64,
+                        VmbUint32, byref, call_vmb_c, create_string_buffer, decode_cstr,
+                        decode_flags, sizeof)
 from .c_binding.vmb_c import INVALIDATION_CALLBACK_TYPE
-from .c_binding import VmbFeatureInfo, FeatureFlags, VmbUint32, VmbInt64, VmbHandle, \
-                       FeatureVisibility, VmbBool, VmbFeatureEnumEntry, VmbFeatureData, \
-                       VmbError, VmbCError, VmbDouble
-
-from .util import Log, TraceEnable, RuntimeTypeCheckEnable
 from .error import VmbFeatureError
+from .util import Log, RuntimeTypeCheckEnable, TraceEnable
 
 __all__ = [
     'ChangeHandler',

@@ -24,17 +24,16 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-import unittest
-import docopt
-import sys
 import os
+import sys
+import unittest
+
+import docopt
 
 # Add local directory to search path for test module import in this script.
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from helpers import VmbPyTestCase
-
 
 # Add vimba module at the start of the search path. The tests should run against the
 # local vmbpy sources regardless of any existing installations.
@@ -95,21 +94,20 @@ def main():
 
     # Import tests cases
     import basic_tests.c_binding_test
+    import basic_tests.interface_test
+    import basic_tests.persistable_feature_container_test
+    import basic_tests.transport_layer_test
+    import basic_tests.util_context_decorator_test
     import basic_tests.util_runtime_type_check_test
     import basic_tests.util_tracer_test
-    import basic_tests.util_context_decorator_test
     import basic_tests.vimba_common_test
     import basic_tests.vmbsystem_test
-    import basic_tests.interface_test
-    import basic_tests.transport_layer_test
-    import basic_tests.persistable_feature_container_test
-
-    import real_cam_tests.vimba_test
-    import real_cam_tests.feature_test
     import real_cam_tests.camera_test
-    import real_cam_tests.frame_test
     import real_cam_tests.chunk_access_test
+    import real_cam_tests.feature_test
+    import real_cam_tests.frame_test
     import real_cam_tests.persistable_feature_container_test
+    import real_cam_tests.vimba_test
 
     # Assign test cases to test suites
     BASIC_TEST_MODS = [

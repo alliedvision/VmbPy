@@ -24,12 +24,13 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-import threading
 import sys
-import cv2
+import threading
 from typing import Optional
-from vmbpy import *
 
+import cv2
+
+from vmbpy import *
 
 # All frames will either be recorded in this format, or transformed to it before being displayed
 opencv_display_format = PixelFormat.Bgr8

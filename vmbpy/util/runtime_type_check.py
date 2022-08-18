@@ -24,14 +24,12 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
 import collections.abc
-
-from inspect import isfunction, ismethod, signature
 from functools import wraps
-from typing import get_type_hints, Union
-from .log import Log
+from inspect import isfunction, ismethod, signature
+from typing import Union, get_type_hints
 
+from .log import Log
 
 __all__ = [
     'RuntimeTypeCheckEnable'

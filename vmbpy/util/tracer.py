@@ -27,8 +27,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from functools import reduce, wraps
 from inspect import signature
-from .log import Log
 
+from .log import Log
 
 __all__ = [
     'TraceEnable'

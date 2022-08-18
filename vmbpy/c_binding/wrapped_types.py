@@ -27,10 +27,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import enum
 from typing import Tuple
 
-from .vmb_c import VmbAccessMode, VmbFeaturePersist, VmbFeatureFlags, VmbFeatureVisibility, \
-                   VmbFrameStatus, VmbTransportLayer, VmbModulePersistFlags
-from .vmb_image_transform import VmbPixelFormat, VmbDebayerMode, PIXEL_FORMAT_CONVERTIBILITY_MAP
-
+from .vmb_c import (VmbAccessMode, VmbFeatureFlags, VmbFeaturePersist, VmbFeatureVisibility,
+                    VmbFrameStatus, VmbModulePersistFlags, VmbTransportLayer)
+from .vmb_image_transform import PIXEL_FORMAT_CONVERTIBILITY_MAP, VmbDebayerMode, VmbPixelFormat
 
 __all__ = [
     'AccessMode',

@@ -29,22 +29,20 @@ import threading
 from ctypes import byref, sizeof
 from typing import List, Optional
 
-from .c_binding import call_vmb_c, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, \
-                       G_VMB_C_HANDLE, VmbUint32, VmbCError, VmbError, VmbHandle, \
-                       _as_vmb_file_path
-from .featurecontainer import FeatureContainer
-from .shared import read_memory, write_memory
-from .transportlayer import TransportLayer, TransportLayersTuple, TransportLayersDict, \
-                            VmbTransportLayerInfo
-from .interface import Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesTuple, \
-                       InterfacesDict, VmbInterfaceInfo
-from .camera import Camera, CamerasList, CameraChangeHandler, CameraEvent, CamerasTuple, \
-                    VmbCameraInfo
-from .util import Log, LogConfig, TraceEnable, RuntimeTypeCheckEnable, EnterContextOnCall, \
-                  LeaveContextOnCall, RaiseIfOutsideContext, RaiseIfInsideContext
-from .error import VmbTransportLayerError, VmbCameraError, VmbInterfaceError, VmbSystemError
 from . import __version__ as VMBPY_VERSION
-
+from .c_binding import (G_VMB_C_HANDLE, VMB_C_VERSION, VMB_IMAGE_TRANSFORM_VERSION, VmbCError,
+                        VmbError, VmbHandle, VmbUint32, _as_vmb_file_path, call_vmb_c)
+from .camera import (Camera, CameraChangeHandler, CameraEvent, CamerasList, CamerasTuple,
+                     VmbCameraInfo)
+from .error import VmbCameraError, VmbInterfaceError, VmbSystemError, VmbTransportLayerError
+from .featurecontainer import FeatureContainer
+from .interface import (Interface, InterfaceChangeHandler, InterfaceEvent, InterfacesDict,
+                        InterfacesTuple, VmbInterfaceInfo)
+from .shared import read_memory, write_memory
+from .transportlayer import (TransportLayer, TransportLayersDict, TransportLayersTuple,
+                             VmbTransportLayerInfo)
+from .util import (EnterContextOnCall, LeaveContextOnCall, Log, LogConfig, RaiseIfInsideContext,
+                   RaiseIfOutsideContext, RuntimeTypeCheckEnable, TraceEnable)
 
 __all__ = [
     'VmbSystem',

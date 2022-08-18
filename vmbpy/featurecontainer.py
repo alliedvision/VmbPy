@@ -1,14 +1,13 @@
-from ctypes import byref, sizeof
 import os
+from ctypes import byref, sizeof
 
-from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, ModulePersistFlags, \
-                       _as_vmb_file_path
+from .c_binding import (ModulePersistFlags, PersistType, VmbFeaturePersistSettings,
+                        _as_vmb_file_path, call_vmb_c)
 from .error import VmbFeatureError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
-from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
-                    filter_features_by_category, attach_feature_accessors, remove_feature_accessors
-from .util import TraceEnable, RuntimeTypeCheckEnable
-
+from .shared import (attach_feature_accessors, filter_features_by_category, filter_features_by_name,
+                     filter_features_by_type, filter_selected_features, remove_feature_accessors)
+from .util import RuntimeTypeCheckEnable, TraceEnable
 
 __all__ = [
     'FeatureContainer',

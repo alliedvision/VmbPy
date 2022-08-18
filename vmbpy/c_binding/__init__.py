@@ -112,25 +112,21 @@ __all__ = [
     'create_string_buffer'
 ]
 
-from .vmb_common import VmbInt8, VmbUint8, VmbInt16, VmbUint16, VmbInt32, VmbUint32, \
-                        VmbInt64, VmbUint64, VmbHandle, VmbBool, VmbUchar, VmbDouble, VmbError, \
-                        VmbCError, VmbPixelFormat, decode_cstr, decode_flags, _select_vimbax_home, \
-                        _as_vmb_file_path
+from ctypes import byref, create_string_buffer, sizeof
 
-from .vmb_c import VmbTransportLayer, VmbAccessMode, VmbFeatureData, VmbModulePersistFlags, \
-                   VmbFeaturePersist, VmbFeatureVisibility, VmbFeatureFlags, VmbFrameStatus, \
-                   VmbFrameFlags, VmbVersionInfo, VmbTransportLayerInfo, VmbInterfaceInfo, VmbCameraInfo, VmbFeatureInfo, \
-                   VmbFeatureEnumEntry, VmbFrame, VmbFeaturePersistSettings, \
-                   G_VMB_C_HANDLE, EXPECTED_VMB_C_VERSION, VMB_C_VERSION, call_vmb_c
-
-from .vmb_image_transform import VmbImage, VmbImageInfo, VmbDebayerMode, \
-                                 VMB_IMAGE_TRANSFORM_VERSION, \
-                                 EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, VmbTransformInfo, \
-                                 call_vmb_image_transform, PIXEL_FORMAT_TO_LAYOUT, \
-                                 LAYOUT_TO_PIXEL_FORMAT, PIXEL_FORMAT_CONVERTIBILITY_MAP
-
-from .wrapped_types import AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus, \
-                           PersistType, ModulePersistFlags, PixelFormat, TransportLayerType
-
-
-from ctypes import byref, sizeof, create_string_buffer
+from .vmb_c import (EXPECTED_VMB_C_VERSION, G_VMB_C_HANDLE, VMB_C_VERSION, VmbAccessMode,
+                    VmbCameraInfo, VmbFeatureData, VmbFeatureEnumEntry, VmbFeatureFlags,
+                    VmbFeatureInfo, VmbFeaturePersist, VmbFeaturePersistSettings,
+                    VmbFeatureVisibility, VmbFrame, VmbFrameFlags, VmbFrameStatus, VmbInterfaceInfo,
+                    VmbModulePersistFlags, VmbTransportLayer, VmbTransportLayerInfo, VmbVersionInfo,
+                    call_vmb_c)
+from .vmb_common import (VmbBool, VmbCError, VmbDouble, VmbError, VmbHandle, VmbInt8, VmbInt16,
+                         VmbInt32, VmbInt64, VmbPixelFormat, VmbUchar, VmbUint8, VmbUint16,
+                         VmbUint32, VmbUint64, _as_vmb_file_path, _select_vimbax_home, decode_cstr,
+                         decode_flags)
+from .vmb_image_transform import (EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, LAYOUT_TO_PIXEL_FORMAT,
+                                  PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT,
+                                  VMB_IMAGE_TRANSFORM_VERSION, VmbDebayerMode, VmbImage,
+                                  VmbImageInfo, VmbTransformInfo, call_vmb_image_transform)
+from .wrapped_types import (AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus,
+                            ModulePersistFlags, PersistType, PixelFormat, TransportLayerType)

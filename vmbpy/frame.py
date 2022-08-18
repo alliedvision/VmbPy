@@ -24,21 +24,19 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-import enum
-import ctypes
 import copy
+import ctypes
+import enum
+from typing import Callable, Optional, Tuple
 
-from typing import Optional, Tuple, Callable
-from .c_binding import byref, sizeof, decode_flags
-from .c_binding import call_vmb_c, call_vmb_image_transform, FrameStatus, VmbFrameFlags, \
-                       VmbFrame, VmbHandle, VmbPixelFormat, PixelFormat, VmbImage, VmbDebayerMode, \
-                       Debayer, VmbTransformInfo, PIXEL_FORMAT_TO_LAYOUT, \
-                       VmbUint8, VmbCError, VmbError
+from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PixelFormat, VmbCError,
+                        VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle, VmbImage,
+                        VmbPixelFormat, VmbTransformInfo, VmbUint8, byref, call_vmb_c,
+                        call_vmb_image_transform, decode_flags, sizeof)
 from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
+from .error import VmbChunkError, VmbFrameError
 from .featurecontainer import FeatureContainer
-from .util import TraceEnable, RuntimeTypeCheckEnable, Log
-from .error import VmbFrameError, VmbChunkError
+from .util import Log, RuntimeTypeCheckEnable, TraceEnable
 
 try:
     import numpy  # type: ignore
