@@ -90,9 +90,6 @@ python -m unittest discover -v -p *_test.py
 
 ### `run_tests.py`
 
-- Executes additional tools for code analysis (flake8 and mypy)
-- Provides CLI interface
-
 The provided helper script `run_tests.py` may also be used to execute the test suite. In addition to
 the test cases, it also executes `flake8`, `mypy`, and `coverage`. These additional tools need to be
 installed in the used Python environment. For convenience they are grouped as an optional dependency
