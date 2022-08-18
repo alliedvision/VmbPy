@@ -12,6 +12,7 @@ To use VmbPy an installation of Vimba X and Python >= 3.7 are required. A ready-
 `.whl` file of VmbPy can be found as part of the Vimba X installation, or be downloaded from our
 [github release page](TODO). The `.whl` can be installed as usual via the `pip install` command.
 
+## Optional dependencies
 For some functionality of VmbPy optional dependencies (also called "extras") are required. These
 provide for example integration into numpy and OpenCV, as well as some additional code analysis
 tools that are used in our full test suite. The following extras are defined for VmbPy:
