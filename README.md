@@ -2,9 +2,9 @@
 
 Python API of the [Vimba X SDK](TODO!)
 
-Vimba X is a new, fully GenICam compliant SDK and the successor of Vimba. VmbPy is the Python API
-that is provided by this SDK. It provides access to the full functionality of Vimba X in a pythonic
-way, allowing for rapid development of applications.
+Vimba X is a fully GenICam compliant SDK and the successor of Vimba. VmbPy is the Python API that is
+provided by this SDK. It provides access to the full functionality of Vimba X in a pythonic way,
+allowing for rapid development of applications.
 
 # Installation
 
