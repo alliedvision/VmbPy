@@ -16,8 +16,8 @@ For some functionality of VmbPy optional dependencies (also called "extras") are
 provide for example integration into numpy and OpenCV, as well as some additional code analysis
 tools that are used in our full test suite. The following extras are defined for VmbPy:
 
-- numpy-export: Enables conversion of `VmbPy.Frame` objects to numpy arrays
-- opencv-export: Similar to above but ensures that the numpy arrays are valid OpenCV images
+- numpy: Enables conversion of `VmbPy.Frame` objects to numpy arrays
+- opencv: Similar to above but ensures that the numpy arrays are valid OpenCV images
 - test: Additional tools such as `flake8`, `mypy`, and `coverage` only necessary for executing `run_tests.py`
 
 # Usage
