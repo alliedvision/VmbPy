@@ -27,7 +27,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import copy
-from ctypes import POINTER
 import threading
 from typing import List, Tuple, Dict, Union, Optional, cast, Callable, TYPE_CHECKING
 
@@ -347,7 +346,7 @@ class Stream(PersistableFeatureContainer):
                 if (min_ < size) and (size < max_):
                     msg = ('Camera {}: GVSPPacketSize not optimized for streaming GigE Vision. '
                            'Enable jumbo packets for improved performance.')
-                    Log.get_instance().info(msg.format(self.get_id()))
+                    Log.get_instance().info(msg.format(self._parent_cam.get_id()))
 
             except VmbFeatureError:
                 pass

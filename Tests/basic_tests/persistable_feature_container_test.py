@@ -81,7 +81,8 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
         self.assertRaises(TypeError, tl.save_settings, 123)
         self.assertRaises(TypeError, tl.save_settings, 'foo.xml', 123)
         self.assertRaises(TypeError, tl.save_settings, 'foo.xml', PersistType.All, 123)
-        self.assertRaises(TypeError, tl.save_settings, 'foo.xml', PersistType.All, ModulePersistFlags.None_, 'foo')
+        self.assertRaises(TypeError, tl.save_settings, 'foo.xml', PersistType.All,
+                          ModulePersistFlags.None_, 'foo')
 
     def test_load_settings_type_error(self):
         # Expectation: Using parameters with incorrect type raises a TypeError
@@ -91,7 +92,8 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
         self.assertRaises(TypeError, tl.load_settings, 123)
         self.assertRaises(TypeError, tl.load_settings, 'foo.xml', 123)
         self.assertRaises(TypeError, tl.load_settings, 'foo.xml', PersistType.All, 123)
-        self.assertRaises(TypeError, tl.load_settings, 'foo.xml', PersistType.All, ModulePersistFlags.None_, 'foo')
+        self.assertRaises(TypeError, tl.load_settings, 'foo.xml', PersistType.All,
+                          ModulePersistFlags.None_, 'foo')
 
     def test_save_settings_verify_path(self):
         # Expectation: Valid files end with .xml and can be either a absolute path or relative

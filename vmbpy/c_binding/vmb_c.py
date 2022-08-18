@@ -64,13 +64,13 @@ __all__ = [
     'call_vmb_c',
 ]
 
-# TODO: Test that this also works on a 32bit Python version/System
 G_VMB_C_HANDLE = VmbHandle((1 << (sizeof(VmbHandle)*8-4)) | 1)
 
 VMB_C_VERSION = None
 EXPECTED_VMB_C_VERSION = '1.0.0'
 
 _lib_instance = load_vimbax_lib('VmbC')
+
 
 # Types
 class VmbTransportLayer(Uint32Enum):
@@ -766,8 +766,8 @@ _SIGNATURES = {
     'VmbInterfacesList': (VmbError, [c_ptr(VmbInterfaceInfo), VmbUint32, c_ptr(VmbUint32), VmbUint32]),                       # noqa: E501
     'VmbMemoryRead': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
     'VmbMemoryWrite': (VmbError, [VmbHandle, VmbUint64, VmbUint32, c_str, c_ptr(VmbUint32)]),
-    'VmbSettingsSave': (VmbError, [VmbHandle, c_ptr(VmbFilePathChar), c_ptr(VmbFeaturePersistSettings), VmbUint32]),
-    'VmbSettingsLoad': (VmbError, [VmbHandle, c_ptr(VmbFilePathChar), c_ptr(VmbFeaturePersistSettings), VmbUint32]),
+    'VmbSettingsSave': (VmbError, [VmbHandle, c_ptr(VmbFilePathChar), c_ptr(VmbFeaturePersistSettings), VmbUint32]),          # noqa: E501
+    'VmbSettingsLoad': (VmbError, [VmbHandle, c_ptr(VmbFilePathChar), c_ptr(VmbFeaturePersistSettings), VmbUint32]),          # noqa: E501
     'VmbChunkDataAccess': (VmbError, [c_ptr(VmbFrame), CHUNK_CALLBACK_TYPE, c_void_p])
 }
 
@@ -795,8 +795,8 @@ def _check_version(lib_handle):
     loaded_version = (v.major, v.minor, v.patch)
     expected_version = tuple(map(int, EXPECTED_VMB_C_VERSION.split(".")))
     # major and minor version must be equal, patch version may be equal or greater
-    if not(loaded_version[0:2] == expected_version[0:2] and
-           loaded_version[2] >= expected_version[2]):
+    if not (loaded_version[0:2] == expected_version[0:2] and
+            loaded_version[2] >= expected_version[2]):
         msg = 'Invalid VmbC Version: Expected: {}, Found:{}'
         raise VmbSystemError(msg.format(EXPECTED_VMB_C_VERSION, VMB_C_VERSION))
 

@@ -144,10 +144,10 @@ class CamFrameTest(VmbPyTestCase):
 
                 # Ensure that internal Frame Pointer points to correct buffer.
                 self.assertEqual(frame._frame.buffer,
-                                  ctypes.cast(frame._buffer, ctypes.c_void_p).value)
+                                 ctypes.cast(frame._buffer, ctypes.c_void_p).value)
 
                 self.assertEqual(frame_cpy._frame.buffer,
-                                  ctypes.cast(frame_cpy._buffer, ctypes.c_void_p).value)
+                                 ctypes.cast(frame_cpy._buffer, ctypes.c_void_p).value)
 
                 self.assertEqual(frame._frame.bufferSize, frame_cpy._frame.bufferSize)
 

@@ -27,7 +27,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import enum
-import os
 
 from typing import Tuple, List, Callable, Optional, TYPE_CHECKING
 
@@ -429,13 +428,21 @@ class Camera(PersistableFeatureContainer):
 
             # In theory InvalidAccess should be thrown on using a non permitted access mode.
             # In reality VmbError.NotImplemented_ is sometimes returned.
-            # TODO: Check that these error codes are correct
-            if (err == VmbError.InvalidAccess) or (err == VmbError.NotImplemented_):
+            if err in (VmbError.InvalidAccess, VmbError.NotImplemented_):
                 msg = 'Accessed Camera \'{}\' with invalid Mode \'{}\'. Valid modes are: {}'
                 msg = msg.format(self.get_id(), str(self.__access_mode),
                                  self.get_permitted_access_modes())
                 exc = VmbCameraError(msg)
-
+            elif err == VmbError.InUse:
+                msg = 'Accessed Camera \'{}\' is already in use. Could not be opened with access ' \
+                      'mode \'{}\'. Valid modes are: {}'
+                msg = msg.format(self.get_id(), str(self.__access_mode),
+                                 self.get_permitted_access_modes())
+                exc = VmbCameraError(msg)
+            elif err == VmbError.NotFound:
+                msg = 'Camera with ID \'{}\' could not be found.'
+                msg = msg.format(self.get_id())
+                exc = VmbCameraError(msg)
             else:
                 exc = VmbCameraError(repr(err))
 
@@ -457,7 +464,6 @@ class Camera(PersistableFeatureContainer):
             raise exc from e
 
         for i in range(self.__info.streamCount):
-            # TODO: check if we can just iterate over info.streamHandles directly?
             # The stream at index 0 is automatically opened
             self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
                                          is_open=(i == 0),

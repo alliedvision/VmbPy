@@ -125,7 +125,9 @@ def main():
 
             try:
                 # Start Streaming with a custom a buffer of 10 Frames (defaults to 5)
-                cam.start_streaming(handler=frame_handler, buffer_count=10, allocation_mode=allocation_mode)
+                cam.start_streaming(handler=frame_handler,
+                                    buffer_count=10,
+                                    allocation_mode=allocation_mode)
                 input()
 
             finally:

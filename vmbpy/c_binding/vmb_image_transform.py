@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import ctypes
 import sys
-from ctypes import byref, sizeof, c_char_p, POINTER as c_ptr
+from ctypes import byref, sizeof, POINTER as c_ptr
 from typing import Callable, Any, Tuple, Dict, List
 
 from ..error import VmbSystemError
@@ -353,8 +353,8 @@ def _check_version(lib_handle):
     loaded_version = tuple(map(int, VMB_IMAGE_TRANSFORM_VERSION.split(".")))
     expected_version = tuple(map(int, EXPECTED_VMB_IMAGE_TRANSFORM_VERSION.split(".")))
     # Major version must match. minor version may be equal or greater
-    if not(loaded_version[0] == expected_version[0] and
-           loaded_version[1] >= expected_version[1]):
+    if not (loaded_version[0] == expected_version[0] and
+            loaded_version[1] >= expected_version[1]):
         msg = 'Invalid VmbImageTransform Version: Expected: {}, Found:{}'
         raise VmbSystemError(msg.format(EXPECTED_VMB_IMAGE_TRANSFORM_VERSION,
                                         VMB_IMAGE_TRANSFORM_VERSION))

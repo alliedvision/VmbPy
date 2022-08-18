@@ -25,7 +25,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import multiprocessing
-import unittest
 import threading
 
 from vmbpy import *
@@ -64,7 +63,7 @@ def _open_camera(id: str,
         with vmb.get_camera_by_id(id):
             # Set a timeout so we can be sure the process exits and does not remain as an orphaned
             # process forever
-            shutdown_request.wait(timeout=10)
+            shutdown_request.wait(timeout=15)
 
 
 class CamCameraTest(VmbPyTestCase):
@@ -141,13 +140,11 @@ class CamCameraTest(VmbPyTestCase):
         device_unreachable_event = threading.Event()
 
         # Additional change handler that will inform us when our camera became "Unreachable"
-        def _device_unreachable_informer(cam_event):
-            cam_id = self.vmb.get_feature_by_name('EventCameraDiscoveryCameraID').get()
-            if (cam_id in (self.cam.get_id(), self.cam.get_extended_id())
-                    and CameraEvent(int(cam_event.get())) == CameraEvent.Unreachable):
+        def _device_unreachable_informer(device: Camera, event: CameraEvent):
+            if (device == self.cam and event == CameraEvent.Unreachable):
                 device_unreachable_event.set()
 
-        self.vmb.EventCameraDiscovery.register_change_handler(_device_unreachable_informer)
+        self.vmb.register_camera_change_handler(_device_unreachable_informer)
 
         # Prepare a process that will open the camera for us so we can observe the change in
         # permitted access modes. Must be a separate process, separate thread is not enough.
@@ -159,7 +156,7 @@ class CamCameraTest(VmbPyTestCase):
         # Open camera in separate process to trigger a CameraEvent.Unreachable
         p.start()
         # Wait for a CameraEvent.Unreachable to be triggered for our device
-        self.assertTrue(device_unreachable_event.wait(timeout=5),
+        self.assertTrue(device_unreachable_event.wait(timeout=10),
                         'Waiting for the device discovery timed out')
         # Camera is now open in separate process. Make sure our permitted access modes reflects this
         self.assertNotIn(AccessMode.Full, self.cam.get_permitted_access_modes())
@@ -167,7 +164,7 @@ class CamCameraTest(VmbPyTestCase):
         shutdown_request.set()
         p.join()
         # Remove the additional change handler we registered
-        self.vmb.EventCameraDiscovery.unregister_change_handler(_device_unreachable_informer)
+        self.vmb.unregister_camera_change_handler(_device_unreachable_informer)
 
     def test_camera_get_transport_layer_type(self):
         # Expectation: returns instance of transport layer for Camera instance

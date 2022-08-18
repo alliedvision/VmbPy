@@ -258,13 +258,8 @@ class Frame:
                                    ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)).contents
 
     def get_buffer(self) -> ctypes.Array:
-        """Get internal buffer object containing image data."""
-        # TODO: Do we need to consider the imageData pointer here? In VmbCPP the docstring
-        # references image and chunk data!
+        """Get internal buffer object containing image data and (if existent) chunk data."""
         return self._buffer
-
-    # TODO: Do we need to add a get_image method similar to VmbCPP where the chunk data at the
-    # beginning of the buffer is cut off?
 
     def get_buffer_size(self) -> int:
         """Get byte size of internal buffer."""

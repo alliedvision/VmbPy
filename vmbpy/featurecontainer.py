@@ -1,10 +1,8 @@
 from ctypes import byref, sizeof
 import os
-import sys
-from typing import Optional
 
-from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, VmbFeaturePersist, \
-                       ModulePersistFlags, VmbModulePersistFlags, _as_vmb_file_path
+from .c_binding import call_vmb_c, PersistType, VmbFeaturePersistSettings, ModulePersistFlags, \
+                       _as_vmb_file_path
 from .error import VmbFeatureError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import filter_features_by_name, filter_features_by_type, filter_selected_features, \
@@ -180,7 +178,10 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.persistFlag = persist_flags
         settings.maxIterations = max_iterations
 
-        call_vmb_c('VmbSettingsLoad', self._handle, _as_vmb_file_path(file_path), byref(settings),
+        call_vmb_c('VmbSettingsLoad',
+                   self._handle,  # type: ignore
+                   _as_vmb_file_path(file_path),
+                   byref(settings),
                    sizeof(settings))
 
     @RuntimeTypeCheckEnable()
@@ -215,5 +216,8 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.persistFlag = persist_flags
         settings.maxIterations = max_iterations
 
-        call_vmb_c('VmbSettingsSave', self._handle, _as_vmb_file_path(file_path), byref(settings),
+        call_vmb_c('VmbSettingsSave',
+                   self._handle,  # type: ignore
+                   _as_vmb_file_path(file_path),
+                   byref(settings),
                    sizeof(settings))

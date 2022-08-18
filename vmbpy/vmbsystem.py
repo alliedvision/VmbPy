@@ -25,7 +25,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import os
-import sys
 import threading
 from ctypes import byref, sizeof
 from typing import List, Optional
@@ -509,7 +508,7 @@ class VmbSystem:
             # Existing camera lost. Remove it from active cameras
             elif event == CameraEvent.Missing:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()
+                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()  # noqa: E501
                     cam._disconnected = True
                     self.__cams.remove(cam)
 
@@ -518,7 +517,7 @@ class VmbSystem:
             # Camera access mode changed. Need to update cached permitted access modes
             elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()
+                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()  # noqa: E501
                     cam._update_permitted_access_modes()
 
                 log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
@@ -541,7 +540,7 @@ class VmbSystem:
 
         def __inter_cb_wrapper(self, _):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
-            event = InterfaceEvent(int(self.get_feature_by_name('EventInterfaceDiscoveryType').get()))
+            event = InterfaceEvent(int(self.get_feature_by_name('EventInterfaceDiscoveryType').get()))  # noqa: E501
             inter = None
             inter_id = self.get_feature_by_name('EventInterfaceDiscoveryInterfaceID').get()
             log = Log.get_instance()
