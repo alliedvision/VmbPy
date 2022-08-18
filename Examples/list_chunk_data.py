@@ -31,9 +31,9 @@ from vmbpy import *
 
 
 def print_preamble():
-    print('//////////////////////////////////////')
-    print('/// VmbPy Print Chunk Data Example ///')
-    print('//////////////////////////////////////\n')
+    print('/////////////////////////////////////')
+    print('/// VmbPy List Chunk Data Example ///')
+    print('/////////////////////////////////////\n')
 
 
 def print_usage():
