@@ -21,6 +21,12 @@ tools that are used in our full test suite. The following extras are defined for
 - opencv: Similar to above but ensures that the numpy arrays are valid OpenCV images
 - test: Additional tools such as `flake8`, `mypy`, and `coverage` only necessary for executing `run_tests.py`
 
+# Differences to VimbaPython
+
+VmbPy is the successor of VimbaPython. As such it shares many similarities, but in some places major
+differences exist. An overview of the differences between VimbaPython and VmbPy can be found in the
+migration guide, that is part of the Vimba X SDK documentation.
+
 # Usage
 
 Below is a minimal example demonstrating how to print all available cameras detected by VmbPy. It
@@ -103,9 +109,3 @@ following command can be executed to generate the usage description.
 ```
 python run_tests.py -h
 ```
-
-# Differences to VimbaPython
-
-VmbPy is the successor of VimbaPython. As such it shares many similarities, but in some places major
-differences exist. An overview of the differences between VimbaPython and VmbPy can be found in the
-migration guide, that is part of the Vimba X SDK documentation.
