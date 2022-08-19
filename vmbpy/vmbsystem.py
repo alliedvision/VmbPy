@@ -598,7 +598,12 @@ class VmbSystem:
                            byref(transport_layers_found),
                            sizeof(VmbTransportLayerInfo))
                 for info in transport_layer_infos[:transport_layers_found.value]:
-                    result[info.transportLayerHandle] = TransportLayer(info)
+                    try:
+                        result[info.transportLayerHandle] = TransportLayer(info)
+                    except Exception as e:
+                        msg = 'Failed to create TransportLayer for {} ({}): {}'
+                        msg = msg.format(info.transportLayerName, info.transportLayerPath, e)
+                        Log.get_instance().error(msg)
 
             return result
 
@@ -619,8 +624,13 @@ class VmbSystem:
                            sizeof(VmbInterfaceInfo))
 
                 for info in inters_infos[:inters_found.value]:
-                    result[info.interfaceHandle] = Interface(
-                        info, self.__transport_layers[info.transportLayerHandle])
+                    try:
+                        result[info.interfaceHandle] = Interface(
+                            info, self.__transport_layers[info.transportLayerHandle])
+                    except Exception as e:
+                        msg = 'Failed to create Interface for {}: {}'
+                        msg = msg.format(info.interfaceName, e)
+                        Log.get_instance().error(msg)
 
             return result
 
@@ -650,7 +660,12 @@ class VmbSystem:
                            sizeof(VmbCameraInfo))
 
                 for info in cams_infos[:cams_found.value]:
-                    result.append(Camera(info, self.__inters[info.interfaceHandle]))
+                    try:
+                        result.append(Camera(info, self.__inters[info.interfaceHandle]))
+                    except Exception as e:
+                        msg = 'Failed to create Camera for {}: {}'
+                        msg = msg.format(info.cameraName, e)
+                        Log.get_instance().error(msg)
 
             return result
 
