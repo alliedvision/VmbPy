@@ -655,7 +655,7 @@ def _as_vmb_file_path(file_path: str) -> VmbFilePathChar:
     if sys.platform == 'win32':
         return file_path  # type: ignore
     else:
-        return file_path.encode('utf-8')  # type: ignore
+        return file_path.encode('utf-8') if file_path else None  # type: ignore
 
 
 def _is_python_64_bit() -> bool:
