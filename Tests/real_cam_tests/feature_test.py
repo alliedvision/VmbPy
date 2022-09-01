@@ -795,7 +795,7 @@ class CamStringFeatureTest(VmbPyTestCase):
         old_val = self.feat_rw.get()
 
         try:
-            invalid = 'a' * self.feat_rw.get_max_length()
+            invalid = 'a' * (self.feat_rw.get_max_length() + 1)
             self.assertRaises(VmbFeatureError, self.feat_rw.set, invalid)
 
         finally:
