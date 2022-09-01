@@ -213,3 +213,17 @@ class VmbSystemTest(VmbPyTestCase):
         # triggered then called inside of the with block.
         with self.vmb:
             self.assertRaises(RuntimeError, self.vmb.set_path_configuration, 'foo')
+
+    def test_api_context_is_not_entered_on_startup_errors(self):
+        # Expectation: If an error occurs during startup, the context of VmbSystem should not be
+        # entered.
+        with self.assertRaises(VmbTransportLayerError):
+            # This raises an error during startup (as part of the __enter__ call). Exceptions that
+            # are raised in __enter__ do NOT trigger a call to __exit__ automatically, because
+            # Python does not consider them to actually have entered the context as expected.
+            with self.vmb.set_path_configuration('INVALID PATH CONFIGURATION'):
+                self.fail('The context was entered even though an error was encountered')
+
+        # Perform another call to make sure that the context is not lingering after the context
+        # manager has been left correctly
+        self.assertRaises(RuntimeError, self.vmb.read_memory, 0, 0)
