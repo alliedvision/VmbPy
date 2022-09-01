@@ -40,7 +40,14 @@ class EnterContextOnCall:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             args[0]._context_entered = True
-            return func(*args, **kwargs)
+            try:
+                return func(*args, **kwargs)
+            except Exception:
+                # If an error occurs during the function call, we do not consider the context to be
+                # entered
+                args[0]._context_entered = False
+                raise
+
         return wrapper
 
 
