@@ -57,8 +57,10 @@ structure of VmbPy and VmbCPP makes it easy to migrate an existing VmbPy code ba
 
 ## Running the test suite
 
-VmbPy's test suite can be run in two ways. Either by using the test discovery mechanic of Python's
-`unittest` module, or via the provided `run_tests.py`.
+VmbPy provides a number of unittest as part of the [Github
+repository](https://github.com/alliedvision/VmbPy). The test suite can be run in two ways.
+Either by using the test discovery mechanic of Python's `unittest` module, or via the provided
+`run_tests.py`.
 
 ### Unittest discovery
 
