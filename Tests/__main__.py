@@ -57,14 +57,15 @@ def static_test():
 
 def unit_test(testsuite, testcamera, blacklist):
     blacklist = " ".join(blacklist)
+    dir_path = os.path.dirname(os.path.realpath(__file__))
 
     fprint('Execute Unit tests and measure coverage:')
     if testsuite == 'basic':
-        cmd = 'coverage run Tests/runner.py -s basic -o console {}'.format(blacklist)
+        cmd = 'coverage run {} -s basic -o console {}'.format(os.path.join(dir_path, 'runner.py'), blacklist)
 
     else:
-        cmd = 'coverage run Tests/runner.py -s {} -c {} -o console {}'
-        cmd = cmd.format(testsuite, testcamera, blacklist)
+        cmd = 'coverage run {} -s {} -c {} -o console {}'
+        cmd = cmd.format(os.path.join(dir_path, 'runner.py'), testsuite, testcamera, blacklist)
 
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
@@ -101,16 +102,17 @@ def static_test_junit(report_dir):
 
 
 def unit_test_junit(report_dir, testsuite, testcamera, blacklist):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
     fprint('Execute Unit tests and measure coverage:')
 
     blacklist = " ".join(blacklist)
     if testsuite == 'basic':
-        cmd = 'coverage run --branch Tests/runner.py -s basic -o junit_xml {} {}'
-        cmd = cmd.format(report_dir, blacklist)
+        cmd = 'coverage run --branch {} -s basic -o junit_xml {} {}'
+        cmd = cmd.format(os.path.join(dir_path, 'runner.py'), report_dir, blacklist)
 
     else:
-        cmd = 'coverage run --branch Tests/runner.py -s {} -c {} -o junit_xml {} {}'
-        cmd = cmd.format(testsuite, testcamera, report_dir, blacklist)
+        cmd = 'coverage run --branch {} -s {} -c {} -o junit_xml {} {}'
+        cmd = cmd.format(os.path.join(dir_path, 'runner.py'), testsuite, testcamera, report_dir, blacklist)
 
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
