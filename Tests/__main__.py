@@ -28,6 +28,7 @@ import os
 import shutil
 import subprocess
 import docopt
+import sys
 
 
 def fprint(line):
@@ -136,13 +137,13 @@ def test_junit(report_dir, testsuite, testcamera, blacklist):
 
 
 def main():
-    CLI = """vmbpy tests script.
+    CLI = f"""vmbpy tests script.
     Usage:
-        run_tests.py -h
-        run_tests.py test -s basic [BLACKLIST...]
-        run_tests.py test -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
-        run_tests.py test_junit -s basic [BLACKLIST...]
-        run_tests.py test_junit -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+        {sys.argv[0]} -h
+        {sys.argv[0]} test -s basic [BLACKLIST...]
+        {sys.argv[0]} test -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+        {sys.argv[0]} test_junit -s basic [BLACKLIST...]
+        {sys.argv[0]} test_junit -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
 
     Arguments:
         CAMERA_ID    Camera Id from Camera that shall be used during testing
