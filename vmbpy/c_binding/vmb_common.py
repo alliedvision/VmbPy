@@ -30,7 +30,7 @@ import functools
 import os
 import platform
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from ..error import VmbSystemError
 
@@ -637,7 +637,7 @@ def _select_vimbax_home(candidates: List[str]) -> str:
     return most_likely_candidates[0]
 
 
-def _as_vmb_file_path(file_path: str) -> VmbFilePathChar:
+def _as_vmb_file_path(file_path: Optional[str]) -> Optional[VmbFilePathChar]:
     """
     Encode a python string to VmbFilePathChar so it can be passed to VmbC
 
@@ -646,7 +646,9 @@ def _as_vmb_file_path(file_path: str) -> VmbFilePathChar:
     path variable to VmbC functions that expect a VmbFilePathChar input parameter.
 
     Arguments:
-        file_path - Python string containing the file path that should be passed to a VmbC function
+        file_path - Python string containing the file path that should be passed to a VmbC function,
+                    or `None`. If `None` is passed, `None` will also be returned so that ctypes may
+                    interpret it as a nullptr
 
     Return:
         Given string with correct encoding so that ctypes handles the conversion when passed to a
@@ -655,7 +657,7 @@ def _as_vmb_file_path(file_path: str) -> VmbFilePathChar:
     if sys.platform == 'win32':
         return file_path  # type: ignore
     else:
-        return file_path.encode('utf-8')  # type: ignore
+        return file_path.encode('utf-8') if file_path else None  # type: ignore
 
 
 def _is_python_64_bit() -> bool:
