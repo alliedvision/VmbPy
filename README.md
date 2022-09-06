@@ -60,7 +60,7 @@ structure of VmbPy and VmbCPP makes it easy to migrate an existing VmbPy code ba
 VmbPy provides a number of unittest as part of the [Github
 repository](https://github.com/alliedvision/VmbPy). The test suite can be run in two ways.
 Either by using the test discovery mechanic of Python's `unittest` module, or via the provided
-`run_tests.py`.
+`Tests/__main__.py`.
 
 ### Unittest discovery
 
@@ -97,17 +97,18 @@ python -m unittest discover -v -p *_test.py
 ```
 </details>
 
-### `run_tests.py`
+### `Tests/__main__.py`
 
-The provided helper script `run_tests.py` may also be used to execute the test suite. In addition to
-the test cases, it also executes `flake8`, `mypy`, and `coverage`. These additional tools need to be
+The `Tests` directory contains a file named `__main__.py`. This file can be used to execute the
+directory as if it was a single python script to execute the test suite. In addition to the test
+cases, it also executes `flake8`, `mypy`, and `coverage`. These additional tools need to be
 installed in the used Python environment. For convenience they are grouped as an optional dependency
 of VmbPy with the name `test` that can be added to the `pip install` command used to install VmbPy.
 
-`run_tests.py` provides a helpful command line interface that can be used to configure which tests
-to run and how the output should be structured. To get an overview of the available options the
-following command can be executed to generate the usage description.
+`Tests/__main__.py` provides a helpful command line interface that can be used to configure which
+tests to run and how the output should be structured. To get an overview of the available options
+the following command can be executed to generate the usage description.
 
 ```
-python run_tests.py -h
+python Tests -h
 ```
