@@ -28,7 +28,6 @@ import os
 import shutil
 import subprocess
 import docopt
-import sys
 
 
 def fprint(line):
@@ -57,15 +56,14 @@ def static_test():
 
 def unit_test(testsuite, testcamera, blacklist):
     blacklist = " ".join(blacklist)
-    dir_path = os.path.dirname(os.path.realpath(__file__))
 
     fprint('Execute Unit tests and measure coverage:')
     if testsuite == 'basic':
-        cmd = 'coverage run {} -s basic -o console {}'.format(os.path.join(dir_path, 'runner.py'), blacklist)
+        cmd = 'coverage run Tests/runner.py -s basic -o console {}'.format(blacklist)
 
     else:
-        cmd = 'coverage run {} -s {} -c {} -o console {}'
-        cmd = cmd.format(os.path.join(dir_path, 'runner.py'), testsuite, testcamera, blacklist)
+        cmd = 'coverage run Tests/runner.py -s {} -c {} -o console {}'
+        cmd = cmd.format(testsuite, testcamera, blacklist)
 
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
@@ -102,17 +100,16 @@ def static_test_junit(report_dir):
 
 
 def unit_test_junit(report_dir, testsuite, testcamera, blacklist):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
     fprint('Execute Unit tests and measure coverage:')
 
     blacklist = " ".join(blacklist)
     if testsuite == 'basic':
-        cmd = 'coverage run --branch {} -s basic -o junit_xml {} {}'
-        cmd = cmd.format(os.path.join(dir_path, 'runner.py'), report_dir, blacklist)
+        cmd = 'coverage run --branch Tests/runner.py -s basic -o junit_xml {} {}'
+        cmd = cmd.format(report_dir, blacklist)
 
     else:
-        cmd = 'coverage run --branch {} -s {} -c {} -o junit_xml {} {}'
-        cmd = cmd.format(os.path.join(dir_path, 'runner.py'), testsuite, testcamera, report_dir, blacklist)
+        cmd = 'coverage run --branch Tests/runner.py -s {} -c {} -o junit_xml {} {}'
+        cmd = cmd.format(testsuite, testcamera, report_dir, blacklist)
 
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
@@ -139,13 +136,13 @@ def test_junit(report_dir, testsuite, testcamera, blacklist):
 
 
 def main():
-    CLI = f"""vmbpy tests script.
+    CLI = """vmbpy tests script.
     Usage:
-        {sys.argv[0]} -h
-        {sys.argv[0]} test -s basic [BLACKLIST...]
-        {sys.argv[0]} test -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
-        {sys.argv[0]} test_junit -s basic [BLACKLIST...]
-        {sys.argv[0]} test_junit -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+        run_tests.py -h
+        run_tests.py test -s basic [BLACKLIST...]
+        run_tests.py test -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+        run_tests.py test_junit -s basic [BLACKLIST...]
+        run_tests.py test_junit -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
 
     Arguments:
         CAMERA_ID    Camera Id from Camera that shall be used during testing
