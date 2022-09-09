@@ -73,6 +73,18 @@ class _State:
     def __init__(self, context: _Context):
         self.context = context
 
+    def _get_next_state(self, *args) -> _State:
+        # Returns an instance of the next state. passed `args` are passed to the initializer of the
+        # next state
+        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
+        return _CaptureFsm.STATE_ORDER[own_index + 1](*args)
+
+    def _get_previous_state(self, *args) -> _State:
+        # Returns an instance of the previous state. passed `args` are passed to the initializer of
+        # the next state
+        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
+        return _CaptureFsm.STATE_ORDER[own_index - 1](*args)
+
 
 class _StateInit(_State):
     @TraceEnable()
@@ -90,7 +102,7 @@ class _StateInit(_State):
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateAnnounced(self.context)
+        return self._get_next_state(self.context)
 
 
 class _StateAnnounced(_State):
@@ -106,7 +118,7 @@ class _StateAnnounced(_State):
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateQueued(self.context)
+        return self._get_next_state(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
@@ -119,7 +131,7 @@ class _StateAnnounced(_State):
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateInit(self.context)
+        return self._get_previous_state(self.context)
 
 
 class _StateQueued(_State):
@@ -131,7 +143,7 @@ class _StateQueued(_State):
         except VmbCError as e:
             return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateCaptureStarted(self.context)
+        return self._get_next_state(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
@@ -141,7 +153,7 @@ class _StateQueued(_State):
         except VmbCError as e:
             return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateAnnounced(self.context)
+        return self._get_previous_state(self.context)
 
 
 class _StateCaptureStarted(_State):
@@ -155,7 +167,7 @@ class _StateCaptureStarted(_State):
         except BaseException as e:
             return VmbCameraError(str(e))
 
-        return _StateAcquiring(self.context)
+        return self._get_next_state(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
@@ -165,7 +177,7 @@ class _StateCaptureStarted(_State):
         except VmbCError as e:
             return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateQueued(self.context)
+        return self._get_previous_state(self.context)
 
 
 class _StateAcquiring(_State):
@@ -179,7 +191,7 @@ class _StateAcquiring(_State):
         except BaseException as e:
             return VmbCameraError(str(e))
 
-        return _StateCaptureStarted(self.context)
+        return self._get_previous_state(self.context)
 
     @TraceEnable()
     def wait_for_frames(self, timeout_ms: int):
@@ -206,6 +218,8 @@ class _StateAcquiring(_State):
 
 
 class _CaptureFsm:
+    STATE_ORDER = (_StateInit, _StateAnnounced, _StateQueued, _StateCaptureStarted, _StateAcquiring)
+
     def __init__(self, context: _Context):
         self.__context = context
         self.__state = _StateInit(self.__context)
