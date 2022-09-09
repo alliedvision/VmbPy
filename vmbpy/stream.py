@@ -26,6 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import annotations
 
+import contextlib
 import copy
 import threading
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union, cast
@@ -383,6 +384,19 @@ class Stream(PersistableFeatureContainer):
             raise ValueError('Given Timeout {} is not > 0'.format(timeout_ms))
 
         return _frame_generator(self._parent_cam, self, limit, timeout_ms, allocation_mode)
+
+    @TraceEnable()
+    @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
+    @contextlib.contextmanager
+    def get_frame_with_context(self,
+                               timeout_ms: int = 2000,
+                               allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
+        """TODO: Write docstring"""
+        for frame in self.get_frame_generator(1,
+                                              timeout_ms=timeout_ms,
+                                              allocation_mode=allocation_mode):
+            yield frame
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
