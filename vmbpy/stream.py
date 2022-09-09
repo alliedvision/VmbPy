@@ -420,7 +420,11 @@ class Stream(PersistableFeatureContainer):
             ValueError if a timeout_ms is negative.
             VmbTimeout if Frame acquisition timed out.
         """
-        return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
+        for frame in self.get_frame_generator(1,
+                                              timeout_ms=timeout_ms,
+                                              allocation_mode=allocation_mode):
+            frame_copy = copy.deepcopy(frame)
+        return frame_copy
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
