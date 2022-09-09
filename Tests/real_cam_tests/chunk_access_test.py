@@ -59,7 +59,7 @@ class ChunkAccessTest(VmbPyTestCase):
 
         except VmbFeatureError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'ChunkModeActive\' not available.')
 
     def tearDown(self):
