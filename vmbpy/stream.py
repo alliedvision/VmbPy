@@ -227,43 +227,35 @@ class _CaptureFsm:
     def get_context(self) -> _Context:
         return self.__context
 
-    def enter_capturing_mode(self):
-        # Forward state machine until the end or an error occurs
+    def go_to_state(self, new_state: type[_State]):
+        # Make the state machine transition to new_state
+        target_index = _CaptureFsm.STATE_ORDER.index(new_state)
         exc = None
-
-        while not exc:
+        while self.__current_index != target_index and not exc:
             try:
-                state_or_exc = self.__state.forward()
-
+                if self.__current_index < target_index:
+                    state_or_exc = self.__state.forward()
+                else:
+                    state_or_exc = self.__state.backward()
             except AttributeError:
                 break
-
             if isinstance(state_or_exc, _State):
                 self.__state = state_or_exc
-
             else:
                 exc = state_or_exc
-
         return exc
+
+    @property
+    def __current_index(self) -> int:
+        return _CaptureFsm.STATE_ORDER.index(type(self.__state))
+
+    def enter_capturing_mode(self):
+        # Forward state machine until the end or an error occurs
+        return self.go_to_state(_CaptureFsm.STATE_ORDER[-1])
 
     def leave_capturing_mode(self):
         # Revert state machine until the initial state is reached or an error occurs
-        exc = None
-
-        while not exc:
-            try:
-                state_or_exc = self.__state.backward()
-
-            except AttributeError:
-                break
-
-            if isinstance(state_or_exc, _State):
-                self.__state = state_or_exc
-
-            else:
-                exc = state_or_exc
-
-        return exc
+        return self.go_to_state(_CaptureFsm.STATE_ORDER[0])
 
     def wait_for_frames(self, timeout_ms: int):
         # Wait for Frames only in AcquiringMode
