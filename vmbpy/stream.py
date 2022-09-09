@@ -289,28 +289,33 @@ def _frame_generator(cam: Camera,
     except VmbCError as e:
         raise _build_camera_error(cam, stream, e) from e
 
-    frames = (Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment), )
+    frame = Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment)
     # FRAME_CALLBACK_TYPE() is equivalent to passing None (i.e. nullptr), but allows ctypes to still
     # perform type checking
-    fsm = _CaptureFsm(_Context(cam, stream, frames, None, FRAME_CALLBACK_TYPE()))
+    fsm = _CaptureFsm(_Context(cam, stream, (frame, ), None, FRAME_CALLBACK_TYPE()))
     cnt = 0
 
     try:
+        # Enter Capturing mode
+        exc = fsm.enter_capturing_mode()
+        if exc:
+            raise exc
         while True if limit is None else cnt < limit:
-            # Enter Capturing mode
-            exc = fsm.enter_capturing_mode()
+            fsm.wait_for_frames(timeout_ms)
+            exc = fsm.go_to_state(_StateQueued)
             if exc:
                 raise exc
 
-            fsm.wait_for_frames(timeout_ms)
-
-            # Return copy of internally used frame to keep them independent.
-            frame_copy = copy.deepcopy(frames[0])
-            fsm.leave_capturing_mode()
-            frame_copy._frame.frameID = cnt
+            # Because acquisition is started fresh for each frame the frameID needs to be set
+            # manually
+            frame._frame.frameID = cnt
             cnt += 1
 
-            yield frame_copy
+            yield frame
+            exc = fsm.enter_capturing_mode()
+            if exc:
+                raise exc
+            fsm.queue_frame(frame)
 
     finally:
         # Leave Capturing mode
