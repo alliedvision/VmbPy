@@ -224,6 +224,8 @@ class VmbSystemTest(VmbPyTestCase):
             with self.vmb.set_path_configuration('INVALID PATH CONFIGURATION'):
                 self.fail('The context was entered even though an error was encountered')
 
+        # Explicitly reset path configuration to None so we do not impact subsequent test cases
+        self.vmb._Impl__path_configuration = None
         # Perform another call to make sure that the context is not lingering after the context
         # manager has been left correctly
         self.assertRaises(RuntimeError, self.vmb.read_memory, 0, 0)
