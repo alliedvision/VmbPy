@@ -223,7 +223,7 @@ class _CaptureFsm:
 
     def __init__(self, context: _Context):
         self.__context = context
-        self.__state = _StateInit(self.__context)
+        self.__state: _State = _StateInit(self.__context)
 
     def get_context(self) -> _Context:
         return self.__context
@@ -235,9 +235,9 @@ class _CaptureFsm:
         while self.__current_index != target_index and not exc:
             try:
                 if self.__current_index < target_index:
-                    state_or_exc = self.__state.forward()
+                    state_or_exc = self.__state.forward()  # type: ignore
                 else:
-                    state_or_exc = self.__state.backward()
+                    state_or_exc = self.__state.backward()  # type: ignore
             except AttributeError:
                 break
             if isinstance(state_or_exc, _State):
