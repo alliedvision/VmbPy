@@ -360,23 +360,25 @@ class CamCameraTest(VmbPyTestCase):
             finally:
                 self.cam.stop_streaming()
 
-    def test_ensure_frame_ids_start_at_zero(self):
-        # Expectation: Frame IDs start at 0 and increment by one for each received frame (this
-        # depends on a stable stream with no lost frames!)
+    def test_ensure_frame_ids_increment_by_one_each_time(self):
+        # Expectation: Frame IDs increment by one for each received frame (this depends on a stable
+        # stream with no lost frames!)
 
         class FrameHandler:
             def __init__(self, frame_count, test_instance):
-                self.cnt = 0
+                self.cnt = None
                 self.frame_count = frame_count
                 self._test_instance = test_instance
                 self.event = threading.Event()
 
             def __call__(self, cam: Camera, stream: Stream, frame: Frame):
-                # If the frame callback for the first frame is not triggered, this assertion will
-                # fail the test case because the frame will have ID 1 instead of the expected value
-                # of 0
-                self._test_instance.assertEqual(self.cnt, frame.get_id())
-                self.cnt += 1
+                if self.cnt is None:
+                    # On first execution of callback, get first frame ID
+                    self.cnt = frame.get_id()
+                else:
+                    # On subsequent executions ensure that the frame ID was incremented by exactly 1
+                    self.cnt += 1
+                    self._test_instance.assertEqual(self.cnt, frame.get_id())
 
                 if self.cnt == self.frame_count:
                     self.event.set()
