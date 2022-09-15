@@ -252,12 +252,17 @@ class CamCommandFeatureTest(VmbPyTestCase):
         self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
-        try:
-            self.feat = self.vimba.get_feature_by_name('ActionCommand')
+        self.feat = None
+        for inter in self.vimba.get_all_interfaces():
+            try:
+                self.feat = inter.get_features_by_type(CommandFeature)[0]
+            except IndexError:
+                # The interface does not have any CommandFeatures
+                pass
 
-        except VmbFeatureError:
+        if self.feat is None:
             self.vimba._shutdown()
-            self.skipTest('Required Feature \'ActionCommand\' not available.')
+            self.skipTest('Could not find a CommandFeature to execute the test cases with')
 
     def tearDown(self):
         self.vimba._shutdown()
