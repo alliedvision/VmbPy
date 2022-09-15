@@ -146,6 +146,23 @@ class StreamTest(VmbPyTestCase):
                 self.assertNoRaise(stream.get_frame)
                 self.assertIsInstance(stream.get_frame(), Frame)
 
+    def test_camera_get_frame_with_context(self):
+        # Expectation: Gets a single context managed Frame.
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                with stream.get_frame_with_context() as frame:
+                    self.assertIsInstance(frame, Frame)
+
+    def test_camera_get_frame_with_context_invalid_timeouts_raise_error(self):
+        # Expectation: Using an invalid value for the timeout parameter raises a `ValueError`.
+        for stream in self.cam.get_streams():
+            with self.subTest(f'Stream={stream}'):
+                for invalid_value in (0, -1):
+                    with self.subTest(f'timeout_ms={invalid_value}'):
+                        with self.assertRaises(ValueError):
+                            with stream.get_frame_with_context(timeout_ms=invalid_value):
+                                pass
+
     def test_stream_is_streaming(self):
         # Expectation: After start_streaming() is_streaming() must return true. After stop it must
         # return false. If the camera context is left without stop_streaming(), leaving
