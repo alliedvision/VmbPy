@@ -193,7 +193,7 @@ class _CaptureFsm:
     def get_context(self) -> _Context:
         return self.__context
 
-    def go_to_state(self, new_state: type[_State]):
+    def go_to_state(self, new_state: Optional[type[_State]]):
         """
         Make the state machine transition to new_state.
 
@@ -201,7 +201,9 @@ class _CaptureFsm:
         See section "Raises" of this docstring for a short explanation.
 
         Arguments:
-            new_state: The state that the state machine should transition to.
+            new_state: The state that the state machine should transition to or None. If a state is
+                       given, all necessary transitions are attempted. If None is given, all
+                       currently entered states will be exited.
 
         Raises:
             Any errors encountered during the state transition are cached. If only one error was
@@ -209,7 +211,10 @@ class _CaptureFsm:
             errors are encountered during the transition, they are bundled in an array and raised at
             the end of the transition as part of a VmbCError.
         """
-        target_index = _CaptureFsm.STATE_ORDER.index(new_state)
+        if new_state is not None:
+            target_index = _CaptureFsm.STATE_ORDER.index(new_state)
+        else:
+            target_index = -1
         exc = []
         while self.__current_index != target_index:
             try:
@@ -246,7 +251,7 @@ class _CaptureFsm:
 
     def leave_capturing_mode(self):
         # Revert state machine until the initial state is reached or an error occurs
-        self.go_to_state(_CaptureFsm.STATE_ORDER[0])
+        self.go_to_state(None)
 
     def wait_for_frames(self, timeout_ms: int):
         # Wait for Frames only in AcquiringMode
