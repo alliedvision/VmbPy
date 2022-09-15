@@ -74,18 +74,6 @@ class _State:
     def __init__(self, context: _Context):
         self.context = context
 
-    def _get_next_state(self, *args) -> _State:
-        # Returns an instance of the next state. passed `args` are passed to the initializer of the
-        # next state
-        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
-        return _CaptureFsm.STATE_ORDER[own_index + 1](*args)
-
-    def _get_previous_state(self, *args) -> _State:
-        # Returns an instance of the previous state. passed `args` are passed to the initializer of
-        # the next state
-        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
-        return _CaptureFsm.STATE_ORDER[own_index - 1](*args)
-
 
 class _StateAnnounced(_State):
     @TraceEnable()
