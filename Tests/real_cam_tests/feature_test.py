@@ -198,13 +198,29 @@ class CamBoolFeatureTest(VmbPyTestCase):
         self.vimba._startup()
 
         try:
-            self.feat = self.vimba.get_feature_by_name('UsbTLIsPresent')
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VmbFeatureError:
+        except VmbCameraError as e:
             self.vimba._shutdown()
-            self.skipTest('Required Feature \'UsbTLIsPresent\' not available.')
+            raise Exception('Failed to lookup Camera.') from e
+
+        try:
+            self.cam._open()
+
+        except VmbCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to open Camera.') from e
+
+        try:
+            self.feat: BoolFeature = self.cam.get_features_by_type(BoolFeature)[0]
+
+        except (VmbCameraError, IndexError):
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Could not find a Bool feature to use for the test')
 
     def tearDown(self):
+        self.cam._close()
         self.vimba._shutdown()
 
     def test_get_type(self):
@@ -213,11 +229,22 @@ class CamBoolFeatureTest(VmbPyTestCase):
 
     def test_get(self):
         # Expectation: returns current boolean value.
-        self.assertNoRaise(self.feat.get)
+        if self.feat.is_readable():
+            self.assertNoRaise(self.feat.get)
+        else:
+            self.skipTest(f'Feature {self.feat.get_name()} is not readable')
 
     def test_set(self):
-        # Expectation: Raises invalid Access on non-writeable features.
-        self.assertRaises(VmbFeatureError, self.feat.set, True)
+        # Expectation: Raises invalid Access on non-writeable features, does not raise an error on
+        # writeable features.
+        if not self.feat.is_readable():
+            self.skipTest(f'Feature {self.feat.get_name()} is not readable')
+        else:
+            value = self.feat.get()
+            if self.feat.is_writeable():
+                self.assertNoRaise(self.feat.set, value)
+            else:
+                self.assertRaises(VmbFeatureError, self.feat.set, value)
 
 
 class CamCommandFeatureTest(VmbPyTestCase):
