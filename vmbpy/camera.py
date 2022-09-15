@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import annotations
 
 import enum
+import contextlib
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from .c_binding import (AccessMode, VmbCameraInfo, VmbCError, VmbError, VmbHandle, byref,
@@ -255,6 +256,19 @@ class Camera(PersistableFeatureContainer):
     @TraceEnable()
     @RaiseIfOutsideContext()
     @RuntimeTypeCheckEnable()
+    @contextlib.contextmanager
+    def get_frame_with_context(self,
+                               timeout_ms: int = 2000,
+                               allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
+        """TODO: Write docstring"""
+        for frame in self.get_frame_generator(1,
+                                              timeout_ms=timeout_ms,
+                                              allocation_mode=allocation_mode):
+            yield frame
+
+    @TraceEnable()
+    @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
     def get_frame(self,
                   timeout_ms: int = 2000,
                   allocation_mode: AllocationMode = AllocationMode.AnnounceFrame) -> Frame:
@@ -274,7 +288,8 @@ class Camera(PersistableFeatureContainer):
             ValueError if a timeout_ms is negative.
             VmbTimeout if Frame acquisition timed out.
         """
-        return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
+        return self.__streams[0].get_frame(timeout_ms=timeout_ms,
+                                           allocation_mode=allocation_mode)
 
     @TraceEnable()
     @RaiseIfOutsideContext()

@@ -229,6 +229,21 @@ class CamCameraTest(VmbPyTestCase):
             self.assertNoRaise(self.cam.get_frame)
             self.assertIsInstance(self.cam.get_frame(), Frame)
 
+    def test_camera_get_frame_with_context(self):
+        # Expectation: Gets a single context managed Frame.
+        with self.cam:
+            with self.cam.get_frame_with_context() as frame:
+                self.assertIsInstance(frame, Frame)
+
+    def test_camera_get_frame_with_context_invalid_timeouts_raise_error(self):
+        # Expectation: Using an invalid value for the timeout parameter raises a `ValueError`.
+        for invalid_value in (0, -1):
+            with self.subTest(f'timeout_ms={invalid_value}'):
+                with self.assertRaises(ValueError):
+                    with self.cam:
+                        with self.cam.get_frame_with_context(timeout_ms=invalid_value):
+                            pass
+
     def test_camera_capture_error_outside_vimba_scope(self):
         # Expectation: Camera access outside of Vimba scope must lead to a RuntimeError
         gener = None

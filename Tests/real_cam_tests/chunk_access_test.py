@@ -99,6 +99,49 @@ class ChunkAccessTest(VmbPyTestCase):
                          f'({handler.frame_callbacks_executed}) does not equal number of '
                          f'executed chunk callbacks ({handler.chunk_callbacks_executed})')
 
+    def test_managed_get_frame_chunk_access(self):
+        # Expectation: Chunk access is possible for frames that are acquired using the context
+        # managed get_frame method.
+        class CallbackHelper:
+            def __init__(self) -> None:
+                self.chunk_callbacks_executed = 0
+
+            def chunk_callback(self, feats: FeatureContainer):
+                self.chunk_callbacks_executed += 1
+
+        self.chunk_mode.set(True)
+        helper = CallbackHelper()
+        with self.cam.get_frame_with_context() as frame:
+            frame.access_chunk_data(helper.chunk_callback)
+        self.assertEqual(1, helper.chunk_callbacks_executed)
+
+    def test_get_frame_chunk_access_raises_error(self):
+        # Expectation: Chunk access is not possible for frames that are acquired using the
+        # non-managed get_frame method. A VmbChunkError is raised
+        def dummy_chunk_callback(feats: FeatureContainer):
+            pass
+
+        self.chunk_mode.set(True)
+        frame = self.cam.get_frame()
+        self.assertRaises(VmbChunkError, frame.access_chunk_data, dummy_chunk_callback)
+
+    def test_get_frame_generator_chunk_access(self):
+        # Expectation: Chunk access is possible inside the loop for frames that are acquired using
+        # the frame generator
+        class CallbackHelper:
+            def __init__(self) -> None:
+                self.chunk_callbacks_executed = 0
+
+            def chunk_callback(self, feats: FeatureContainer):
+                self.chunk_callbacks_executed += 1
+
+        self.chunk_mode.set(True)
+        helper = CallbackHelper()
+        number_of_iterations = 5
+        for frame in self.cam.get_frame_generator(limit=number_of_iterations):
+            frame.access_chunk_data(helper.chunk_callback)
+        self.assertEqual(number_of_iterations, helper.chunk_callbacks_executed)
+
     def test_error_raised_if_chunk_is_not_active(self):
         # Expectation: If the frame does not contain chunk data `VmbFrameError` is raised upon
         # calling `Frame.access_chunk_data`

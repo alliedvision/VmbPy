@@ -26,6 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import annotations
 
+import contextlib
 import copy
 import threading
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union, cast
@@ -73,6 +74,18 @@ class _State:
     def __init__(self, context: _Context):
         self.context = context
 
+    def _get_next_state(self, *args) -> _State:
+        # Returns an instance of the next state. passed `args` are passed to the initializer of the
+        # next state
+        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
+        return _CaptureFsm.STATE_ORDER[own_index + 1](*args)
+
+    def _get_previous_state(self, *args) -> _State:
+        # Returns an instance of the previous state. passed `args` are passed to the initializer of
+        # the next state
+        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
+        return _CaptureFsm.STATE_ORDER[own_index - 1](*args)
+
 
 class _StateInit(_State):
     @TraceEnable()
@@ -90,7 +103,7 @@ class _StateInit(_State):
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateAnnounced(self.context)
+        return self._get_next_state(self.context)
 
 
 class _StateAnnounced(_State):
@@ -106,7 +119,7 @@ class _StateAnnounced(_State):
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateQueued(self.context)
+        return self._get_next_state(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
@@ -119,7 +132,7 @@ class _StateAnnounced(_State):
             except VmbCError as e:
                 return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateInit(self.context)
+        return self._get_previous_state(self.context)
 
 
 class _StateQueued(_State):
@@ -131,7 +144,7 @@ class _StateQueued(_State):
         except VmbCError as e:
             return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateCaptureStarted(self.context)
+        return self._get_next_state(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
@@ -141,7 +154,7 @@ class _StateQueued(_State):
         except VmbCError as e:
             return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateAnnounced(self.context)
+        return self._get_previous_state(self.context)
 
 
 class _StateCaptureStarted(_State):
@@ -155,7 +168,7 @@ class _StateCaptureStarted(_State):
         except BaseException as e:
             return VmbCameraError(str(e))
 
-        return _StateAcquiring(self.context)
+        return self._get_next_state(self.context)
 
     @TraceEnable()
     def backward(self) -> Union[_State, VmbCameraError]:
@@ -165,7 +178,7 @@ class _StateCaptureStarted(_State):
         except VmbCError as e:
             return _build_camera_error(self.context.cam, self.context.stream, e)
 
-        return _StateQueued(self.context)
+        return self._get_previous_state(self.context)
 
 
 class _StateAcquiring(_State):
@@ -179,7 +192,7 @@ class _StateAcquiring(_State):
         except BaseException as e:
             return VmbCameraError(str(e))
 
-        return _StateCaptureStarted(self.context)
+        return self._get_previous_state(self.context)
 
     @TraceEnable()
     def wait_for_frames(self, timeout_ms: int):
@@ -206,50 +219,44 @@ class _StateAcquiring(_State):
 
 
 class _CaptureFsm:
+    STATE_ORDER = (_StateInit, _StateAnnounced, _StateQueued, _StateCaptureStarted, _StateAcquiring)
+
     def __init__(self, context: _Context):
         self.__context = context
-        self.__state = _StateInit(self.__context)
+        self.__state: _State = _StateInit(self.__context)
 
     def get_context(self) -> _Context:
         return self.__context
 
-    def enter_capturing_mode(self):
-        # Forward state machine until the end or an error occurs
+    def go_to_state(self, new_state: type[_State]):
+        # Make the state machine transition to new_state
+        target_index = _CaptureFsm.STATE_ORDER.index(new_state)
         exc = None
-
-        while not exc:
+        while self.__current_index != target_index and not exc:
             try:
-                state_or_exc = self.__state.forward()
-
+                if self.__current_index < target_index:
+                    state_or_exc = self.__state.forward()  # type: ignore
+                else:
+                    state_or_exc = self.__state.backward()  # type: ignore
             except AttributeError:
                 break
-
             if isinstance(state_or_exc, _State):
                 self.__state = state_or_exc
-
             else:
                 exc = state_or_exc
-
         return exc
+
+    @property
+    def __current_index(self) -> int:
+        return _CaptureFsm.STATE_ORDER.index(type(self.__state))
+
+    def enter_capturing_mode(self):
+        # Forward state machine until the end or an error occurs
+        return self.go_to_state(_CaptureFsm.STATE_ORDER[-1])
 
     def leave_capturing_mode(self):
         # Revert state machine until the initial state is reached or an error occurs
-        exc = None
-
-        while not exc:
-            try:
-                state_or_exc = self.__state.backward()
-
-            except AttributeError:
-                break
-
-            if isinstance(state_or_exc, _State):
-                self.__state = state_or_exc
-
-            else:
-                exc = state_or_exc
-
-        return exc
+        return self.go_to_state(_CaptureFsm.STATE_ORDER[0])
 
     def wait_for_frames(self, timeout_ms: int):
         # Wait for Frames only in AcquiringMode
@@ -283,28 +290,33 @@ def _frame_generator(cam: Camera,
     except VmbCError as e:
         raise _build_camera_error(cam, stream, e) from e
 
-    frames = (Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment), )
+    frame = Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment)
     # FRAME_CALLBACK_TYPE() is equivalent to passing None (i.e. nullptr), but allows ctypes to still
     # perform type checking
-    fsm = _CaptureFsm(_Context(cam, stream, frames, None, FRAME_CALLBACK_TYPE()))
+    fsm = _CaptureFsm(_Context(cam, stream, (frame, ), None, FRAME_CALLBACK_TYPE()))
     cnt = 0
 
     try:
+        # Enter Capturing mode
+        exc = fsm.enter_capturing_mode()
+        if exc:
+            raise exc
         while True if limit is None else cnt < limit:
-            # Enter Capturing mode
-            exc = fsm.enter_capturing_mode()
+            fsm.wait_for_frames(timeout_ms)
+            exc = fsm.go_to_state(_StateQueued)
             if exc:
                 raise exc
 
-            fsm.wait_for_frames(timeout_ms)
-
-            # Return copy of internally used frame to keep them independent.
-            frame_copy = copy.deepcopy(frames[0])
-            fsm.leave_capturing_mode()
-            frame_copy._frame.frameID = cnt
+            # Because acquisition is started fresh for each frame the frameID needs to be set
+            # manually
+            frame._frame.frameID = cnt
             cnt += 1
 
-            yield frame_copy
+            yield frame
+            exc = fsm.enter_capturing_mode()
+            if exc:
+                raise exc
+            fsm.queue_frame(frame)
 
     finally:
         # Leave Capturing mode
@@ -374,6 +386,19 @@ class Stream(PersistableFeatureContainer):
         return _frame_generator(self._parent_cam, self, limit, timeout_ms, allocation_mode)
 
     @TraceEnable()
+    @RaiseIfOutsideContext()
+    @RuntimeTypeCheckEnable()
+    @contextlib.contextmanager
+    def get_frame_with_context(self,
+                               timeout_ms: int = 2000,
+                               allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
+        """TODO: Write docstring"""
+        for frame in self.get_frame_generator(1,
+                                              timeout_ms=timeout_ms,
+                                              allocation_mode=allocation_mode):
+            yield frame
+
+    @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
     @RuntimeTypeCheckEnable()
     def get_frame(self,
@@ -395,7 +420,11 @@ class Stream(PersistableFeatureContainer):
             ValueError if a timeout_ms is negative.
             VmbTimeout if Frame acquisition timed out.
         """
-        return next(self.get_frame_generator(1, timeout_ms, allocation_mode))
+        for frame in self.get_frame_generator(1,
+                                              timeout_ms=timeout_ms,
+                                              allocation_mode=allocation_mode):
+            frame_copy = copy.deepcopy(frame)
+        return frame_copy
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
