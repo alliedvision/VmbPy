@@ -229,7 +229,9 @@ class Camera(PersistableFeatureContainer):
                             allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
         """Construct frame generator, providing synchronous image acquisition.
 
-        The Frame generator acquires a new frame with each execution.
+        The Frame generator acquires a new frame with each execution. Frames may only be used inside
+        their respective loop iteration. If a frame must be used outside the loop iteration, a copy
+        of the frame must be created (e.g. via `copy.deepcopy(frame)`).
 
         Arguments:
             limit - The number of images the generator shall acquire. If limit is None,
@@ -260,7 +262,27 @@ class Camera(PersistableFeatureContainer):
     def get_frame_with_context(self,
                                timeout_ms: int = 2000,
                                allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
-        """TODO: Write docstring"""
+        """Gets a single frame from camera to be used inside a context manager.
+
+        Records a single frame from the camera and yields it to the caller for use inside a `with`
+        context manager. The frame may only be used inside the context, but may be copied for use
+        outside of it (e.g. via `copy.deepcopy(frame)`). The yielded frame can be used to access
+        chunk data.
+
+        Arguments:
+            timeout_ms - Timeout in milliseconds of frame acquisition.
+            allocation_mode - Allocation mode deciding if buffer allocation should be done by
+                              vmbpy or the Transport Layer
+
+        Yields:
+            Frame from camera for use in `with` context manager
+
+        Raises:
+            TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
+            ValueError if a timeout_ms is negative.
+            VmbTimeout if Frame acquisition timed out.
+        """
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
                                               allocation_mode=allocation_mode):
@@ -272,7 +294,12 @@ class Camera(PersistableFeatureContainer):
     def get_frame(self,
                   timeout_ms: int = 2000,
                   allocation_mode: AllocationMode = AllocationMode.AnnounceFrame) -> Frame:
-        """Get single frame from camera. Synchronous frame acquisition.
+        """Get copy of a single frame from camera. Synchronous frame acquisition.
+
+        Records a single frame from the camera, creates a copy of the frame and returns it to the
+        caller. This frame may be used by the user as long as they want but can not be used e.g. to
+        access chunk data associated with it. See also `get_frame_with_context` to avoid the frame
+        copy.
 
         Arguments:
             timeout_ms - Timeout in milliseconds of frame acquisition.
