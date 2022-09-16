@@ -74,125 +74,88 @@ class _State:
     def __init__(self, context: _Context):
         self.context = context
 
-    def _get_next_state(self, *args) -> _State:
-        # Returns an instance of the next state. passed `args` are passed to the initializer of the
-        # next state
-        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
-        return _CaptureFsm.STATE_ORDER[own_index + 1](*args)
 
-    def _get_previous_state(self, *args) -> _State:
-        # Returns an instance of the previous state. passed `args` are passed to the initializer of
-        # the next state
-        own_index = _CaptureFsm.STATE_ORDER.index(type(self))
-        return _CaptureFsm.STATE_ORDER[own_index - 1](*args)
-
-
-class _StateInit(_State):
+class _StateAnnounced(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
+    def enter(self):
         for frame in self.context.frames:
             frame_handle = _frame_handle_accessor(frame)
-
             try:
                 call_vmb_c('VmbFrameAnnounce', self.context.stream_handle, byref(frame_handle),
                            sizeof(frame_handle))
                 if frame._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
                     assert frame_handle.buffer is not None
                     frame._set_buffer(frame_handle.buffer)
-
             except VmbCError as e:
-                return _build_camera_error(self.context.cam, self.context.stream, e)
-
-        return self._get_next_state(self.context)
-
-
-class _StateAnnounced(_State):
-    @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbCaptureFrameQueue', self.context.stream_handle, byref(frame_handle),
-                           self.context.frames_callback)
-
-            except VmbCError as e:
-                return _build_camera_error(self.context.cam, self.context.stream, e)
-
-        return self._get_next_state(self.context)
+                raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
     @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
+    def exit(self):
         for frame in self.context.frames:
             frame_handle = _frame_handle_accessor(frame)
-
             try:
                 call_vmb_c('VmbFrameRevoke', self.context.stream_handle, byref(frame_handle))
-
             except VmbCError as e:
-                return _build_camera_error(self.context.cam, self.context.stream, e)
-
-        return self._get_previous_state(self.context)
+                raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
 
 class _StateQueued(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
-        try:
-            call_vmb_c('VmbCaptureStart', self.context.stream_handle)
-
-        except VmbCError as e:
-            return _build_camera_error(self.context.cam, self.context.stream, e)
-
-        return self._get_next_state(self.context)
+    def enter(self):
+        for frame in self.context.frames:
+            frame_handle = _frame_handle_accessor(frame)
+            try:
+                call_vmb_c('VmbCaptureFrameQueue', self.context.stream_handle, byref(frame_handle),
+                           self.context.frames_callback)
+            except VmbCError as e:
+                raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
     @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
+    def exit(self):
         try:
             call_vmb_c('VmbCaptureQueueFlush', self.context.stream_handle)
-
         except VmbCError as e:
-            return _build_camera_error(self.context.cam, self.context.stream, e)
-
-        return self._get_previous_state(self.context)
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
 
 class _StateCaptureStarted(_State):
     @TraceEnable()
-    def forward(self) -> Union[_State, VmbCameraError]:
+    def enter(self):
         try:
-            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
-            if self.context.cam.get_access_mode() != AccessMode.Read:
-                self.context.cam.get_feature_by_name('AcquisitionStart').run()
-
-        except BaseException as e:
-            return VmbCameraError(str(e))
-
-        return self._get_next_state(self.context)
+            call_vmb_c('VmbCaptureStart', self.context.stream_handle)
+        except VmbCError as e:
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
     @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
+    def exit(self):
         try:
             call_vmb_c('VmbCaptureEnd', self.context.stream_handle)
-
         except VmbCError as e:
-            return _build_camera_error(self.context.cam, self.context.stream, e)
-
-        return self._get_previous_state(self.context)
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
 
 class _StateAcquiring(_State):
     @TraceEnable()
-    def backward(self) -> Union[_State, VmbCameraError]:
+    def enter(self):
+        try:
+            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
+            if self.context.cam.get_access_mode() != AccessMode.Read:
+                self.context.cam.get_feature_by_name('AcquisitionStart').run()
+        except VmbCError as e:
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
+        except BaseException as e:
+            raise VmbCError(str(e))
+
+    @TraceEnable()
+    def exit(self):
         try:
             # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
             if self.context.cam.get_access_mode() != AccessMode.Read:
                 self.context.cam.get_feature_by_name('AcquisitionStop').run()
-
+        except VmbCError as e:
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
         except BaseException as e:
-            return VmbCameraError(str(e))
-
-        return self._get_previous_state(self.context)
+            raise VmbCError(str(e))
 
     @TraceEnable()
     def wait_for_frames(self, timeout_ms: int):
@@ -219,54 +182,86 @@ class _StateAcquiring(_State):
 
 
 class _CaptureFsm:
-    STATE_ORDER = (_StateInit, _StateAnnounced, _StateQueued, _StateCaptureStarted, _StateAcquiring)
+    STATE_ORDER = (_StateAnnounced, _StateQueued, _StateCaptureStarted, _StateAcquiring)
 
     def __init__(self, context: _Context):
         self.__context = context
-        self.__state: _State = _StateInit(self.__context)
+        # self.__states holds each entered states in the order they were entered. The "current"
+        # state is always the last one in the array
+        self.__states = []
 
     def get_context(self) -> _Context:
         return self.__context
 
-    def go_to_state(self, new_state: type[_State]):
-        # Make the state machine transition to new_state
-        target_index = _CaptureFsm.STATE_ORDER.index(new_state)
-        exc = None
-        while self.__current_index != target_index and not exc:
+    def go_to_state(self, new_state: Optional[type[_State]]):
+        """
+        Make the state machine transition to new_state.
+
+        If an error occurs during the transition, it is raised after the transition is completed.
+        See section "Raises" of this docstring for a short explanation.
+
+        Arguments:
+            new_state: The state that the state machine should transition to or None. If a state is
+                       given, all necessary transitions are attempted. If None is given, all
+                       currently entered states will be exited.
+
+        Raises:
+            Any errors encountered during the state transition are cached. If only one error was
+            encountered, that error is raised after the target state has been reached. If multiple
+            errors are encountered during the transition, they are bundled in an array and raised at
+            the end of the transition as part of a VmbCError.
+        """
+        if new_state is not None:
+            target_index = _CaptureFsm.STATE_ORDER.index(new_state)
+        else:
+            target_index = -1
+        exc = []
+        while self.__current_index != target_index:
             try:
                 if self.__current_index < target_index:
-                    state_or_exc = self.__state.forward()  # type: ignore
+                    # Get the next state we should transition to, add it to the end of the
+                    # self.__states array and enter that new state
+                    self.__states.append(
+                        _CaptureFsm.STATE_ORDER[self.__current_index + 1](self.__context))
+                    self.__states[-1].enter()
                 else:
-                    state_or_exc = self.__state.backward()  # type: ignore
-            except AttributeError:
-                break
-            if isinstance(state_or_exc, _State):
-                self.__state = state_or_exc
+                    # Take the last state from the self.__states array and exit it
+                    self.__states.pop().exit()
+            except VmbCError as e:
+                # If an exception is encountered during any state enter or exit, we collect it until
+                # all requested transitions were attempted
+                exc.append(e)
+        # if exceptions have been collected, assemble them back to an exception and raise that
+        if exc:
+            if len(exc) == 1:
+                # Only one exception was encountered. Raise that one directly
+                raise exc.pop()
             else:
-                exc = state_or_exc
-        return exc
+                raise VmbCError(f'Encountered multiple VmbC Errors during state transition: {exc}')
 
     @property
     def __current_index(self) -> int:
-        return _CaptureFsm.STATE_ORDER.index(type(self.__state))
+        # Returns the index of the "current" state of the state machine in _CaptureFsm.STATE_ORDER.
+        # The "current" state is always the last one that was entered
+        return len(self.__states) - 1
 
     def enter_capturing_mode(self):
-        # Forward state machine until the end or an error occurs
-        return self.go_to_state(_CaptureFsm.STATE_ORDER[-1])
+        # Forward state machine until the end
+        self.go_to_state(_CaptureFsm.STATE_ORDER[-1])
 
     def leave_capturing_mode(self):
-        # Revert state machine until the initial state is reached or an error occurs
-        return self.go_to_state(_CaptureFsm.STATE_ORDER[0])
+        # Revert state machine until the initial state is reached
+        self.go_to_state(None)
 
     def wait_for_frames(self, timeout_ms: int):
         # Wait for Frames only in AcquiringMode
-        if isinstance(self.__state, _StateAcquiring):
-            self.__state.wait_for_frames(timeout_ms)
+        if isinstance(self.__states[-1], _StateAcquiring):
+            self.__states[-1].wait_for_frames(timeout_ms)
 
     def queue_frame(self, frame):
         # Queue Frame only in AcquiringMode
-        if isinstance(self.__state, _StateAcquiring):
-            self.__state.queue_frame(frame)
+        if isinstance(self.__states[-1], _StateAcquiring):
+            self.__states[-1].queue_frame(frame)
 
 
 @TraceEnable()
@@ -298,14 +293,16 @@ def _frame_generator(cam: Camera,
 
     try:
         # Enter Capturing mode
-        exc = fsm.enter_capturing_mode()
-        if exc:
-            raise exc
+        fsm.enter_capturing_mode()
         while True if limit is None else cnt < limit:
+            exc = None
             fsm.wait_for_frames(timeout_ms)
-            exc = fsm.go_to_state(_StateQueued)
-            if exc:
-                raise exc
+            # If an error is encountered while we stop the camera, store it for later. The frame is
+            # still yielded to the user and only once they are done with it is the exception raised.
+            try:
+                fsm.go_to_state(_StateQueued)
+            except (VmbCError, VmbCameraError) as e:
+                exc = e
 
             # Because acquisition is started fresh for each frame the frameID needs to be set
             # manually
@@ -313,16 +310,18 @@ def _frame_generator(cam: Camera,
             cnt += 1
 
             yield frame
-            exc = fsm.enter_capturing_mode()
             if exc:
+                # If we caught an exception in the previous state transition, raise it now that the
+                # user is done with the frame
                 raise exc
+            # TODO: This is not ideal on the last iteration. The camera is started even though no
+            # more frames will be recorded.
+            fsm.enter_capturing_mode()
             fsm.queue_frame(frame)
 
     finally:
         # Leave Capturing mode
-        exc = fsm.leave_capturing_mode()
-        if exc:
-            raise exc
+        fsm.leave_capturing_mode()
 
 
 class Stream(PersistableFeatureContainer):
@@ -392,7 +391,27 @@ class Stream(PersistableFeatureContainer):
     def get_frame_with_context(self,
                                timeout_ms: int = 2000,
                                allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
-        """TODO: Write docstring"""
+        """Gets a single frame from camera to be used inside a context manager.
+
+        Records a single frame from the camera and yields it to the caller for use inside a `with`
+        context manager. The frame may only be used inside the context, but may be copied for use
+        outside of it (e.g. via `copy.deepcopy(frame)`). The yielded frame can be used to access
+        chunk data.
+
+        Arguments:
+            timeout_ms - Timeout in milliseconds of frame acquisition.
+            allocation_mode - Allocation mode deciding if buffer allocation should be done by
+                              vmbpy or the Transport Layer
+
+        Yields:
+            Frame from camera for use in `with` context manager
+
+        Raises:
+            TypeError if parameters do not match their type hint.
+            RuntimeError if called outside "with" - statement scope.
+            ValueError if a timeout_ms is negative.
+            VmbTimeout if Frame acquisition timed out.
+        """
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
                                               allocation_mode=allocation_mode):
@@ -404,7 +423,12 @@ class Stream(PersistableFeatureContainer):
     def get_frame(self,
                   timeout_ms: int = 2000,
                   allocation_mode: AllocationMode = AllocationMode.AnnounceFrame) -> Frame:
-        """Get single frame from camera. Synchronous frame acquisition.
+        """Get copy of a single frame from camera. Synchronous frame acquisition.
+
+        Records a single frame from the camera, creates a copy of the frame and returns it to the
+        caller. This frame may be used by the user as long as they want but can not be used e.g. to
+        access chunk data associated with it. See also `get_frame_with_context` to avoid the frame
+        copy.
 
         Arguments:
             timeout_ms - Timeout in milliseconds of frame acquisition.
@@ -466,11 +490,11 @@ class Stream(PersistableFeatureContainer):
                                                   callback))
 
         # Try to enter streaming mode. If this fails perform cleanup and raise error
-        exc = self.__capture_fsm.enter_capturing_mode()
-        if exc:
+        try:
+            self.__capture_fsm.enter_capturing_mode()
+        except BaseException:
             self.__capture_fsm.leave_capturing_mode()
-            self.__capture_fsm = None
-            raise exc
+            raise
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
@@ -480,9 +504,7 @@ class Stream(PersistableFeatureContainer):
 
         # Leave Capturing mode. If any error occurs, report it and cleanup
         try:
-            exc = self.__capture_fsm.leave_capturing_mode()
-            if exc:
-                raise exc
+            self.__capture_fsm.leave_capturing_mode()
 
         finally:
             self.__capture_fsm = None
