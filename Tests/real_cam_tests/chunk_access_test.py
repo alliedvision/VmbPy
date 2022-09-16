@@ -68,10 +68,11 @@ class ChunkAccessTest(VmbPyTestCase):
         self.vmb._shutdown()
 
     def enable_chunk_features(self):
-        # Turn on FrameID Chunk feature
+        # Turn on all Chunk features
         self.cam.ChunkModeActive.set(False)
-        self.cam.ChunkSelector.set("FrameID")
-        self.cam.ChunkEnable.set(True)
+        for value in self.cam.ChunkSelector.get_available_entries():
+            self.cam.ChunkSelector.set(value)
+            self.cam.ChunkEnable.set(True)
         self.cam.ChunkModeActive.set(True)
 
     def disable_chunk_features(self):

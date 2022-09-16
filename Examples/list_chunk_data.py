@@ -116,13 +116,11 @@ def setup_camera(cam: Camera):
             pass
 
         try:
-            # Turn on only FrameID Chunk feature
+            # Turn on all Chunk features
             cam.ChunkModeActive.set(False)
             for value in cam.ChunkSelector.get_available_entries():
                 cam.ChunkSelector.set(value)
-                cam.ChunkEnable.set(False)
-            cam.ChunkSelector.set('FrameID')
-            cam.ChunkEnable.set(True)
+                cam.ChunkEnable.set(True)
             cam.ChunkModeActive.set(True)
         except (AttributeError, VmbFeatureError):
             abort('Failed to enable Chunk Mode for camera \'{}\'. Abort.'.format(cam.get_id()))
