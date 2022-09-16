@@ -250,7 +250,7 @@ class _CaptureFsm:
         self.go_to_state(_CaptureFsm.STATE_ORDER[-1])
 
     def leave_capturing_mode(self):
-        # Revert state machine until the initial state is reached or an error occurs
+        # Revert state machine until the initial state is reached
         self.go_to_state(None)
 
     def wait_for_frames(self, timeout_ms: int):
