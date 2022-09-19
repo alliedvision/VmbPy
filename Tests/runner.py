@@ -107,7 +107,7 @@ def main():
     import real_cam_tests.feature_test
     import real_cam_tests.frame_test
     import real_cam_tests.persistable_feature_container_test
-    import real_cam_tests.vimba_test
+    import real_cam_tests.vimbax_test
 
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
@@ -123,7 +123,7 @@ def main():
     ]
 
     REAL_CAM_TEST_MODS = [
-        real_cam_tests.vimba_test,
+        real_cam_tests.vimbax_test,
         real_cam_tests.feature_test,
         real_cam_tests.camera_test,
         real_cam_tests.frame_test,
