@@ -1,6 +1,6 @@
 # VmbPy [![python version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
 
-Python API of the [Vimba X SDK](TODO!)
+Python API of the [Vimba X SDK](https://www.alliedvision.com)
 
 Vimba X is a fully GenICam compliant SDK and the successor of Vimba. VmbPy is the Python API that is
 provided by this SDK. It provides access to the full functionality of Vimba X in a pythonic way,
@@ -10,7 +10,8 @@ allowing for rapid development of applications.
 
 To use VmbPy an installation of Vimba X and Python >= 3.7 are required. A ready-to-install packaged
 `.whl` file of VmbPy can be found as part of the Vimba X installation, or be downloaded from our
-[github release page](TODO). The `.whl` can be installed as usual via the `pip install` command.
+[github release page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed
+as usual via the `pip install` command.
 
 ## Optional dependencies
 For some functionality of VmbPy optional dependencies (also called "extras") are required. These
