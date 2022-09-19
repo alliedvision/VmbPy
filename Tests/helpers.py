@@ -50,7 +50,7 @@ class VmbPyTestCase(unittest.TestCase):
                 try:
                     VmbPyTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
                 except IndexError:
-                    # no cameras found by vimba. Leave test_cam_id empty. This will cause tests
+                    # no cameras found by VmbC. Leave test_cam_id empty. This will cause tests
                     # using a real camera to fail
                     VmbPyTestCase.set_test_camera_id('<NO CAMERA FOUND>')
 

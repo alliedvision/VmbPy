@@ -53,7 +53,7 @@ def _open_camera(id: str,
     p = multiprocessing.Process(target=_open_camera, args=('<cam-id>', shutdown_event)
     p.start()
     # camera is now opened in separate process, maybe some wait time is needed so that an
-    # appropriate camera event is received by Vimba.
+    # appropriate camera event is received by VmbC.
     # Perform test here
     shutdown_event.set()
     p.join()
@@ -244,8 +244,8 @@ class CamCameraTest(VmbPyTestCase):
                         with self.cam.get_frame_with_context(timeout_ms=invalid_value):
                             pass
 
-    def test_camera_capture_error_outside_vimba_scope(self):
-        # Expectation: Camera access outside of Vimba scope must lead to a RuntimeError
+    def test_camera_capture_error_outside_vmbsystem_scope(self):
+        # Expectation: Camera access outside of VmbSystem scope must lead to a RuntimeError
         gener = None
 
         with self.cam:
@@ -267,7 +267,7 @@ class CamCameraTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, next, gener)
 
     def test_camera_capture_timeout(self):
-        # Expectation: Camera access outside of Camera scope must lead to a VimbaTimeout
+        # Expectation: Camera access outside of Camera scope must lead to a VmbTimeout
         with self.cam:
             self.assertRaises(VmbTimeout, self.cam.get_frame, 1)
 
@@ -457,7 +457,7 @@ class CamCameraTest(VmbPyTestCase):
 
     def test_camera_context_manager_reentrancy(self):
         # Expectation: Camera Context Manager must be reentrant. Multiple calls to _open
-        # must be prevented (would cause VimbaC - Error)
+        # must be prevented (would cause VmbC - Error)
         with self.cam:
             with self.cam:
                 with self.cam:

@@ -292,10 +292,10 @@ class VimbaCTest(VmbPyTestCase):
 
     def test_call_vmb_c_exception(self):
         # Expectation: Errors returned from the C-Layer must be mapped
-        # to a special Exception Type call VimbaCError. This error must
+        # to a special Exception Type call VmbCError. This error must
         # contain the returned Error Code from the failed C-Call.
 
-        # VmbVersionQuery has two possible Errors (taken from VimbaC.h):
+        # VmbVersionQuery has two possible Errors (taken from VmbC.h):
         # - VmbErrorStructSize:    The given struct size is not valid for this version of the API
         # - VmbErrorBadParameter:  If "pVersionInfo" is NULL.
 
@@ -359,7 +359,7 @@ class ImageTransformTest(VmbPyTestCase):
                           'invalid')
 
     def test_call_vmb_c_exception(self):
-        # Expectation: Failed operations must raise a VimbaCError
+        # Expectation: Failed operations must raise a VmbCError
         self.assertRaises(VmbCError,
                           call_vmb_image_transform,
                           'VmbGetImageTransformVersion',

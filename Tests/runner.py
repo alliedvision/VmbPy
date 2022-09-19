@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from helpers import VmbPyTestCase
 
-# Add vimba module at the start of the search path. The tests should run against the
+# Add VmbPy module at the start of the search path. The tests should run against the
 # local vmbpy sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
