@@ -209,7 +209,7 @@ class _CaptureFsm:
             Any errors encountered during the state transition are cached. If only one error was
             encountered, that error is raised after the target state has been reached. If multiple
             errors are encountered during the transition, they are bundled in an array and raised at
-            the end of the transition as part of a VmbCError.
+            the end of the transition as part of a VmbCameraError.
         """
         if new_state is not None:
             target_index = _CaptureFsm.STATE_ORDER.index(new_state)
@@ -237,7 +237,8 @@ class _CaptureFsm:
                 # Only one exception was encountered. Raise that one directly
                 raise exc.pop()
             else:
-                raise VmbCError(f'Encountered multiple VmbC Errors during state transition: {exc}')
+                raise VmbCameraError('Encountered multiple VmbC Errors during state transition: '
+                                     f'{exc}')
 
     @property
     def __current_index(self) -> int:
