@@ -90,19 +90,19 @@ class CamBaseFeatureTest(VmbPyTestCase):
 
     def test_get_unit(self):
         # Expectation: If Unit exists, return unit else return ''
-        self.assertEqual(self.height.get_unit(), '')
+        self.assertIsInstance(self.height.get_unit(), str)
 
     def test_get_representation(self):
         # Expectation: Get numeric representation if existing else ''
-        self.assertEqual(self.height.get_representation(), '')
+        self.assertIsInstance(self.height.get_representation(), str)
 
     def test_get_visibility(self):
         # Expectation: Get UI Visibility
-        self.assertEqual(self.height.get_visibility(), FeatureVisibility.Beginner)
+        self.assertIn(self.height.get_visibility(), FeatureVisibility)
 
     def test_get_tooltip(self):
-        # Expectation: Shall not raise anything
-        self.assertNoRaise(self.height.get_tooltip)
+        # Expectation: Get tooltip if existing else ''
+        self.assertIsInstance(self.height.get_tooltip(), str)
 
     def test_get_description(self):
         # Expectation: Get decoded description
@@ -113,12 +113,12 @@ class CamBaseFeatureTest(VmbPyTestCase):
         self.assertNotEqual(self.height.get_sfnc_namespace(), '')
 
     def test_is_streamable(self):
-        # Expectation: Streamable features shall return True, others False
-        self.assertNoRaise(self.height.is_streamable)
+        # Expectation: Streamable features shall return a bool
+        self.assertIsInstance(self.height.is_streamable(), bool)
 
     def test_has_selected_features(self):
-        # Expectation:Features that select features shall return True, others False
-        self.assertFalse(self.height.has_selected_features())
+        # Expectation:Features that select features shall return a bool
+        self.assertIsInstance(self.height.has_selected_features(), bool)
 
     def test_get_access_mode(self):
         # Expectation: Read/Write Features return (True, True), ReadOnly return (True, False)
@@ -198,13 +198,29 @@ class CamBoolFeatureTest(VmbPyTestCase):
         self.vimba._startup()
 
         try:
-            self.feat = self.vimba.get_feature_by_name('UsbTLIsPresent')
+            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
 
-        except VmbFeatureError:
+        except VmbCameraError as e:
             self.vimba._shutdown()
-            self.skipTest('Required Feature \'UsbTLIsPresent\' not available.')
+            raise Exception('Failed to lookup Camera.') from e
+
+        try:
+            self.cam._open()
+
+        except VmbCameraError as e:
+            self.vimba._shutdown()
+            raise Exception('Failed to open Camera.') from e
+
+        try:
+            self.feat: BoolFeature = self.cam.get_features_by_type(BoolFeature)[0]
+
+        except (VmbCameraError, IndexError):
+            self.cam._close()
+            self.vimba._shutdown()
+            self.skipTest('Could not find a Bool feature to use for the test')
 
     def tearDown(self):
+        self.cam._close()
         self.vimba._shutdown()
 
     def test_get_type(self):
@@ -213,11 +229,22 @@ class CamBoolFeatureTest(VmbPyTestCase):
 
     def test_get(self):
         # Expectation: returns current boolean value.
-        self.assertNoRaise(self.feat.get)
+        if self.feat.is_readable():
+            self.assertNoRaise(self.feat.get)
+        else:
+            self.skipTest(f'Feature {self.feat.get_name()} is not readable')
 
     def test_set(self):
-        # Expectation: Raises invalid Access on non-writeable features.
-        self.assertRaises(VmbFeatureError, self.feat.set, True)
+        # Expectation: Raises invalid Access on non-writeable features, does not raise an error on
+        # writeable features.
+        if not self.feat.is_readable():
+            self.skipTest(f'Feature {self.feat.get_name()} is not readable')
+        else:
+            value = self.feat.get()
+            if self.feat.is_writeable():
+                self.assertNoRaise(self.feat.set, value)
+            else:
+                self.assertRaises(VmbFeatureError, self.feat.set, value)
 
 
 class CamCommandFeatureTest(VmbPyTestCase):
@@ -225,12 +252,17 @@ class CamCommandFeatureTest(VmbPyTestCase):
         self.vimba = VmbSystem.get_instance()
         self.vimba._startup()
 
-        try:
-            self.feat = self.vimba.get_feature_by_name('ActionCommand')
+        self.feat = None
+        for inter in self.vimba.get_all_interfaces():
+            try:
+                self.feat = inter.get_features_by_type(CommandFeature)[0]
+            except IndexError:
+                # The interface does not have any CommandFeatures
+                pass
 
-        except VmbFeatureError:
+        if self.feat is None:
             self.vimba._shutdown()
-            self.skipTest('Required Feature \'ActionCommand\' not available.')
+            self.skipTest('Could not find a CommandFeature to execute the test cases with')
 
     def tearDown(self):
         self.vimba._shutdown()

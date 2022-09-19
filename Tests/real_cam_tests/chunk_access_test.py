@@ -55,16 +55,31 @@ class ChunkAccessTest(VmbPyTestCase):
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
 
         try:
-            self.chunk_mode = self.cam.get_feature_by_name('ChunkModeActive')
+            self.enable_chunk_features()
 
-        except VmbFeatureError:
+        except (VmbFeatureError, AttributeError):
             self.cam._close()
             self.vmb._shutdown()
             self.skipTest('Required Feature \'ChunkModeActive\' not available.')
 
     def tearDown(self):
+        self.disable_chunk_features()
         self.cam._close()
         self.vmb._shutdown()
+
+    def enable_chunk_features(self):
+        # Turn on all Chunk features
+        self.cam.ChunkModeActive.set(False)
+        for value in self.cam.ChunkSelector.get_available_entries():
+            self.cam.ChunkSelector.set(value)
+            self.cam.ChunkEnable.set(True)
+        self.cam.ChunkModeActive.set(True)
+
+    def disable_chunk_features(self):
+        self.cam.ChunkModeActive.set(False)
+        for value in self.cam.ChunkSelector.get_available_entries():
+            self.cam.ChunkSelector.set(value)
+            self.cam.ChunkEnable.set(False)
 
     def test_chunk_callback_is_executed(self):
         # Expectation: The chunk callback is executed for every call to `Frame.access_chunk_data`
@@ -85,7 +100,6 @@ class ChunkAccessTest(VmbPyTestCase):
             def chunk_callback(self, feats: FeatureContainer):
                 self.chunk_callbacks_executed += 1
 
-        self.chunk_mode.set(True)
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)
@@ -109,7 +123,6 @@ class ChunkAccessTest(VmbPyTestCase):
             def chunk_callback(self, feats: FeatureContainer):
                 self.chunk_callbacks_executed += 1
 
-        self.chunk_mode.set(True)
         helper = CallbackHelper()
         with self.cam.get_frame_with_context() as frame:
             frame.access_chunk_data(helper.chunk_callback)
@@ -121,7 +134,6 @@ class ChunkAccessTest(VmbPyTestCase):
         def dummy_chunk_callback(feats: FeatureContainer):
             pass
 
-        self.chunk_mode.set(True)
         frame = self.cam.get_frame()
         self.assertRaises(VmbChunkError, frame.access_chunk_data, dummy_chunk_callback)
 
@@ -135,7 +147,6 @@ class ChunkAccessTest(VmbPyTestCase):
             def chunk_callback(self, feats: FeatureContainer):
                 self.chunk_callbacks_executed += 1
 
-        self.chunk_mode.set(True)
         helper = CallbackHelper()
         number_of_iterations = 5
         for frame in self.cam.get_frame_generator(limit=number_of_iterations):
@@ -163,7 +174,7 @@ class ChunkAccessTest(VmbPyTestCase):
                 # Will never be called because the C-API raises an error before we get this far
                 pass
 
-        self.chunk_mode.set(False)
+        self.disable_chunk_features()
         handler = FrameHandler(self)
         try:
             self.cam.start_streaming(handler)
@@ -199,7 +210,6 @@ class ChunkAccessTest(VmbPyTestCase):
             def chunk_callback(self, feats: FeatureContainer):
                 raise _CustomException(self.__exception_message)
 
-        self.chunk_mode.set(True)
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)
@@ -241,7 +251,6 @@ class ChunkAccessTest(VmbPyTestCase):
                 if self.exception_was_raised_once:
                     self.later_access_worked = True
 
-        self.chunk_mode.set(True)
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)

@@ -109,7 +109,8 @@ class CamVimbaTest(VmbPyTestCase):
 
             # Lookup test cameras IP address.
             with cam:
-                ip_as_number = cam.get_feature_by_name('GevCurrentIPAddress').get()
+                local_device = cam.get_local_device()
+                ip_as_number = local_device.get_feature_by_name('GevDeviceIPAddress').get()
 
             # Verify that lookup with IPv4 Address returns the same Camera Object
             ip_addr = str(ipaddress.IPv4Address(ip_as_number))
@@ -136,7 +137,8 @@ class CamVimbaTest(VmbPyTestCase):
             # Lookup test cameras MAC Address.
             with cam:
                 # Construct MAC Address from raw value.
-                mac_as_number = cam.get_feature_by_name('GevDeviceMACAddress').get()
+                local_device = cam.get_local_device()
+                mac_as_number = local_device.get_feature_by_name('GevDeviceMACAddress').get()
 
             mac_as_bytes = mac_as_number.to_bytes(6, byteorder='big')
             mac_as_str = ''.join(format(s, '02x') for s in mac_as_bytes).upper()
