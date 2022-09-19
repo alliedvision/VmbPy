@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from helpers import VmbPyTestCase
 
 
-class VimbaCommonTest(VmbPyTestCase):
+class VmbCommonTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -86,7 +86,7 @@ class VimbaCommonTest(VmbPyTestCase):
         self.assertEqual(list(expected).sort(), list(actual).sort())
 
 
-class CBindingVimbaCTypesTest(VmbPyTestCase):
+class CBindingVmbCTypesTest(VmbPyTestCase):
     def setUp(self):
         pass
 
@@ -246,7 +246,7 @@ class CBindingVimbaCTypesTest(VmbPyTestCase):
         self.assertEqual(VmbFrameFlags.Timestamp, 8)
 
 
-class VimbaCTest(VmbPyTestCase):
+class VmbCTest(VmbPyTestCase):
     def setUp(self):
         pass
 
