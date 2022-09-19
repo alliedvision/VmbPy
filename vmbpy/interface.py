@@ -71,7 +71,7 @@ class InterfaceEvent(enum.IntEnum):
 
 
 class Interface(PersistableFeatureContainer):
-    """This class allows access to an interface such as USB detected by Vimba."""
+    """This class allows access to an interface such as USB detected by VmbC."""
 
     @TraceEnable()
     def __init__(self, info: VmbInterfaceInfo, transport_layer: TransportLayer):
@@ -111,7 +111,7 @@ class Interface(PersistableFeatureContainer):
         return TransportLayerType(self.__info.interfaceType)
 
     def get_name(self) -> str:
-        """Get Interface Name such as Vimba USB Interface."""
+        """Get Interface Name such as VimbaX USB Interface."""
         return decode_cstr(self.__info.interfaceName)
 
     @TraceEnable()

@@ -51,7 +51,7 @@ __all__ = [
 
 class VmbSystem:
     class __Impl(FeatureContainer):
-        """This class allows access to the entire Vimba System.
+        """This class allows access to the entire VimbaX System.
         VmbSystem is meant be used in conjunction with the "with" - Statement, upon entering the
         context, all system features, connected cameras and interfaces are detected and can be used.
         """

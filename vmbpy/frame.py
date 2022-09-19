@@ -528,7 +528,7 @@ class Frame:
         return output_frame
 
     def as_numpy_ndarray(self) -> 'numpy.ndarray':
-        """Construct numpy.ndarray view on VimbaFrame.
+        """Construct numpy.ndarray view on VmbCFrame.
 
         Returns:
             numpy.ndarray on internal image buffer.
@@ -572,7 +572,7 @@ class Frame:
                              dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
 
     def as_opencv_image(self) -> 'numpy.ndarray':
-        """Construct OpenCV compatible view on VimbaFrame.
+        """Construct OpenCV compatible view on VmbCFrame.
 
         Returns:
             OpenCV compatible numpy.ndarray
