@@ -35,7 +35,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
 from helpers import VmbPyTestCase
 
-# Add vimba module at the start of the search path. The tests should run against the
+# Add VmbPy module at the start of the search path. The tests should run against the
 # local vmbpy sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -100,14 +100,14 @@ def main():
     import basic_tests.util_context_decorator_test
     import basic_tests.util_runtime_type_check_test
     import basic_tests.util_tracer_test
-    import basic_tests.vimba_common_test
+    import basic_tests.vimbax_common_test
     import basic_tests.vmbsystem_test
     import real_cam_tests.camera_test
     import real_cam_tests.chunk_access_test
     import real_cam_tests.feature_test
     import real_cam_tests.frame_test
     import real_cam_tests.persistable_feature_container_test
-    import real_cam_tests.vimba_test
+    import real_cam_tests.vimbax_test
 
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
@@ -115,7 +115,7 @@ def main():
         basic_tests.util_runtime_type_check_test,
         basic_tests.util_tracer_test,
         basic_tests.util_context_decorator_test,
-        basic_tests.vimba_common_test,
+        basic_tests.vimbax_common_test,
         basic_tests.vmbsystem_test,
         basic_tests.interface_test,
         basic_tests.transport_layer_test,
@@ -123,7 +123,7 @@ def main():
     ]
 
     REAL_CAM_TEST_MODS = [
-        real_cam_tests.vimba_test,
+        real_cam_tests.vimbax_test,
         real_cam_tests.feature_test,
         real_cam_tests.camera_test,
         real_cam_tests.frame_test,

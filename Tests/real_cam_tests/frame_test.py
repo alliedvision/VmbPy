@@ -39,18 +39,18 @@ from helpers import VmbPyTestCase
 
 class CamFrameTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
     def tearDown(self):
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_verify_buffer(self):
         # Expectation: A Frame buffer shall have exactly the specified size on construction.

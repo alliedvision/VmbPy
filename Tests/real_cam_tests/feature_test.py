@@ -38,21 +38,21 @@ from helpers import VmbPyTestCase
 
 class CamBaseFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
@@ -60,12 +60,12 @@ class CamBaseFeatureTest(VmbPyTestCase):
 
         except VmbCameraError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'Height\' not available.')
 
     def tearDown(self):
         self.cam._close()
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_name(self):
         # Expectation: Return decoded FeatureName
@@ -185,7 +185,7 @@ class CamBaseFeatureTest(VmbPyTestCase):
         # Expectation: Each Feature must have a __str__ method. Depending on the Feature
         # current Values are queried, this can fail. In those cases, all exceptions are
         # fetched -> all features must be strinify able without raising any exception
-        for feat in self.vimba.get_all_features():
+        for feat in self.vmb.get_all_features():
             self.assertNoRaise(str, feat)
 
         for feat in self.cam.get_all_features():
@@ -194,21 +194,21 @@ class CamBaseFeatureTest(VmbPyTestCase):
 
 class CamBoolFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
@@ -216,12 +216,12 @@ class CamBoolFeatureTest(VmbPyTestCase):
 
         except (VmbCameraError, IndexError):
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Could not find a Bool feature to use for the test')
 
     def tearDown(self):
         self.cam._close()
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_type(self):
         # Expectation: BoolFeature must return BoolFeature on get_type
@@ -249,11 +249,11 @@ class CamBoolFeatureTest(VmbPyTestCase):
 
 class CamCommandFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         self.feat = None
-        for inter in self.vimba.get_all_interfaces():
+        for inter in self.vmb.get_all_interfaces():
             try:
                 self.feat = inter.get_features_by_type(CommandFeature)[0]
             except IndexError:
@@ -261,11 +261,11 @@ class CamCommandFeatureTest(VmbPyTestCase):
                 pass
 
         if self.feat is None:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Could not find a CommandFeature to execute the test cases with')
 
     def tearDown(self):
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_type(self):
         # Expectation: CommandFeature must return CommandFeature on get_type
@@ -274,21 +274,21 @@ class CamCommandFeatureTest(VmbPyTestCase):
 
 class CamEnumFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
@@ -296,7 +296,7 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
         except VmbFeatureError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'DeviceScanType\' not available.')
 
         try:
@@ -304,12 +304,12 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
         except VmbFeatureError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'AcquisitionMode\' not available.')
 
     def tearDown(self):
         self.cam._close()
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_type(self):
         # Expectation: EnumFeature must return EnumFeature on get_type
@@ -354,7 +354,7 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
     def test_get_entry_int(self):
         # Expectation: Lookup a given entry by using an int as key.
-        # Invalid keys must return VimbaFeatureError.
+        # Invalid keys must return VmbFeatureError.
 
         expected = self.feat_r.get_all_entries()[0]
         self.assertEqual(self.feat_r.get_entry(int(expected)), expected)
@@ -367,7 +367,7 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
     def test_get_entry_str(self):
         # Expectation: Lookup a given entry by using a str as key.
-        # Invalid keys must return VimbaFeatureError.
+        # Invalid keys must return VmbFeatureError.
 
         expected = self.feat_r.get_all_entries()[0]
         self.assertEqual(self.feat_r.get_entry(str(expected)), expected)
@@ -386,8 +386,8 @@ class CamEnumFeatureTest(VmbPyTestCase):
     def test_set_entry(self):
         # Expectation: Set given enum entry if feature is writable.
         # Raises:
-        # - VimbaFeatureError if enum entry is from other enum feature.
-        # - VimbaFeatureError if feature is read only
+        # - VmbFeatureError if enum entry is from other enum feature.
+        # - VmbFeatureError if feature is read only
 
         # Read Only Feature
         entry = self.feat_r.get_all_entries()[0]
@@ -410,8 +410,8 @@ class CamEnumFeatureTest(VmbPyTestCase):
     def test_set_str(self):
         # Expectation: Set given enum entry string value if feature is writable.
         # Raises:
-        # - VimbaFeatureError if given string is not associated with this feature.
-        # - VimbaFeatureError if feature is read only
+        # - VmbFeatureError if given string is not associated with this feature.
+        # - VmbFeatureError if feature is read only
 
         # Read Only Feature
         self.assertRaises(VmbFeatureError, self.feat_r.set, str(self.feat_r.get_entry(0)))
@@ -433,8 +433,8 @@ class CamEnumFeatureTest(VmbPyTestCase):
     def test_set_int(self):
         # Expectation: Set given enum entry int value if feature is writable.
         # Raises:
-        # - VimbaFeatureError if given int is not associated with this feature.
-        # - VimbaFeatureError if feature is read only
+        # - VmbFeatureError if given int is not associated with this feature.
+        # - VmbFeatureError if feature is read only
 
         # Read Only Feature
         self.assertRaises(VmbFeatureError, self.feat_r.set, int(self.feat_r.get_entry(0)))
@@ -455,7 +455,7 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
     def test_set_in_callback(self):
         # Expected behavior: A set operation within a change handler must
-        # Raise a VimbaFeatureError to prevent an endless handler execution.
+        # Raise a VmbFeatureError to prevent an endless handler execution.
 
         class Handler:
             def __init__(self):
@@ -490,29 +490,29 @@ class CamEnumFeatureTest(VmbPyTestCase):
 
 class CamFloatFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
-            self.feat_r = self.vimba.get_feature_by_name('Elapsed')
+            self.feat_r = self.vmb.get_feature_by_name('Elapsed')
 
         except VmbFeatureError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'Elapsed\' not available.')
 
         try:
@@ -525,12 +525,12 @@ class CamFloatFeatureTest(VmbPyTestCase):
 
             except VmbFeatureError:
                 self.cam._close()
-                self.vimba._shutdown()
+                self.vmb._shutdown()
                 self.skipTest('Required Feature \'ExposureTime\' not available.')
 
     def tearDown(self):
         self.cam._close()
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_type(self):
         # Expectation: FloatFeature returns FloatFeature on get_type.
@@ -544,7 +544,7 @@ class CamFloatFeatureTest(VmbPyTestCase):
         self.assertNoRaise(self.feat_rw.get)
 
     def test_get_range(self):
-        # Expectation: Get value range. Raise VimbaFeatureError on non-read access.
+        # Expectation: Get value range. Raise VmbFeatureError on non-read access.
         self.assertNoRaise(self.feat_r.get_range)
         self.assertNoRaise(self.feat_rw.get_range)
 
@@ -557,8 +557,8 @@ class CamFloatFeatureTest(VmbPyTestCase):
 
     def test_set(self):
         # Expectation: Set value. Errors:
-        # VimbaFeatureError if access right are not writable
-        # VimbaFeatureError if value is out of bounds
+        # VmbFeatureError if access right are not writable
+        # VmbFeatureError if value is out of bounds
 
         # Read only feature
         self.assertRaises(VmbFeatureError, self.feat_r.set, 0.0)
@@ -586,7 +586,7 @@ class CamFloatFeatureTest(VmbPyTestCase):
             self.feat_rw.set(old_value)
 
     def test_set_in_callback(self):
-        # Expectation: Calling set within change_handler must raise an VimbaFeatureError
+        # Expectation: Calling set within change_handler must raise an VmbFeatureError
 
         class Handler:
             def __init__(self):
@@ -621,21 +621,21 @@ class CamFloatFeatureTest(VmbPyTestCase):
 
 class CamIntFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         try:
@@ -643,7 +643,7 @@ class CamIntFeatureTest(VmbPyTestCase):
 
         except VmbFeatureError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'HeightMax\' not available.')
 
         try:
@@ -651,12 +651,12 @@ class CamIntFeatureTest(VmbPyTestCase):
 
         except VmbFeatureError:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Required Feature \'Height\' not available.')
 
     def tearDown(self):
         self.cam._close()
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_type(self):
         # Expectation: IntFeature must return IntFeature on get_type
@@ -680,7 +680,7 @@ class CamIntFeatureTest(VmbPyTestCase):
         self.assertNoRaise(self.feat_rw.get_increment)
 
     def test_set(self):
-        # Expectation: Set value or raise VimbaFeatureError under the following conditions.
+        # Expectation: Set value or raise VmbFeatureError under the following conditions.
         # 1) Invalid Access Rights
         # 2) Misaligned value.
         # 3) Out-of-bounds Access
@@ -709,7 +709,7 @@ class CamIntFeatureTest(VmbPyTestCase):
             self.feat_rw.set(old_value)
 
     def test_set_in_callback(self):
-        # Expectation: Setting a value within a Callback must raise a VimbaFeatureError
+        # Expectation: Setting a value within a Callback must raise a VmbFeatureError
 
         class Handler:
             def __init__(self):
@@ -752,21 +752,21 @@ class CamIntFeatureTest(VmbPyTestCase):
 
 class CamStringFeatureTest(VmbPyTestCase):
     def setUp(self):
-        self.vimba = VmbSystem.get_instance()
-        self.vimba._startup()
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
 
         try:
-            self.cam = self.vimba.get_camera_by_id(self.get_test_camera_id())
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
         try:
             self.cam._open()
 
         except VmbCameraError as e:
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             raise Exception('Failed to open Camera.') from e
 
         self.feat_r = None
@@ -778,7 +778,7 @@ class CamStringFeatureTest(VmbPyTestCase):
 
         if self.feat_r is None:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Test requires read only StringFeature.')
 
         self.feat_rw = None
@@ -790,12 +790,12 @@ class CamStringFeatureTest(VmbPyTestCase):
 
         if self.feat_rw is None:
             self.cam._close()
-            self.vimba._shutdown()
+            self.vmb._shutdown()
             self.skipTest('Test requires read/write StringFeature.')
 
     def tearDown(self):
         self.cam._close()
-        self.vimba._shutdown()
+        self.vmb._shutdown()
 
     def test_get_type(self):
         # Expectation: StringFeature must return StringFeature on get_type
@@ -814,8 +814,8 @@ class CamStringFeatureTest(VmbPyTestCase):
 
     def test_set(self):
         # Expectation:
-        # 1) Setting a read only feature must raise a VimbaFeatureError
-        # 2) Setting a read/write must raise VimbaFeatureError if the string is
+        # 1) Setting a read only feature must raise a VmbFeatureError
+        # 2) Setting a read/write must raise VmbFeatureError if the string is
         #    longer than max length
         # 3) Setting a read/write feature must work if string is long enough
 
@@ -843,7 +843,7 @@ class CamStringFeatureTest(VmbPyTestCase):
             self.feat_rw.set(old_val)
 
     def test_set_in_callback(self):
-        # Expectation: Setting a value within a Callback must raise a VimbaFeatureError
+        # Expectation: Setting a value within a Callback must raise a VmbFeatureError
 
         class Handler:
             def __init__(self):

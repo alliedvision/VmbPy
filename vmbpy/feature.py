@@ -1187,7 +1187,7 @@ def discover_features(handle: VmbHandle) -> FeaturesTuple:
     """Discover all features associated with the given handle.
 
     Arguments:
-        handle - Vimba entity used to find the associated features.
+        handle - VmbC entity used to find the associated features.
 
     Returns:
         A set of all discovered Features associated with handle.
@@ -1216,7 +1216,7 @@ def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
     """Discover a singe feature associated with the given handle.
 
     Arguments:
-        handle     - Vimba entity used to find the associated feature.
+        handle     - VmbC entity used to find the associated feature.
         feat_name: - Name of the Feature that should be searched.
 
     Returns:

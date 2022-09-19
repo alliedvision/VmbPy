@@ -108,8 +108,8 @@ class InterfaceTest(VmbPyTestCase):
 
     def test_interface_get_feature_by_name(self):
         # Expectation: Call get_feature_by_name raises RuntimeError outside of with
-        # Inside of with return dont raise VimbaFeatureError for 'DeviceCount'
-        # A invalid name must raise VimbaFeatureError
+        # Inside of with return dont raise VmbFeatureError for 'DeviceCount'
+        # A invalid name must raise VmbFeatureError
         inter = self.vmb.get_all_interfaces()[0]
         self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
         self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')

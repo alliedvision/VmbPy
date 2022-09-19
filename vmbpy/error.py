@@ -44,10 +44,10 @@ class _LoggedError(Exception):
 
 
 class VmbSystemError(_LoggedError):
-    """Errors related to the underlying Vimba System
+    """Errors related to the underlying VimbaX System
 
     Error type to indicate system-wide errors like:
-    - Incomplete Vimba installation
+    - Incomplete VimbaX installation
     - Incompatible version of the underlying C-Layer
     - An unsupported OS
     """

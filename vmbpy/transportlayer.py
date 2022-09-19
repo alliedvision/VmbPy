@@ -118,11 +118,11 @@ class TransportLayer(PersistableFeatureContainer):
         return decode_cstr(self.__info.transportLayerIdString)
 
     def get_name(self) -> str:
-        """Get Transport Layer Name such as Vimba GigE Transport Layer"""
+        """Get Transport Layer Name such as VimbaX GigE Transport Layer"""
         return decode_cstr(self.__info.transportLayerName)
 
     def get_model_name(self) -> str:
-        """Get Transport Layer Model Name such as Vimba GigE TL"""
+        """Get Transport Layer Model Name such as VimbaX GigE TL"""
         return decode_cstr(self.__info.transportLayerModelName)
 
     def get_vendor(self) -> str:
