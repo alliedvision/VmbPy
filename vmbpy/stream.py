@@ -188,7 +188,7 @@ class _CaptureFsm:
         self.__context = context
         # self.__states holds each entered states in the order they were entered. The "current"
         # state is always the last one in the array
-        self.__states = []
+        self.__states: List[_State] = []
 
     def get_context(self) -> _Context:
         return self.__context
@@ -223,10 +223,10 @@ class _CaptureFsm:
                     # self.__states array and enter that new state
                     self.__states.append(
                         _CaptureFsm.STATE_ORDER[self.__current_index + 1](self.__context))
-                    self.__states[-1].enter()
+                    self.__states[-1].enter()  # type: ignore
                 else:
                     # Take the last state from the self.__states array and exit it
-                    self.__states.pop().exit()
+                    self.__states.pop().exit()  # type: ignore
             except VmbCError as e:
                 # If an exception is encountered during any state enter or exit, we collect it until
                 # all requested transitions were attempted
