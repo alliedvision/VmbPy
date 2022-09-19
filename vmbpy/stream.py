@@ -29,7 +29,7 @@ from __future__ import annotations
 import contextlib
 import copy
 import threading
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union, cast
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, cast
 
 from .c_binding import (AccessMode, VmbCError, VmbError, VmbFrame, VmbHandle, VmbUint32, byref,
                         call_vmb_c, sizeof)
