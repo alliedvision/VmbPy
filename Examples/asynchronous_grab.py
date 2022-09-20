@@ -98,9 +98,10 @@ def setup_camera(cam: Camera):
     with cam:
         # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
         try:
-            cam.GVSPAdjustPacketSize.run()
+            stream = cam.get_streams()[0]
+            stream.GVSPAdjustPacketSize.run()
 
-            while not cam.GVSPAdjustPacketSize.is_done():
+            while not stream.GVSPAdjustPacketSize.is_done():
                 pass
 
         except (AttributeError, VmbFeatureError):
