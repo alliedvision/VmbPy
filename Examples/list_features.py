@@ -166,8 +166,8 @@ def main():
                     stream = cam.get_streams()[stream_index]
                     print_all_features(stream)
                 except IndexError:
-                    abort('Could not get stream at index \'{}\'. Camera provides only \'{}\' stream(s)'
-                          ''.format(stream_index, len(cam.get_streams())))
+                    abort('Could not get stream at index \'{}\'. Camera provides only \'{}\' '
+                          'stream(s)'.format(stream_index, len(cam.get_streams())))
         else:
             cam = get_camera(args.c)
             with cam:
