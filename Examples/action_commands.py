@@ -86,12 +86,12 @@ def get_camera(camera_id: Optional[str]) -> Camera:
                 return vmb.get_camera_by_id(camera_id)
 
             except VmbCameraError:
-                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+                abort('Failed to access camera \'{}\'. Abort.'.format(camera_id))
 
         else:
             cams = vmb.get_all_cameras()
             if not cams:
-                abort('No Cameras accessible. Abort.')
+                abort('No cameras accessible. Abort.')
 
             return cams[0]
 
@@ -112,12 +112,12 @@ def main():
         inter = cam.get_interface()
 
         with cam:
-            # Prepare Camera for ActionCommand - Trigger
+            # Prepare camera for ActionCommand - trigger
             device_key = 1
             group_key = 1
             group_mask = 1
 
-            # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
+            # Try to adjust GeV packet size. This feature is only available for GigE - cameras.
             try:
                 stream = cam.get_streams()[0]
                 stream.GVSPAdjustPacketSize.run()
@@ -136,7 +136,7 @@ def main():
             except (AttributeError, VmbFeatureError):
                 abort('The selected camera does not seem to support action commands')
 
-            # Enter Streaming mode and wait for user input.
+            # Enter streaming mode and wait for user input.
             try:
                 cam.start_streaming(frame_handler)
 
