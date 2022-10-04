@@ -48,7 +48,7 @@ def parse_args() -> argparse.Namespace:
     group.add_argument('-t',
                        type=int,
                        metavar='TransportLayerIndex',
-                       help='Show Transport Layer features')
+                       help='Show transport layer features')
     group.add_argument('-i',
                        type=int,
                        metavar='InterfaceIndex',
@@ -97,8 +97,8 @@ def get_transport_layer(index: int) -> TransportLayer:
         try:
             return vmb.get_all_transport_layers()[index]
         except IndexError:
-            abort('Could not find Transport Layer at index \'{}\'. '
-                  'Only found \'{}\' Transport Layer(s)'
+            abort('Could not find transport layer at index \'{}\'. '
+                  'Only found \'{}\' transport layer(s)'
                   ''.format(index, len(vmb.get_all_transport_layers())))
 
 
@@ -107,7 +107,7 @@ def get_interface(index: int) -> Interface:
         try:
             return vmb.get_all_interfaces()[index]
         except IndexError:
-            abort('Could not find Interface at index \'{}\'. Only found \'{}\' Interface(s)'
+            abort('Could not find interface at index \'{}\'. Only found \'{}\' interface(s)'
                   ''.format(index, len(vmb.get_all_interfaces())))
 
 
@@ -124,11 +124,11 @@ def get_camera(camera_id_or_index: str) -> Camera:
         if camera_index is not None:
             cams = vmb.get_all_cameras()
             if not cams:
-                abort('No Cameras accessible. Abort.')
+                abort('No cameras accessible. Abort.')
             try:
                 return cams[camera_index]
             except IndexError:
-                abort('Could not find camera at index \'{}\'. Only found \'{}\' Camera(s)'
+                abort('Could not find camera at index \'{}\'. Only found \'{}\' camera(s)'
                       ''.format(camera_index, len(cams)))
 
         else:
@@ -136,7 +136,7 @@ def get_camera(camera_id_or_index: str) -> Camera:
                 return vmb.get_camera_by_id(camera_id)
 
             except VmbCameraError:
-                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
+                abort('Failed to access camera \'{}\'. Abort.'.format(camera_id))
 
 
 def main():
@@ -166,7 +166,7 @@ def main():
                     stream = cam.get_streams()[stream_index]
                     print_all_features(stream)
                 except IndexError:
-                    abort('Could not get Stream at index \'{}\'. Camera provides only \'{}\' Stream(s)'
+                    abort('Could not get stream at index \'{}\'. Camera provides only \'{}\' stream(s)'
                           ''.format(stream_index, len(cam.get_streams())))
         else:
             cam = get_camera(args.c)
