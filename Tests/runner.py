@@ -106,7 +106,9 @@ def main():
     import real_cam_tests.chunk_access_test
     import real_cam_tests.feature_test
     import real_cam_tests.frame_test
+    import real_cam_tests.local_device_test
     import real_cam_tests.persistable_feature_container_test
+    import real_cam_tests.stream_test
     import real_cam_tests.vimbax_test
 
     # Assign test cases to test suites
@@ -127,8 +129,11 @@ def main():
         real_cam_tests.feature_test,
         real_cam_tests.camera_test,
         real_cam_tests.frame_test,
+        real_cam_tests.local_device_test,
         real_cam_tests.chunk_access_test,
-        real_cam_tests.persistable_feature_container_test
+        real_cam_tests.persistable_feature_container_test,
+        real_cam_tests.stream_test,
+        real_cam_tests.vimbax_test
     ]
 
     # Prepare TestSuites
