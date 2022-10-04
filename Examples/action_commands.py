@@ -126,12 +126,15 @@ def main():
             except (AttributeError, VmbFeatureError):
                 pass
 
-            cam.TriggerSelector.set('FrameStart')
-            cam.TriggerSource.set('Action0')
-            cam.TriggerMode.set('On')
-            cam.ActionDeviceKey.set(device_key)
-            cam.ActionGroupKey.set(group_key)
-            cam.ActionGroupMask.set(group_mask)
+            try:
+                cam.TriggerSelector.set('FrameStart')
+                cam.TriggerSource.set('Action0')
+                cam.TriggerMode.set('On')
+                cam.ActionDeviceKey.set(device_key)
+                cam.ActionGroupKey.set(group_key)
+                cam.ActionGroupMask.set(group_mask)
+            except (AttributeError, VmbFeatureError):
+                abort('The selected camera does not seem to support action commands')
 
             # Enter Streaming mode and wait for user input.
             try:
