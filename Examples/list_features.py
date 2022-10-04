@@ -24,8 +24,8 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import argparse
 import sys
-from typing import Optional
 
 from vmbpy import *
 
@@ -36,41 +36,47 @@ def print_preamble():
     print('///////////////////////////////////\n')
 
 
-def print_usage():
-    print('Usage:')
-    print('    python list_features.py [camera_id]')
-    print('    python list_features.py [/h] [-h]')
-    print()
-    print('Parameters:')
-    print('    camera_id   ID of the camera to use (using first camera if not specified)')
-    print()
-
-
-def abort(reason: str, return_code: int = 1, usage: bool = False):
+def abort(reason: str, return_code: int = 1):
     print(reason + '\n')
-
-    if usage:
-        print_usage()
 
     sys.exit(return_code)
 
 
-def parse_args() -> Optional[str]:
-    args = sys.argv[1:]
-    argc = len(args)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-t',
+                       type=int,
+                       metavar='TransportLayerIndex',
+                       help='Show transport layer features')
+    group.add_argument('-i',
+                       type=int,
+                       metavar='InterfaceIndex',
+                       help='Show interface features')
+    group.add_argument('-c',
+                       type=str,
+                       default='0',
+                       metavar='(CameraIndex | CameraId)',
+                       help='Show the remote device features of the specified camera')
+    group.add_argument('-l',
+                       type=str,
+                       metavar='(CameraIndex | CameraId)',
+                       help='Show the local device features of the specified camera')
+    group.add_argument('-s',
+                       type=str,
+                       nargs=2,
+                       metavar=('(CameraIndex | CameraId)', 'StreamIndex'),
+                       help='Show the features of a stream for the specified camera')
 
-    for arg in args:
-        if arg in ('/h', '-h'):
-            print_usage()
-            sys.exit(0)
-
-    if argc > 1:
-        abort(reason="Invalid number of arguments. Abort.", return_code=2, usage=True)
-
-    return None if argc == 0 else args[0]
+    return parser.parse_args()
 
 
-def print_feature(feature):
+def print_all_features(module: FeatureContainer):
+    for feat in module.get_all_features():
+        print_feature(feat)
+
+
+def print_feature(feature: FeatureTypes):
     try:
         value = feature.get()
 
@@ -86,33 +92,86 @@ def print_feature(feature):
     print('/// Value          : {}\n'.format(str(value)))
 
 
-def get_camera(camera_id: Optional[str]) -> Camera:
+def get_transport_layer(index: int) -> TransportLayer:
     with VmbSystem.get_instance() as vmb:
-        if camera_id:
+        try:
+            return vmb.get_all_transport_layers()[index]
+        except IndexError:
+            abort('Could not find transport layer at index \'{}\'. '
+                  'Only found \'{}\' transport layer(s)'
+                  ''.format(index, len(vmb.get_all_transport_layers())))
+
+
+def get_interface(index: int) -> Interface:
+    with VmbSystem.get_instance() as vmb:
+        try:
+            return vmb.get_all_interfaces()[index]
+        except IndexError:
+            abort('Could not find interface at index \'{}\'. Only found \'{}\' interface(s)'
+                  ''.format(index, len(vmb.get_all_interfaces())))
+
+
+def get_camera(camera_id_or_index: str) -> Camera:
+    camera_index = None
+    camera_id = None
+    try:
+        camera_index = int(camera_id_or_index)
+    except ValueError:
+        # Could not parse `camera_id_or_index` to an integer. It is probably a device ID
+        camera_id = camera_id_or_index
+
+    with VmbSystem.get_instance() as vmb:
+        if camera_index is not None:
+            cams = vmb.get_all_cameras()
+            if not cams:
+                abort('No cameras accessible. Abort.')
+            try:
+                return cams[camera_index]
+            except IndexError:
+                abort('Could not find camera at index \'{}\'. Only found \'{}\' camera(s)'
+                      ''.format(camera_index, len(cams)))
+
+        else:
             try:
                 return vmb.get_camera_by_id(camera_id)
 
             except VmbCameraError:
-                abort('Failed to access Camera \'{}\'. Abort.'.format(camera_id))
-
-        else:
-            cams = vmb.get_all_cameras()
-            if not cams:
-                abort('No Cameras accessible. Abort.')
-
-            return cams[0]
+                abort('Failed to access camera \'{}\'. Abort.'.format(camera_id))
 
 
 def main():
     print_preamble()
-    cam_id = parse_args()
+    args = parse_args()
 
     with VmbSystem.get_instance():
-        with get_camera(cam_id) as cam:
-
-            print('Print all features of camera \'{}\':'.format(cam.get_id()))
-            for feature in cam.get_all_features():
-                print_feature(feature)
+        if args.t is not None:
+            tl = get_transport_layer(args.t)
+            print_all_features(tl)
+        elif args.i is not None:
+            inter = get_interface(args.i)
+            print_all_features(inter)
+        elif args.l is not None:
+            cam = get_camera(args.l)
+            with cam:
+                local_device = cam.get_local_device()
+                print_all_features(local_device)
+        elif args.s is not None:
+            cam = get_camera(args.s[0])
+            with cam:
+                try:
+                    stream_index = int(args.s[1])
+                except ValueError:
+                    abort('Could not parse \'{}\' to a stream index integer'.format(args.s[1]))
+                try:
+                    stream = cam.get_streams()[stream_index]
+                    print_all_features(stream)
+                except IndexError:
+                    abort('Could not get stream at index \'{}\'. Camera provides only \'{}\' '
+                          'stream(s)'.format(stream_index, len(cam.get_streams())))
+        else:
+            cam = get_camera(args.c)
+            with cam:
+                print_all_features(cam)
 
 
 if __name__ == '__main__':
