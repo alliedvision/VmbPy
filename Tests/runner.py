@@ -94,6 +94,7 @@ def main():
 
     # Import tests cases
     import basic_tests.c_binding_test
+    import basic_tests.frame_test
     import basic_tests.interface_test
     import basic_tests.persistable_feature_container_test
     import basic_tests.transport_layer_test
@@ -114,6 +115,7 @@ def main():
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
         basic_tests.c_binding_test,
+        basic_tests.frame_test,
         basic_tests.util_runtime_type_check_test,
         basic_tests.util_tracer_test,
         basic_tests.util_context_decorator_test,
