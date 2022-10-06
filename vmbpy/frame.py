@@ -210,6 +210,8 @@ class Frame:
         if self._allocation_mode == AllocationMode.AnnounceFrame:
             self._buffer = _allocate_buffer(size=buffer_size, alignment=buffer_alignment)
         self._frame: VmbFrame = VmbFrame()
+        # Mark frame as invalid until it has been used at least once
+        self._frame.receiveStatus = FrameStatus.Invalid
 
         # Setup underlaying Frame
         if self._allocation_mode == AllocationMode.AnnounceFrame:
