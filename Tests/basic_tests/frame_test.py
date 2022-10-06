@@ -43,26 +43,25 @@ class FrameTest(VmbPyTestCase):
         pass
 
     def test_deepcopy_empty_frame(self):
-        for allocation_mode in AllocationMode:
-            with self.subTest(f'allocation_mode={str(allocation_mode)}'):
-                f = Frame(10, allocation_mode=allocation_mode)
-                self.assertNoRaise(copy.deepcopy, f)
+        f = Frame(10, allocation_mode=AllocationMode.AnnounceFrame)
+        self.assertNoRaise(copy.deepcopy, f)
 
     def test_convert_pixel_format_empty_frame(self):
-        for allocation_mode in AllocationMode:
-            with self.subTest(f'allocation_mode={str(allocation_mode)}'):
-                f = Frame(10, allocation_mode=allocation_mode)
-                self.assertNoRaise(f.convert_pixel_format(PixelFormat.Mono8))
+        f = Frame(10*10, allocation_mode=AllocationMode.AnnounceFrame)
+        f._frame.pixelFormat = PixelFormat.Mono8
+        f._frame.width = 10
+        f._frame.height = 10
+        self.assertNoRaise(f.convert_pixel_format, PixelFormat.Mono8)
+        self.assertNoRaise(f.convert_pixel_format, PixelFormat.Rgb8)
 
     def test_as_numpy_array_empty_frame(self):
-        for allocation_mode in AllocationMode:
-            with self.subTest(f'allocation_mode={str(allocation_mode)}'):
-                f = Frame(10, allocation_mode=allocation_mode)
-                self.assertNoRaise(f.as_numpy_ndarray())
+        f = Frame(10, allocation_mode=AllocationMode.AnnounceFrame)
+        f._frame.pixelFormat = PixelFormat.Mono8
+        f._frame.width = 10
+        f._frame.height = 10
+        self.assertNoRaise(f.as_numpy_ndarray)
 
     def test_repr_empty_frame(self):
-        for allocation_mode in AllocationMode:
-            with self.subTest(f'allocation_mode={str(allocation_mode)}'):
-                f = Frame(10, allocation_mode=allocation_mode)
-                self.assertNoRaise(repr(f))
-                self.assertNoRaise(repr(f._frame))
+        f = Frame(10, allocation_mode=AllocationMode.AnnounceFrame)
+        self.assertNoRaise(repr, f)
+        self.assertNoRaise(repr, f._frame)
