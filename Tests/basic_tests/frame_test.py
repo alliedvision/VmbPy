@@ -47,3 +47,16 @@ class FrameTest(VmbPyTestCase):
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 f = Frame(10, allocation_mode=allocation_mode)
                 self.assertNoRaise(copy.deepcopy, f)
+
+    def test_convert_pixel_format_empty_frame(self):
+        f = Frame(10, AllocationMode.AnnounceFrame)
+        f.convert_pixel_format(PixelFormat.Mono8)
+
+    def test_as_numpy_array_empty_frame(self):
+        f = Frame(10, AllocationMode.AnnounceFrame)
+        f.as_numpy_ndarray()
+
+    def test_repr_empty_frame(self):
+        f = Frame(10, AllocationMode.AnnounceFrame)
+        repr(f)
+        repr(f._frame)
