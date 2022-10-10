@@ -219,10 +219,6 @@ class Frame:
         if self._allocation_mode == AllocationMode.AnnounceFrame:
             self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
             self._frame.bufferSize = sizeof(self._buffer)
-            #  Initially set imageData pointer to start of buffer. C-Level will set it to correct
-            #  address when a frame is transmitted
-            self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
-                                                ctypes.POINTER(VmbUint8))
         elif self._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
             # Set buffer pointer to NULL and inform Transport Layer of size it should allocate
             self._frame.buffer = None
