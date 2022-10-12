@@ -28,6 +28,7 @@ import multiprocessing
 import os
 import sys
 import threading
+import time
 
 from vmbpy import *
 from vmbpy.frame import *
@@ -281,6 +282,8 @@ class CamCameraTest(VmbPyTestCase):
         with self.cam:
             self.cam.start_streaming(dummy_frame_handler)
             self.assertEqual(self.cam.is_streaming(), True)
+            # Wait a little bit before stopping the stream again to give camera time to settle
+            time.sleep(0.1)
 
             self.cam.stop_streaming()
             self.assertEqual(self.cam.is_streaming(), False)

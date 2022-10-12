@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import sys
 import threading
+import time
 
 from vmbpy import *
 
@@ -177,6 +178,8 @@ class StreamTest(VmbPyTestCase):
             with self.subTest(f'Stream={stream}'):
                 self.cam.start_streaming(dummy_frame_handler)
                 self.assertEqual(stream.is_streaming(), True)
+                # Wait a little bit before stopping the stream again to give camera time to settle
+                time.sleep(0.1)
 
                 self.cam.stop_streaming()
                 self.assertEqual(stream.is_streaming(), False)
