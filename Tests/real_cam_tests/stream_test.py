@@ -109,7 +109,6 @@ class StreamTest(VmbPyTestCase):
         # Expectation: The Frame generator fetches the given number of images.
         for stream in self.cam.get_streams():
             with self.subTest(f'Stream={stream}'):
-                self.assertEqual(len([i for i in stream.get_frame_generator(0)]), 0)
                 self.assertEqual(len([i for i in stream.get_frame_generator(1)]), 1)
                 self.assertEqual(len([i for i in stream.get_frame_generator(7)]), 7)
                 self.assertEqual(len([i for i in stream.get_frame_generator(11)]), 11)
@@ -121,6 +120,7 @@ class StreamTest(VmbPyTestCase):
         for stream in self.cam.get_streams():
             with self.subTest(f'Stream={stream}'):
                 # Check limits
+                self.assertRaises(ValueError, stream.get_frame_generator, 0)
                 self.assertRaises(ValueError, stream.get_frame_generator, -1)
                 self.assertRaises(ValueError, stream.get_frame_generator, 1, 0)
                 self.assertRaises(ValueError, stream.get_frame_generator, 1, -1)

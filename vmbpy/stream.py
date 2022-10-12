@@ -377,8 +377,8 @@ class Stream(PersistableFeatureContainer):
                             limit: Optional[int] = None,
                             timeout_ms: int = 2000,
                             allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
-        if limit and (limit < 0):
-            raise ValueError('Given Limit {} is not >= 0'.format(limit))
+        if limit is not None and (limit <= 0):
+            raise ValueError('Given Limit {} is not > 0'.format(limit))
 
         if timeout_ms <= 0:
             raise ValueError('Given Timeout {} is not > 0'.format(timeout_ms))
