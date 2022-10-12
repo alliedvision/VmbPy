@@ -625,7 +625,11 @@ class VmbFrame(ctypes.Structure):
         rep += fmt_enum_repr(',receiveStatus: {}', VmbFrameStatus, self.receiveStatus)
         rep += fmt_repr(',frameID={}', self.frameID)
         rep += fmt_repr(',timestamp={}', self.timestamp)
-        rep += fmt_repr(',imageData={}', hex(ctypes.addressof(self.imageData.contents)))
+        if self.imageData:
+            rep += fmt_repr(',imageData={}', hex(ctypes.addressof(self.imageData.contents)))
+        else:
+            # imageData pointer is a nullptr. Use `None` to represent this
+            rep += fmt_repr(',imageData={}', None)
         rep += fmt_flags_repr(',receiveFlags={}', VmbFrameFlags, self.receiveFlags)
         rep += fmt_enum_repr(',pixelFormat={}', VmbPixelFormat, self.pixelFormat)
         rep += fmt_repr(',width={}', self.width)
