@@ -247,7 +247,7 @@ class Frame:
         if not self._frame.imageData:
             # imageData pointer is not set. We assume image data begins at the start of the buffer
             self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
-                                    ctypes.POINTER(VmbUint8))
+                                                ctypes.POINTER(VmbUint8))
         image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)  # noqa 501: E501
         # set new imageData pointer to same offset into new buffer
         result._frame.imageData = ctypes.cast(ctypes.byref(result._buffer, image_data_offset),
@@ -531,7 +531,7 @@ class Frame:
         if not self._frame.imageData:
             # imageData pointer is not set. We assume image data begins at the start of the buffer
             self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
-                                    ctypes.POINTER(VmbUint8))
+                                                ctypes.POINTER(VmbUint8))
         image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)   # noqa: E501
         # set new imageData pointer to same offset into new buffer
         output_frame._frame.imageData = ctypes.cast(ctypes.byref(output_frame._buffer, image_data_offset),      # noqa: E501
@@ -581,7 +581,7 @@ class Frame:
         if not self._frame.imageData:
             # imageData pointer is not set. We assume image data begins at the start of the buffer
             self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
-                                    ctypes.POINTER(VmbUint8))
+                                                ctypes.POINTER(VmbUint8))
         image_data = ctypes.cast(self._frame.imageData, ctypes.POINTER(array_type))
         return numpy.ndarray(shape=(height, width, channels_per_pixel),
                              buffer=image_data.contents,  # type: ignore

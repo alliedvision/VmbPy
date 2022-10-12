@@ -47,7 +47,7 @@ class FrameTest(VmbPyTestCase):
         self.assertNoRaise(copy.deepcopy, f)
 
     def test_convert_pixel_format_empty_frame(self):
-        f = Frame(10*10, allocation_mode=AllocationMode.AnnounceFrame)
+        f = Frame(10 * 10, allocation_mode=AllocationMode.AnnounceFrame)
         f._frame.pixelFormat = PixelFormat.Mono8
         f._frame.width = 10
         f._frame.height = 10
