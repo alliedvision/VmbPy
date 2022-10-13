@@ -28,6 +28,7 @@ import multiprocessing
 import os
 import sys
 import threading
+import time
 
 from vmbpy import *
 from vmbpy.frame import *
@@ -192,7 +193,6 @@ class CamCameraTest(VmbPyTestCase):
     def test_camera_frame_generator_limit_set(self):
         # Expectation: The Frame generator fetches the given number of images.
         with self.cam:
-            self.assertEqual(len([i for i in self.cam.get_frame_generator(0)]), 0)
             self.assertEqual(len([i for i in self.cam.get_frame_generator(1)]), 1)
             self.assertEqual(len([i for i in self.cam.get_frame_generator(7)]), 7)
             self.assertEqual(len([i for i in self.cam.get_frame_generator(11)]), 11)
@@ -205,6 +205,7 @@ class CamCameraTest(VmbPyTestCase):
         # generator execution must throw if streaming is enabled
         with self.cam:
             # Check limits
+            self.assertRaises(ValueError, self.cam.get_frame_generator, 0)
             self.assertRaises(ValueError, self.cam.get_frame_generator, -1)
             self.assertRaises(ValueError, self.cam.get_frame_generator, 1, 0)
             self.assertRaises(ValueError, self.cam.get_frame_generator, 1, -1)
@@ -281,6 +282,8 @@ class CamCameraTest(VmbPyTestCase):
         with self.cam:
             self.cam.start_streaming(dummy_frame_handler)
             self.assertEqual(self.cam.is_streaming(), True)
+            # Wait a little bit before stopping the stream again to give camera time to settle
+            time.sleep(0.1)
 
             self.cam.stop_streaming()
             self.assertEqual(self.cam.is_streaming(), False)
@@ -420,7 +423,7 @@ class CamCameraTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.cam.get_features_by_type, 0.0)
             self.assertRaises(TypeError, self.cam.get_feature_by_name, 0)
             self.assertRaises(TypeError, self.cam.get_frame_generator, '3')
-            self.assertRaises(TypeError, self.cam.get_frame_generator, 0, 'foo')
+            self.assertRaises(TypeError, self.cam.get_frame_generator, 1, 'foo')
             self.assertRaises(TypeError, self.cam.start_streaming, valid_handler, 'no int')
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_1)
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_2)

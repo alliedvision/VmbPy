@@ -234,7 +234,7 @@ class Camera(PersistableFeatureContainer):
         of the frame must be created (e.g. via `copy.deepcopy(frame)`).
 
         Arguments:
-            limit - The number of images the generator shall acquire. If limit is None,
+            limit - The number of images the generator shall acquire (>0). If limit is None,
                     the generator will produce an unlimited amount of images and must be
                     stopped by the user supplied code.
             timeout_ms - Timeout in milliseconds of frame acquisition.
@@ -246,7 +246,7 @@ class Camera(PersistableFeatureContainer):
 
         Raises:
             RuntimeError if called outside "with" - statement scope.
-            ValueError if a limit is supplied and negative.
+            ValueError if a limit is supplied and <= 0.
             ValueError if a timeout_ms is negative.
             VmbTimeout if Frame acquisition timed out.
             VmbCameraError if Camera is streaming while executing the generator.
