@@ -224,9 +224,8 @@ def set_default_user_set(cam: Camera, set_id: int):
     with cam:
         print('Set user set \'{}\' as default.'.format(set_id))
 
-        # Try to set mode via UserSetDefaultSelector feature
         try:
-            feat = cam.get_feature_by_name('UserSetDefaultSelector')
+            feat = cam.get_feature_by_name('UserSetDefault')
 
             try:
                 feat.set(set_id)
@@ -235,8 +234,9 @@ def set_default_user_set(cam: Camera, set_id: int):
                 abort('Failed to set user set id \'{}\' as default user set'.format(set_id))
 
         except VmbFeatureError:
+            # UserSetDefault was not found. Try the old feature name as fallback
             try:
-                feat = cam.get_feature_by_name('UserSetDefault')
+                feat = cam.get_feature_by_name('UserSetDefaultSelector')
 
                 try:
                     feat.set(set_id)
@@ -266,11 +266,11 @@ def is_default_user_set(cam: Camera, set_id: int):
         print('Is user set \'{}\' the default user set?'.format(set_id))
 
         try:
-            default_id = int(cam.get_feature_by_name('UserSetDefaultSelector').get())
+            default_id = int(cam.get_feature_by_name('UserSetDefault').get())
 
         except VmbFeatureError:
             try:
-                default_id = int(cam.get_feature_by_name('UserSetDefault').get())
+                default_id = int(cam.get_feature_by_name('UserSetDefaultSelector').get())
 
             except VmbFeatureError:
                 abort('Failed to get default user set id. Abort.')
