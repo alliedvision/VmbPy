@@ -171,7 +171,7 @@ class PersistableFeatureContainer(FeatureContainer):
     @RuntimeTypeCheckEnable()
     def load_settings(self,
                       file_path: str,
-                      persist_type: PersistType = PersistType.All,
+                      persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 1):
         """Load settings from XML file
@@ -212,7 +212,7 @@ class PersistableFeatureContainer(FeatureContainer):
     @RuntimeTypeCheckEnable()
     def save_settings(self,
                       file_path: str,
-                      persist_type: PersistType = PersistType.All,
+                      persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 0):
         """Save settings to XML - File
