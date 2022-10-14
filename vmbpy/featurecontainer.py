@@ -171,7 +171,7 @@ class PersistableFeatureContainer(FeatureContainer):
     @RuntimeTypeCheckEnable()
     def load_settings(self,
                       file_path: str,
-                      persist_type: PersistType = PersistType.All,
+                      persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 1):
         """Load settings from XML file
@@ -179,13 +179,13 @@ class PersistableFeatureContainer(FeatureContainer):
         Arguments:
             file_path - The location for loading current settings. The given
                         file must be a file ending with ".xml".
-            persist_type - Parameter specifying which setting types to store. For an overview of the
+            persist_type - Parameter specifying which setting types to load. For an overview of the
                            possible values and their implication see the docstring of the
                            PersistType enum
-            persist_flags - Flags specifying the modules to store. By default only features of the
+            persist_flags - Flags specifying the modules to load. By default only features of the
                             calling module itself are persisted. For an overview of available flags
                             see the docstring of the ModulePersistFlags type
-            max_iterations - Number of iterations when storing settings.
+            max_iterations - Number of iterations when loading settings.
 
         Raises:
             TypeError if parameters do not match their type hint.
@@ -212,7 +212,7 @@ class PersistableFeatureContainer(FeatureContainer):
     @RuntimeTypeCheckEnable()
     def save_settings(self,
                       file_path: str,
-                      persist_type: PersistType = PersistType.All,
+                      persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 0):
         """Save settings to XML - File
