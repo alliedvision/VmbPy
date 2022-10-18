@@ -548,7 +548,7 @@ class VmbSystem:
                 inter = self.__discover_interface(inter_id)
 
                 with self.__inters_lock:
-                    self.__inters[inter._Interface__handle] = inter
+                    self.__inters[inter._handle] = inter
 
                 log.info('Added interface \"{}\" to active interfaces'.format(inter_id))
 
