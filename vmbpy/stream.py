@@ -520,7 +520,7 @@ class Stream(PersistableFeatureContainer):
     @TraceEnable()
     def is_streaming(self) -> bool:
         """Returns True if the camera is currently in streaming mode. If not, returns False."""
-        return self.__capture_fsm is not None
+        return self.__capture_fsm is not None and not self._parent_cam._disconnected
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
