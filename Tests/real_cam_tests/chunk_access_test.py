@@ -103,6 +103,7 @@ class ChunkAccessTest(VmbPyTestCase):
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)
+            # TODO: Calculate timeout based on framerate and frame_count
             self.assertTrue(handler.is_done.wait(timeout=5),
                             'Frame handler did not finish before timeout')
         finally:
@@ -178,6 +179,7 @@ class ChunkAccessTest(VmbPyTestCase):
         handler = FrameHandler(self)
         try:
             self.cam.start_streaming(handler)
+            # TODO: Calculate timeout based on framerate and frame_count
             self.assertTrue(handler.is_done.wait(timeout=5),
                             'Frame handler did not finish before timeout')
         finally:
@@ -213,6 +215,7 @@ class ChunkAccessTest(VmbPyTestCase):
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)
+            # TODO: Calculate timeout based on framerate and frame_count
             self.assertTrue(handler.is_done.wait(timeout=5),
                             'Frame handler did not finish before timeout')
         finally:
@@ -254,6 +257,7 @@ class ChunkAccessTest(VmbPyTestCase):
         handler = FrameHandler()
         try:
             self.cam.start_streaming(handler)
+            # TODO: Calculate timeout based on framerate and frame_count
             self.assertTrue(handler.is_done.wait(timeout=5),
                             'Frame handler did not finish before timeout')
         finally:

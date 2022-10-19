@@ -225,6 +225,7 @@ class StreamTest(VmbPyTestCase):
                 if self.cnt == self.frame_count:
                     self.event.set()
 
+        # TODO: Calculate timeout based on framerate and frame_count
         timeout = 5.0
         frame_count = 10
         handler = FrameHandler(frame_count)
@@ -258,6 +259,7 @@ class StreamTest(VmbPyTestCase):
 
                 stream.queue_frame(frame)
 
+        # TODO: Calculate timeout based on framerate and frame_count
         timeout = 5.0
         frame_count = 5
         frame_reuse = 2
