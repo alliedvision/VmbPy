@@ -117,6 +117,10 @@ class CamCameraTest(VmbPyTestCase):
         # Expectation: get decoded camera id
         self.assertTrue(self.cam.get_id())
 
+    def test_camera_get_extended_id(self):
+        # Expectation: get decoded extended camera id
+        self.assertTrue(self.cam.get_extended_id())
+
     def test_camera_get_name(self):
         # Expectation: get decoded camera name
         self.assertTrue(self.cam.get_name())
