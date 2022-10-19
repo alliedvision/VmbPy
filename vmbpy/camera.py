@@ -95,6 +95,9 @@ class Camera(PersistableFeatureContainer):
         self.__info: VmbCameraInfo = info
         self.__access_mode: AccessMode = AccessMode.Full
         self.__context_cnt: int = 0
+        # Indicator variable that will be set to True when the camera goes missing from VmbSystem
+        # (i.e. camera connection is lost)
+        self._disconnected = False
 
     @TraceEnable()
     def __enter__(self):
