@@ -583,9 +583,16 @@ class Frame:
             self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
                                                 ctypes.POINTER(VmbUint8))
         image_data = ctypes.cast(self._frame.imageData, ctypes.POINTER(array_type))
-        return numpy.ndarray(shape=(height, width, channels_per_pixel),
-                             buffer=image_data.contents,  # type: ignore
-                             dtype=numpy.uint8 if bits_per_channel == 8 else numpy.uint16)
+        # Add self._buffer to dtype metadata. This makes sure, that a reference to that buffer is
+        # kept while the numpy array still lives, preventing segfaults if the original VmbPy frame
+        # goes out of scope and is garbage collected before the numpy array is accessed
+        dt = numpy.dtype(numpy.uint8 if bits_per_channel == 8 else numpy.uint16,  # type: ignore
+                         metadata={'VmbPy_buffer': self._buffer}
+                         )
+        ndarray: 'numpy.ndarray' = numpy.ndarray(shape=(height, width, channels_per_pixel),
+                                                 buffer=image_data.contents,  # type: ignore
+                                                 dtype=dt)
+        return ndarray
 
     def as_opencv_image(self) -> 'numpy.ndarray':
         """Construct OpenCV compatible view on VmbCFrame.
