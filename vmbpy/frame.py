@@ -587,8 +587,7 @@ class Frame:
         # kept while the numpy array still lives, preventing segfaults if the original VmbPy frame
         # goes out of scope and is garbage collected before the numpy array is accessed
         dt = numpy.dtype(numpy.uint8 if bits_per_channel == 8 else numpy.uint16,  # type: ignore
-                         metadata={'VmbPy_buffer': self._buffer}
-                         )
+                         metadata={'VmbPy_buffer': self._buffer})
         ndarray: 'numpy.ndarray' = numpy.ndarray(shape=(height, width, channels_per_pixel),
                                                  buffer=image_data.contents,  # type: ignore
                                                  dtype=dt)
