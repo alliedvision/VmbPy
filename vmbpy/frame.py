@@ -588,10 +588,9 @@ class Frame:
         # goes out of scope and is garbage collected before the numpy array is accessed
         dt = numpy.dtype(numpy.uint8 if bits_per_channel == 8 else numpy.uint16,  # type: ignore
                          metadata={'VmbPy_buffer': self._buffer})
-        ndarray: 'numpy.ndarray' = numpy.ndarray(shape=(height, width, channels_per_pixel),
-                                                 buffer=image_data.contents,  # type: ignore
-                                                 dtype=dt)
-        return ndarray
+        return numpy.ndarray(shape=(height, width, channels_per_pixel),
+                             buffer=image_data.contents,  # type: ignore
+                             dtype=dt)
 
     def as_opencv_image(self) -> 'numpy.ndarray':
         """Construct OpenCV compatible view on VmbCFrame.
