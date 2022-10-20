@@ -138,9 +138,13 @@ class _StateAcquiring(_State):
     @TraceEnable()
     def enter(self):
         try:
-            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
-            if self.context.cam.get_access_mode() != AccessMode.Read:
-                self.context.cam.get_feature_by_name('AcquisitionStart').run()
+            if not self.context.cam._disconnected:
+                # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
+                if self.context.cam.get_access_mode() != AccessMode.Read:
+                    self.context.cam.get_feature_by_name('AcquisitionStart').run()
+            else:
+                raise VmbCameraError('Camera \'{}\' is not accessible to start the acquisition'
+                                     ''.format(self.context.cam))
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, self.context.stream, e) from e
         except BaseException as e:
@@ -149,9 +153,12 @@ class _StateAcquiring(_State):
     @TraceEnable()
     def exit(self):
         try:
-            # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
-            if self.context.cam.get_access_mode() != AccessMode.Read:
-                self.context.cam.get_feature_by_name('AcquisitionStop').run()
+            # Skip Command execution if camera went missing from VmbSystem (i.e. camera connection
+            # got lost)
+            if not self.context.cam._disconnected:
+                # Skip Command execution on AccessMode.Read (required for Multicast Streaming)
+                if self.context.cam.get_access_mode() != AccessMode.Read:
+                    self.context.cam.get_feature_by_name('AcquisitionStop').run()
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, self.context.stream, e) from e
         except BaseException as e:
@@ -513,7 +520,7 @@ class Stream(PersistableFeatureContainer):
     @TraceEnable()
     def is_streaming(self) -> bool:
         """Returns True if the camera is currently in streaming mode. If not, returns False."""
-        return self.__capture_fsm is not None
+        return self.__capture_fsm is not None and not self._parent_cam._disconnected
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
