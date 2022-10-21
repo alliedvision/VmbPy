@@ -140,9 +140,9 @@ class FrameStatus(enum.IntEnum):
 class PersistType(enum.IntEnum):
     """Persistence Type for camera configuration storing and loading.
     Enum values:
-        All        - Save all features including lookup tables
-        Streamable - Save only features tagged with Streamable
-        NoLUT      - Save all features except lookup tables.
+        All        - Save all features to XML, including look-up tables (if possible)
+        Streamable - Save only features marked as streamable, excluding look-up tables
+        NoLUT      - Save all features except look-up tables
     """
     All = VmbFeaturePersist.All
     Streamable = VmbFeaturePersist.Streamable
