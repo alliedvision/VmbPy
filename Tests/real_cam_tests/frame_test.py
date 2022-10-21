@@ -212,3 +212,24 @@ class CamFrameTest(VmbPyTestCase):
                         # Numpy is not available. Checking shape is not possible.
                         self.skipTest('Numpy not installed. Could not check frame shapes for '
                                       'equality')
+
+    def test_numpy_arrays_can_be_accessed_after_frame_is_garbage_collected(self):
+        # Expectation: A numpy array that was created from a VmbPy frame is valid even if the
+        # original VmbPy frame has been deleted and the garbage collector cleaned it up. The
+        # lifetime of the VmbPy frame's self._buffer must be tied to both, the frame and the numpy
+        # array. Otherwise a segfault occurs (execution aborts immediately!)
+
+        # WARNING: IF A SEGFAULT IS CAUSED, THIS WILL IMMEDIATELY HALT ALL EXECUTION OF THE RUNNING
+        # PROCESS. THIS MEANS THAT THE TEST CASE WILL NOT REALLY REPORT A FAILURE, BUT SIMPLY EXIT
+        # WITHOUT BEING MARKED AS PASSED. ALL SUBSEQUENT TEST CASES WILL ALSO NOT BE EXECUTED
+        with self.cam:
+            frame = self.cam.get_frame()
+        np_array = frame.as_numpy_ndarray()
+        del frame
+
+        # Ensure that garbage collection has cleaned up the frame object
+        import gc
+        gc.collect()
+
+        # Perform some calculation with numpy array to ensure that access is possible
+        self.assertNoRaise(np_array.mean)
