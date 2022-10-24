@@ -27,7 +27,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import shutil
 import subprocess
-import docopt
+
+from Tests.runner import Parser
 
 
 def fprint(line):
@@ -59,11 +60,13 @@ def unit_test(testsuite, testcamera, blacklist):
 
     fprint('Execute Unit tests and measure coverage:')
     if testsuite == 'basic':
-        cmd = 'coverage run Tests/runner.py -s basic -o console {}'.format(blacklist)
+        cmd = 'coverage run Tests/runner.py -s basic --console {}'.format(blacklist)
 
     else:
-        cmd = 'coverage run Tests/runner.py -s {} -c {} -o console {}'
-        cmd = cmd.format(testsuite, testcamera, blacklist)
+        cmd = 'coverage run Tests/runner.py -s {} --console {}'
+        cmd = cmd.format(testsuite, blacklist)
+        if testcamera:
+            cmd += ' -c {}'.format(testcamera)
 
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
@@ -104,12 +107,15 @@ def unit_test_junit(report_dir, testsuite, testcamera, blacklist):
 
     blacklist = " ".join(blacklist)
     if testsuite == 'basic':
-        cmd = 'coverage run --branch Tests/runner.py -s basic -o junit_xml {} {}'
+        cmd = 'coverage run --branch Tests/runner.py -s basic --junit_xml {} {}'
         cmd = cmd.format(report_dir, blacklist)
 
     else:
-        cmd = 'coverage run --branch Tests/runner.py -s {} -c {} -o junit_xml {} {}'
-        cmd = cmd.format(testsuite, testcamera, report_dir, blacklist)
+        cmd = 'coverage run --branch Tests/runner.py -s {} --junit_xml {}'
+        cmd = cmd.format(testsuite, report_dir,)
+        if testcamera:
+            cmd += ' -c {}'.format(testcamera)
+        cmd += ' {}'.format(blacklist)
 
     subprocess.run(cmd, shell=True, check=True)
     fprint('')
@@ -136,35 +142,14 @@ def test_junit(report_dir, testsuite, testcamera, blacklist):
 
 
 def main():
-    CLI = """vmbpy tests script.
-    Usage:
-        run_tests.py -h
-        run_tests.py test -s basic [BLACKLIST...]
-        run_tests.py test -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
-        run_tests.py test_junit -s basic [BLACKLIST...]
-        run_tests.py test_junit -s (real_cam | all) -c CAMERA_ID [BLACKLIST...]
+    arg_parser = Parser()
+    args = arg_parser.parse_args()
 
-    Arguments:
-        CAMERA_ID    Camera Id from Camera that shall be used during testing
-        BLACKLIST    Optional sequence of unittest functions to skip.
+    if args.console:
+        test(args.suite, args.camera_id, args.blacklist)
 
-    Options:
-        -h   Show this screen.
-        -s   Unittestsuite. Can be 'basic', 'real_cam' or 'all'. The last two require a
-             Camera Id to test against.
-        -c   Camera Id used in testing.
-    """
-
-    args = docopt.docopt(CLI)
-
-    suite = 'basic' if args['basic'] else 'real_cam' if args['real_cam'] else 'all'
-
-    if args['test']:
-        test(suite, args['CAMERA_ID'], args['BLACKLIST'])
-
-    elif args['test_junit']:
-        report_dir = 'Test_Reports'
-        test_junit(report_dir, suite, args['CAMERA_ID'], args['BLACKLIST'])
+    elif args.junit_xml:
+        test_junit(args.junit_xml, args.suite, args.camera_id, args.blacklist)
 
 
 if __name__ == '__main__':
