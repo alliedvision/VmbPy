@@ -74,6 +74,7 @@ class CameraEvent(enum.IntEnum):
     Detected = 1
     Reachable = 2
     Unreachable = 3
+    Unknown = 4
 
 
 class Camera(PersistableFeatureContainer):
