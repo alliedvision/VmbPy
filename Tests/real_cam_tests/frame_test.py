@@ -181,6 +181,7 @@ class CamFrameTest(VmbPyTestCase):
         test_frames = []
 
         with self.cam:
+            initial_pixel_format = self.cam.get_pixel_format()
             for fmt in self.cam.get_pixel_formats():
                 self.cam.set_pixel_format(fmt)
 
@@ -188,6 +189,7 @@ class CamFrameTest(VmbPyTestCase):
 
                 self.assertEqual(fmt, frame.get_pixel_format())
                 test_frames.append(frame)
+            self.cam.set_pixel_format(initial_pixel_format)
 
         for frame in test_frames:
             original_fmt = frame.get_pixel_format()
