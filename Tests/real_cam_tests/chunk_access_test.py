@@ -169,7 +169,6 @@ class ChunkAccessTest(VmbPyTestCase):
                     self.expected_exception_raised = True
                 finally:
                     self.is_done.set()
-                self.is_done.set()
 
             def chunk_callback(self, feats: FeatureContainer):
                 # Will never be called because the C-API raises an error before we get this far
