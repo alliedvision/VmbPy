@@ -181,6 +181,7 @@ class CamFrameTest(VmbPyTestCase):
         test_frames = []
 
         with self.cam:
+            initial_pixel_format = self.cam.get_pixel_format()
             for fmt in self.cam.get_pixel_formats():
                 self.cam.set_pixel_format(fmt)
 
@@ -188,6 +189,7 @@ class CamFrameTest(VmbPyTestCase):
 
                 self.assertEqual(fmt, frame.get_pixel_format())
                 test_frames.append(frame)
+            self.cam.set_pixel_format(initial_pixel_format)
 
         for frame in test_frames:
             original_fmt = frame.get_pixel_format()
@@ -223,8 +225,19 @@ class CamFrameTest(VmbPyTestCase):
         # PROCESS. THIS MEANS THAT THE TEST CASE WILL NOT REALLY REPORT A FAILURE, BUT SIMPLY EXIT
         # WITHOUT BEING MARKED AS PASSED. ALL SUBSEQUENT TEST CASES WILL ALSO NOT BE EXECUTED
         with self.cam:
+            compatible_formats = intersect_pixel_formats(OPENCV_PIXEL_FORMATS,
+                                                         self.cam.get_pixel_formats())
+            if not compatible_formats:
+                self.skipTest(f'Camera does not support a compatible format. Available formats '
+                              f'from camera are: {self.cam.get_pixel_formats()}. Numpy compatible '
+                              f'formats are {OPENCV_PIXEL_FORMATS}')
+            if self.cam.get_pixel_format() not in compatible_formats:
+                self.cam.set_pixel_format(compatible_formats[0])
             frame = self.cam.get_frame()
-        np_array = frame.as_numpy_ndarray()
+        try:
+            np_array = frame.as_numpy_ndarray()
+        except ImportError:
+            self.skipTest('Numpy is not imported')
         del frame
 
         # Ensure that garbage collection has cleaned up the frame object
