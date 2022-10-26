@@ -38,6 +38,9 @@ from helpers import VmbPyTestCase
 # local vmbpy sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+import vmbpy
+import platform
+
 
 class Parser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs) -> None:
@@ -81,6 +84,38 @@ def _blacklist_tests(test_suite, blacklist):
     return test_suite
 
 
+def print_test_execution_info():
+    print('VmbPy test suite\n' + '*' * 80)
+    alignment_width = 18
+
+    def aligned_print(first, second):
+        print(f'{first:<{alignment_width}}: {second}')
+    aligned_print('API versions', vmbpy.VmbSystem.get_instance().get_version())
+    aligned_print('Operating System', platform.platform())
+    aligned_print('Architecture', platform.machine())
+    camera_id = VmbPyTestCase.get_test_camera_id()
+    aligned_print('Camera ID', camera_id)
+    if camera_id:
+        with vmbpy.VmbSystem.get_instance() as vmb:
+            try:
+                with vmb.get_camera_by_id(camera_id) as cam:
+                    try:
+                        fw_version = cam.get_feature_by_name('DeviceFirmwareVersion').get()
+                    except:
+                        fw_version = ('Failed to read firmware version from '
+                                      '\'DeviceFirmwareVersion\' feature')
+                    try:
+                        model_name = cam.get_feature_by_name('DeviceModelName').get()
+                    except:
+                        model_name = 'Failed to read model name from \'DeviceModelName\' feature'
+            except:
+                fw_version = 'Failed to open device'
+                model_name = 'Failed to open device'
+        aligned_print('Firmware version', fw_version)
+        aligned_print('Model name', model_name)
+    print('*' * 80)
+
+
 def main():
     arg_parser = Parser()
     args = arg_parser.parse_args()
@@ -88,6 +123,8 @@ def main():
 
     if args.camera_id:
         VmbPyTestCase.set_test_camera_id(args.camera_id)
+    VmbPyTestCase.setUpClass()
+    print_test_execution_info()
 
     # Select TestRunner
     if args.console:
