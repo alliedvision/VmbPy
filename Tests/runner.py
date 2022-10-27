@@ -84,12 +84,15 @@ def _blacklist_tests(test_suite, blacklist):
 def print_test_execution_info():
     import vmbpy
     import platform
+    import socket
     print('VmbPy test suite\n' + '*' * 80)
     alignment_width = 18
 
     def aligned_print(first, second):
         print(f'{first:<{alignment_width}}: {second}')
     aligned_print('API versions', vmbpy.VmbSystem.get_instance().get_version())
+    aligned_print('Hostname', platform.node())
+    aligned_print('IP Address:', socket.gethostbyname(socket.gethostname()))
     aligned_print('Operating System', platform.platform())
     aligned_print('Architecture', platform.machine())
     camera_id = VmbPyTestCase.get_test_camera_id()
