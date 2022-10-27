@@ -101,14 +101,14 @@ def print_test_execution_info():
                 with vmb.get_camera_by_id(camera_id) as cam:
                     try:
                         fw_version = cam.get_feature_by_name('DeviceFirmwareVersion').get()
-                    except:
+                    except:  # noqa: E722
                         fw_version = ('Failed to read firmware version from '
                                       '\'DeviceFirmwareVersion\' feature')
                     try:
                         model_name = cam.get_feature_by_name('DeviceModelName').get()
-                    except:
+                    except:  # noqa: E722
                         model_name = 'Failed to read model name from \'DeviceModelName\' feature'
-            except:
+            except:  # noqa: E722
                 fw_version = 'Failed to open device'
                 model_name = 'Failed to open device'
         aligned_print('Firmware version', fw_version)
