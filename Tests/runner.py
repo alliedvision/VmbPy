@@ -92,7 +92,11 @@ def print_test_execution_info():
         print(f'{first:<{alignment_width}}: {second}')
     aligned_print('API versions', vmbpy.VmbSystem.get_instance().get_version())
     aligned_print('Hostname', platform.node())
-    aligned_print('IP Address:', socket.gethostbyname(socket.gethostname()))
+    try:
+        aligned_print('IP Address:', socket.gethostbyname(socket.gethostname()))
+    except:  # noqa E722
+        # resolving host name may fail. Do not print IP in that case
+        pass
     aligned_print('Operating System', platform.platform())
     aligned_print('Architecture', platform.machine())
     camera_id = VmbPyTestCase.get_test_camera_id()
