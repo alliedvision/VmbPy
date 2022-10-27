@@ -38,9 +38,6 @@ from helpers import VmbPyTestCase
 # local vmbpy sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import vmbpy
-import platform
-
 
 class Parser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs) -> None:
@@ -85,6 +82,8 @@ def _blacklist_tests(test_suite, blacklist):
 
 
 def print_test_execution_info():
+    import vmbpy
+    import platform
     print('VmbPy test suite\n' + '*' * 80)
     alignment_width = 18
 
