@@ -80,13 +80,5 @@ def calculate_acquisition_time(cam: vmbpy.Camera, num_frames: int) -> float:
     WARNING: The cams context must already be entered as this function tries to access camera
     features!
     """
-    try:
-        fps = cam.get_feature_by_name('AcquisitionFrameRate').get()
-    except (vmbpy.VmbFeatureError, AttributeError):
-        try:
-            exp_time = cam.get_feature_by_name('ExposureTime').get()
-            fps = 1 / exp_time
-        except (vmbpy.VmbFeatureError, AttributeError):
-            raise vmbpy.VmbFeatureError('Could not determine camera frame rate or exposure '
-                                        'time')
+    fps = cam.get_feature_by_name('AcquisitionFrameRate').get()
     return num_frames / fps
