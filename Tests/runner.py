@@ -85,6 +85,11 @@ def print_test_execution_info():
     import vmbpy
     import platform
     import socket
+
+    if not VmbPyTestCase.get_test_camera_id():
+        # If no camera ID has been set so far, let the test class try to determine it automatically
+        VmbPyTestCase.setUpClass()
+
     print('VmbPy test suite\n' + '*' * 80)
     alignment_width = 18
 
