@@ -45,13 +45,11 @@ def abort(reason: str, return_code: int = 1):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('-v',
-                        type=int,
-                        metavar='FeatureVisibility',
-                        help=f'The maximum visibility level of features that should be printed '
-                             f'({min(FeatureVisibility)}...{max(FeatureVisibility)}, '
-                             f'default={FeatureVisibility.Guru})',
-                        choices=range(int(min(FeatureVisibility)), int(max(FeatureVisibility))),
-                        default=int(FeatureVisibility.Guru))
+                        type=str,
+                        help='The maximum visibility level of features that should be printed '
+                             '(default = %(default)s)',
+                        choices=list(map(lambda x: x.name, FeatureVisibility)),
+                        default=FeatureVisibility.Guru.name)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-t',
                        type=int,
