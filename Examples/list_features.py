@@ -94,7 +94,6 @@ def print_feature(feature: FeatureTypes):
     print('/// Tooltip        : {}'.format(feature.get_tooltip()))
     print('/// Description    : {}'.format(feature.get_description()))
     print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
-    print('/// Unit           : {}'.format(feature.get_unit()))
     print('/// Value          : {}\n'.format(str(value)))
 
 
