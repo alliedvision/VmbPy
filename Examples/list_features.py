@@ -48,7 +48,10 @@ def parse_args() -> argparse.Namespace:
                         type=str,
                         help='The maximum visibility level of features that should be printed '
                              '(default = %(default)s)',
-                        choices=list(map(lambda x: x.name, FeatureVisibility)),
+                        # Allow all visibility levels except 'Unknown'
+                        choices=list(map(lambda x: x.name,
+                                         filter(lambda x: x != FeatureVisibility.Unknown,
+                                                FeatureVisibility))),
                         default=FeatureVisibility.Guru.name)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-t',
