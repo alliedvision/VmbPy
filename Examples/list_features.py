@@ -44,6 +44,15 @@ def abort(reason: str, return_code: int = 1):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument('-v',
+                        type=str,
+                        help='The maximum visibility level of features that should be printed '
+                             '(default = %(default)s)',
+                        # Allow all visibility levels except 'Unknown'
+                        choices=list(map(lambda x: x.name,
+                                         filter(lambda x: x != FeatureVisibility.Unknown,
+                                                FeatureVisibility))),
+                        default=FeatureVisibility.Guru.name)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-t',
                        type=int,
@@ -71,9 +80,10 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def print_all_features(module: FeatureContainer):
+def print_all_features(module: FeatureContainer, max_visibility_level: FeatureVisibility):
     for feat in module.get_all_features():
-        print_feature(feat)
+        if feat.get_visibility() <= max_visibility_level:
+            print_feature(feat)
 
 
 def print_feature(feature: FeatureTypes):
@@ -88,7 +98,6 @@ def print_feature(feature: FeatureTypes):
     print('/// Tooltip        : {}'.format(feature.get_tooltip()))
     print('/// Description    : {}'.format(feature.get_description()))
     print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
-    print('/// Unit           : {}'.format(feature.get_unit()))
     print('/// Value          : {}\n'.format(str(value)))
 
 
@@ -142,19 +151,20 @@ def get_camera(camera_id_or_index: str) -> Camera:
 def main():
     print_preamble()
     args = parse_args()
+    visibility_level = FeatureVisibility[args.v]
 
     with VmbSystem.get_instance():
         if args.t is not None:
             tl = get_transport_layer(args.t)
-            print_all_features(tl)
+            print_all_features(tl, visibility_level)
         elif args.i is not None:
             inter = get_interface(args.i)
-            print_all_features(inter)
+            print_all_features(inter, visibility_level)
         elif args.l is not None:
             cam = get_camera(args.l)
             with cam:
                 local_device = cam.get_local_device()
-                print_all_features(local_device)
+                print_all_features(local_device, visibility_level)
         elif args.s is not None:
             cam = get_camera(args.s[0])
             with cam:
@@ -164,14 +174,14 @@ def main():
                     abort('Could not parse \'{}\' to a stream index integer'.format(args.s[1]))
                 try:
                     stream = cam.get_streams()[stream_index]
-                    print_all_features(stream)
+                    print_all_features(stream, visibility_level)
                 except IndexError:
                     abort('Could not get stream at index \'{}\'. Camera provides only \'{}\' '
                           'stream(s)'.format(stream_index, len(cam.get_streams())))
         else:
             cam = get_camera(args.c)
             with cam:
-                print_all_features(cam)
+                print_all_features(cam, visibility_level)
 
 
 if __name__ == '__main__':

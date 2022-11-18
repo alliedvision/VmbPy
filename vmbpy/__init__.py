@@ -48,6 +48,7 @@ __all__ = [
     'PixelFormat',
     'Frame',
     'FeatureTypes',
+    'FeatureVisibility',
     'FrameHandler',
     'FrameStatus',
     'AllocationMode',
@@ -113,7 +114,7 @@ from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent
 from .error import (VmbCameraError, VmbChunkError, VmbFeatureError, VmbFrameError,
                     VmbInterfaceError, VmbSystemError, VmbTimeout, VmbTransportLayerError)
 from .feature import (BoolFeature, CommandFeature, EnumEntry, EnumFeature, FeatureTypes,
-                      FloatFeature, IntFeature, RawFeature, StringFeature)
+                      FeatureVisibility, FloatFeature, IntFeature, RawFeature, StringFeature)
 from .featurecontainer import (FeatureContainer, ModulePersistFlags, PersistableFeatureContainer,
                                PersistType)
 from .frame import (BAYER_PIXEL_FORMATS, BGR_PIXEL_FORMATS, BGRA_PIXEL_FORMATS, COLOR_PIXEL_FORMATS,
