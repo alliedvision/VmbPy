@@ -75,7 +75,7 @@ class VmbPyTestCase(unittest.TestCase):
 
 def calculate_acquisition_time(cam: vmbpy.Camera, num_frames: int) -> float:
     """
-    Calculate how many seconds it takes to record `num_frames` form `cam` in current configuration.
+    Calculate how many seconds it takes to record `num_frames` from `cam` in current configuration.
 
     WARNING: The cams context must already be entered as this function tries to access camera
     features!
