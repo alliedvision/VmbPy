@@ -24,11 +24,10 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
+import argparse
 import os
 import sys
 import unittest
-
-import docopt
 
 # Add local directory to search path for test module import in this script.
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -38,6 +37,32 @@ from helpers import VmbPyTestCase
 # Add VmbPy module at the start of the search path. The tests should run against the
 # local vmbpy sources regardless of any existing installations.
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
+class Parser(argparse.ArgumentParser):
+    def __init__(self, *args, **kwargs) -> None:
+        description = 'vmbpy test runner'
+        super().__init__(description=description, *args, **kwargs)
+        self.add_argument('-s', '--suite',
+                          help='Testsuite to execute. real_cam and all require a camera to run '
+                               'tests against. Default: all',
+                          choices=['basic', 'real_cam', 'all'],
+                          default='all')
+        self.add_argument('-c', '--camera_id',
+                          help='Camera Id used while testing. If no ID is specified, the first '
+                               'device that is found is used',
+                          metavar='camera_id')
+        self.add_argument('blacklist',
+                          help='Optional sequence of unittest functions to skip',
+                          nargs='*')
+        output_group = self.add_mutually_exclusive_group(required=True)
+        output_group.add_argument('--console',
+                                  help='log output to console',
+                                  action='store_true')
+        output_group.add_argument('--junit_xml',
+                                  help='log output to junit compatible xml file. The file is '
+                                       'placed inside report_dir',
+                                  metavar='report_dir')
 
 
 def _blacklist_tests(test_suite, blacklist):
@@ -56,41 +81,69 @@ def _blacklist_tests(test_suite, blacklist):
     return test_suite
 
 
+def print_test_execution_info():
+    import vmbpy
+    import platform
+    import socket
+
+    if not VmbPyTestCase.get_test_camera_id():
+        # If no camera ID has been set so far, let the test class try to determine it automatically
+        VmbPyTestCase.setUpClass()
+
+    print('VmbPy test suite\n' + '*' * 80)
+    alignment_width = 18
+
+    def aligned_print(first, second):
+        print(f'{first:<{alignment_width}}: {second}')
+    aligned_print('API versions', vmbpy.VmbSystem.get_instance().get_version())
+    aligned_print('Hostname', platform.node())
+    try:
+        aligned_print('IP Address:', socket.gethostbyname(socket.gethostname()))
+    except:  # noqa E722
+        # resolving host name may fail. Do not print IP in that case
+        pass
+    aligned_print('Operating System', platform.platform())
+    aligned_print('Architecture', platform.machine())
+    camera_id = VmbPyTestCase.get_test_camera_id()
+    aligned_print('Camera ID', camera_id)
+    if camera_id:
+        with vmbpy.VmbSystem.get_instance() as vmb:
+            try:
+                with vmb.get_camera_by_id(camera_id) as cam:
+                    try:
+                        fw_version = cam.get_feature_by_name('DeviceFirmwareVersion').get()
+                    except:  # noqa: E722
+                        fw_version = ('Failed to read firmware version from '
+                                      '\'DeviceFirmwareVersion\' feature')
+                    try:
+                        model_name = cam.get_feature_by_name('DeviceModelName').get()
+                    except:  # noqa: E722
+                        model_name = 'Failed to read model name from \'DeviceModelName\' feature'
+            except:  # noqa: E722
+                fw_version = 'Failed to open device'
+                model_name = 'Failed to open device'
+        aligned_print('Firmware version', fw_version)
+        aligned_print('Model name', model_name)
+    print('*' * 80)
+
+
 def main():
-    CLI = """vmbpy test runner.
-    Usage:
-        runner.py -h
-        runner.py -s basic -o console [BLACKLIST...]
-        runner.py -s basic -o junit_xml REPORT_DIR [BLACKLIST...]
-        runner.py -s (real_cam | all) -c CAMERA_ID -o console [BLACKLIST...]
-        runner.py -s (real_cam | all) -c CAMERA_ID -o junit_xml REPORT_DIR [BLACKLIST...]
-
-    Arguments:
-        CAMERA_ID    Camera Id from Camera that shall be used during testing
-        REPORT_DIR   Directory used for junit_export.
-        BLACKLIST    Optional sequence of unittest functions to skip.
-
-    Options:
-        -h   Show this screen.
-        -s   Testsuite to execute. real_cam and all require a camera to
-             run tests against, therefore -c is mandatory.
-        -c   Camera Id used while testing.
-        -o   Test output: Either console or junit_xml.
-    """
-
-    args = docopt.docopt(CLI)
+    arg_parser = Parser()
+    args = arg_parser.parse_args()
     loader = unittest.TestLoader()
 
-    if args['CAMERA_ID']:
-        VmbPyTestCase.set_test_camera_id(args['CAMERA_ID'])
+    if args.camera_id:
+        VmbPyTestCase.set_test_camera_id(args.camera_id)
+    VmbPyTestCase.setUpClass()
+    print_test_execution_info()
 
     # Select TestRunner
-    if args['console']:
+    if args.console:
         runner = unittest.TextTestRunner(verbosity=2)
 
-    elif args['junit_xml']:
+    elif args.junit_xml:
         import xmlrunner
-        runner = xmlrunner.XMLTestRunner(output=args['REPORT_DIR'])
+        runner = xmlrunner.XMLTestRunner(output=args.junit_xml)
 
     # Import tests cases
     import basic_tests.c_binding_test
@@ -143,19 +196,19 @@ def main():
     suite_cam = unittest.TestSuite()
 
     for mod in BASIC_TEST_MODS:
-        suite_basic.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args['BLACKLIST']))
+        suite_basic.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
 
     for mod in REAL_CAM_TEST_MODS:
-        suite_cam.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args['BLACKLIST']))
+        suite_cam.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
 
     # Execute TestSuites
-    if args['basic']:
+    if args.suite == 'basic':
         runner.run(suite_basic)
 
-    elif args['real_cam']:
+    elif args.suite == 'real_cam':
         runner.run(suite_cam)
 
-    elif args['all']:
+    elif args.suite == 'all':
         runner.run(suite_basic)
         runner.run(suite_cam)
 

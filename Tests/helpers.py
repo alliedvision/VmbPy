@@ -71,3 +71,14 @@ class VmbPyTestCase(unittest.TestCase):
     @staticmethod
     def set_test_camera_id(test_cam_id):
         VmbPyTestCase.test_cam_id = test_cam_id
+
+
+def calculate_acquisition_time(cam: vmbpy.Camera, num_frames: int) -> float:
+    """
+    Calculate how many seconds it takes to record `num_frames` from `cam` in current configuration.
+
+    WARNING: The cams context must already be entered as this function tries to access camera
+    features!
+    """
+    fps = cam.get_feature_by_name('AcquisitionFrameRate').get()
+    return num_frames / fps

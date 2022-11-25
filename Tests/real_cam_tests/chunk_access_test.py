@@ -32,7 +32,7 @@ from vmbpy import *
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase
+from helpers import VmbPyTestCase, calculate_acquisition_time
 
 
 class ChunkAccessTest(VmbPyTestCase):
@@ -84,7 +84,8 @@ class ChunkAccessTest(VmbPyTestCase):
     def test_chunk_callback_is_executed(self):
         # Expectation: The chunk callback is executed for every call to `Frame.access_chunk_data`
         class FrameHandler:
-            def __init__(self) -> None:
+            def __init__(self, frame_limit) -> None:
+                self.frame_limit = frame_limit
                 self.frame_callbacks_executed = 0
                 self.chunk_callbacks_executed = 0
                 self.is_done = threading.Event()
@@ -94,16 +95,23 @@ class ChunkAccessTest(VmbPyTestCase):
                 frame.access_chunk_data(self.chunk_callback)
                 stream.queue_frame(frame)
 
-                if self.frame_callbacks_executed >= 5:
+                if self.frame_callbacks_executed >= self.frame_limit:
                     self.is_done.set()
 
             def chunk_callback(self, feats: FeatureContainer):
                 self.chunk_callbacks_executed += 1
 
-        handler = FrameHandler()
+        frame_count = 5
+        handler = FrameHandler(frame_count)
         try:
+            try:
+                timeout = calculate_acquisition_time(self.cam, frame_count)
+                # Add one second extra time for acquisition overhead and additional 10% buffer
+                timeout = 1.1 * (1.0 + timeout)
+            except VmbFeatureError:
+                timeout = 5.0
             self.cam.start_streaming(handler)
-            self.assertTrue(handler.is_done.wait(timeout=5),
+            self.assertTrue(handler.is_done.wait(timeout=timeout),
                             'Frame handler did not finish before timeout')
         finally:
             self.cam.stop_streaming()
@@ -168,7 +176,6 @@ class ChunkAccessTest(VmbPyTestCase):
                     self.expected_exception_raised = True
                 finally:
                     self.is_done.set()
-                self.is_done.set()
 
             def chunk_callback(self, feats: FeatureContainer):
                 # Will never be called because the C-API raises an error before we get this far
@@ -177,8 +184,15 @@ class ChunkAccessTest(VmbPyTestCase):
         self.disable_chunk_features()
         handler = FrameHandler(self)
         try:
+            try:
+                frame_count = 1
+                timeout = calculate_acquisition_time(self.cam, frame_count)
+                # Add one second extra time for acquisition overhead and additional 10% buffer
+                timeout = 1.1 * (1.0 + timeout)
+            except VmbFeatureError:
+                timeout = 5.0
             self.cam.start_streaming(handler)
-            self.assertTrue(handler.is_done.wait(timeout=5),
+            self.assertTrue(handler.is_done.wait(timeout=timeout),
                             'Frame handler did not finish before timeout')
         finally:
             self.cam.stop_streaming()
@@ -212,8 +226,15 @@ class ChunkAccessTest(VmbPyTestCase):
 
         handler = FrameHandler()
         try:
+            try:
+                frame_count = 1
+                timeout = calculate_acquisition_time(self.cam, frame_count)
+                # Add one second extra time for acquisition overhead and additional 10% buffer
+                timeout = 1.1 * (1.0 + timeout)
+            except VmbFeatureError:
+                timeout = 5.0
             self.cam.start_streaming(handler)
-            self.assertTrue(handler.is_done.wait(timeout=5),
+            self.assertTrue(handler.is_done.wait(timeout=timeout),
                             'Frame handler did not finish before timeout')
         finally:
             self.cam.stop_streaming()
@@ -229,7 +250,8 @@ class ChunkAccessTest(VmbPyTestCase):
             pass
 
         class FrameHandler:
-            def __init__(self) -> None:
+            def __init__(self, frame_limit) -> None:
+                self.frame_limit = frame_limit
                 self.__frame_count = 0
                 self.exception_was_raised_once = False
                 self.later_access_worked = False
@@ -242,7 +264,7 @@ class ChunkAccessTest(VmbPyTestCase):
                     self.exception_was_raised_once = True
                 finally:
                     self.__frame_count += 1
-                    if self.__frame_count >= 5:
+                    if self.__frame_count >= self.frame_limit:
                         self.is_done.set()
 
             def chunk_callback(self, feats: FeatureContainer):
@@ -251,10 +273,17 @@ class ChunkAccessTest(VmbPyTestCase):
                 if self.exception_was_raised_once:
                     self.later_access_worked = True
 
-        handler = FrameHandler()
+        frame_count = 5
+        handler = FrameHandler(frame_count)
         try:
+            try:
+                timeout = calculate_acquisition_time(self.cam, frame_count)
+                # Add one second extra time for acquisition overhead and additional 10% buffer
+                timeout = 1.1 * (1.0 + timeout)
+            except VmbFeatureError:
+                timeout = 5.0
             self.cam.start_streaming(handler)
-            self.assertTrue(handler.is_done.wait(timeout=5),
+            self.assertTrue(handler.is_done.wait(timeout=timeout),
                             'Frame handler did not finish before timeout')
         finally:
             self.cam.stop_streaming()

@@ -35,7 +35,7 @@ from vmbpy.frame import *
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase
+from helpers import VmbPyTestCase, calculate_acquisition_time
 
 
 def dummy_frame_handler(cam: Camera, stream: Stream, frame: Frame):
@@ -116,6 +116,10 @@ class CamCameraTest(VmbPyTestCase):
     def test_camera_get_id(self):
         # Expectation: get decoded camera id
         self.assertTrue(self.cam.get_id())
+
+    def test_camera_get_extended_id(self):
+        # Expectation: get decoded extended camera id
+        self.assertTrue(self.cam.get_extended_id())
 
     def test_camera_get_name(self):
         # Expectation: get decoded camera name
@@ -316,12 +320,17 @@ class CamCameraTest(VmbPyTestCase):
                 if self.cnt == self.frame_count:
                     self.event.set()
 
-        timeout = 5.0
         frame_count = 10
         handler = FrameHandler(frame_count)
 
         with self.cam:
             try:
+                try:
+                    timeout = calculate_acquisition_time(self.cam, frame_count)
+                    # Add one second extra time for acquisition overhead and additional 10% buffer
+                    timeout = 1.1 * (1.0 + timeout)
+                except VmbFeatureError:
+                    timeout = 5.0
                 self.cam.start_streaming(handler, frame_count)
 
                 # Wait until the FrameHandler has been executed for each queued frame
@@ -348,13 +357,18 @@ class CamCameraTest(VmbPyTestCase):
 
                 cam.queue_frame(frame)
 
-        timeout = 5.0
         frame_count = 5
         frame_reuse = 2
         handler = FrameHandler(frame_count * frame_reuse)
 
         with self.cam:
             try:
+                try:
+                    timeout = calculate_acquisition_time(self.cam, frame_count * frame_reuse)
+                    # Add one second extra time for acquisition overhead and additional 10% buffer
+                    timeout = 1.1 * (1.0 + timeout)
+                except VmbFeatureError:
+                    timeout = 5.0
                 self.cam.start_streaming(handler, frame_count)
 
                 # Wait until the FrameHandler has been executed for each queued frame
@@ -388,11 +402,16 @@ class CamCameraTest(VmbPyTestCase):
 
                 cam.queue_frame(frame)
 
-        timeout = 5.0
         frame_count = 5
         handler = FrameHandler(frame_count, self)
         with self.cam:
             try:
+                try:
+                    timeout = calculate_acquisition_time(self.cam, frame_count)
+                    # Add one second extra time for acquisition overhead and additional 10% buffer
+                    timeout = 1.1 * (1.0 + timeout)
+                except VmbFeatureError:
+                    timeout = 5.0
                 self.cam.start_streaming(handler, frame_count)
 
                 # Wait until the FrameHandler has been executed for each queued frame
@@ -445,11 +464,16 @@ class CamCameraTest(VmbPyTestCase):
 
                 self.event.set()
 
-        timeout = 5.0
         frame_count = 5
         handler = FrameHandler(self)
         with self.cam:
             try:
+                try:
+                    timeout = calculate_acquisition_time(self.cam, frame_count)
+                    # Add one second extra time for acquisition overhead and additional 10% buffer
+                    timeout = 1.1 * (1.0 + timeout)
+                except VmbFeatureError:
+                    timeout = 5.0
                 self.cam.start_streaming(handler, frame_count)
 
                 # Wait until the FrameHandler has been executed for each queued frame

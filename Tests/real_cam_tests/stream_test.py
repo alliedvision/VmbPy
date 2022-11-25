@@ -33,7 +33,7 @@ from vmbpy import *
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase
+from helpers import VmbPyTestCase, calculate_acquisition_time
 
 
 def dummy_frame_handler(cam: Camera, stream: Stream, frame: Frame):
@@ -225,12 +225,17 @@ class StreamTest(VmbPyTestCase):
                 if self.cnt == self.frame_count:
                     self.event.set()
 
-        timeout = 5.0
         frame_count = 10
         handler = FrameHandler(frame_count)
 
         for stream in self.cam.get_streams():
             with self.subTest(f'Stream={stream}'):
+                try:
+                    timeout = calculate_acquisition_time(self.cam, frame_count)
+                    # Add one second extra time for acquisition overhead and additional 10% buffer
+                    timeout = 1.1 * (1.0 + timeout)
+                except VmbFeatureError:
+                    timeout = 5.0
                 try:
                     self.cam.start_streaming(handler, frame_count)
 
@@ -258,13 +263,18 @@ class StreamTest(VmbPyTestCase):
 
                 stream.queue_frame(frame)
 
-        timeout = 5.0
         frame_count = 5
         frame_reuse = 2
         handler = FrameHandler(frame_count * frame_reuse)
 
         for stream in self.cam.get_streams():
             with self.subTest(f'Stream={stream}'):
+                try:
+                    timeout = calculate_acquisition_time(self.cam, frame_count * frame_reuse)
+                    # Add one second extra time for acquisition overhead and additional 10% buffer
+                    timeout = 1.1 * (1.0 + timeout)
+                except VmbFeatureError:
+                    timeout = 5.0
                 try:
                     stream.start_streaming(handler, frame_count)
 
