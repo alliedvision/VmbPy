@@ -65,6 +65,10 @@ class RuntimeTypeCheckEnable:
         full_args.apply_defaults()
 
         # Get available type hints, remove return value.
+        while hasattr(func, '__wrapped__'):
+            # Workaround for Python bug with type hints for wrapped functions
+            # https://bugs.python.org/issue37838
+            func = func.__wrapped__
         hints = get_type_hints(func)
         hints.pop('return', None)
 
