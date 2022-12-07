@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from vmbpy import *
 
+
 def print_preamble():
     print('//////////////////////////////////')
     print('/// VmbPy List Cameras Example ///')
