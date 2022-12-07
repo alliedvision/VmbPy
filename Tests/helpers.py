@@ -29,7 +29,6 @@ import unittest
 
 import vmbpy
 
-
 class VmbPyTestCase(unittest.TestCase):
     """
     Class that represents a test case for vmbpy.
