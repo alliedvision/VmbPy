@@ -48,11 +48,12 @@ class AccessMode(enum.IntEnum):
     """Enum specifying all available camera access modes.
 
     Enum values:
-        None_  - No access.
-        Full   - Read and write access. Use this mode to configure the camera features and
-                 to acquire images (Camera Link cameras: configuration only).
-        Read   - Read-only access. Setting features is not possible.
-        Config - Configuration access to configure the IP address of your GigE camera.
+        None_     - No access.
+        Full      - Read and write access. Use this mode to configure the camera features and
+                    to acquire images (Camera Link cameras: configuration only).
+        Read      - Read-only access. Setting features is not possible.
+        Unknown   - Access type unknown.
+        Exclusive - Read and write access without permitting access for other consumers.
     """
     None_ = VmbAccessMode.None_
     Full = VmbAccessMode.Full

@@ -115,7 +115,7 @@ class VmbAccessMode(Uint32Enum):
         None_     - No access
         Full      - Read and write access
         Read      - Read-only access
-        Config    - Configuration access (GeV)
+        Unknown   - Access type unknown
         Exclusive - Read and write access without permitting access for other consumers
     """
     None_ = 0
