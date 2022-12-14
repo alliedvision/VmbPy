@@ -135,7 +135,11 @@ class CamCameraTest(VmbPyTestCase):
 
     def test_camera_get_permitted_access_modes(self):
         # Expectation: get currently permitted access modes
-        expected = (AccessMode.None_, AccessMode.Full, AccessMode.Read, AccessMode.Config)
+        expected = (AccessMode.None_,
+                    AccessMode.Full,
+                    AccessMode.Read,
+                    AccessMode.Unknown,
+                    AccessMode.Exclusive)
 
         for mode in self.cam.get_permitted_access_modes():
             self.assertIn(mode, expected)
