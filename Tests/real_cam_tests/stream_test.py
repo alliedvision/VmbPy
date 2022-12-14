@@ -110,31 +110,36 @@ class StreamTest(VmbPyTestCase):
         # Expectation: The Frame generator fetches the given number of images.
         for stream in self.cam.get_streams():
             with self.subTest(f'Stream={stream}'):
-                self.assertEqual(len([i for i in stream.get_frame_generator(1)]), 1)
-                self.assertEqual(len([i for i in stream.get_frame_generator(7)]), 7)
-                self.assertEqual(len([i for i in stream.get_frame_generator(11)]), 11)
+                for expected_frames in (1, 7, 11):
+                    count = 0
+                    for _ in self.cam.get_frame_generator(expected_frames):
+                        count += 1
+                    self.assertEqual(count, expected_frames)
 
     def test_stream_frame_generator_error(self):
         # Expectation: The Frame generator raises a ValueError on a negative limit
 
-        # generator execution must throw if streaming is enabled
         for stream in self.cam.get_streams():
             with self.subTest(f'Stream={stream}'):
                 # Check limits
-                self.assertRaises(ValueError, stream.get_frame_generator, 0)
-                self.assertRaises(ValueError, stream.get_frame_generator, -1)
-                self.assertRaises(ValueError, stream.get_frame_generator, 1, 0)
-                self.assertRaises(ValueError, stream.get_frame_generator, 1, -1)
+                for limits in ((0, ), (-1, ), (1, 0), (1, -1)):
+                    with self.assertRaises(ValueError):
+                        for _ in self.cam.get_frame_generator(*limits):
+                            pass
 
+                # generator execution must throw if streaming is enabled
                 self.cam.start_streaming(dummy_frame_handler, 5)
 
                 self.assertRaises(VmbCameraError, stream.get_frame)
-                self.assertRaises(VmbCameraError, next, stream.get_frame_generator(1))
+                with self.assertRaises(VmbCameraError):
+                    for _ in stream.get_frame_generator(1):
+                        pass
 
                 # Stop Streaming: Everything should be fine.
                 self.cam.stop_streaming()
                 self.assertNoRaise(stream.get_frame)
-                self.assertNoRaise(next, stream.get_frame_generator(1))
+                for f in self.cam.get_frame_generator(1):
+                    self.assertIsInstance(f, Frame)
 
     def test_stream_get_frame(self):
         # Expectation: Gets single Frame without any exception. Image data must be set.

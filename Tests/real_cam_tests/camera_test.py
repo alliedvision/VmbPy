@@ -201,32 +201,37 @@ class CamCameraTest(VmbPyTestCase):
     def test_camera_frame_generator_limit_set(self):
         # Expectation: The Frame generator fetches the given number of images.
         with self.cam:
-            self.assertEqual(len([i for i in self.cam.get_frame_generator(1)]), 1)
-            self.assertEqual(len([i for i in self.cam.get_frame_generator(7)]), 7)
-            self.assertEqual(len([i for i in self.cam.get_frame_generator(11)]), 11)
+            for expected_frames in (1, 7, 11):
+                count = 0
+                for _ in self.cam.get_frame_generator(expected_frames):
+                    count += 1
+                self.assertEqual(count, expected_frames)
 
     def test_camera_frame_generator_error(self):
         # Expectation: The Frame generator raises a ValueError on a
         # negative limit and the camera raises an ValueError
         # if the camera is not opened.
 
-        # generator execution must throw if streaming is enabled
         with self.cam:
             # Check limits
-            self.assertRaises(ValueError, self.cam.get_frame_generator, 0)
-            self.assertRaises(ValueError, self.cam.get_frame_generator, -1)
-            self.assertRaises(ValueError, self.cam.get_frame_generator, 1, 0)
-            self.assertRaises(ValueError, self.cam.get_frame_generator, 1, -1)
+            for limits in ((0, ), (-1, ), (1, 0), (1, -1)):
+                with self.assertRaises(ValueError):
+                    for _ in self.cam.get_frame_generator(*limits):
+                        pass
 
+            # generator execution must throw if streaming is enabled
             self.cam.start_streaming(dummy_frame_handler, 5)
 
             self.assertRaises(VmbCameraError, self.cam.get_frame)
-            self.assertRaises(VmbCameraError, next, self.cam.get_frame_generator(1))
+            with self.assertRaises(VmbCameraError):
+                for _ in self.cam.get_frame_generator(1):
+                    pass
 
             # Stop Streaming: Everything should be fine.
             self.cam.stop_streaming()
             self.assertNoRaise(self.cam.get_frame)
-            self.assertNoRaise(next, self.cam.get_frame_generator(1))
+            for f in self.cam.get_frame_generator(1):
+                self.assertIsInstance(f, Frame)
 
     def test_camera_get_frame(self):
         # Expectation: Gets single Frame without any exception. Image data must be set.
@@ -264,7 +269,9 @@ class CamCameraTest(VmbPyTestCase):
         self.vmb._shutdown()
 
         # Access invalid Iterator
-        self.assertRaises(RuntimeError, next, gener)
+        with self.assertRaises(RuntimeError):
+            for _ in gener:
+                pass
 
     def test_camera_capture_error_outside_camera_scope(self):
         # Expectation: Camera access outside of Camera scope must lead to a RuntimeError
@@ -273,7 +280,9 @@ class CamCameraTest(VmbPyTestCase):
         with self.cam:
             gener = self.cam.get_frame_generator(1)
 
-        self.assertRaises(RuntimeError, next, gener)
+        with self.assertRaises(RuntimeError):
+            for _ in gener:
+                pass
 
     def test_camera_capture_timeout(self):
         # Expectation: Camera access outside of Camera scope must lead to a VmbTimeout
@@ -445,14 +454,16 @@ class CamCameraTest(VmbPyTestCase):
             self.assertRaises(TypeError, self.cam.get_features_selected_by, 'No Feature')
             self.assertRaises(TypeError, self.cam.get_features_by_type, 0.0)
             self.assertRaises(TypeError, self.cam.get_feature_by_name, 0)
-            self.assertRaises(TypeError, self.cam.get_frame_generator, '3')
-            self.assertRaises(TypeError, self.cam.get_frame_generator, 1, 'foo')
             self.assertRaises(TypeError, self.cam.start_streaming, valid_handler, 'no int')
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_1)
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_2)
             self.assertRaises(TypeError, self.cam.start_streaming, invalid_handler_3)
             self.assertRaises(TypeError, self.cam.save_settings, 0, PersistType.All)
             self.assertRaises(TypeError, self.cam.save_settings, 'foo.xml', 'false type')
+            for args in (('3',), (1, 'foo')):
+                with self.assertRaises(TypeError):
+                    for _ in self.cam.get_frame_generator(*args):
+                        pass
 
     def test_callback_parameter_types(self):
         # Expectation: All parameters of the frame callback are of instances of their expected type
@@ -511,7 +522,6 @@ class CamCameraTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.cam.get_features_by_type)
         self.assertRaises(RuntimeError, self.cam.get_features_by_category)
         self.assertRaises(RuntimeError, self.cam.get_feature_by_name)
-        self.assertRaises(RuntimeError, self.cam.get_frame_generator)
         self.assertRaises(RuntimeError, self.cam.get_frame)
         self.assertRaises(RuntimeError, self.cam.start_streaming)
         self.assertRaises(RuntimeError, self.cam.stop_streaming)
@@ -521,3 +531,6 @@ class CamCameraTest(VmbPyTestCase):
         self.assertRaises(RuntimeError, self.cam.set_pixel_format)
         self.assertRaises(RuntimeError, self.cam.save_settings)
         self.assertRaises(RuntimeError, self.cam.load_settings)
+        with self.assertRaises(RuntimeError):
+            for _ in self.cam.get_frame_generator():
+                pass
