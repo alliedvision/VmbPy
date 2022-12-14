@@ -199,8 +199,8 @@ class CBindingVmbCTypesTest(VmbPyTestCase):
         self.assertEqual(VmbAccessMode.None_, 0)
         self.assertEqual(VmbAccessMode.Full, 1)
         self.assertEqual(VmbAccessMode.Read, 2)
-        self.assertEqual(VmbAccessMode.Config, 4)
-        self.assertEqual(VmbAccessMode.Exclusive, ~VmbAccessMode.Config)
+        self.assertEqual(VmbAccessMode.Unknown, 4)
+        self.assertEqual(VmbAccessMode.Exclusive, 8)
 
     def test_enum_vmb_feature_data(self):
         self.assertEqual(VmbFeatureData.Unknown, 0)
