@@ -57,7 +57,8 @@ class AccessMode(enum.IntEnum):
     None_ = VmbAccessMode.None_
     Full = VmbAccessMode.Full
     Read = VmbAccessMode.Read
-    Config = VmbAccessMode.Config
+    Unknown = VmbAccessMode.Unknown
+    Exclusive = VmbAccessMode.Exclusive
 
 
 class Debayer(enum.IntEnum):

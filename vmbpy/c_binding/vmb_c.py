@@ -121,8 +121,8 @@ class VmbAccessMode(Uint32Enum):
     None_ = 0
     Full = 1
     Read = 2
-    Config = 4
-    Exclusive = ~Config
+    Unknown = 4
+    Exclusive = 8
 
     def __str__(self):
         return self._name_
