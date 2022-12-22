@@ -165,12 +165,14 @@ class Log(logging.Logger):
 
     def enable(self, config: LogConfig):
         # TODO: Validate if this is an appropriate implementation
+        self.disable()
         for handler in config.get_handlers():
             self.addHandler(handler)
 
     def disable(self):
-        # TODO: Reimplement this as appropriate
-        pass
+        for handler in list(self.handlers):
+            if not isinstance(handler, logging.NullHandler):
+                self.removeHandler(handler)
 
     def get_config(self):
         # TODO: Reimplement this as appropriate
