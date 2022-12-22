@@ -175,7 +175,7 @@ class Log(logging.Logger):
                 self.removeHandler(handler)
 
     def get_config(self):
-        # TODO: Reimplement this as appropriate
+        # TODO: Reimplement this as appropriate (needed for the ScopedLog decorator)
         pass
 
 
