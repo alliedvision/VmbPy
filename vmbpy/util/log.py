@@ -57,12 +57,14 @@ class LogLevel(enum.IntEnum):
 
     Enum values are:
         Trace    - Show Tracing information. Show all messages.
+        Debug    - Show Debug, Informational, Warning, Error, and Critical Events.
         Info     - Show Informational, Warning, Error, and Critical Events.
         Warning  - Show Warning, Error, and Critical Events.
         Error    - Show Errors and Critical Events.
         Critical - Show Critical Events only.
     """
-    Trace = logging.DEBUG
+    Trace = logging.DEBUG - 5
+    Debug = logging.DEBUG
     Info = logging.INFO
     Warning = logging.WARNING
     Error = logging.ERROR
@@ -205,6 +207,9 @@ def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]
 LOG_CONFIG_TRACE_CONSOLE_ONLY = _build_cfg(LogLevel.Trace, None)
 LOG_CONFIG_TRACE_FILE_ONLY = _build_cfg(None, LogLevel.Trace)
 LOG_CONFIG_TRACE = _build_cfg(LogLevel.Trace, LogLevel.Trace)
+LOG_CONFIG_DEBUG_CONSOLE_ONLY = _build_cfg(LogLevel.Debug, None)
+LOG_CONFIG_DEBUG_FILE_ONLY = _build_cfg(None, LogLevel.Debug)
+LOG_CONFIG_DEBUG = _build_cfg(LogLevel.Debug, LogLevel.Debug)
 LOG_CONFIG_INFO_CONSOLE_ONLY = _build_cfg(LogLevel.Info, None)
 LOG_CONFIG_INFO_FILE_ONLY = _build_cfg(None, LogLevel.Info)
 LOG_CONFIG_INFO = _build_cfg(LogLevel.Info, LogLevel.Info)
