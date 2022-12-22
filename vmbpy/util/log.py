@@ -80,7 +80,7 @@ class LogConfig:
     to start logging.
     """
 
-    __ENTRY_FORMAT = logging.Formatter('%(asctime)s | %(message)s')
+    __ENTRY_FORMAT = logging.Formatter('%(asctime)s | %(message).200s')
 
     def __init__(self):
         self.__handlers: List[logging.Handler] = []
