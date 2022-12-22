@@ -73,18 +73,6 @@ class LogLevel(enum.IntEnum):
     def __str__(self):
         return self._name_
 
-    def as_equal_len_str(self) -> str:
-        return _LEVEL_TO_EQUAL_LEN_STR[self]
-
-
-_LEVEL_TO_EQUAL_LEN_STR = {
-    LogLevel.Trace: 'Trace   ',
-    LogLevel.Info: 'Info    ',
-    LogLevel.Warning: 'Warning ',
-    LogLevel.Error: 'Error   ',
-    LogLevel.Critical: 'Critical'
-}
-
 
 class LogConfig:
     """The LogConfig is a builder to configure various specialized logging configurations.
