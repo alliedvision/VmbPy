@@ -145,119 +145,46 @@ class LogConfig:
         return self.__handlers
 
 
-class Log:
-    class __Impl:
-        """This class is wraps the logging Facility. Since this is as Singleton
-        Use Log.get_instace(), to access the log.
-        """
-        def __init__(self):
-            """Do not call directly. Use Log.get_instance() instead."""
-            self.__logger: Optional[logging.Logger] = None
-            self.__config: Optional[LogConfig] = None
-            self._test_buffer: Optional[List[str]] = None
+class Log(logging.Logger):
+    __instance = None
 
-        def __bool__(self):
-            return bool(self.__logger)
+    def __init__(self, name: str) -> None:
+        """Do not call directly. Use Log.get_instance() instead."""
+        super().__init__(name)
+        # Add a new `TRACE` level for tracing function enter/leave
+        self._trace_level = logging.DEBUG - 5
+        trace_name = 'TRACE'
+        logging.addLevelName(self._trace_level, trace_name)
 
-        def enable(self, config: LogConfig):
-            """Enable global vmbpy logging mechanism.
-
-            Arguments:
-                config: The configuration to apply.
-            """
-            self.disable()
-
-            logger = logging.getLogger('vmbpyLog')
-            logger.setLevel(logging.DEBUG)
-
-            for handler in config.get_handlers():
-                logger.addHandler(handler)
-
-            self.__config = config
-            self.__logger = logger
-
-        def disable(self):
-            """Disable global vmbpy logging mechanism."""
-            if self.__logger and self.__config:
-                for handler in self.__config.get_handlers():
-                    handler.close()
-                    self.__logger.removeHandler(handler)
-
-                self.__logger = None
-                self.__config = None
-
-        def get_config(self) -> Optional[LogConfig]:
-            """ Get log configuration
-
-            Returns:
-                Configuration if the log is enabled. In case the log is disabled return None.
-            """
-            return self.__config
-
-        def trace(self, msg: str):
-            """Add an entry of LogLevel.Trace to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.debug(self.__build_msg(LogLevel.Trace, msg))
-
-        def info(self, msg: str):
-            """Add an entry of LogLevel.Info to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.info(self.__build_msg(LogLevel.Info, msg))
-
-        def warning(self, msg: str):
-            """Add an entry of LogLevel.Warning to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.warning(self.__build_msg(LogLevel.Warning, msg))
-
-        def error(self, msg: str):
-            """Add an entry of LogLevel.Error to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.error(self.__build_msg(LogLevel.Error, msg))
-
-        def critical(self, msg: str):
-            """Add an entry of LogLevel.Critical to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.critical(self.__build_msg(LogLevel.Critical, msg))
-
-        def __build_msg(self, loglevel: LogLevel, msg: str) -> str:
-            msg = '{} | {}'.format(loglevel.as_equal_len_str(), msg)
-            max_len = self.__config.get_max_msg_length() if self.__config else None
-
-            if max_len and (max_len < len(msg)):
-                suffix = ' ...'
-                msg = msg[:max_len - len(suffix)] + suffix
-
-            if self._test_buffer is not None:
-                self._test_buffer.append(msg)
-
-            return msg
-
-    __instance = __Impl()
+        # Do not output any logs by default. only if the user specifically enables them
+        self.addHandler(logging.NullHandler())
 
     @staticmethod
-    def get_instance() -> '__Impl':
+    def get_instance() -> 'Log':
         """Get Log instance."""
+        if Log.__instance is None:
+            Log.__instance = Log('vmbpyLog')
         return Log.__instance
+
+    def trace(self, msg, *args, **kwargs):
+        """
+        Log 'msg % args' with severity 'TRACE' (custom level!).
+        """
+        if self.isEnabledFor(self._trace_level):
+            self._log(self._trace_level, msg, args, **kwargs)
+
+    def enable(self, config: LogConfig):
+        # TODO: Validate if this is an appropriate implementation
+        for handler in config.get_handlers():
+            self.addHandler(handler)
+
+    def disable(self):
+        # TODO: Reimplement this as appropriate
+        pass
+
+    def get_config(self):
+        # TODO: Reimplement this as appropriate
+        pass
 
 
 def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]) -> LogConfig:
