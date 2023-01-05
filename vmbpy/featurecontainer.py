@@ -173,7 +173,7 @@ class PersistableFeatureContainer(FeatureContainer):
                       file_path: str,
                       persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
-                      max_iterations: int = 1):
+                      max_iterations: int = 0):
         """Load settings from XML file
 
         Arguments:
@@ -185,7 +185,8 @@ class PersistableFeatureContainer(FeatureContainer):
             persist_flags - Flags specifying the modules to load. By default only features of the
                             calling module itself are persisted. For an overview of available flags
                             see the docstring of the ModulePersistFlags type
-            max_iterations - Number of iterations when loading settings.
+            max_iterations - Number of iterations when loading settings. If 0 is given (default)
+                             the VmbC default is used
 
         Raises:
             TypeError if parameters do not match their type hint.
@@ -226,7 +227,8 @@ class PersistableFeatureContainer(FeatureContainer):
             persist_flags - Flags specifying the modules to store. By default only features of the
                             calling module itself are persisted. For an overview of available flags
                             see the docstring of the ModulePersistFlags type
-            max_iterations - Number of iterations when storing settings.
+            max_iterations - Number of iterations when storing settings. If 0 is given (default)
+                             the value found in the XML file is used
 
         Raises:
             TypeError if parameters do not match their type hint.
