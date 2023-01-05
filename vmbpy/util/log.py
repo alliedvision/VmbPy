@@ -80,11 +80,11 @@ class LogConfig:
     to start logging.
     """
 
-    __ENTRY_FORMAT = logging.Formatter('%(asctime)s | %(message).200s')
-
     def __init__(self):
         self.__handlers: List[logging.Handler] = []
         self.__max_msg_length: Optional[int] = None
+        # Format for log output. The maximum message length must be filled via string formatting
+        self.__entry_format = '%(asctime)s | %(message).{}s'
 
     def add_file_log(self, level: LogLevel) -> 'LogConfig':
         """Add a new Log file to the Config Builder.
@@ -101,7 +101,7 @@ class LogConfig:
 
         handler = logging.FileHandler(log_file, delay=True)
         handler.setLevel(level)
-        handler.setFormatter(LogConfig.__ENTRY_FORMAT)
+        handler.setFormatter(self._get_formatter())
 
         self.__handlers.append(handler)
         return self
@@ -117,7 +117,7 @@ class LogConfig:
         """
         handler = logging.StreamHandler()
         handler.setLevel(level)
-        handler.setFormatter(LogConfig.__ENTRY_FORMAT)
+        handler.setFormatter(self._get_formatter())
 
         self.__handlers.append(handler)
         return self
@@ -133,6 +133,10 @@ class LogConfig:
     def get_handlers(self) -> List[logging.Handler]:
         """Get all configured log handlers"""
         return self.__handlers
+
+    def _get_formatter(self) -> logging.Formatter:
+        """Create and return a formatter for consistent log output"""
+        return logging.Formatter(self.__entry_format.format(self.get_max_msg_length()))
 
 
 class Log(logging.Logger):
