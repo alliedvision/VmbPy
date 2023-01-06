@@ -168,7 +168,7 @@ class Log(logging.Logger):
             logging.setLoggerClass(Log)
             Log.__instance = logging.getLogger('vmbpyLog')
             logging.setLoggerClass(old_logging_class)
-        return Log.__instance
+        return Log.__instance  # type: ignore
 
     def trace(self, msg, *args, **kwargs):
         """
