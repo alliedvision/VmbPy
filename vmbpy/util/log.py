@@ -152,6 +152,7 @@ class Log(logging.Logger):
 
         # Do not output any logs by default. only if the user specifically enables them
         self.addHandler(logging.NullHandler())
+        self.__config: Optional[LogConfig] = None
 
     @staticmethod
     def get_instance() -> 'Log':
@@ -172,15 +173,21 @@ class Log(logging.Logger):
         self.disable()
         for handler in config.get_handlers():
             self.addHandler(handler)
+        self.__config = config
 
     def disable(self):
         for handler in list(self.handlers):
             if not isinstance(handler, logging.NullHandler):
                 self.removeHandler(handler)
+        self.__config = None
 
     def get_config(self):
-        # TODO: Reimplement this as appropriate (needed for the ScopedLog decorator)
-        pass
+        """ Get log configuration
+
+        Returns:
+            Configuration if the log is enabled. In case the log is disabled return None.
+        """
+        return self.__config
 
 
 def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]) -> LogConfig:
