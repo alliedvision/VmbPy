@@ -36,17 +36,12 @@ from helpers import VmbPyTestCase
 
 class TracerTest(VmbPyTestCase):
     def setUp(self):
-        # Enable logging and setup hidden buffer
         self.log = Log.get_instance()
-        self.log._test_buffer = []
 
         self.log.enable(LOG_CONFIG_CRITICAL_CONSOLE_ONLY)
 
     def tearDown(self):
-        # Disable logging and clear hidden buffer
         self.log.disable()
-
-        self.log._test_buffer = None
 
     def test_trace_inactive(self):
         # Expectation: A disabled log must not contain any trace entries.
