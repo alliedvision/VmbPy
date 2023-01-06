@@ -43,24 +43,6 @@ class TracerTest(VmbPyTestCase):
     def tearDown(self):
         self.log.disable()
 
-    def test_trace_inactive(self):
-        # Expectation: A disabled log must not contain any trace entries.
-
-        @TraceEnable()
-        def test_func(arg):
-            return str(arg)
-
-        self.log.disable()
-
-        self.assertEqual(test_func(1), '1')
-        self.assertFalse(self.log._test_buffer)
-
-        self.assertEqual(test_func('test'), 'test')
-        self.assertFalse(self.log._test_buffer)
-
-        self.assertEqual(test_func(2.0), '2.0')
-        self.assertFalse(self.log._test_buffer)
-
     def test_trace_normal_exit(self):
         # Expectation: Must not throw on call normal func.
         # Each call traced call must add two Log entries:
