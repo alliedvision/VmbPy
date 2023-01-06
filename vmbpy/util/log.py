@@ -190,7 +190,7 @@ class Log(logging.Logger):
                 self.removeHandler(handler)
         self.__config = None
 
-    def get_config(self):
+    def get_config(self) -> Optional[LogConfig]:
         """ Get log configuration
 
         Returns:
