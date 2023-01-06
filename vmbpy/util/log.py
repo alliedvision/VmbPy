@@ -161,7 +161,13 @@ class Log(logging.Logger):
     def get_instance() -> 'Log':
         """Get Log instance."""
         if Log.__instance is None:
-            Log.__instance = Log('vmbpyLog')
+            # Use `logging.getLogger` so the logging manager handles the instance as expected. But
+            # since the custom `Log` class should actually be used, temporarily change the class
+            # that is used to instantiate new loggers.
+            old_logging_class = logging.getLoggerClass()
+            logging.setLoggerClass(Log)
+            Log.__instance = logging.getLogger('vmbpyLog')
+            logging.setLoggerClass(old_logging_class)
         return Log.__instance
 
     def trace(self, msg, *args, **kwargs):
