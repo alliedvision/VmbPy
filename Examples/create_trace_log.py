@@ -56,8 +56,9 @@ def manual_configuration():
     # By default the vmbpy logger instance will not forward its log messages to any handlers. To
     # integrate log messages a handler needs to be added to the logger instance. In this example we
     # log just the message to the console
-    # logger = Log.get_instance()
-    logger = logging.getLogger('vmbpyLog')
+    logger = Log.get_instance()
+    # Alternatively the logger instance can also be retrieved by its name: `vmbpyLog`
+    # logger = logging.getLogger('vmbpyLog')
     handler = logging.StreamHandler()
     logger.addHandler(handler)
 
