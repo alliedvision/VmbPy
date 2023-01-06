@@ -149,9 +149,9 @@ class Log(logging.Logger):
         """Do not call directly. Use Log.get_instance() instead."""
         super().__init__(name)
         # Add a new `TRACE` level for tracing function enter/leave
-        self._trace_level = logging.DEBUG - 5
-        trace_name = 'TRACE'
-        logging.addLevelName(self._trace_level, trace_name)
+        trace_name = LogLevel.Trace.name.upper()
+        logging.addLevelName(LogLevel.Trace, trace_name)
+        self.setLevel(LogLevel.Trace)
 
         # Do not output any logs by default. only if the user specifically enables them
         self.addHandler(logging.NullHandler())
@@ -168,8 +168,8 @@ class Log(logging.Logger):
         """
         Log 'msg % args' with severity 'TRACE' (custom level!).
         """
-        if self.isEnabledFor(self._trace_level):
-            self._log(self._trace_level, msg, args, **kwargs)
+        if self.isEnabledFor(LogLevel.Trace):
+            self._log(LogLevel.Trace, msg, args, **kwargs)
 
     def enable(self, config: LogConfig):
         # TODO: Validate if this is an appropriate implementation
