@@ -37,6 +37,9 @@ __all__ = [
     'LOG_CONFIG_TRACE_CONSOLE_ONLY',
     'LOG_CONFIG_TRACE_FILE_ONLY',
     'LOG_CONFIG_TRACE',
+    'LOG_CONFIG_DEBUG_CONSOLE_ONLY',
+    'LOG_CONFIG_DEBUG_FILE_ONLY',
+    'LOG_CONFIG_DEBUG',
     'LOG_CONFIG_INFO_CONSOLE_ONLY',
     'LOG_CONFIG_INFO_FILE_ONLY',
     'LOG_CONFIG_INFO',
@@ -57,12 +60,14 @@ class LogLevel(enum.IntEnum):
 
     Enum values are:
         Trace    - Show Tracing information. Show all messages.
+        Debug    - Show Debug, Informational, Warning, Error, and Critical Events.
         Info     - Show Informational, Warning, Error, and Critical Events.
         Warning  - Show Warning, Error, and Critical Events.
         Error    - Show Errors and Critical Events.
         Critical - Show Critical Events only.
     """
-    Trace = logging.DEBUG
+    Trace = logging.DEBUG - 5
+    Debug = logging.DEBUG
     Info = logging.INFO
     Warning = logging.WARNING
     Error = logging.ERROR
@@ -71,18 +76,6 @@ class LogLevel(enum.IntEnum):
     def __str__(self):
         return self._name_
 
-    def as_equal_len_str(self) -> str:
-        return _LEVEL_TO_EQUAL_LEN_STR[self]
-
-
-_LEVEL_TO_EQUAL_LEN_STR = {
-    LogLevel.Trace: 'Trace   ',
-    LogLevel.Info: 'Info    ',
-    LogLevel.Warning: 'Warning ',
-    LogLevel.Error: 'Error   ',
-    LogLevel.Critical: 'Critical'
-}
-
 
 class LogConfig:
     """The LogConfig is a builder to configure various specialized logging configurations.
@@ -90,11 +83,11 @@ class LogConfig:
     to start logging.
     """
 
-    __ENTRY_FORMAT = logging.Formatter('%(asctime)s | %(message)s')
-
     def __init__(self):
         self.__handlers: List[logging.Handler] = []
         self.__max_msg_length: Optional[int] = None
+        # Format for log output. The maximum message length must be filled via string formatting
+        self.__entry_format = '%(asctime)s | %(message).{}s'
 
     def add_file_log(self, level: LogLevel) -> 'LogConfig':
         """Add a new Log file to the Config Builder.
@@ -111,7 +104,7 @@ class LogConfig:
 
         handler = logging.FileHandler(log_file, delay=True)
         handler.setLevel(level)
-        handler.setFormatter(LogConfig.__ENTRY_FORMAT)
+        handler.setFormatter(self._get_formatter())
 
         self.__handlers.append(handler)
         return self
@@ -127,7 +120,7 @@ class LogConfig:
         """
         handler = logging.StreamHandler()
         handler.setLevel(level)
-        handler.setFormatter(LogConfig.__ENTRY_FORMAT)
+        handler.setFormatter(self._get_formatter())
 
         self.__handlers.append(handler)
         return self
@@ -144,120 +137,66 @@ class LogConfig:
         """Get all configured log handlers"""
         return self.__handlers
 
+    def _get_formatter(self) -> logging.Formatter:
+        """Create and return a formatter for consistent log output"""
+        return logging.Formatter(self.__entry_format.format(self.get_max_msg_length()))
 
-class Log:
-    class __Impl:
-        """This class is wraps the logging Facility. Since this is as Singleton
-        Use Log.get_instace(), to access the log.
-        """
-        def __init__(self):
-            """Do not call directly. Use Log.get_instance() instead."""
-            self.__logger: Optional[logging.Logger] = None
-            self.__config: Optional[LogConfig] = None
-            self._test_buffer: Optional[List[str]] = None
 
-        def __bool__(self):
-            return bool(self.__logger)
+class Log(logging.Logger):
+    __instance = None
 
-        def enable(self, config: LogConfig):
-            """Enable global vmbpy logging mechanism.
+    def __init__(self, name: str) -> None:
+        """Do not call directly. Use Log.get_instance() instead."""
+        super().__init__(name)
+        # Add a new `TRACE` level for tracing function enter/leave
+        trace_name = LogLevel.Trace.name.upper()
+        logging.addLevelName(LogLevel.Trace, trace_name)
+        self.setLevel(LogLevel.Trace)
 
-            Arguments:
-                config: The configuration to apply.
-            """
-            self.disable()
-
-            logger = logging.getLogger('vmbpyLog')
-            logger.setLevel(logging.DEBUG)
-
-            for handler in config.get_handlers():
-                logger.addHandler(handler)
-
-            self.__config = config
-            self.__logger = logger
-
-        def disable(self):
-            """Disable global vmbpy logging mechanism."""
-            if self.__logger and self.__config:
-                for handler in self.__config.get_handlers():
-                    handler.close()
-                    self.__logger.removeHandler(handler)
-
-                self.__logger = None
-                self.__config = None
-
-        def get_config(self) -> Optional[LogConfig]:
-            """ Get log configuration
-
-            Returns:
-                Configuration if the log is enabled. In case the log is disabled return None.
-            """
-            return self.__config
-
-        def trace(self, msg: str):
-            """Add an entry of LogLevel.Trace to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.debug(self.__build_msg(LogLevel.Trace, msg))
-
-        def info(self, msg: str):
-            """Add an entry of LogLevel.Info to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.info(self.__build_msg(LogLevel.Info, msg))
-
-        def warning(self, msg: str):
-            """Add an entry of LogLevel.Warning to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.warning(self.__build_msg(LogLevel.Warning, msg))
-
-        def error(self, msg: str):
-            """Add an entry of LogLevel.Error to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.error(self.__build_msg(LogLevel.Error, msg))
-
-        def critical(self, msg: str):
-            """Add an entry of LogLevel.Critical to the log. Does nothing is the log is disabled.
-
-            Arguments:
-                msg - The message that should be added to the Log.
-            """
-            if self.__logger:
-                self.__logger.critical(self.__build_msg(LogLevel.Critical, msg))
-
-        def __build_msg(self, loglevel: LogLevel, msg: str) -> str:
-            msg = '{} | {}'.format(loglevel.as_equal_len_str(), msg)
-            max_len = self.__config.get_max_msg_length() if self.__config else None
-
-            if max_len and (max_len < len(msg)):
-                suffix = ' ...'
-                msg = msg[:max_len - len(suffix)] + suffix
-
-            if self._test_buffer is not None:
-                self._test_buffer.append(msg)
-
-            return msg
-
-    __instance = __Impl()
+        # Do not output any logs by default. only if the user specifically enables them
+        self.addHandler(logging.NullHandler())
+        self.__config: Optional[LogConfig] = None
 
     @staticmethod
-    def get_instance() -> '__Impl':
+    def get_instance() -> 'Log':
         """Get Log instance."""
-        return Log.__instance
+        if Log.__instance is None:
+            # Use `logging.getLogger` so the logging manager handles the instance as expected. But
+            # since the custom `Log` class should actually be used, temporarily change the class
+            # that is used to instantiate new loggers.
+            old_logging_class = logging.getLoggerClass()
+            logging.setLoggerClass(Log)
+            Log.__instance = logging.getLogger('vmbpyLog')
+            logging.setLoggerClass(old_logging_class)
+        return Log.__instance  # type: ignore
+
+    def trace(self, msg, *args, **kwargs):
+        """
+        Log 'msg % args' with severity 'TRACE' (custom level!).
+        """
+        if self.isEnabledFor(LogLevel.Trace):
+            self._log(LogLevel.Trace, msg, args, **kwargs)
+
+    def enable(self, config: LogConfig):
+        # TODO: Validate if this is an appropriate implementation
+        self.disable()
+        for handler in config.get_handlers():
+            self.addHandler(handler)
+        self.__config = config
+
+    def disable(self):
+        for handler in list(self.handlers):
+            if not isinstance(handler, logging.NullHandler):
+                self.removeHandler(handler)
+        self.__config = None
+
+    def get_config(self) -> Optional[LogConfig]:
+        """ Get log configuration
+
+        Returns:
+            Configuration if the log is enabled. In case the log is disabled return None.
+        """
+        return self.__config
 
 
 def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]) -> LogConfig:
@@ -278,6 +217,9 @@ def _build_cfg(console_level: Optional[LogLevel], file_level: Optional[LogLevel]
 LOG_CONFIG_TRACE_CONSOLE_ONLY = _build_cfg(LogLevel.Trace, None)
 LOG_CONFIG_TRACE_FILE_ONLY = _build_cfg(None, LogLevel.Trace)
 LOG_CONFIG_TRACE = _build_cfg(LogLevel.Trace, LogLevel.Trace)
+LOG_CONFIG_DEBUG_CONSOLE_ONLY = _build_cfg(LogLevel.Debug, None)
+LOG_CONFIG_DEBUG_FILE_ONLY = _build_cfg(None, LogLevel.Debug)
+LOG_CONFIG_DEBUG = _build_cfg(LogLevel.Debug, LogLevel.Debug)
 LOG_CONFIG_INFO_CONSOLE_ONLY = _build_cfg(LogLevel.Info, None)
 LOG_CONFIG_INFO_FILE_ONLY = _build_cfg(None, LogLevel.Info)
 LOG_CONFIG_INFO = _build_cfg(LogLevel.Info, LogLevel.Info)

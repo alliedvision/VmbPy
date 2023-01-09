@@ -113,6 +113,8 @@ class _Tracer:
         else:
             msg = _create_leave_msg(self.__full_name, _Tracer.__level)
 
+        # TODO: when only python versions >=3.8 are supported, add stacklevel parameter here to
+        # report correct line numbers in trace logs
         _Tracer.__log.trace(msg)
 
 

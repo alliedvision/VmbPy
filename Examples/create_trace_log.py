@@ -25,6 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import logging  # Only needed for manual logging configuration
 
 from vmbpy import *
 
@@ -47,5 +48,31 @@ def main():
     vmb.disable_log()
 
 
+def manual_configuration():
+    print('//////////////////////////////////////////////')
+    print('/// vmbpy Manual Log Configuration Example ///')
+    print('//////////////////////////////////////////////\n')
+
+    # By default the vmbpy logger instance will not forward its log messages to any handlers. To
+    # integrate log messages a handler needs to be added to the logger instance. In this example we
+    # log just the message to the console
+    logger = Log.get_instance()
+    # Alternatively the logger instance can also be retrieved by its name: `vmbpyLog`
+    # logger = logging.getLogger('vmbpyLog')
+    handler = logging.StreamHandler()
+    logger.addHandler(handler)
+
+    # By default the level of `logger` is set to the custom level `LogLevel.Trace` defined by VmbPy.
+    # This will create a lot of output. Adjust as needed for your desired log level
+    logger.setLevel(logging.INFO)
+
+    # While entering this scope, feature, camera and interface discovery occurs. Only INFO messages
+    # and higher will be logged since we set the `logger` level to that
+    vmb = VmbSystem.get_instance()
+    with vmb:
+        pass
+
+
 if __name__ == '__main__':
     main()
+    # manual_configuration()
