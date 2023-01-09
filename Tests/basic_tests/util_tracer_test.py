@@ -45,7 +45,7 @@ class TracerTest(VmbPyTestCase):
 
     def test_trace_normal_exit(self):
         # Expectation: Must not throw on call normal func.
-        # Each call traced call must add two Log entries:
+        # Each traced call must add two Log entries:
 
         @TraceEnable()
         def test_func(arg):
@@ -63,7 +63,7 @@ class TracerTest(VmbPyTestCase):
 
     def test_trace_raised_exit(self):
         # Expectation: Throws internally thrown exception and adds two log entries
-        # Each call traced call must add two Log entries:
+        # Each traced call must add two Log entries:
 
         @TraceEnable()
         def test_func(arg):
