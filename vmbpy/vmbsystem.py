@@ -688,7 +688,7 @@ class VmbSystem:
                 call_vmb_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
 
             except VmbCError as e:
-                raise VmbCameraError(str(e.get_error_code())) from e
+                raise VmbCameraError('Failed to query camera info: \"{}\"'.format(str(e.get_error_code()))) from e
 
             return Camera(info, self.__inters[info.interfaceHandle])
 
