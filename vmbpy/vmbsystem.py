@@ -315,12 +315,20 @@ class VmbSystem:
                 # If a search by ID fails, the given id_ is almost certain an IP or MAC - Address.
                 # Try to query this Camera.
                 try:
-                    cam_info = self.__discover_camera(id_)
+                    new_cam = self.__discover_camera(id_)
 
-                    # Since cam_info is newly constructed, search in existing cameras for a Camera
-                    for cam in self.__cams:
-                        if cam_info.get_id() == cam.get_id():
-                            return cam
+                    # new_cam is newly constructed from the given IP or MAC, search in existing
+                    # cameras for a Camera with same ID and return that if a match was found.
+                    for detected_cam in self.__cams:
+                        if new_cam.get_id() == detected_cam.get_id():
+                            return detected_cam
+                    # If no match in the internal cam list was found, the camera was not discoverd
+                    # by `VmbCamerasList` and not announced via an event. This can happen if the
+                    # GigE-TL device discovery is not active, but the passed IP address resolved to
+                    # a valid device. Hand the device to the user but do not add it to the list of
+                    # known devices because no events will be received for it that would update the
+                    # state of the device in our list.
+                    return new_cam
 
                 except VmbCameraError:
                     pass
