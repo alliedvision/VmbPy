@@ -325,9 +325,8 @@ class VmbSystem:
                     # If no match in the internal cam list was found, the camera was not discoverd
                     # by `VmbCamerasList` and not announced via an event. This can happen if the
                     # GigE-TL device discovery is not active, but the passed IP address resolved to
-                    # a valid device. Hand the device to the user but do not add it to the list of
-                    # known devices because no events will be received for it that would update the
-                    # state of the device in our list.
+                    # a valid device. By detecting it like this, VmbC will now also generate events
+                    # for the device and it will be added to `self.__cams` via a `Detected` event.
                     return new_cam
 
                 except VmbCameraError:
