@@ -56,18 +56,11 @@ InterfacesDict = Dict[VmbHandle, 'Interface']
 
 
 class InterfaceEvent(enum.IntEnum):
-    """Enum specifying an Interface Event
-
-    Enum values:
-        Missing     - A known interface disappeared from the bus
-        Detected    - A new interface was discovered
-        Reachable   - A known interface can be accessed
-        Unreachable - A known interface cannot be accessed anymore
-    """
-    Missing = 0
-    Detected = 1
-    Reachable = 2
-    Unreachable = 3
+    """Enum specifying an Interface Event"""
+    Missing = 0      #: A known interface disappeared from the bus
+    Detected = 1     #: A new interface was discovered
+    Reachable = 2    #: A known interface can be accessed
+    Unreachable = 3  #: A known interface cannot be accessed anymore
 
 
 class Interface(PersistableFeatureContainer):
@@ -75,7 +68,7 @@ class Interface(PersistableFeatureContainer):
 
     @TraceEnable()
     def __init__(self, info: VmbInterfaceInfo, transport_layer: TransportLayer):
-        """Do not call directly. Access Interfaces via vmbpy.VmbSystem instead."""
+        """Do not call directly. Access Interfaces via ``vmbpy.VmbSystem`` instead."""
         super().__init__()
         self.__transport_layer = transport_layer
         self.__info: VmbInterfaceInfo = info
@@ -103,15 +96,21 @@ class Interface(PersistableFeatureContainer):
         return rep
 
     def get_id(self) -> str:
-        """Get Interface Id such as VimbaUSBInterface_0x0."""
+        """Get Interface Id such as 'VimbaUSBInterface_0x0'."""
         return decode_cstr(self.__info.interfaceIdString)
 
     def get_type(self) -> TransportLayerType:
-        """Get Interface Type such as InterfaceType.Usb."""
+        """Get Interface Type such as ``TransportLayerType.GEV``.
+        
+        Note:
+            This uses the ``TransportLayerType`` enum to report the connection type of the Interface
+            as there is no dedicated interface type enum. The ``TransportLayerType`` covers all
+            interface types.
+        """
         return TransportLayerType(self.__info.interfaceType)
 
     def get_name(self) -> str:
-        """Get Interface Name such as VimbaX USB Interface."""
+        """Get Interface Name such as 'VimbaX USB Interface'."""
         return decode_cstr(self.__info.interfaceName)
 
     @TraceEnable()
@@ -120,17 +119,23 @@ class Interface(PersistableFeatureContainer):
         """Read a byte sequence from a given memory address.
 
         Arguments:
-            addr: Starting address to read from.
-            max_bytes: Maximum number of bytes to read from addr.
+            addr:
+                Starting address to read from.
+            max_bytes:
+                Maximum number of bytes to read from addr.
 
         Returns:
             Read memory contents as bytes.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            ValueError if addr is negative.
-            ValueError if max_bytes is negative.
-            ValueError if the memory access was invalid.
+            TypeError:
+                If parameters do not match their type hint.
+            ValueError:
+                If ``addr`` is negative.
+            ValueError:
+                If ``max_bytes`` is negative.
+            ValueError:
+                If the memory access was invalid.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return read_memory(self._handle, addr, max_bytes)
@@ -141,19 +146,22 @@ class Interface(PersistableFeatureContainer):
         """Write a byte sequence to a given memory address.
 
         Arguments:
-            addr: Address to write the content of 'data' to.
-            data: Byte sequence to write at address 'addr'.
+            addr:
+                Address to write the content of 'data' to.
+            data:
+                Byte sequence to write at address 'addr'.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            ValueError if addr is negative.
+            TypeError:
+                If parameters do not match their type hint.
+            ValueError:
+                If ``addr`` is negative.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self._handle, addr, data)
 
     def get_transport_layer(self) -> TransportLayer:
-        """Get the Transport Layer associated with this instance of Interface
-        """
+        """Get the Transport Layer associated with this instance of Interface"""
         return self.__transport_layer
 
     def get_cameras(self) -> CamerasTuple:
@@ -163,7 +171,8 @@ class Interface(PersistableFeatureContainer):
             A tuple of all cameras associated with this Interface
 
         Raises:
-            RuntimeError then called outside of VmbSystem "with" - context.
+            RuntimeError:
+                If called outside of VmbSystem ``with`` - context.
         """
         return self._get_cameras()
 
@@ -176,7 +185,7 @@ class Interface(PersistableFeatureContainer):
         """Internal helper function to get handle of interface"""
         return self._handle
 
-    _msg = 'Called \'{}()\' outside of VmbSystems \'with\' - statement scope.'
+    _msg = 'Called \'{}()\' outside of VmbSystems \'with\' context.'
     get_all_features = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
     get_features_selected_by = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
     get_features_by_type = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
