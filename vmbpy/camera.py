@@ -62,32 +62,25 @@ CamerasList = List['Camera']
 
 
 class CameraEvent(enum.IntEnum):
-    """Enum specifying a Camera Event
-
-    Enum values:
-        Missing     - A known camera disappeared from the bus
-        Detected    - A new camera was discovered
-        Reachable   - A known camera can be accessed
-        Unreachable - A known camera cannot be accessed anymore
-    """
-    Missing = 0
-    Detected = 1
-    Reachable = 2
-    Unreachable = 3
-    Unknown = 4
+    """Enum specifying a Camera Event"""
+    Missing = 0      #: A known camera disappeared from the bus
+    Detected = 1     #: A new camera was discovered
+    Reachable = 2    #: A known camera can be accessed
+    Unreachable = 3  #: A known camera cannot be accessed anymore
+    Unknown = 4      #: An unknown event occurred
 
 
 class Camera(PersistableFeatureContainer):
     """This class provides access to a Camera. It corresponds to the GenTL Remote Device
 
-    Camera is intended be used in conjunction with the "with" - statement. On entering the context,
+    Camera is intended be used in conjunction with the ``with`` context. On entering the context,
     all Camera features are detected and can be accessed within the context. Static Camera
     properties like Name and Model can be accessed outside the context.
     """
     @TraceEnable()
     @LeaveContextOnCall()
     def __init__(self, info: VmbCameraInfo, interface: Interface):
-        """Do not call directly. Access Cameras via vmbpy.VmbSystem instead."""
+        """Do not call directly. Access Cameras via ``vmbpy.VmbSystem`` instead."""
         super().__init__()
         self.__interface: Interface = interface
         self.__streams: StreamsList = []
@@ -123,12 +116,17 @@ class Camera(PersistableFeatureContainer):
     def set_access_mode(self, access_mode: AccessMode):
         """Set camera access mode.
 
+        Must be set before the camera connection is opened.
+
         Arguments:
-            access_mode - AccessMode for accessing a Camera.
+            access_mode:
+                AccessMode for accessing a Camera.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called inside "with" - statement scope.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called inside ``with`` context.
         """
         self.__access_mode = access_mode
 
@@ -137,7 +135,7 @@ class Camera(PersistableFeatureContainer):
         return self.__access_mode
 
     def get_id(self) -> str:
-        """Get Camera Id, for example, DEV_1AB22C00041B"""
+        """Get Camera Id. For example 'DEV_1AB22C00041B'"""
         return decode_cstr(self.__info.cameraIdString)
 
     def get_extended_id(self) -> str:
@@ -145,15 +143,15 @@ class Camera(PersistableFeatureContainer):
         return decode_cstr(self.__info.cameraIdExtended)
 
     def get_name(self) -> str:
-        """Get Camera Name, for example, Allied Vision 1800 U-500m"""
+        """Get Camera Name. For example 'Allied Vision 1800 U-500m'"""
         return decode_cstr(self.__info.cameraName)
 
     def get_model(self) -> str:
-        """Get Camera Model, for example, 1800 U-500m"""
+        """Get Camera Model. For example '1800 U-500m'"""
         return decode_cstr(self.__info.modelName)
 
     def get_serial(self) -> str:
-        """Get Camera serial number, for example, 50-0503328442"""
+        """Get Camera serial number. For example '50-0503328442'"""
         return decode_cstr(self.__info.serialString)
 
     def get_permitted_access_modes(self) -> Tuple[AccessMode, ...]:
@@ -161,26 +159,26 @@ class Camera(PersistableFeatureContainer):
         return decode_flags(AccessMode, self.__info.permittedAccess)
 
     def get_transport_layer(self) -> TransportLayer:
-        """Get the `TransportLayer` instance for this Camera."""
+        """Get the ``TransportLayer`` instance for this Camera."""
         return self.get_interface().get_transport_layer()
 
     def get_interface(self) -> Interface:
-        """Get the `Interface` instance for this Camera."""
+        """Get the ``Interface`` instance for this Camera."""
         return self.__interface
 
     def get_interface_id(self) -> str:
-        """Get ID of the Interface this camera is connected to, for example, VimbaUSBInterface_0x0
+        """Get ID of the Interface this camera is connected to. For example 'VimbaUSBInterface_0x0'
         """
         return self.get_interface().get_id()
 
     @RaiseIfOutsideContext()
     def get_streams(self) -> StreamsTuple:
-        """Returns a Tuple containing all instances of `Stream` associated with this Camera."""
+        """Returns a Tuple containing all instances of ``Stream`` associated with this Camera."""
         return tuple(self.__streams)
 
     @RaiseIfOutsideContext()
     def get_local_device(self) -> LocalDevice:
-        """Returns the instance of `LocalDevice` associated with this Camera."""
+        """Returns the instance of ``LocalDevice`` associated with this Camera."""
         return self.__local_device
 
     @TraceEnable()
@@ -190,18 +188,25 @@ class Camera(PersistableFeatureContainer):
         """Read a byte sequence from a given memory address.
 
         Arguments:
-            addr: Starting address to read from.
-            max_bytes: Maximum number of bytes to read from addr.
+            addr:
+                Starting address to read from.
+            max_bytes:
+                Maximum number of bytes to read from addr.
 
         Returns:
             Read memory contents as bytes.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if addr is negative.
-            ValueError if max_bytes is negative.
-            ValueError if the memory access was invalid.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If ``addr`` is negative.
+            ValueError:
+                If ``max_bytes`` is negative.
+            ValueError:
+                If the memory access was invalid.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return read_memory(self._handle, addr, max_bytes)
@@ -213,13 +218,18 @@ class Camera(PersistableFeatureContainer):
         """Write a byte sequence to a given memory address.
 
         Arguments:
-            addr: Address to write the content of 'data' too.
-            data: Byte sequence to write at address 'addr'.
+            addr:
+                Address to write the content of 'data' too.
+            data:
+                Byte sequence to write at address 'addr'.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if addr is negative.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If ``addr`` is negative.
         """
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self._handle, addr, data)
@@ -235,25 +245,33 @@ class Camera(PersistableFeatureContainer):
 
         The Frame generator acquires a new frame with each execution. Frames may only be used inside
         their respective loop iteration. If a frame must be used outside the loop iteration, a copy
-        of the frame must be created (e.g. via `copy.deepcopy(frame)`).
+        of the frame must be created (e.g. via ``copy.deepcopy(frame)``).
 
         Arguments:
-            limit - The number of images the generator shall acquire (>0). If limit is None,
-                    the generator will produce an unlimited amount of images and must be
-                    stopped by the user supplied code.
-            timeout_ms - Timeout in milliseconds of frame acquisition.
-            allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              vmbpy or the Transport Layer
+            limit:
+                The number of images the generator shall acquire (>0). If limit is None, the
+                generator will produce an unlimited amount of images and must be stopped by the user
+                supplied code.
+            timeout_ms:
+                Timeout in milliseconds of frame acquisition.
+            allocation_mode:
+                Allocation mode deciding if buffer allocation should be done by vmbpy or the
+                Transport Layer
 
         Returns:
             Frame generator expression
 
         Raises:
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if a limit is supplied and <= 0.
-            ValueError if a timeout_ms is negative.
-            VmbTimeout if Frame acquisition timed out.
-            VmbCameraError if Camera is streaming while executing the generator.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If a limit is supplied and ``<= 0``.
+            ValueError:
+                If a ``timeout_ms`` is negative.
+            VmbTimeout:
+                If Frame acquisition timed out.
+            VmbCameraError:
+                If Camera is streaming while executing the generator.
         """
         return self.__streams[0].get_frame_generator(limit=limit,
                                                      timeout_ms=timeout_ms,
@@ -270,22 +288,28 @@ class Camera(PersistableFeatureContainer):
 
         Records a single frame from the camera and yields it to the caller for use inside a `with`
         context manager. The frame may only be used inside the context, but may be copied for use
-        outside of it (e.g. via `copy.deepcopy(frame)`). The yielded frame can be used to access
+        outside of it (e.g. via ``copy.deepcopy(frame)``). The yielded frame can be used to access
         chunk data.
 
         Arguments:
-            timeout_ms - Timeout in milliseconds of frame acquisition.
-            allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              vmbpy or the Transport Layer
+            timeout_ms:
+                Timeout in milliseconds of frame acquisition.
+            allocation_mode:
+                Allocation mode deciding if buffer allocation should be done by vmbpy or the
+                Transport Layer
 
         Yields:
-            Frame from camera for use in `with` context manager
+            Frame from camera for use in ``with`` context manager
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if a timeout_ms is negative.
-            VmbTimeout if Frame acquisition timed out.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If a ``timeout_ms`` is negative.
+            VmbTimeout:
+                If Frame acquisition timed out.
         """
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
@@ -302,22 +326,28 @@ class Camera(PersistableFeatureContainer):
 
         Records a single frame from the camera, creates a copy of the frame and returns it to the
         caller. This frame may be used by the user as long as they want but can not be used e.g. to
-        access chunk data associated with it. See also `get_frame_with_context` to avoid the frame
+        access chunk data associated with it. See also ``get_frame_with_context`` to avoid the frame
         copy.
 
         Arguments:
-            timeout_ms - Timeout in milliseconds of frame acquisition.
-            allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              vmbpy or the Transport Layer
+            timeout_ms:
+                Timeout in milliseconds of frame acquisition.
+            allocation_mode:
+                Allocation mode deciding if buffer allocation should be done by vmbpy or the
+                Transport Layer
 
         Returns:
             Frame from camera
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if a timeout_ms is negative.
-            VmbTimeout if Frame acquisition timed out.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If a timeout_ms is negative.
+            VmbTimeout:
+                If Frame acquisition timed out.
         """
         return self.__streams[0].get_frame(timeout_ms=timeout_ms,
                                            allocation_mode=allocation_mode)
@@ -331,22 +361,30 @@ class Camera(PersistableFeatureContainer):
                         allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
         """Enter streaming mode
 
-        Enter streaming mode is also known as asynchronous frame acquisition.
-        While active, the camera acquires and buffers frames continuously.
-        With each acquired frame, a given FrameHandler is called with a new Frame.
+        Enter streaming mode is also known as asynchronous frame acquisition. While active, the
+        camera acquires and buffers frames continuously. With each acquired frame, a given
+        FrameHandler is called with a new Frame.
 
         Arguments:
-            handler - Callable that is executed on each acquired frame.
-            buffer_count - Number of frames supplied as internal buffer.
-            allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              vmbpy or the Transport Layer
+            handler:
+                Callable that is executed on each acquired frame.
+            buffer_count:
+                Number of frames supplied as internal buffer.
+            allocation_mode:
+                Allocation mode deciding if buffer allocation should be done by vmbpy or the
+                Transport Layer
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if buffer is less or equal to zero.
-            VmbCameraError if the camera is already streaming.
-            VmbCameraError if anything went wrong on entering streaming mode.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If buffer is less or equal to zero.
+            VmbCameraError:
+                If the camera is already streaming.
+            VmbCameraError:
+                If anything went wrong on entering streaming mode.
         """
         self.__streams[0].start_streaming(handler=handler,
                                           buffer_count=buffer_count,
@@ -357,18 +395,21 @@ class Camera(PersistableFeatureContainer):
     def stop_streaming(self):
         """Leave streaming mode.
 
-        Leave asynchronous frame acquisition. If streaming mode was not activated before,
-        it just returns silently.
+        Leave asynchronous frame acquisition. If streaming mode was not activated before, it just
+        returns silently.
 
         Raises:
-            RuntimeError if called outside "with" - statement scope.
-            VmbCameraError if anything went wrong on leaving streaming mode.
+            RuntimeError:
+                If called outside ``with`` context.
+            VmbCameraError:
+                If anything went wrong on leaving streaming mode.
         """
         self.__streams[0].stop_streaming()
 
     @TraceEnable()
     def is_streaming(self) -> bool:
-        """Returns True if the camera is currently in streaming mode. If not, returns False."""
+        """Returns ``True`` if the camera is currently in streaming mode. If not, returns ``False``.
+        """
         try:
             return self.__streams[0].is_streaming()
         except IndexError:
@@ -381,18 +422,23 @@ class Camera(PersistableFeatureContainer):
     def queue_frame(self, frame: Frame):
         """Reuse acquired frame in streaming mode.
 
-        Add given frame back into the frame queue used in streaming mode. This
-        should be the last operation on a registered FrameHandler. If streaming mode is not
-        active, it returns silently.
+        Add given frame back into the frame queue used in streaming mode. This should be the last
+        operation on a registered ``FrameHandler``. If streaming mode is not active, it returns
+        silently.
 
         Arguments:
-            frame - The frame to reuse.
+            frame:
+                The frame to reuse.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            ValueError if the given frame is not from the internal buffer queue.
-            RuntimeError if called outside "with" - statement scope.
-            VmbCameraError if reusing the frame was unsuccessful.
+            TypeError:
+                If parameters do not match their type hint.
+            ValueError:
+                If the given frame is not from the internal buffer queue.
+            RuntimeError:
+                If called outside ``with`` context.
+            VmbCameraError:
+                If reusing the frame was unsuccessful.
         """
         self.__streams[0].queue_frame(frame=frame)
 
@@ -405,7 +451,8 @@ class Camera(PersistableFeatureContainer):
             All pixel formats the camera supports
 
         Raises:
-            RuntimeError if called outside "with" - statement scope.
+            RuntimeError:
+                If called outside ``with`` context.
         """
         result = []
         feat = self.get_feature_by_name('PixelFormat')
@@ -425,11 +472,15 @@ class Camera(PersistableFeatureContainer):
 
     @TraceEnable()
     @RaiseIfOutsideContext()
-    def get_pixel_format(self):
+    def get_pixel_format(self) -> PixelFormat:
         """Get current pixel format.
 
+        Returns:
+            Current pixel format set on the camera.
+
         Raises:
-            RuntimeError if called outside "with" - statement scope.
+            RuntimeError:
+                If called outside ``with`` context.
         """
         enum_value = str(self.get_feature_by_name('PixelFormat').get()).upper()
 
@@ -444,12 +495,16 @@ class Camera(PersistableFeatureContainer):
         """Set current pixel format.
 
         Arguments:
-            fmt - Default pixel format to set.
+            fmt:
+                Pixel format to set on the camera.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if the given pixel format is not supported by the cameras.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If the given pixel format is not supported by the cameras.
         """
         if fmt not in self.get_pixel_formats():
             raise ValueError('Camera does not support PixelFormat \'{}\''.format(str(fmt)))

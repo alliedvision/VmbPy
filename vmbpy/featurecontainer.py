@@ -46,11 +46,11 @@ __all__ = [
 class FeatureContainer:
     """This class provides access to VmbC features available via self._handle
 
-    Features discovery must be performed manually by calling `_attach_feature_accessors`. This
+    Features discovery must be performed manually by calling ``_attach_feature_accessors``. This
     should be done when an appropriate classes context is entered.  This requires that the VmbHandle
-    for the object is stored in self._handle. Detected features are stored in self._feats and
-    attached as class members. Removing the attached features again is done via
-    `_remove_feature_accessors`. This should be done when the above mentioned context is left.
+    for the object is stored in ``self._handle``. Detected features are stored in ``self._feats``
+    and attached as class members. Removing the attached features again is done via
+    ``_remove_feature_accessors``. This should be done when the above mentioned context is left.
     """
     @TraceEnable()
     def __init__(self) -> None:
@@ -76,86 +76,101 @@ class FeatureContainer:
 
     @TraceEnable()
     def get_all_features(self) -> FeaturesTuple:
-        """Get access to all discovered system features:
+        """Get access to all discovered features.
 
         Returns:
             A set of all currently detected Features.
 
         Raises:
-            RuntimeError then called outside of "with" - statement.
+            RuntimeError:
+                If called outside of ``with`` context.
         """
         return self._feats
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_selected_by(self, feat: FeatureTypes) -> FeaturesTuple:
-        """Get all system features selected by a specific system feature.
+        """Get all features selected by a specific feature.
 
         Arguments:
-            feat - Feature used find features that are selected by feat.
+            feat:
+                Feature used find features that are selected by ``feat``.
 
         Returns:
-            A set of features selected by 'feat'.
+            A set of features selected by ``feat``.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError then called outside of "with" - statement.
-            VmbFeatureError if 'feat' is not a system feature.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside of ``with`` context.
+            VmbFeatureError:
+                If ``feat`` is not a valid feature.
         """
         return filter_selected_features(self._feats, feat)
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_by_type(self, feat_type: FeatureTypeTypes) -> FeaturesTuple:
-        """Get all system features of a specific feature type.
+        """Get all features of a specific feature type.
 
-        Valid FeatureTypes are: IntFeature, FloatFeature, StringFeature, BoolFeature,
-        EnumFeature, CommandFeature, RawFeature
+        Valid FeatureTypes are: ``IntFeature``, ``FloatFeature``, ``StringFeature``,
+        ``BoolFeature``, ``EnumFeature``, ``CommandFeature``, ``RawFeature``
 
         Arguments:
-            feat_type - FeatureType used find features of that type.
+            feat_type:
+                FeatureType used find features of that type.
 
         Returns:
-            A set of features of type 'feat_type'.
+            A set of features of type `feat_type``.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError then called outside of "with" - statement.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside of ``with`` context.
         """
         return filter_features_by_type(self._feats, feat_type)
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_features_by_category(self, category: str) -> FeaturesTuple:
-        """Get all system features of a specific category.
+        """Get all features of a specific category.
 
         Arguments:
-            category - Category that should be used for filtering.
+            category:
+                Category that should be used for filtering.
 
         Returns:
-            A set of features of category 'category'.
+            A set of features of category ``category``.
 
-        Returns:
-            TypeError if parameters do not match their type hint.
-            RuntimeError then called outside of "with" - statement.
+        Raises:
+            TypeError
+                If parameters do not match their type hint.
+            RuntimeError
+                If called outside of ``with`` context.
         """
         return filter_features_by_category(self._feats, category)
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_feature_by_name(self, feat_name: str) -> FeatureTypes:
-        """Get a system feature by its name.
+        """Get a feature by its name.
 
         Arguments:
-            feat_name - Name used to find a feature.
+            feat_name:
+                Name used to find a feature.
 
         Returns:
             Feature with the associated name.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError then called outside of "with" - statement.
-            VmbFeatureError if no feature is associated with 'feat_name'.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside of ``with`` context.
+            VmbFeatureError:
+                If no feature is associated with ``feat_name``.
         """
         feat = filter_features_by_name(self._feats, feat_name)
 
@@ -166,32 +181,37 @@ class FeatureContainer:
 
 
 class PersistableFeatureContainer(FeatureContainer):
-    """Inheriting from this class adds load/save settings methods to the subclass
-    """
+    """Inheriting from this class adds load/save settings methods to the subclass"""
     @RuntimeTypeCheckEnable()
     def load_settings(self,
                       file_path: str,
                       persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 0):
-        """Load settings from XML file
+        """Load settings from XML file.
 
         Arguments:
-            file_path - The location for loading current settings. The given
-                        file must be a file ending with ".xml".
-            persist_type - Parameter specifying which setting types to load. For an overview of the
-                           possible values and their implication see the docstring of the
-                           PersistType enum
-            persist_flags - Flags specifying the modules to load. By default only features of the
-                            calling module itself are persisted. For an overview of available flags
-                            see the docstring of the ModulePersistFlags type
-            max_iterations - Number of iterations when loading settings. If 0 is given (default)
-                             the VmbC default is used
+            file_path:
+                The location for loading current settings. The given file must be a file ending with
+                ".xml".
+            persist_type:
+                Parameter specifying which setting types to load. For an overview of the possible
+                values and their implication see the ``PersistType`` enum
+            persist_flags:
+                Flags specifying the modules to load. By default only features of the calling module
+                itself are persisted. For an overview of available flags see the
+                ``ModulePersistFlags`` type
+            max_iterations:
+                Number of iterations when storing settings. If 0 is given (default) the value found
+                in the XML file is used
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if argument path is no ".xml" file.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If argument path is no ".xml" file.
          """
         if not file_path.endswith('.xml'):
             raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file_path))
@@ -216,24 +236,30 @@ class PersistableFeatureContainer(FeatureContainer):
                       persist_type: PersistType = PersistType.Streamable,
                       persist_flags: ModulePersistFlags = ModulePersistFlags.None_,
                       max_iterations: int = 0):
-        """Save settings to XML - File
+        """Save settings to XML File.
 
         Arguments:
-            file_path - The location for storing the current settings. The given
-                        file must be a file ending with ".xml".
-            persist_type - Parameter specifying which setting types to store. For an overview of the
-                           possible values and their implication see the docstring of the
-                           PersistType enum
-            persist_flags - Flags specifying the modules to store. By default only features of the
-                            calling module itself are persisted. For an overview of available flags
-                            see the docstring of the ModulePersistFlags type
-            max_iterations - Number of iterations when storing settings. If 0 is given (default)
-                             the value found in the XML file is used
+            file_path:
+                The location for storing the current settings. The given file must be a file ending
+                with ".xml".
+            persist_type:
+                Parameter specifying which setting types to store. For an overview of the possible
+                values and their implication see the ``PersistType`` enum
+            persist_flags:
+                Flags specifying the modules to store. By default only features of the calling
+                module itself are persisted. For an overview of available flags see the
+                ``ModulePersistFlags`` type
+            max_iterations:
+                Number of iterations when loading settings. If ``0`` is given (default) the VmbC
+                default is used
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if argument path is no ".xml"- File.
+            TypeError:
+                If parameters do not match their type hint.
+            RuntimeError:
+                If called outside ``with`` context.
+            ValueError:
+                If argument path is no ".xml"- File.
          """
         if not file_path.endswith('.xml'):
             raise ValueError('Given file \'{}\' must end with \'.xml\''.format(file_path))
