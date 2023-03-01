@@ -183,14 +183,9 @@ OPENCV_PIXEL_FORMATS = (
 
 
 class AllocationMode(enum.IntEnum):
-    """Enum specifying the supported frame allocation modes.
-
-    Enum values:
-        AnnounceFrame         - The buffer is allocated by vmbpy
-        AllocAndAnnounceFrame - The buffer is allocated by the Transport Layer
-    """
-    AnnounceFrame = 0
-    AllocAndAnnounceFrame = 1
+    """Enum specifying the supported frame allocation modes."""
+    AnnounceFrame = 0          #: The buffer is allocated by vmbpy
+    AllocAndAnnounceFrame = 1  #: The buffer is allocated by the Transport Layer
 
 
 class Frame:
@@ -283,8 +278,8 @@ class Frame:
         """Get image height in pixels.
 
         Returns:
-            Image height in pixels if dimension data is provided by the camera.
-            None if dimension data is not provided by the camera.
+            Image height in pixels if dimension data is provided by the camera. ``None`` if
+            dimension data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
@@ -297,8 +292,8 @@ class Frame:
         """Get image width in pixels.
 
         Returns:
-            Image width in pixels if dimension data is provided by the camera.
-            None if dimension data is not provided by the camera.
+            Image width in pixels if dimension data is provided by the camera. ``None`` if dimension
+            data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
@@ -311,8 +306,8 @@ class Frame:
         """Get horizontal offset in pixels.
 
         Returns:
-            Horizontal offset in pixel if offset data is provided by the camera.
-            None if offset data is not provided by the camera.
+            Horizontal offset in pixel if offset data is provided by the camera. ``None`` if offset
+            data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
@@ -325,8 +320,8 @@ class Frame:
         """Get vertical offset in pixels.
 
         Returns:
-            Vertical offset in pixels if offset data is provided by the camera.
-            None if offset data is not provided by the camera.
+            Vertical offset in pixels if offset data is provided by the camera. ``None`` if offset
+            data is not provided by the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
@@ -339,8 +334,8 @@ class Frame:
         """Get Frame ID.
 
         Returns:
-            Frame ID if the id is provided by the camera.
-            None if frame id is not provided by the camera.
+            Frame ID if the id is provided by the camera. ``None`` if frame id is not provided by
+            the camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
@@ -353,8 +348,8 @@ class Frame:
         """Get Frame timestamp.
 
         Returns:
-            Timestamp if provided by the camera.
-            None if timestamp is not provided by the camera.
+            Timestamp if provided by the camera. ``None`` if timestamp is not provided by the
+            camera.
         """
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
@@ -366,22 +361,26 @@ class Frame:
     @TraceEnable()
     @RuntimeTypeCheckEnable()
     def access_chunk_data(self, callback: ChunkCallback) -> None:
-        """Access chunk data for a frame
+        """Access chunk data for a frame.
 
         This function blocks until the user supplied callback has been executed. It may only be
         called inside a frame callback.
 
         Parameters:
-            callback - A callback function that takes one argument. That argument will be a
-                       populated `FeatureContainer` instance. Only inside this callback is it
-                       possible to access the chunk features of the `Frame` instance.
+            callback:
+                A callback function that takes one argument. That argument will be a populated
+                ``FeatureContainer`` instance. Only inside this callback is it possible to access
+                the chunk features of the ``Frame`` instance.
 
         Raises:
-            Any Exception raised in the user supplied callback
+            Any Exception:
+                Any Exception raised in the user supplied callback
 
-            VmbFrameError if the frame does not contain any chunk data
+            VmbFrameError:
+                If the frame does not contain any chunk data
 
-            VmbChunkError if some other error occurred during chunk handling
+            VmbChunkError:
+                If some other error occurred during chunk handling
         """
         try:
             call_vmb_c('VmbChunkDataAccess',
@@ -410,21 +409,24 @@ class Frame:
                            handle: VmbHandle,
                            _: ctypes.c_void_p,
                            user_callback: ChunkCallback) -> VmbError:
-        """Internal helper Function for chunk access
+        """Internal helper Function for chunk access.
 
         Arguments:
-            handle: VmbHandle that can be used to access Features via VmbC. Adding it to a
-                    `FeatureContainer` and attaching features will grant access as expected.
-            _: A void pointer used in the C-API to allow users to pass context. Not used in VmbPy
-            user_callback: The user provided function that should be called to access chunk features
+            handle:
+                VmbHandle that can be used to access Features via VmbC. Adding it to a
+                ``FeatureContainer`` and attaching features will grant access as expected.
+            _:
+                A void pointer used in the C-API to allow users to pass context. Not used in VmbPy
+            user_callback:
+                The user provided function that should be called to access chunk features
 
         Returns:
             VmbError code that is interpreted by VmbC to check, if the chunk callback executed
-            successfully. On successful execution this returns VmbError.Success. If an exception
-            occurred in the user supplied callback, a VmbError.Custom is returned. If an error code
-            other than Success is returned here, this will in turn raise an Exception in
-            `Frame.access_chunk_data`. Exceptions raised by the user in their user_callback are
-            stored and re-raised by `Frame.access_chunk_data`
+            successfully. On successful execution this returns ``VmbError.Success``. If an exception
+            occurred in the user supplied callback, a ``VmbError.Custom`` is returned. If an error
+            code other than Success is returned here, this will in turn raise an Exception in
+            ``Frame.access_chunk_data``. Exceptions raised by the user in their user_callback are
+            stored and re-raised by ``Frame.access_chunk_data``
         """
         feats = FeatureContainer()
         feats._handle = handle
@@ -446,30 +448,34 @@ class Frame:
         return VmbError.Success
 
     @RuntimeTypeCheckEnable()
-    def convert_pixel_format(self, target_fmt: PixelFormat,
+    def convert_pixel_format(self,
+                             target_fmt: PixelFormat,
                              debayer_mode: Optional[Debayer] = None) -> 'Frame':
         """Return a converted version of the frame in the given format.
 
         This method always returns a new frame object and leaves the original instance unchanged.
         The returned frame object does not include the chunk data associated with the original
-        instance.
+        instance. The original instance may for example be used for future frame transmissions.
 
         Note: This method allocates a new buffer for the returned image data leading to some runtime
         overhead. For performance reasons, it might be better to set the value of the camera's
         'PixelFormat' feature instead. In addition, a non-default debayer mode can be specified.
 
         Arguments:
-            target_fmt - PixelFormat to convert to.
-            debayer_mode - Non-default algorithm used to debayer images in Bayer Formats. If
-                           no mode is specified, default debayering mode 'Mode2x2' is applied. If
-                           the current format is no Bayer format, this parameter is silently
-                           ignored.
+            target_fmt:
+                PixelFormat to convert to.
+            debayer_mode:
+                Non-default algorithm used to debayer images in Bayer Formats. If no mode is
+                specified, default debayering mode of the image transform library is applied. If the
+                current format is not a Bayer format, this parameter is silently ignored.
 
         Raises:
-            TypeError if parameters do not match their type hint.
-            ValueError if the current format can't be converted into 'target_fmt'. Convertible
-                Formats can be queried via get_convertible_formats() of PixelFormat.
-            AssertionError if image width or height can't be determined.
+            TypeError:
+                If parameters do not match their type hint. ValueError if the current format can't
+                be converted into ``target_fmt``. Convertible Formats can be queried via
+                ``get_convertible_formats()`` of ``PixelFormat``.
+            AssertionError:
+                If image width or height can't be determined.
         """
 
         global BAYER_PIXEL_FORMATS
@@ -540,14 +546,16 @@ class Frame:
         return output_frame
 
     def as_numpy_ndarray(self) -> 'numpy.ndarray':
-        """Construct numpy.ndarray view on VmbCFrame.
+        """Construct ``numpy.ndarray`` view on VmbCFrame.
 
         Returns:
-            numpy.ndarray on internal image buffer.
+            ``numpy.ndarray`` on internal image buffer.
 
         Raises:
-            ImportError if numpy is not installed.
-            VmbFrameError if current PixelFormat can't be converted to a numpy.ndarray.
+            ImportError:
+                If numpy is not installed.
+            VmbFrameError:
+                If current PixelFormat can't be converted to a ``numpy.ndarray``.
         """
         if numpy is None:
             raise ImportError('\'Frame.as_numpy_ndarray()\' requires module \'numpy\'.')
@@ -596,12 +604,14 @@ class Frame:
         """Construct OpenCV compatible view on VmbCFrame.
 
         Returns:
-            OpenCV compatible numpy.ndarray
+            OpenCV compatible ``numpy.ndarray``
 
         Raises:
-            ImportError if numpy is not installed.
-            ValueError if current pixel format is not compatible with opencv. Compatible
-                       formats are in OPENCV_PIXEL_FORMATS.
+            ImportError:
+                If numpy is not installed.
+            ValueError:
+                If current pixel format is not compatible with opencv. Compatible formats are listed
+                in ``OPENCV_PIXEL_FORMATS``.
         """
         global OPENCV_PIXEL_FORMATS
 
@@ -623,14 +633,17 @@ def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTup
     """Build intersection of two sets containing PixelFormat.
 
     Arguments:
-        fmts1 - PixelFormats to intersect with fmts2
-        fmts2 - PixelFormats to intersect with fmts1
+        fmts1:
+            PixelFormats to intersect with fmts2
+        fmts2:
+            PixelFormats to intersect with fmts1
 
     Returns:
-        Set of PixelFormats that occur in fmts1 and fmts2
+        Set of PixelFormats that occur in ``fmts1`` and ``fmts2``
 
     Raises:
-            TypeError if parameters do not match their type hint.
+        TypeError:
+            If parameters do not match their type hint.
     """
     return tuple(set(fmts1).intersection(set(fmts2)))
 
