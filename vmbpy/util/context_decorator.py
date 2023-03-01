@@ -68,7 +68,7 @@ class RaiseIfInsideContext:
     Note This Decorator shall work only on Object implementing a Context Manger.
     For this to work object must offer a boolean attribute called _context_entered
     """
-    def __init__(self, msg='Called \'{}()\' inside of \'with\' - statement scope.'):
+    def __init__(self, msg='Called \'{}()\' inside of \'with\' context.'):
         self.msg = msg
 
     def __call__(self, func):
@@ -88,7 +88,7 @@ class RaiseIfOutsideContext:
     Note This Decorator shall work only on Object implementing a Context Manger.
     For this to work object must offer a boolean attribute called __context_entered
     """
-    def __init__(self, msg='Called \'{}()\' outside of \'with\' - statement scope.'):
+    def __init__(self, msg='Called \'{}()\' outside of \'with\' context.'):
         self.msg = msg
 
     def __call__(self, func):
