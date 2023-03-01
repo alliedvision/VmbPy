@@ -50,7 +50,7 @@ class LocalDevice(PersistableFeatureContainer):
     def _close(self):
         self._remove_feature_accessors()
 
-    __msg = 'Called \'{}()\' outside of Cameras \'with\' - statement scope.'
+    __msg = 'Called \'{}()\' outside of Cameras \'with\' context.'
     get_all_features = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
     get_features_selected_by = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
     get_features_by_type = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501
