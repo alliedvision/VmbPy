@@ -144,7 +144,6 @@ class VmbSystem:
                     with vmbpy.VmbSytem.get_instance().set_path_configuration('/foo', '/bar'):
                         # do something
             """
-            
             self.__path_configuration = os.pathsep.join(args)
             return self
 

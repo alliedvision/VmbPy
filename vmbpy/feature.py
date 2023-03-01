@@ -509,7 +509,7 @@ class EnumFeature(_BaseFeature):
 
     def get_all_entries(self) -> EnumEntryTuple:
         """Get a set of all possible EnumEntries of this feature.
-        
+
         Note:
             It is possible that not all EnumEntries returned by this area currently valid values.
             See also :func:`get_available_entries`

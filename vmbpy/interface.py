@@ -101,7 +101,7 @@ class Interface(PersistableFeatureContainer):
 
     def get_type(self) -> TransportLayerType:
         """Get Interface Type such as ``TransportLayerType.GEV``.
-        
+
         Note:
             This uses the ``TransportLayerType`` enum to report the connection type of the Interface
             as there is no dedicated interface type enum. The ``TransportLayerType`` covers all
