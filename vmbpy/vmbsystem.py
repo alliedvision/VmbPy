@@ -220,7 +220,8 @@ class VmbSystem:
             """Lookup Transport Layer with given ID.
 
             Arguments:
-                id_ - Transport Layer Id to search for.
+                id_:
+                    Transport Layer Id to search for.
 
             Returns:
                 Transport Layer associated with given Id.
@@ -261,7 +262,8 @@ class VmbSystem:
             """Lookup Interface with given ID.
 
             Arguments:
-                id_ - Interface Id to search for.
+                id_:
+                    Interface Id to search for.
 
             Returns:
                 Interface associated with given Id.
