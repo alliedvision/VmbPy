@@ -54,76 +54,48 @@ __all__ = [
 
 
 class VmbBayerPattern(Uint32Enum):
-    """Enum defining BayerPatterns
-    Values:
-        RGGB - RGGB pattern, red pixel comes first
-        GBRG - RGGB pattern, green pixel of blue row comes first
-        GRBG - RGGB pattern, green pixel of red row comes first
-        BGGR - RGGB pattern, blue pixel comes first
-        CYGM - CYGM pattern, cyan pixel comes first in the first row, green in the second row
-        GMCY - CYGM pattern, green pixel comes first in the first row, cyan in the second row
-        CYMG - CYGM pattern, cyan pixel comes first in the first row, magenta in the second row
-        MGCY - CYGM pattern, magenta pixel comes first in the first row, cyan in the second row
-        LAST - Indicator for end of defined range
-    """
-    RGGB = 0
-    GBRG = 1
-    GRBG = 2
-    BGGR = 3
-    CYGM = 128
-    GMCY = 129
-    CYMG = 130
-    MGCY = 131
-    LAST = 255
+    """Enum defining BayerPatterns."""
+    RGGB = 0    #: RGGB pattern, red pixel comes first
+    GBRG = 1    #: RGGB pattern, green pixel of blue row comes first
+    GRBG = 2    #: RGGB pattern, green pixel of red row comes first
+    BGGR = 3    #: RGGB pattern, blue pixel comes first
+    CYGM = 128  #: CYGM pattern, cyan pixel comes first in the first row, green in the second row
+    GMCY = 129  #: CYGM pattern, green pixel comes first in the first row, cyan in the second row
+    CYMG = 130  #: CYGM pattern, cyan pixel comes first in the first row, magenta in the second row
+    MGCY = 131  #: CYGM pattern, magenta pixel comes first in the first row, cyan in the second row
+    LAST = 255  #: Indicator for end of defined range
 
     def __str__(self):
         return self._name_
 
 
 class VmbEndianness(Uint32Enum):
-    """Enum defining Endian Formats
-    Values:
-        LITTLE - Little Endian
-        BIG    - Big Endian
-        LAST   - Indicator for end of defined range
-    """
-    LITTLE = 0
-    BIG = 1
-    LAST = 255
+    """Enum defining Endian Formats."""
+    LITTLE = 0  #: Little Endian
+    BIG = 1     #: Big Endian
+    LAST = 255  #: Indicator for end of defined range
 
     def __str__(self):
         return self._name_
 
 
 class VmbAligment(Uint32Enum):
-    """Enum defining image alignment
-    Values:
-        MSB  - Alignment (pppp pppp pppp ....)
-        LSB  - Alignment (.... pppp pppp pppp)
-        LAST - Indicator for end of defined range
-    """
-    MSB = 0
-    LSB = 1
-    LAST = 255
+    """Enum defining image alignment."""
+    MSB = 0     #: Alignment (pppp pppp pppp ....)
+    LSB = 1     #: Alignment (.... pppp pppp pppp)
+    LAST = 255  #: Indicator for end of defined range
 
     def __str__(self):
         return self._name_
 
 
 class VmbAPIInfo(Uint32Enum):
-    """API Info Types
-    Values:
-        ALL        - All Infos
-        PLATFORM   - Platform the API was built for
-        BUILD      - Build Types (debug or release)
-        TECHNOLOGY - Special technology info
-        LAST       - Indicator for end of defined range
-    """
-    ALL = 0
-    PLATFORM = 1
-    BUILD = 2
-    TECHNOLOGY = 3
-    LAST = 4
+    """API Info Types."""
+    ALL = 0         #: All Infos
+    PLATFORM = 1    #: Platform the API was built for
+    BUILD = 2       #: Build Types (debug or release)
+    TECHNOLOGY = 3  #: Special technology info
+    LAST = 4        #: Indicator for end of defined range
 
     def __str__(self):
         return self._name_
@@ -194,7 +166,7 @@ class VmbTransformType(Uint32Enum):
 
 
 class VmbPixelInfo(ctypes.Structure):
-    """Structure containing pixel information. Sadly c_header contains no more documentation"""
+    """Structure containing pixel information. C Header offers no further documentation."""
     _fields_ = [
         ('BitsPerPixel', VmbUint32),
         ('BitsUsed', VmbUint32),
@@ -219,7 +191,7 @@ class VmbPixelInfo(ctypes.Structure):
 
 
 class VmbImageInfo(ctypes.Structure):
-    """Structure containing image information. Sadly c_header contains no more documentation"""
+    """Structure containing image information. C Header offers no further documentation."""
     _fields_ = [
         ('Width', VmbUint32),
         ('Height', VmbUint32),
@@ -238,7 +210,7 @@ class VmbImageInfo(ctypes.Structure):
 
 
 class VmbImage(ctypes.Structure):
-    """Structure containing image. Sadly c_header contains no more documentation"""
+    """Structure containing image. C Header offers no further documentation."""
     _fields_ = [
         ('Size', VmbUint32),
         ('Data', ctypes.c_void_p),
@@ -255,42 +227,42 @@ class VmbImage(ctypes.Structure):
 
 
 class VmbTransformParameterMatrix3x3(ctypes.Structure):
-    """Sadly c_header contains no more documentation"""
+    """C Header offers no further documentation."""
     _fields_ = [
         ('Matrix', VmbFloat * 9)
     ]
 
 
 class VmbTransformParameterGamma(ctypes.Structure):
-    """Sadly c_header contains no more documentation"""
+    """C Header offers no further documentation."""
     _fields_ = [
         ('Gamma', VmbFloat)
     ]
 
 
 class VmbTransformParameterDebayer(ctypes.Structure):
-    """Sadly c_header contains no more documentation"""
+    """C Header offers no further documentation."""
     _fields_ = [
         ('Method', VmbUint32)
     ]
 
 
 class VmbTransformParameterOffset(ctypes.Structure):
-    """Sadly c_header contains no more documentation"""
+    """C Header offers no further documentation."""
     _fields_ = [
         ('Offset', VmbInt32)
     ]
 
 
 class VmbTransformParameterGain(ctypes.Structure):
-    """Sadly c_header contains no more documentation"""
+    """C Header offers no further documentation."""
     _fields_ = [
         ('Gain', VmbUint32)
     ]
 
 
 class VmbTransformParameter(ctypes.Union):
-    """Sadly c_header contains no more documentation"""
+    """C Header offers no further documentation."""
     _fields_ = [
         ('Matrix3x3', VmbTransformParameterMatrix3x3),
         ('Debayer', VmbTransformParameterDebayer),
@@ -371,21 +343,26 @@ def call_vmb_image_transform(func_name: str, *args):
     For Details on valid function signatures see the 'VmbTransform.h'.
 
     Arguments:
-        func_name: The function name from VmbImageTransform to be called.
-        args: Varargs passed directly to the underlying C-Function.
+        func_name:
+            The function name from VmbImageTransform to be called.
+        args:
+            Varargs passed directly to the underlying C-Function.
 
     Raises:
-        TypeError if given are do not match the signature of the function.
-        AttributeError if func with name 'func_name' does not exist.
-        VmbCError if the function call is valid but neither None or VmbError.Success was returned.
+        TypeError:
+            If given are do not match the signature of the function.
+        AttributeError:
+            If func with name 'func_name' does not exist.
+        VmbCError:
+            If the function call is valid but neither ``None`` or ``VmbError.Success`` was returned.
 
     The following functions of VmbImageTransform can be executed:
-        VmbGetImageTransformVersion
-        VmbGetTechnoInfo
-        VmbSetDebayerMode
-        VmbSetImageInfoFromPixelFormat
-        VmbSetImageInfoFromInputImage
-        VmbImageTransform
+        - VmbGetImageTransformVersion
+        - VmbGetTechnoInfo
+        - VmbSetDebayerMode
+        - VmbSetImageInfoFromPixelFormat
+        - VmbSetImageInfoFromInputImage
+        - VmbImageTransform
     """
 
     global _lib_instance

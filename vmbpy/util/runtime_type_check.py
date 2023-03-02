@@ -39,11 +39,13 @@ __all__ = [
 class RuntimeTypeCheckEnable:
     """Decorator adding runtime type checking to the wrapped callable.
 
-    Each time the callable is executed, all arguments are checked if they match with the given
-    type hints. If all checks are passed, the wrapped function is executed, if the given
-    arguments to not match a TypeError is raised.
-    Note: This decorator is no replacement for a feature complete TypeChecker. It supports only
-    a subset of all types expressible by type hints.
+    Each time the callable is executed, all arguments are checked if they match with the given type
+    hints. If all checks are passed, the wrapped function is executed, if the given arguments to not
+    match a TypeError is raised.
+
+    Note:
+        This decorator is no replacement for a feature complete TypeChecker. It supports only a
+        subset of all types expressible by type hints.
     """
     _log = Log.get_instance()
 

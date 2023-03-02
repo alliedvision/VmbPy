@@ -56,22 +56,13 @@ __all__ = [
 
 
 class LogLevel(enum.IntEnum):
-    """Enum containing all LogLevels.
-
-    Enum values are:
-        Trace    - Show Tracing information. Show all messages.
-        Debug    - Show Debug, Informational, Warning, Error, and Critical Events.
-        Info     - Show Informational, Warning, Error, and Critical Events.
-        Warning  - Show Warning, Error, and Critical Events.
-        Error    - Show Errors and Critical Events.
-        Critical - Show Critical Events only.
-    """
-    Trace = logging.DEBUG - 5
-    Debug = logging.DEBUG
-    Info = logging.INFO
-    Warning = logging.WARNING
-    Error = logging.ERROR
-    Critical = logging.CRITICAL
+    """Enum containing all LogLevels."""
+    Trace = logging.DEBUG - 5    #: Show Tracing information. Show all messages.
+    Debug = logging.DEBUG        #: Show Debug, Informational, Warning, Error, and Critical Events.
+    Info = logging.INFO          #: Show Informational, Warning, Error, and Critical Events.
+    Warning = logging.WARNING    #: Show Warning, Error, and Critical Events.
+    Error = logging.ERROR        #: Show Errors and Critical Events.
+    Critical = logging.CRITICAL  #: Show Critical Events only.
 
     def __str__(self):
         return self._name_
@@ -93,7 +84,8 @@ class LogConfig:
         """Add a new Log file to the Config Builder.
 
         Arguments:
-            level: LogLevel of the added log file.
+            level:
+                LogLevel of the added log file.
 
         Returns:
             Reference to the LogConfig instance (builder pattern).
@@ -113,7 +105,8 @@ class LogConfig:
         """Add a new Console Log to the Config Builder.
 
         Arguments:
-            level: LogLevel of the added console log file.
+            level:
+                LogLevel of the added console log file.
 
         Returns:
             Reference to the LogConfig instance (builder pattern).
@@ -146,7 +139,7 @@ class Log(logging.Logger):
     __instance = None
 
     def __init__(self, name: str) -> None:
-        """Do not call directly. Use Log.get_instance() instead."""
+        """Do not call directly. Use ``Log.get_instance()`` instead."""
         super().__init__(name)
         # Add a new `TRACE` level for tracing function enter/leave
         trace_name = LogLevel.Trace.name.upper()
