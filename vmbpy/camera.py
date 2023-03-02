@@ -472,7 +472,7 @@ class Camera(PersistableFeatureContainer):
 
     @TraceEnable()
     @RaiseIfOutsideContext()
-    def get_pixel_format(self) -> PixelFormat:
+    def get_pixel_format(self):
         """Get current pixel format.
 
         Returns:
