@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ __all__ = [
 
 
 class LocalDevice(PersistableFeatureContainer):
-    """This class provides access to the Local Device of a Camera
+    """This class provides access to the Local Device of a Camera.
     """
     def __init__(self, handle: VmbHandle) -> None:
         super().__init__()

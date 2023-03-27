@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ __all__ = [
 class AccessMode(enum.IntEnum):
     """Enum specifying all available camera access modes."""
     None_ = VmbAccessMode.None_          #: No access.
-    Full = VmbAccessMode.Full            #: Read and write access. Use this mode to configure the camera features and to acquire images (Camera Link cameras: configuration only).
+    Full = VmbAccessMode.Full            #: Read and write access.
     Read = VmbAccessMode.Read            #: Read-only access. Setting features is not possible.
     Unknown = VmbAccessMode.Unknown      #: Access type unknown.
     Exclusive = VmbAccessMode.Exclusive  #: Read and write access without permitting access for other consumers.
@@ -88,7 +88,7 @@ class FeatureVisibility(enum.IntEnum):
     Beginner = VmbFeatureVisibility.Beginner    #: Feature is visible in feature list (beginner level)
     Expert = VmbFeatureVisibility.Expert        #: Feature is visible in feature list (expert level)
     Guru = VmbFeatureVisibility.Guru            #: Feature is visible in feature list (guru level)
-    Invisible = VmbFeatureVisibility.Invisible  #: Feature is not visible in feature listSu
+    Invisible = VmbFeatureVisibility.Invisible  #: Feature is not visible in feature list
 
 
 class FrameStatus(enum.IntEnum):

@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,11 +44,11 @@ class _LoggedError(Exception):
 
 
 class VmbSystemError(_LoggedError):
-    """Errors related to the underlying VimbaX System
+    """Errors related to the underlying Vimba X System
 
     Error type to indicate system-wide errors like:
 
-    - Incomplete VimbaX installation
+    - Incomplete Vimba X installation
     - Incompatible version of the underlying C-Layer
     - An unsupported OS
     """

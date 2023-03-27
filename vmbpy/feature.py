@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -116,7 +116,7 @@ class _BaseFeature:
         return self._info.pollingTime
 
     def get_unit(self) -> str:
-        """Get Unit of this Feature, e.g. 'dB' on Feature 'GainAutoMax'"""
+        """Get unit of this Feature, e.g. 'dB' on Feature 'GainAutoMax'"""
         return decode_cstr(self._info.unit)
 
     def get_representation(self) -> str:
@@ -136,7 +136,7 @@ class _BaseFeature:
         return decode_cstr(self._info.description)
 
     def get_sfnc_namespace(self) -> str:
-        """This features namespace"""
+        """Namespace of this feature"""
         return decode_cstr(self._info.sfncNamespace)
 
     def is_streamable(self) -> bool:
@@ -176,7 +176,7 @@ class _BaseFeature:
 
     @TraceEnable()
     def is_writeable(self) -> bool:
-        """Is write access on this Features granted?
+        """Is write access on this Feature granted?
 
         Returns:
             ``True`` if write access is allowed on this feature. ``False`` is returned if write
@@ -189,7 +189,7 @@ class _BaseFeature:
     def register_change_handler(self, handler: ChangeHandler):
         """Register Callable on the Feature.
 
-        The Callable will be executed as soon as the Features value changes. The first parameter on
+        The Callable will be executed as soon as the Feature value changes. The first parameter on
         a registered handler will be called with the changed feature itself. The methods returns
         early if a given handler is already registered.
 
@@ -511,7 +511,7 @@ class EnumFeature(_BaseFeature):
         """Get a set of all possible EnumEntries of this feature.
 
         Note:
-            It is possible that not all EnumEntries returned by this area currently valid values.
+            It is possible that not all EnumEntries returned by this area have currently valid values.
             See also :func:`get_available_entries`
         """
         return self.__entries
@@ -1125,7 +1125,7 @@ class StringFeature(_BaseFeature):
             VmbFeatureError:
                 If access rights are not sufficient.
             VmbFeatureError:
-                If val exceeds the maximum string length.
+                If value exceeds the maximum string length.
             VmbFeatureError:
                 If executed within a registered change_handler.
         """

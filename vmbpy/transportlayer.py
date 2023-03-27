@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -81,14 +81,14 @@ class TransportLayer(PersistableFeatureContainer):
         self._remove_feature_accessors()
 
     def get_interfaces(self) -> InterfacesTuple:
-        """Get all interfaces associated with the Transport Layer instance
+        """Get all interfaces associated with the Transport Layer instance.
 
         Returns:
-            A tuple of all interfaces associated with this Transport Layer
+            A tuple of all interfaces associated with this Transport Layer.
 
         Raises:
             RuntimeError:
-                If called outside of VmbSystem ``with`` - context
+                If called outside of VmbSystem ``with`` context.
         """
         return self._get_interfaces()
 
@@ -99,14 +99,14 @@ class TransportLayer(PersistableFeatureContainer):
         raise NotImplementedError
 
     def get_cameras(self) -> CamerasTuple:
-        """Get access to cameras associated with the Transport Layer instance
+        """Get access to cameras associated with the Transport Layer instance.
 
         Returns:
-            A tuple of all cameras associated with this Transport Layer
+            A tuple of all cameras associated with this Transport Layer.
 
         Raises:
             RuntimeError:
-                If called outside of VmbSystem ``with`` - context.
+                If called outside of VmbSystem ``with`` context.
         """
         return self._get_cameras()
 
@@ -120,11 +120,11 @@ class TransportLayer(PersistableFeatureContainer):
         return decode_cstr(self.__info.transportLayerIdString)
 
     def get_name(self) -> str:
-        """Get Transport Layer Name such as 'VimbaX GigE Transport Layer'"""
+        """Get Transport Layer Display Name such as 'AVT GigE Transport Layer'"""
         return decode_cstr(self.__info.transportLayerName)
 
     def get_model_name(self) -> str:
-        """Get Transport Layer Model Name such as 'VimbaX GigE TL'"""
+        """Get Transport Layer Model Name such as 'GigETL'"""
         return decode_cstr(self.__info.transportLayerModelName)
 
     def get_vendor(self) -> str:

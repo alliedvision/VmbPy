@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ class CameraEvent(enum.IntEnum):
 
 
 class Camera(PersistableFeatureContainer):
-    """This class provides access to a Camera. It corresponds to the GenTL Remote Device
+    """This class provides access to a Camera. It corresponds to the GenTL Remote Device.
 
     Camera is intended be used in conjunction with the ``with`` context. On entering the context,
     all Camera features are detected and can be accessed within the context. Static Camera
@@ -139,7 +139,7 @@ class Camera(PersistableFeatureContainer):
         return decode_cstr(self.__info.cameraIdString)
 
     def get_extended_id(self) -> str:
-        """Get the extended (globally unique) ID of a Camera"""
+        """Get the extended (globally unique) ID of a Camera."""
         return decode_cstr(self.__info.cameraIdExtended)
 
     def get_name(self) -> str:
@@ -243,7 +243,7 @@ class Camera(PersistableFeatureContainer):
                             allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
         """Construct frame generator, providing synchronous image acquisition.
 
-        The Frame generator acquires a new frame with each execution. Frames may only be used inside
+        The frame generator acquires a new frame with each execution. Frames may only be used inside
         their respective loop iteration. If a frame must be used outside the loop iteration, a copy
         of the frame must be created (e.g. via ``copy.deepcopy(frame)``).
 
@@ -325,7 +325,7 @@ class Camera(PersistableFeatureContainer):
         """Get copy of a single frame from camera. Synchronous frame acquisition.
 
         Records a single frame from the camera, creates a copy of the frame and returns it to the
-        caller. This frame may be used by the user as long as they want but can not be used e.g. to
+        caller. This frame may be used by users as long as they want but can not be used e.g. to
         access chunk data associated with it. See also ``get_frame_with_context`` to avoid the frame
         copy.
 
@@ -359,7 +359,7 @@ class Camera(PersistableFeatureContainer):
                         handler: FrameHandler,
                         buffer_count: int = 5,
                         allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
-        """Enter streaming mode
+        """Enter streaming mode.
 
         Enter streaming mode is also known as asynchronous frame acquisition. While active, the
         camera acquires and buffers frames continuously. With each acquired frame, a given

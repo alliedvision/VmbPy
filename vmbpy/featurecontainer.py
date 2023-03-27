@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -94,7 +94,7 @@ class FeatureContainer:
 
         Arguments:
             feat:
-                Feature used find features that are selected by ``feat``.
+                Feature used to find features that are selected by ``feat``.
 
         Returns:
             A set of features selected by ``feat``.
@@ -119,7 +119,7 @@ class FeatureContainer:
 
         Arguments:
             feat_type:
-                FeatureType used find features of that type.
+                FeatureType used to find features of that type.
 
         Returns:
             A set of features of type `feat_type``.

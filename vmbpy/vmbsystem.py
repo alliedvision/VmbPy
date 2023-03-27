@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,8 @@ __all__ = [
 
 class VmbSystem:
     class __Impl(FeatureContainer):
-        """This class allows access to the entire VimbaX System.
-        VmbSystem is meant be used in conjunction with the ``with`` context, upon entering the
+        """This class allows access to the entire Vimba X System.
+        VmbSystem is meant be used in conjunction with the ``with`` context. Upon entering the
         context, all system features, connected cameras and interfaces are detected and can be used.
         """
 
@@ -124,7 +124,7 @@ class VmbSystem:
             """Set the path_configuration parameter that can be passed to VmbStartup.
 
             Using this is optional. If no path configuration is set, the
-            ``GENICAM_GENTL{32|64}_PATH`` environment variables are considered
+            ``GENICAM_GENTL{32|64}_PATH`` environment variables are considered.
 
             Arguments:
                 args:
@@ -135,7 +135,7 @@ class VmbSystem:
 
             Returns:
                 An instance of self. This allows setting the path configuration while entering the
-                ``VmbSystem`` ``with`` - context at the same time.
+                ``VmbSystem`` ``with`` context at the same time.
 
             Example:
                 Using the returned instance to directly open the ``with`` context of
@@ -202,10 +202,10 @@ class VmbSystem:
 
         @RaiseIfOutsideContext()
         def get_all_transport_layers(self) -> TransportLayersTuple:
-            """Get access to all loaded Transport Layers
+            """Get access to all loaded Transport Layers.
 
             Returns:
-                A set of all currently loaded Transport Layers
+                A set of all currently loaded Transport Layers.
 
             Raises:
                 RuntimeError:
@@ -216,7 +216,7 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_transport_layer_by_id(self, id_: str) -> TransportLayer:
-            """Lookup Transport Layer with given ID.
+            """Lookup Transport Layer with given Id.
 
             Arguments:
                 id_:
@@ -243,7 +243,7 @@ class VmbSystem:
 
         @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
-            """Get access to all discovered Interfaces:
+            """Get access to all discovered Interfaces.
 
             Returns:
                 A set of all currently detected Interfaces.
@@ -258,7 +258,7 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interface_by_id(self, id_: str) -> Interface:
-            """Lookup Interface with given ID.
+            """Lookup Interface with given Id.
 
             Arguments:
                 id_:
@@ -286,14 +286,14 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interfaces_by_tl(self, tl_: TransportLayer) -> InterfacesTuple:
-            """Get access to interfaces associated with the given Transport Layer
+            """Get access to interfaces associated with the given Transport Layer.
 
             Arguments:
                 tl_:
-                    Transport Layer whose interfaces should be returned
+                    Transport Layer whose interfaces should be returned.
 
             Returns:
-                A tuple of all interfaces associated with the given Transport Layer
+                A tuple of all interfaces associated with the given Transport Layer.
 
             Raises:
                 TypeError:
@@ -323,12 +323,12 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_camera_by_id(self, id_: str) -> Camera:
-            """Lookup Camera with given ID.
+            """Lookup Camera with given Id.
 
             Arguments:
                 id_:
-                    Camera Id to search for. For GigE - Cameras, the IP and MAC-Address can be used
-                    to Camera lookup
+                    Camera Id to search for. For GigE Cameras, the IP and MAC Address can be used
+                    for Camera lookup.
 
             Returns:
                 Camera associated with given Id.
@@ -347,7 +347,7 @@ class VmbSystem:
                     if id_ == cam.get_id():
                         return cam
 
-                # If a search by ID fails, the given id_ is almost certain an IP or MAC - Address.
+                # If a search by ID fails, the given id_ is almost certain an IP or MAC Address.
                 # Try to query this Camera.
                 try:
                     new_cam = self.__discover_camera(id_)
@@ -372,14 +372,14 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_tl(self, tl_: TransportLayer) -> CamerasTuple:
-            """Get access to cameras associated with the given Transport Layer
+            """Get access to cameras associated with the given Transport Layer.
 
             Arguments:
                 tl_:
-                    Transport Layer whose cameras should be returned
+                    Transport Layer whose cameras should be returned.
 
             Returns:
-                A tuple of all cameras associated with the given Transport Layer
+                A tuple of all cameras associated with the given Transport Layer.
 
             Raises:
                 TypeError:
@@ -395,14 +395,14 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_interface(self, inter_: Interface):
-            """Get access to cameras associated with the given interface
+            """Get access to cameras associated with the given interface.
 
             Arguments:
                 inter_:
-                    Interface whose cameras should be returned
+                    Interface whose cameras should be returned.
 
             Returns:
-                A tuple of all cameras associated with the given interface
+                A tuple of all cameras associated with the given interface.
 
             Raises:
                 TypeError:
@@ -417,7 +417,7 @@ class VmbSystem:
 
         @RuntimeTypeCheckEnable()
         def register_camera_change_handler(self, handler: CameraChangeHandler):
-            """Add Callable what is executed on camera connect/disconnect
+            """Add Callable that is executed on camera connect/disconnect.
 
             Arguments:
                 handler:
@@ -439,7 +439,7 @@ class VmbSystem:
 
         @RuntimeTypeCheckEnable()
         def unregister_camera_change_handler(self, handler: CameraChangeHandler):
-            """Remove previously registered camera change handler
+            """Remove previously registered camera change handler.
 
             Arguments:
                 handler:
@@ -455,7 +455,7 @@ class VmbSystem:
 
         @RuntimeTypeCheckEnable()
         def register_interface_change_handler(self, handler: InterfaceChangeHandler):
-            """Add Callable what is executed on interface connect/disconnect
+            """Add Callable that is executed on interface connect/disconnect.
 
             Arguments:
                 handler:
@@ -470,14 +470,14 @@ class VmbSystem:
                     self.__inters_handlers.append(handler)
 
         def unregister_all_interface_change_handlers(self):
-            """Remove all currently registered interface change handlers"""
+            """Remove all currently registered interface change handlers."""
             with self.__inters_handlers_lock:
                 if self.__inters_handlers:
                     self.__inters_handlers.clear()
 
         @RuntimeTypeCheckEnable()
         def unregister_interface_change_handler(self, handler: InterfaceChangeHandler):
-            """Remove previously registered interface change handler
+            """Remove previously registered interface change handler.
 
             Arguments:
                 handler:
