@@ -65,7 +65,7 @@ class ContextDecoratorTest(VmbPyTestCase):
 
     def test_raise_if_inside_context(self):
         # Expectation: a decorated method must raise a RuntimeError if a
-        # Decorated function is called within a with - statement and
+        # Decorated function is called within a with context and
         # run properly outside of the context.
 
         self.assertNoRaise(self.test_obj.works_outside_context)
@@ -77,7 +77,7 @@ class ContextDecoratorTest(VmbPyTestCase):
 
     def test_raise_if_outside_context(self):
         # Expectation: a decorated method must raise a RuntimeError if a
-        # Decorated function is called outside a with - statement and
+        # Decorated function is called outside a with context and
         # run properly inside of the context.
 
         self.assertRaises(RuntimeError, self.test_obj.works_inside_context)

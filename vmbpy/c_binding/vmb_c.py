@@ -77,79 +77,47 @@ _lib_instance = load_vimbax_lib('VmbC')
 
 # Types
 class VmbTransportLayer(Uint32Enum):
-    """
-    Camera Interface Types:
-        Unknown  - Interface is not known to this version of the API
-        GEV      - GigE Vision
-        CL       - Camera Link
-        IIDC     - IIDC 1394
-        UVC      - USB video class
-        CXP      - CoaXPress
-        CLHS     - Camera Link HS
-        U3V      - USB3 Vision Standard
-        Ethernet - Generic Ethernet
-        PCI      - PCI / PCIe
-        Custom   - Non standard
-        Mixed    - Mixed (transport layer only)
-    """
-    Unknown = 0
-    GEV = 1
-    CL = 2
-    IIDC = 3
-    UVC = 4
-    CXP = 5
-    CLHS = 6
-    U3V = 7
-    Ethernet = 8
-    PCI = 9
-    Custom = 10
-    Mixed = 11
+    """Camera Interface Types."""
+    Unknown = 0   #: Interface is not known to this version of the API
+    GEV = 1       #: GigE Vision
+    CL = 2        #: Camera Link
+    IIDC = 3      #: IIDC 1394
+    UVC = 4       #: USB video class
+    CXP = 5       #: CoaXPress
+    CLHS = 6      #: Camera Link HS
+    U3V = 7       #: USB3 Vision Standard
+    Ethernet = 8  #: Generic Ethernet
+    PCI = 9       #: PCI / PCIe
+    Custom = 10   #: Non standard
+    Mixed = 11    #: Mixed (transport layer only)
 
     def __str__(self):
         return self._name_
 
 
 class VmbAccessMode(Uint32Enum):
-    """
-    Camera Access Mode:
-        None_     - No access
-        Full      - Read and write access
-        Read      - Read-only access
-        Unknown   - Access type unknown
-        Exclusive - Read and write access without permitting access for other consumers
-    """
-    None_ = 0
-    Full = 1
-    Read = 2
-    Unknown = 4
-    Exclusive = 8
+    """Camera Access Mode."""
+    None_ = 0      #: No access
+    Full = 1       #: Read and write access
+    Read = 2       #: Read-only access
+    Unknown = 4    #: Access type unknown
+    Exclusive = 8  #: Read and write access without permitting access for other consumers
 
     def __str__(self):
         return self._name_
 
 
 class VmbFeatureData(Uint32Enum):
-    """
-    Feature Data Types
-        Unknown - Unknown feature type
-        Int     - 64 bit integer feature
-        Float   - 64 bit floating point feature
-        Enum    - Enumeration feature
-        String  - String feature
-        Bool    - Boolean feature
-        Command - Command feature
-        Raw     - Raw (direct register access) feature
-        None_   - Feature with no data
-    """
-    Unknown = 0
-    Int = 1
-    Float = 2
-    Enum = 3
-    String = 4
-    Bool = 5
-    Command = 6
-    Raw = 7
-    None_ = 8
+    """Feature Data Types."""
+    Unknown = 0  #: Unknown feature type
+    Int = 1      #: 64 bit integer feature
+    Float = 2    #: 64 bit floating point feature
+    Enum = 3     #: Enumeration feature
+    String = 4   #: String feature
+    Bool = 5     #: Boolean feature
+    Command = 6  #: Command feature
+    Raw = 7      #: Raw (direct register access) feature
+    None_ = 8    #: Feature with no data
 
     def __str__(self):
         return self._name_
@@ -157,127 +125,77 @@ class VmbFeatureData(Uint32Enum):
 
 class VmbFeaturePersist(Uint32Enum):
     """
-    Type of features that are to be saved (persisted) to the XML file
-    when using VmbCameraSettingsSave
-
-        All        - Save all features to XML, including look-up tables
-        Streamable - Save only features marked as streamable, excluding
-                     look-up tables
-        NoLUT      - Save all features except look-up tables (default)
+    Type of features that are to be saved (persisted) to the XML file when using
+    VmbCameraSettingsSave
     """
-    All = 0
-    Streamable = 1
-    NoLUT = 2
+    All = 0         #: Save all features to XML, including look-up tables
+    Streamable = 1  #: Save only features marked as streamable, excluding look-up tables
+    NoLUT = 2       #: Save all features except look-up tables (default)
 
     def __str__(self):
         return self._name_
 
 
 class VmbModulePersistFlags(Uint32Flag):
-    """
-    Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad
-
-        None_          - Persist/Load features for no module
-        TransportLayer - Persist/Load the transport layer features
-        Interface      - Persist/Load the interface features
-        RemoteDevice   - Persist/Load the remote device features
-        LocalDevice    - Persist/Load the local device features
-        Streams        - Persist/Load the features of stream modules
-        All            - Persist/Load features for all modules
-    """
-    None_ = 0x00
-    TransportLayer = 0x01
-    Interface = 0x02
-    RemoteDevice = 0x04
-    LocalDevice = 0x08
-    Streams = 0x10
-    All = 0xff
+    """Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad."""
+    None_ = 0x00           #: Persist/Load features for no module
+    TransportLayer = 0x01  #: Persist/Load the transport layer features
+    Interface = 0x02       #: Persist/Load the interface features
+    RemoteDevice = 0x04    #: Persist/Load the remote device features
+    LocalDevice = 0x08     #: Persist/Load the local device features
+    Streams = 0x10         #: Persist/Load the features of stream modules
+    All = 0xff             #: Persist/Load features for all modules
 
     def __str__(self):
         return self._name_
 
 
 class VmbFeatureVisibility(Uint32Enum):
-    """
-    Feature Visibility
-        Unknown   - Feature visibility is not known
-        Beginner  - Feature is visible in feature list (beginner level)
-        Expert    - Feature is visible in feature list (expert level)
-        Guru      - Feature is visible in feature list (guru level)
-        Invisible - Feature is not visible in feature list
-    """
-    Unknown = 0
-    Beginner = 1
-    Expert = 2
-    Guru = 3
-    Invisible = 4
+    """Feature Visibility."""
+    Unknown = 0    #: Feature visibility is not known
+    Beginner = 1   #: Feature is visible in feature list (beginner level)
+    Expert = 2     #: Feature is visible in feature list (expert level)
+    Guru = 3       #: Feature is visible in feature list (guru level)
+    Invisible = 4  #: Feature is not visible in feature list
 
     def __str__(self):
         return self._name_
 
 
 class VmbFeatureFlags(Uint32Enum):
-    """
-    Feature Flags
-        None_       - No additional information is provided
-        Read        - Static info about read access.
-                      Current status depends on access mode, check with
-                      VmbFeatureAccessQuery()
-        Write       - Static info about write access.
-                      Current status depends on access mode, check with
-                      VmbFeatureAccessQuery()
-        Volatile    - Value may change at any time
-        ModifyWrite - Value may change after a write
-    """
-    None_ = 0
-    Read = 1
-    Write = 2
+    """Feature Flags."""
+    None_ = 0         #: No additional information is provided
+    Read = 1          #: Static info about read access. Current status depends on access mode, check with VmbFeatureAccessQuery()  # noqa: E501
+    Write = 2         #: Static info about write access. Current status depends on access mode, check with VmbFeatureAccessQuery() # noqa: E501
     Undocumented = 4
-    Volatile = 8
-    ModifyWrite = 16
+    Volatile = 8      #: Value may change at any time
+    ModifyWrite = 16  #: Value may change after a write
 
     def __str__(self):
         return self._name_
 
 
 class VmbFrameStatus(Int32Enum):
-    """
-    Frame transfer status
-        Complete   - Frame has been completed without errors
-        Incomplete - Frame could not be filled to the end
-        TooSmall   - Frame buffer was too small
-        Invalid    - Frame buffer was invalid
-    """
-    Complete = 0
-    Incomplete = -1
-    TooSmall = -2
-    Invalid = -3
+    """Frame transfer status."""
+    Complete = 0     #: Frame has been completed without errors
+    Incomplete = -1  #: Frame could not be filled to the end
+    TooSmall = -2    #: Frame buffer was too small
+    Invalid = -3     #: Frame buffer was invalid
 
     def __str__(self):
         return self._name_
 
 
 class VmbFrameFlags(Uint32Enum):
-    """
-    Frame Flags
-        None_            - No additional information is provided
-        Dimension        - Frame's dimension is provided
-        Offset           - Frame's offset is provided (ROI)
-        FrameID          - Frame's ID is provided
-        Timestamp        - Frame's timestamp is provided
-        ImageData        - Frame's imageData is provided
-        PayloadType      - Frame's payloadType is provided
-        ChunkDataPresent - Frame's chunkDataPresent is set based on info provided by the transport
-                           layer
-    """
-    None_ = 0
-    Dimension = 1
-    Offset = 2
-    FrameID = 4
-    Timestamp = 8
-    ImageData = 16
-    PayloadType = 32
-    ChunkDataPresent = 64
+    """Frame Flags."""
+    None_ = 0              #: No additional information is provided
+    Dimension = 1          #: Frame's dimension is provided
+    Offset = 2             #: Frame's offset is provided (ROI)
+    FrameID = 4            #: Frame's ID is provided
+    Timestamp = 8          #: Frame's timestamp is provided
+    ImageData = 16         #: Frame's imageData is provided
+    PayloadType = 32       #: Frame's payloadType is provided
+    ChunkDataPresent = 64  #: Frame's chunkDataPresent is set based on info provided by the transport layer # noqa: E501
 
     def __str__(self):
         return self._name_
@@ -287,9 +205,15 @@ class VmbVersionInfo(ctypes.Structure):
     """
     Version Information
         Fields:
-            major - Type: VmbUint32, Info: Major version number
-            minor - Type: VmbUint32, Info: Minor version number
-            patch - Type: VmbUint32, Info: Patch version number
+            major:
+                Type: VmbUint32
+                Info: Major version number
+            minor:
+                Type: VmbUint32
+                Info: Minor version number
+            patch:
+                Type: VmbUint32
+                Info: Patch version number
     """
     _fields_ = [
         ("major", VmbUint32),
@@ -312,22 +236,30 @@ class VmbVersionInfo(ctypes.Structure):
 class VmbTransportLayerInfo(ctypes.Structure):
     """
         Fields:
-            transportLayerIdString  - Type: c_char_p
-                                      Info: Unique id of the transport layer
-            transportLayerName      - Type: c_char_p
-                                      Info: Name of the transport layer
-            transportLayerModelName - Type: c_char_p
-                                      Info: Model name of the transport layer
-            transportLayerVendor    - Type: c_char_p
-                                      Info: Vendor of the transport layer
-            transportLayerVersion   - Type: c_char_p
-                                      Info: Version of the transport layer
-            transportLayerPath      - Type: c_char_p
-                                      Info: Full path of the transport layer
-            transportLayerHandle    - Type: VmbHandle
-                                      Info: Handle of the transport layer for feature access
-            transportLayerType      - Type: VmbTransportLayer (VmbUint32)
-                                      Info: The type of the transport layer
+            transportLayerIdString:
+                Type: c_char_p
+                Info: Unique id of the transport layer
+            transportLayerName:
+                Type: c_char_p
+                Info: Name of the transport layer
+            transportLayerModelName
+                Type: c_char_p
+                Info: Model name of the transport layer
+            transportLayerVendor:
+                Type: c_char_p
+                Info: Vendor of the transport layer
+            transportLayerVersion:
+                Type: c_char_p
+                Info: Version of the transport layer
+            transportLayerPath:
+                Type: c_char_p
+                Info: Full path of the transport layer
+            transportLayerHandle:
+                Type: VmbHandle
+                Info: Handle of the transport layer for feature access
+            transportLayerType:
+                Type: VmbTransportLayer (VmbUint32)
+                Info: The type of the transport layer
     """
     _fields_ = [
         ("transportLayerIdString", c_char_p),
@@ -357,16 +289,21 @@ class VmbInterfaceInfo(ctypes.Structure):
     """
     Interface information. Holds read-only information about an interface.
         Fields:
-            interfaceIdString    - Type: c_char_p
-                                   Info: Unique identifier for each interface
-            interfaceName        - Type: c_char_p
-                                   Info: Interface name, given by transport layer
-            interfaceHandle      - Type: VmbHandle
-                                   Info: Handle of the interface for feature access
-            transportLayerHandle - Type: VmbHandle
-                                   Info: Handle of the related transport layer for feature access
-            interfaceType        - Type: VmbTransportLayer (VmbUint32)
-                                   Info: Interface type, see VmbTransportLayer
+            interfaceIdString:
+                Type: c_char_p
+                Info: Unique identifier for each interface
+            interfaceName:
+                Type: c_char_p
+                Info: Interface name, given by transport layer
+            interfaceHandle:
+                Type: VmbHandle
+                Info: Handle of the interface for feature access
+            transportLayerHandle:
+                Type: VmbHandle
+                Info: Handle of the related transport layer for feature access
+            interfaceType:
+                Type: VmbTransportLayer (VmbUint32)
+                Info: Interface type, see VmbTransportLayer
     """
     _fields_ = [
         ("interfaceIdString", c_char_p),
@@ -391,30 +328,40 @@ class VmbCameraInfo(ctypes.Structure):
     """
     Camera information. Holds read-only information about a camera.
         Fields:
-            cameraIdString       - Type: c_char_p
-                                   Info: Unique identifier for each camera
-            cameraIdExtended     - Type: c_char_p
-                                   Info: globally unique identifier for the camera
-            cameraName           - Type: c_char_p
-                                   Info: Name of the camera
-            modelName            - Type: c_char_p
-                                   Info: Model name
-            serialString         - Type: c_char_p
-                                   Info: Serial number
-            transportLayerHandle - Type: VmbHandle
-                                   Info: Handle of the related transport layer for feature access
-            interfaceHandle      - Type: VmbHandle
-                                   Info: Handle of the related interface for feature access
-            localDeviceHandle    - Type: VmbHandle
-                                   Info: Handle of the related GenTL local device. NULL if the
-                                   camera is not opened
-            streamHandles        - Type: c_ptr(VmbHandle)
-                                   Info: Handles of the streams provided by the camera.  NULL if the
-                                   camera is not opened
-            streamCount          - Type: VmbUint32
-                                   Info: Number of stream handles in the streamHandles array
-            permittedAccess      - Type: VmbAccessMode (VmbUint32)
-                                   Info: Used access mode, see VmbAccessMode
+            cameraIdString:
+                Type: c_char_p
+                Info: Unique identifier for each camera
+            cameraIdExtended:
+                Type: c_char_p
+                Info: globally unique identifier for the camera
+            cameraName:
+                Type: c_char_p
+                Info: Name of the camera
+            modelName:
+                Type: c_char_p
+                Info: Model name
+            serialString:
+                Type: c_char_p
+                Info: Serial number
+            transportLayerHandle:
+                Type: VmbHandle
+                Info: Handle of the related transport layer for feature access
+            interfaceHandle:
+                Type: VmbHandle
+                Info: Handle of the related interface for feature access
+            localDeviceHandle:
+                Type: VmbHandle
+                Info: Handle of the related GenTL local device. NULL if the camera is not opened
+            streamHandles:
+                Type: c_ptr(VmbHandle)
+                Info: Handles of the streams provided by the camera. NULL if the camera is not
+                      opened
+            streamCount:
+                Type: VmbUint32
+                Info: Number of stream handles in the streamHandles array
+            permittedAccess:
+                Type: VmbAccessMode (VmbUint32)
+                Info: Used access mode, see VmbAccessMode
     """
     _fields_ = [
         ("cameraIdString", c_char_p),
@@ -450,35 +397,48 @@ class VmbFeatureInfo(ctypes.Structure):
     """
     Feature information. Holds read-only information about a feature.
         Fields:
-            name                - Type: c_char_p
-                                  Info: Name used in the API
-            category            - Type: c_char_p
-                                  Info: Category this feature can be found in
-            displayName         - Type: c_char_p
-                                  Info: Feature name to be used in GUIs
-            tooltip             - Type: c_char_p
-                                  Info: Short description, e.g. for a tooltip
-            description         - Type: c_char_p
-                                  Info: Longer description
-            sfncNamespace       - Type: c_char_p
-                                  Info: Namespace this feature resides in
-            unit                - Type: c_char_p
-                                  Info: Measuring unit as given in the XML file
-            representation      - Type: c_char_p
-                                  Info: Representation of a numeric feature
-            featureDataType     - Type: VmbFeatureData (VmbUint32)
-                                  Info: Data type of this feature
-            featureFlags        - Type: VmbFeatureFlags (VmbUint32)
-                                  Info: Access flags for this feature
-            pollingTime         - Type: VmbUint32
-                                  Info: Predefined polling time for volatile features
-            visibility          - Type: VmbFeatureVisibility (VmbUint32)
-                                  Info: GUI visibility
-            isStreamable        - Type: VmbBool
-                                  Info: Indicates if a feature can be stored to / loaded from a file
-            hasSelectedFeatures - Type: VmbBool
-                                  Info: Indicates if the feature selects other
-                                        features
+            name:
+                Type: c_char_p
+                Info: Name used in the API
+            category:
+                Type: c_char_p
+                Info: Category this feature can be found in
+            displayName:
+                Type: c_char_p
+                Info: Feature name to be used in GUIs
+            tooltip:
+                Type: c_char_p
+                Info: Short description, e.g. for a tooltip
+            description:
+                Type: c_char_p
+                Info: Longer description
+            sfncNamespace:
+                Type: c_char_p
+                Info: Namespace this feature resides in
+            unit:
+                Type: c_char_p
+                Info: Measuring unit as given in the XML file
+            representation:
+                Type: c_char_p
+                Info: Representation of a numeric feature
+            featureDataType:
+                Type: VmbFeatureData (VmbUint32)
+                Info: Data type of this feature
+            featureFlags:
+                Type: VmbFeatureFlags (VmbUint32)
+                Info: Access flags for this feature
+            pollingTime:
+                Type: VmbUint32
+                Info: Predefined polling time for volatile features
+            visibility:
+                Type: VmbFeatureVisibility (VmbUint32)
+                Info: GUI visibility
+            isStreamable:
+                Type: VmbBool
+                Info: Indicates if a feature can be stored to / loaded from a file
+            hasSelectedFeatures:
+                Type: VmbBool
+                Info: Indicates if the feature selects other features
     """
     _fields_ = [
         ("name", c_char_p),
@@ -521,20 +481,27 @@ class VmbFeatureEnumEntry(ctypes.Structure):
     """
     Info about possible entries of an enumeration feature:
         Fields:
-            name          - Type: c_char_p
-                            Info: Name used in the API
-            displayName   - Type: c_char_p
-                            Info: Enumeration entry name to be used in GUIs
-            tooltip       - Type: c_char_p
-                            Info: Short description, e.g. for a tooltip
-            description   - Type: c_char_p
-                            Info: Longer description
-            intValue      - Type: VmbInt64
-                            Info: Integer value of this enumeration entry
-            sfncNamespace - Type: c_char_p
-                            Info: Namespace this feature resides in
-            visibility    - Type: VmbFeatureVisibility (VmbUint32)
-                            Info: GUI visibility
+            name:
+                Type: c_char_p
+                Info: Name used in the API
+            displayName:
+                Type: c_char_p
+                Info: Enumeration entry name to be used in GUIs
+            tooltip:
+                Type: c_char_p
+                Info: Short description, e.g. for a tooltip
+            description:
+                Type: c_char_p
+                Info: Longer description
+            intValue:
+                Type: VmbInt64
+                Info: Integer value of this enumeration entry
+            sfncNamespace:
+                Type: c_char_p
+                Info: Namespace this feature resides in
+            visibility:
+                Type: VmbFeatureVisibility (VmbUint32)
+                Info: GUI visibility
     """
     _fields_ = [
         ("name", c_char_p),
@@ -563,41 +530,53 @@ class VmbFrame(ctypes.Structure):
     """
     Frame delivered by Camera
         Fields (in):
-            buffer     - Type: c_void_p
-                         Info: Comprises image and chunk data
-            bufferSize - Type: VmbUint32_t
-                         Info: Size of the data buffer
-            context    - Type: c_void_p[4]
-                         Info: 4 void pointers that can be employed by the user
-                               (e.g. for storing handles)
+            buffer:
+                Type: c_void_p
+                Info: Comprises image and chunk data
+            bufferSize:
+                Type: VmbUint32_t
+                Info: Size of the data buffer
+            context:
+                Type: c_void_p[4]
+                Info: 4 void pointers that can be employed by the user (e.g. for storing handles)
 
         Fields (out):
-            receiveStatus    - Type: VmbFrameStatus (VmbInt32)
-                               Info: Resulting status of the receive operation
-            frameID          - Type: VmbUint64
-                               Info: Unique ID of this frame in this stream
-            timestamp        - Type: VmbUint64
-                               Info: Timestamp set by the camera
-            imageData        - Type: c_ptr(VmbUint8)
-                               Info: The start of the image data, if present, or null
-            receiveFlags     - Type: VmbFrameFlags (VmbUint32)
-                               Info: Flags indicating which additional frame information is
-                                     available
-            pixelFormat      - Type: VmbPixelFormat (VmbUint32)
-                               Info: Pixel format of the image
-            width            - Type: VmbImageDimension_t (VmbUint32)
-                               Info: Width of an image
-            height           - Type: VmbImageDimension_t (VmbUint32)
-                               Info: Height of an image
-            offsetX          - Type: VmbImageDimension_t (VmbUint32)
-                               Info: Horizontal offset of an image
-            offsetY          - Type: VmbImageDimension_t (VmbUint32)
-                               Info: Vertical offset of an image
-            payloadType      - Type: VmbPayloadType (VmbUint32)
-                               Info: The type of payload
-            chunkDataPresent - Type: VmbBool
-                               Info: True if the transport layer reported chunk data to be present
-                                     in the buffer
+            receiveStatus:
+                Type: VmbFrameStatus (VmbInt32)
+                Info: Resulting status of the receive operation
+            frameID:
+                Type: VmbUint64
+                Info: Unique ID of this frame in this stream
+            timestamp:
+                Type: VmbUint64
+                Info: Timestamp set by the camera
+            imageData:
+                Type: c_ptr(VmbUint8)
+                Info: The start of the image data, if present, or null
+            receiveFlags:
+                Type: VmbFrameFlags (VmbUint32)
+                Info: Flags indicating which additional frame information is available
+            pixelFormat:
+                Type: VmbPixelFormat (VmbUint32)
+                Info: Pixel format of the image
+            width:
+                Type: VmbImageDimension_t (VmbUint32)
+                Info: Width of an image
+            height:
+                Type: VmbImageDimension_t (VmbUint32)
+                Info: Height of an image
+            offsetX:
+                Type: VmbImageDimension_t (VmbUint32)
+                Info: Horizontal offset of an image
+            offsetY:
+                Type: VmbImageDimension_t (VmbUint32)
+                Info: Vertical offset of an image
+            payloadType:
+                Type: VmbPayloadType (VmbUint32)
+                Info: The type of payload
+            chunkDataPresent:
+                Type: VmbBool
+                Info: True if the transport layer reported chunk data to be present in the buffer
     """
     _fields_ = [
         ("buffer", c_void_p),
@@ -666,18 +645,20 @@ class VmbFrame(ctypes.Structure):
 
 class VmbFeaturePersistSettings(ctypes.Structure):
     """
-    Parameters determining the operation mode of VmbCameraSettingsSave
-    and VmbCameraSettingsLoad
+    Parameters determining the operation mode of VmbCameraSettingsSave and VmbCameraSettingsLoad
         Fields:
-            persistType        - Type: VmbFeaturePersist (VmbUint32)
-                                 Info: Type of features that are to be saved
-            modulePersistFlags - Type: VmbModulePersistFlags (VmbUint32)
-                                 Info: Flags specifying the modules to persist/load
-            maxIterations      - Type: VmbUint32
-                                 Info: Number of iterations when loading settings
-            loggingLevel       - Type: VmbUint32
-                                 Info: Determines level of detail for load/save
-                                       settings logging
+            persistType:
+                Type: VmbFeaturePersist (VmbUint32)
+                Info: Type of features that are to be saved
+            modulePersistFlags:
+                Type: VmbModulePersistFlags (VmbUint32)
+                Info: Flags specifying the modules to persist/load
+            maxIterations:
+                Type: VmbUint32
+                Info: Number of iterations when loading settings
+            loggingLevel:
+                Type: VmbUint32
+                Info: Determines level of detail for load/save settings logging
     """
     _fields_ = [
         ("persistType", VmbUint32),
@@ -825,67 +806,72 @@ def call_vmb_c(func_name: str, *args):
     For Details on valid function signatures see the 'VmbC.h'.
 
     Arguments:
-        func_name: The function name from VmbC to be called.
-        args: Varargs passed directly to the underlying C-Function.
+        func_name:
+            The function name from VmbC to be called.
+        args:
+            Varargs passed directly to the underlying C-Function.
 
     Raises:
-        TypeError if given are do not match the signature of the function.
-        AttributeError if func with name 'func_name' does not exist.
-        VmbCError if the function call is valid but neither None or VmbError.Success was returned.
+        TypeError:
+            If given are do not match the signature of the function.
+        AttributeError:
+            If func with name ``func_name`` does not exist.
+        VmbCError:
+            If the function call is valid but neither ``None`` or ``VmbError.Success`` was returned.
 
     The following functions of VmbC can be executed:
-        VmbVersionQuery
-        VmbStartup
-        VmbShutdown
-        VmbCamerasList
-        VmbCameraInfoQuery
-        VmbCameraOpen
-        VmbCameraClose
-        VmbFeaturesList
-        VmbFeatureInfoQuery
-        VmbFeatureListSelected
-        VmbFeatureAccessQuery
-        VmbFeatureIntGet
-        VmbFeatureIntSet
-        VmbFeatureIntRangeQuery
-        VmbFeatureIntIncrementQuery
-        VmbFeatureFloatGet
-        VmbFeatureFloatSet
-        VmbFeatureFloatRangeQuery
-        VmbFeatureFloatIncrementQuery
-        VmbFeatureEnumGet
-        VmbFeatureEnumSet
-        VmbFeatureEnumRangeQuery
-        VmbFeatureEnumIsAvailable
-        VmbFeatureEnumAsInt
-        VmbFeatureEnumAsString
-        VmbFeatureEnumEntryGet
-        VmbFeatureStringGet
-        VmbFeatureStringSet
-        VmbFeatureStringMaxlengthQuery
-        VmbFeatureBoolGet
-        VmbFeatureBoolSet
-        VmbFeatureCommandRun
-        VmbFeatureCommandIsDone
-        VmbFeatureRawGet
-        VmbFeatureRawSet
-        VmbFeatureRawLengthQuery
-        VmbFeatureInvalidationRegister
-        VmbFeatureInvalidationUnregister
-        VmbFrameAnnounce
-        VmbFrameRevoke
-        VmbFrameRevokeAll
-        VmbCaptureStart
-        VmbCaptureEnd
-        VmbCaptureFrameQueue
-        VmbCaptureFrameWait
-        VmbCaptureQueueFlush
-        VmbInterfacesList
-        VmbMemoryRead
-        VmbMemoryWrite
-        VmbSettingsSave
-        VmbSettingsLoad
-        VmbChunkDataAccess
+        - VmbVersionQuery
+        - VmbStartup
+        - VmbShutdown
+        - VmbCamerasList
+        - VmbCameraInfoQuery
+        - VmbCameraOpen
+        - VmbCameraClose
+        - VmbFeaturesList
+        - VmbFeatureInfoQuery
+        - VmbFeatureListSelected
+        - VmbFeatureAccessQuery
+        - VmbFeatureIntGet
+        - VmbFeatureIntSet
+        - VmbFeatureIntRangeQuery
+        - VmbFeatureIntIncrementQuery
+        - VmbFeatureFloatGet
+        - VmbFeatureFloatSet
+        - VmbFeatureFloatRangeQuery
+        - VmbFeatureFloatIncrementQuery
+        - VmbFeatureEnumGet
+        - VmbFeatureEnumSet
+        - VmbFeatureEnumRangeQuery
+        - VmbFeatureEnumIsAvailable
+        - VmbFeatureEnumAsInt
+        - VmbFeatureEnumAsString
+        - VmbFeatureEnumEntryGet
+        - VmbFeatureStringGet
+        - VmbFeatureStringSet
+        - VmbFeatureStringMaxlengthQuery
+        - VmbFeatureBoolGet
+        - VmbFeatureBoolSet
+        - VmbFeatureCommandRun
+        - VmbFeatureCommandIsDone
+        - VmbFeatureRawGet
+        - VmbFeatureRawSet
+        - VmbFeatureRawLengthQuery
+        - VmbFeatureInvalidationRegister
+        - VmbFeatureInvalidationUnregister
+        - VmbFrameAnnounce
+        - VmbFrameRevoke
+        - VmbFrameRevokeAll
+        - VmbCaptureStart
+        - VmbCaptureEnd
+        - VmbCaptureFrameQueue
+        - VmbCaptureFrameWait
+        - VmbCaptureQueueFlush
+        - VmbInterfacesList
+        - VmbMemoryRead
+        - VmbMemoryWrite
+        - VmbSettingsSave
+        - VmbSettingsLoad
+        - VmbChunkDataAccess
     """
     global _lib_instance
     getattr(_lib_instance, func_name)(*args)

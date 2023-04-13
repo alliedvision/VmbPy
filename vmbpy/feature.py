@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ ChangeHandler = Callable[['FeatureTypes'], None]
 
 class _BaseFeature:
     """This class provides most basic feature access functionality.
+
     All FeatureType implementations must derive from BaseFeature.
     """
 
@@ -85,15 +86,15 @@ class _BaseFeature:
         return rep
 
     def get_name(self) -> str:
-        """Get Feature Name, e.g. DiscoveryInterfaceEvent"""
+        """Get Feature Name, e.g. 'DiscoveryInterfaceEvent'"""
         return decode_cstr(self._info.name)
 
     def get_type(self) -> Type['_BaseFeature']:
-        """Get Feature Type, e.g. IntFeature"""
+        """Get Feature Type, e.g. ``IntFeature``"""
         return type(self)
 
     def get_flags(self) -> Tuple[FeatureFlags, ...]:
-        """Get a set of FeatureFlags, e.g. (FeatureFlags.Read, FeatureFlags.Write))"""
+        """Get a set of FeatureFlags, e.g. ``(FeatureFlags.Read, FeatureFlags.Write)``"""
         val = self._info.featureFlags
 
         # The feature flag could contain undocumented values at third bit.
@@ -115,7 +116,7 @@ class _BaseFeature:
         return self._info.pollingTime
 
     def get_unit(self) -> str:
-        """Get Unit of this Feature, e.g. 'dB' on Feature 'GainAutoMax'"""
+        """Get unit of this Feature, e.g. 'dB' on Feature 'GainAutoMax'"""
         return decode_cstr(self._info.unit)
 
     def get_representation(self) -> str:
@@ -135,7 +136,7 @@ class _BaseFeature:
         return decode_cstr(self._info.description)
 
     def get_sfnc_namespace(self) -> str:
-        """This features namespace"""
+        """Namespace of this feature"""
         return decode_cstr(self._info.sfncNamespace)
 
     def is_streamable(self) -> bool:
@@ -151,8 +152,8 @@ class _BaseFeature:
         """Get features current access mode.
 
         Returns:
-            A pair of bool. In the first bool is True, read access on this Feature is granted.
-            If the second bool is True write access on this Feature is granted.
+            A pair of bool. In the first bool is ``True``, read access on this Feature is granted.
+            If the second bool is ``True`` write access on this Feature is granted.
         """
         c_read = VmbBool(False)
         c_write = VmbBool(False)
@@ -167,7 +168,7 @@ class _BaseFeature:
         """Is read access on this Features granted?
 
         Returns:
-            True if read access is allowed on this feature. False is returned if read access
+            ``True`` if read access is allowed on this feature. ``False`` is returned if read access
             is not allowed.
         """
         r, _ = self.get_access_mode()
@@ -175,11 +176,11 @@ class _BaseFeature:
 
     @TraceEnable()
     def is_writeable(self) -> bool:
-        """Is write access on this Features granted?
+        """Is write access on this Feature granted?
 
         Returns:
-            True if write access is allowed on this feature. False is returned if write access
-            is not allowed.
+            ``True`` if write access is allowed on this feature. ``False`` is returned if write
+            access is not allowed.
         """
         _, w = self.get_access_mode()
         return w
@@ -188,15 +189,17 @@ class _BaseFeature:
     def register_change_handler(self, handler: ChangeHandler):
         """Register Callable on the Feature.
 
-        The Callable will be executed as soon as the Features value changes. The first parameter
-        on a registered handler will be called with the changed feature itself. The methods
-        returns early if a given handler is already registered.
+        The Callable will be executed as soon as the Feature value changes. The first parameter on
+        a registered handler will be called with the changed feature itself. The methods returns
+        early if a given handler is already registered.
 
         Arguments:
-            handler - The Callable that should be executed on change.
+            handler:
+                The Callable that should be executed on change.
 
         Raises:
-            TypeError if parameters do not match their type hint.
+            TypeError:
+                If parameters do not match their type hint.
         """
 
         with self.__handlers_lock:
@@ -219,15 +222,16 @@ class _BaseFeature:
     def unregister_change_handler(self, handler: ChangeHandler):
         """Remove registered Callable from the Feature.
 
-        Removes a previously registered handler from this Feature. In case the
-        handler that should be removed was never added in the first place, the method
-        returns silently.
+        Removes a previously registered ``handler`` from this Feature. In case the ``handler`` that
+        should be removed was never added in the first place, the method returns silently.
 
         Arguments:
-            handler - The Callable that should be removed.
+            handler:
+                The Callable that should be removed.
 
         Raises:
-            TypeError if parameters do not match their type hint.
+            TypeError:
+                If parameters do not match their type hint.
         """
 
         with self.__handlers_lock:
@@ -309,7 +313,8 @@ class BoolFeature(_BaseFeature):
             Feature value of type bool.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_val = VmbBool(False)
 
@@ -333,12 +338,16 @@ class BoolFeature(_BaseFeature):
         """Set current feature value of type bool.
 
         Arguments:
-            val - The boolean value to set.
+            val:
+                The boolean value to set.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
-            VmbFeatureError if called with an invalid value.
-            VmbFeatureError if executed within a registered change_handler.
+            VmbFeatureError:
+                If access rights are not sufficient.
+            VmbFeatureError:
+                If called with an invalid value.
+            VmbFeatureError:
+                If executed within a registered change_handler.
         """
         as_bool = bool(val)
 
@@ -387,7 +396,8 @@ class CommandFeature(_BaseFeature):
         """Execute command feature.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         try:
             call_vmb_c('VmbFeatureCommandRun', self._handle, self._info.name)
@@ -408,10 +418,12 @@ class CommandFeature(_BaseFeature):
         """Test if a feature execution is done.
 
         Returns:
-            True if feature was fully executed. False if the feature is still being executed.
+            ``True`` if feature was fully executed. ``False`` if the feature is still being
+            executed.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_val = VmbBool(False)
 
@@ -431,8 +443,8 @@ class CommandFeature(_BaseFeature):
 
 
 class EnumEntry:
-    """An EnumEntry represents a single value of an EnumFeature. A EnumEntry
-    is a one-to-one association between a str and an int.
+    """An EnumEntry represents a single value of an EnumFeature. An EnumEntry
+    is a one-to-one association between a ``str`` and an ``int``.
     """
     @TraceEnable()
     def __init__(self, handle: VmbHandle, feat_name: str, info: VmbFeatureEnumEntry):
@@ -454,7 +466,7 @@ class EnumEntry:
         return self.__info.name
 
     def as_tuple(self) -> Tuple[str, int]:
-        """Get EnumEntry in str and int representation"""
+        """Get EnumEntry in ``str`` and ``int`` representation"""
         return (str(self), int(self))
 
     @TraceEnable()
@@ -462,7 +474,7 @@ class EnumEntry:
         """Query if the EnumEntry can currently be used as a value.
 
         Returns:
-            True if the EnumEntry can be used as a value, otherwise False.
+            ``True`` if the EnumEntry can be used as a value, otherwise ``False``.
         """
 
         c_val = VmbBool(False)
@@ -477,7 +489,7 @@ EnumEntryTuple = Tuple[EnumEntry, ...]
 
 
 class EnumFeature(_BaseFeature):
-    """The EnumFeature is a feature where only EnumEntry values are allowed.
+    """The EnumFeature is a feature where only ``EnumEntry`` values are allowed.
     All possible values of an EnumFeature can be queried through the Feature itself.
     """
 
@@ -496,7 +508,12 @@ class EnumFeature(_BaseFeature):
             return 'EnumFeature(name={})'.format(self.get_name())
 
     def get_all_entries(self) -> EnumEntryTuple:
-        """Get a set of all possible EnumEntries of this feature."""
+        """Get a set of all possible EnumEntries of this feature.
+
+        Note:
+            It is possible that not all EnumEntries returned by this area have currently valid values.
+            See also :func:`get_available_entries`
+        """
         return self.__entries
 
     @TraceEnable()
@@ -508,14 +525,17 @@ class EnumFeature(_BaseFeature):
         """Get a specific EnumEntry.
 
         Arguments:
-            val_or_name: Look up EnumEntry either by its name or its associated value.
+            val_or_name:
+                Look up EnumEntry either by its name or its associated value.
 
         Returns:
-            EnumEntry associated with Argument 'val_or_name'.
+            EnumEntry associated with Argument ``val_or_name``.
 
         Raises:
-            TypeError if int_or_name it not of type int or type str.
-            VmbFeatureError if no EnumEntry is associated with 'val_or_name'
+            TypeError:
+                If ``int_or_name`` is not of type ``int`` or type ``str``.
+            VmbFeatureError:
+                If no EnumEntry is associated with ``val_or_name``
         """
         for entry in self.__entries:
             if type(val_or_name)(entry) == val_or_name:
@@ -529,10 +549,11 @@ class EnumFeature(_BaseFeature):
         """Get current feature value of type EnumEntry.
 
         Returns:
-            Feature value of type 'EnumEntry'.
+            Feature value of type EnumEntry.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_val = ctypes.c_char_p(None)
 
@@ -552,15 +573,19 @@ class EnumFeature(_BaseFeature):
 
     @TraceEnable()
     def set(self, val: Union[int, str, EnumEntry]):
-        """Set current feature value of type EnumFeature.
+        """Set current feature value.
 
         Arguments:
-            val - The value to set. Can be int, or str, or EnumEntry.
+            val:
+                The value to set. Can be ``int``, or ``str``, or ``EnumEntry``.
 
         Raises:
-            VmbFeatureError if val is of type int or str and does not match an EnumEntry.
-            VmbFeatureError if access rights are not sufficient.
-            VmbFeatureError if executed within a registered change_handler.
+            VmbFeatureError:
+                If val is of type ``int`` or ``str`` and does not match an ``EnumEntry``.
+            VmbFeatureError:
+                If access rights are not sufficient.
+            VmbFeatureError:
+                If executed within a registered change_handler.
         """
         if type(val) in (EnumEntry, str):
             as_entry = self.get_entry(str(val))
@@ -612,7 +637,7 @@ def _discover_enum_entries(handle: VmbHandle, feat_name: str) -> EnumEntryTuple:
 
 
 class FloatFeature(_BaseFeature):
-    """The FloatFeature is a feature represented by a floating number."""
+    """The FloatFeature is a feature represented by a floating point number."""
 
     @TraceEnable()
     def __init__(self, handle: VmbHandle, info: VmbFeatureInfo):
@@ -635,7 +660,8 @@ class FloatFeature(_BaseFeature):
             Current float value.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_val = VmbDouble(0.0)
 
@@ -661,7 +687,8 @@ class FloatFeature(_BaseFeature):
             A pair of range boundaries. First value is the minimum, second value is the maximum.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_min = VmbDouble(0.0)
         c_max = VmbDouble(0.0)
@@ -686,10 +713,11 @@ class FloatFeature(_BaseFeature):
         """Get increment (steps between valid values, starting from minimum value).
 
         Returns:
-            The increment or None if the feature currently has no increment.
+            The increment or ``None`` if the feature currently has no increment.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_has_val = VmbBool(False)
         c_val = VmbDouble(False)
@@ -714,12 +742,16 @@ class FloatFeature(_BaseFeature):
         """Set current value of type float.
 
         Arguments:
-            val - The float value to set.
+            val:
+                The float value to set.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
-            VmbFeatureError if value is out of bounds.
-            VmbFeatureError if executed within a registered change_handler.
+            VmbFeatureError:
+                If access rights are not sufficient.
+            VmbFeatureError:
+                If value is out of bounds.
+            VmbFeatureError:
+                If executed within a registered change_handler.
         """
         as_float = float(val)
 
@@ -778,7 +810,8 @@ class IntFeature(_BaseFeature):
             Current int value.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_val = VmbInt64()
 
@@ -804,7 +837,8 @@ class IntFeature(_BaseFeature):
             A pair of range boundaries. First value is the minimum, second value is the maximum.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_min = VmbInt64()
         c_max = VmbInt64()
@@ -832,7 +866,8 @@ class IntFeature(_BaseFeature):
             The increment of this feature.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_val = VmbInt64()
 
@@ -855,12 +890,16 @@ class IntFeature(_BaseFeature):
         """Set current value of type int.
 
         Arguments:
-            val - The int value to set.
+            val:
+                The int value to set.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
-            VmbFeatureError if value is out of bounds or misaligned to the increment.
-            VmbFeatureError if executed within a registered change_handler.
+            VmbFeatureError:
+                If access rights are not sufficient.
+            VmbFeatureError:
+                If value is out of bounds or misaligned to the increment.
+            VmbFeatureError:
+                If executed within a registered change_handler.
         """
         as_int = int(val)
 
@@ -926,7 +965,8 @@ class RawFeature(_BaseFeature):
             Current value.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         # Note: Coverage is skipped. RawFeature is not testable in a generic way
         c_buf_avail = VmbUint32()
@@ -953,11 +993,14 @@ class RawFeature(_BaseFeature):
         """Set current value as a sequence of bytes.
 
         Arguments:
-            val - The value to set.
+            val:
+                The value to set.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
-            VmbFeatureError if executed within a registered change_handler.
+            VmbFeatureError:
+                If access rights are not sufficient.
+            VmbFeatureError:
+                If executed within a registered change_handler.
         """
         # Note: Coverage is skipped. RawFeature is not testable in a generic way
         as_bytes = bytes(buf)
@@ -987,7 +1030,8 @@ class RawFeature(_BaseFeature):
             Length of current value.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         # Note: Coverage is skipped. RawFeature is not testable in a generic way
         c_val = VmbUint32()
@@ -1032,7 +1076,8 @@ class StringFeature(_BaseFeature):
             Current str value.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_buf_len = VmbUint32(0)
 
@@ -1073,12 +1118,16 @@ class StringFeature(_BaseFeature):
         """Set current value of type str.
 
         Arguments:
-            val - The str value to set.
+            val:
+                The str value to set.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
-            VmbFeatureError if val exceeds the maximum string length.
-            VmbFeatureError if executed within a registered change_handler.
+            VmbFeatureError:
+                If access rights are not sufficient.
+            VmbFeatureError:
+                If value exceeds the maximum string length.
+            VmbFeatureError:
+                If executed within a registered change_handler.
         """
         as_str = str(val)
 
@@ -1107,16 +1156,18 @@ class StringFeature(_BaseFeature):
     def get_max_length(self) -> int:
         """Get maximum string length the Feature can store.
 
-        In this context, string length does not mean the number of characters, it means
-        the number of bytes after encoding. A string encoded in UTF-8 could exceed
-        the maximum length. Additionally the last byte of the string feature is reserved
-        for a null-byte to indicate the end of the string.
+        Note:
+            In this context, string length does not mean the number of characters, it means the
+            number of bytes after encoding. A string encoded in UTF-8 could exceed the maximum
+            length. Additionally the last byte of the string feature is reserved for a null-byte to
+            indicate the end of the string.
 
         Returns:
             The number of ASCII characters the Feature can store.
 
         Raises:
-            VmbFeatureError if access rights are not sufficient.
+            VmbFeatureError:
+                If access rights are not sufficient.
         """
         c_max_len = VmbUint32(0)
 
@@ -1187,7 +1238,8 @@ def discover_features(handle: VmbHandle) -> FeaturesTuple:
     """Discover all features associated with the given handle.
 
     Arguments:
-        handle - VmbC entity used to find the associated features.
+        handle:
+            VmbC entity used to find the associated features.
 
     Returns:
         A set of all discovered Features associated with handle.
@@ -1216,8 +1268,10 @@ def discover_feature(handle: VmbHandle, feat_name: str) -> FeatureTypes:
     """Discover a singe feature associated with the given handle.
 
     Arguments:
-        handle     - VmbC entity used to find the associated feature.
-        feat_name: - Name of the Feature that should be searched.
+        handle:
+            VmbC entity used to find the associated feature.
+        feat_name:
+            Name of the Feature that should be searched.
 
     Returns:
         The Feature associated with 'handle' by the name of 'feat_name'

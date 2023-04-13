@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ class TransportLayer(PersistableFeatureContainer):
 
     @TraceEnable()
     def __init__(self, info: VmbTransportLayerInfo):
-        """Do not call directly. Access Transport Layers via vmbpy.VmbSystem instead."""
+        """Do not call directly. Access Transport Layers via ``vmbpy.VmbSystem`` instead."""
         super().__init__()
         self.__info: VmbTransportLayerInfo = info
         self._handle: VmbHandle = self.__info.transportLayerHandle
@@ -81,13 +81,14 @@ class TransportLayer(PersistableFeatureContainer):
         self._remove_feature_accessors()
 
     def get_interfaces(self) -> InterfacesTuple:
-        """Get all interfaces associated with the Transport Layer instance
+        """Get all interfaces associated with the Transport Layer instance.
 
         Returns:
-            A tuple of all interfaces associated with this Transport Layer
+            A tuple of all interfaces associated with this Transport Layer.
 
         Raises:
-            RuntimeError then called outside of VmbSystem "with" - context
+            RuntimeError:
+                If called outside of VmbSystem ``with`` context.
         """
         return self._get_interfaces()
 
@@ -98,13 +99,14 @@ class TransportLayer(PersistableFeatureContainer):
         raise NotImplementedError
 
     def get_cameras(self) -> CamerasTuple:
-        """Get access to cameras associated with the Transport Layer instance
+        """Get access to cameras associated with the Transport Layer instance.
 
         Returns:
-            A tuple of all cameras associated with this Transport Layer
+            A tuple of all cameras associated with this Transport Layer.
 
         Raises:
-            RuntimeError then called outside of VmbSystem "with" - context.
+            RuntimeError:
+                If called outside of VmbSystem ``with`` context.
         """
         return self._get_cameras()
 
@@ -114,19 +116,19 @@ class TransportLayer(PersistableFeatureContainer):
         raise NotImplementedError
 
     def get_id(self) -> str:
-        """Get Transport Layer Id such as VimbaGigETL"""
+        """Get Transport Layer Id such as 'VimbaGigETL'"""
         return decode_cstr(self.__info.transportLayerIdString)
 
     def get_name(self) -> str:
-        """Get Transport Layer Name such as VimbaX GigE Transport Layer"""
+        """Get Transport Layer Display Name such as 'AVT GigE Transport Layer'"""
         return decode_cstr(self.__info.transportLayerName)
 
     def get_model_name(self) -> str:
-        """Get Transport Layer Model Name such as VimbaX GigE TL"""
+        """Get Transport Layer Model Name such as 'GigETL'"""
         return decode_cstr(self.__info.transportLayerModelName)
 
     def get_vendor(self) -> str:
-        """Get Transport Layer Vendor such as Allied Vision Technologies"""
+        """Get Transport Layer Vendor such as 'Allied Vision Technologies'"""
         return decode_cstr(self.__info.transportLayerVendor)
 
     def get_version(self) -> str:
@@ -138,14 +140,14 @@ class TransportLayer(PersistableFeatureContainer):
         return decode_cstr(self.__info.transportLayerPath)
 
     def get_type(self) -> TransportLayerType:
-        """Get Transport Layer Type such as TransportLayerType.GEV"""
+        """Get Transport Layer Type such as ``TransportLayerType.GEV``"""
         return TransportLayerType(self.__info.transportLayerType)
 
     def _get_handle(self) -> VmbHandle:
         """Internal helper function to get handle of Transport Layer"""
         return self._handle
 
-    _msg = 'Called \'{}()\' outside of VmbSystems \'with\' - statement scope.'
+    _msg = 'Called \'{}()\' outside of VmbSystems \'with\' context.'
     get_all_features = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
     get_features_selected_by = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
     get_features_by_type = RaiseIfOutsideContext(msg=_msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501

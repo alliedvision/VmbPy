@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -208,9 +208,10 @@ class _CaptureFsm:
         See section "Raises" of this docstring for a short explanation.
 
         Arguments:
-            new_state: The state that the state machine should transition to or None. If a state is
-                       given, all necessary transitions are attempted. If None is given, all
-                       currently entered states will be exited.
+            new_state:
+                The state that the state machine should transition to or None. If a state is given,
+                all necessary transitions are attempted. If None is given, all currently entered
+                states will be exited.
 
         Raises:
             Any errors encountered during the state transition are cached. If only one error was
@@ -333,9 +334,8 @@ def _frame_generator(cam: Camera,
 
 
 class Stream(PersistableFeatureContainer):
-    """This class provides access to a Stream of a Camera
-    """
-    __msg = 'Called \'{}()\' outside of Cameras \'with\' - statement scope.'
+    """This class provides access to a Stream of a Camera"""
+    __msg = 'Called \'{}()\' outside of Cameras \'with\' context.'
 
     @TraceEnable()
     def __init__(self, stream_handle: VmbHandle, is_open: bool, parent_cam: Camera) -> None:
@@ -384,6 +384,7 @@ class Stream(PersistableFeatureContainer):
                             limit: Optional[int] = None,
                             timeout_ms: int = 2000,
                             allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
+        """See :func:`vmbpy.Camera.get_frame_generator`"""
         if limit is not None and (limit <= 0):
             raise ValueError('Given Limit {} is not > 0'.format(limit))
 
@@ -399,27 +400,7 @@ class Stream(PersistableFeatureContainer):
     def get_frame_with_context(self,
                                timeout_ms: int = 2000,
                                allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
-        """Gets a single frame from camera to be used inside a context manager.
-
-        Records a single frame from the camera and yields it to the caller for use inside a `with`
-        context manager. The frame may only be used inside the context, but may be copied for use
-        outside of it (e.g. via `copy.deepcopy(frame)`). The yielded frame can be used to access
-        chunk data.
-
-        Arguments:
-            timeout_ms - Timeout in milliseconds of frame acquisition.
-            allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              vmbpy or the Transport Layer
-
-        Yields:
-            Frame from camera for use in `with` context manager
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if a timeout_ms is negative.
-            VmbTimeout if Frame acquisition timed out.
-        """
+        """See :func:`vmbpy.Camera.get_frame_with_context`"""
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
                                               allocation_mode=allocation_mode):
@@ -431,27 +412,7 @@ class Stream(PersistableFeatureContainer):
     def get_frame(self,
                   timeout_ms: int = 2000,
                   allocation_mode: AllocationMode = AllocationMode.AnnounceFrame) -> Frame:
-        """Get copy of a single frame from camera. Synchronous frame acquisition.
-
-        Records a single frame from the camera, creates a copy of the frame and returns it to the
-        caller. This frame may be used by the user as long as they want but can not be used e.g. to
-        access chunk data associated with it. See also `get_frame_with_context` to avoid the frame
-        copy.
-
-        Arguments:
-            timeout_ms - Timeout in milliseconds of frame acquisition.
-            allocation_mode - Allocation mode deciding if buffer allocation should be done by
-                              vmbpy or the Transport Layer
-
-        Returns:
-            Frame from camera
-
-        Raises:
-            TypeError if parameters do not match their type hint.
-            RuntimeError if called outside "with" - statement scope.
-            ValueError if a timeout_ms is negative.
-            VmbTimeout if Frame acquisition timed out.
-        """
+        """See :func:`vmbpy.Camera.get_frame`"""
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
                                               allocation_mode=allocation_mode):
@@ -465,6 +426,7 @@ class Stream(PersistableFeatureContainer):
                         handler: FrameHandler,
                         buffer_count: int = 5,
                         allocation_mode: AllocationMode = AllocationMode.AnnounceFrame):
+        """See :func:`vmbpy.Camera.start_streaming`"""
         if buffer_count <= 0:
             raise ValueError('Given buffer_count {} must be positive'.format(buffer_count))
 
@@ -507,6 +469,7 @@ class Stream(PersistableFeatureContainer):
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
     def stop_streaming(self):
+        """See :func:`vmbpy.Camera.stop_streaming`"""
         if not self.is_streaming():
             return
 
@@ -519,13 +482,15 @@ class Stream(PersistableFeatureContainer):
 
     @TraceEnable()
     def is_streaming(self) -> bool:
-        """Returns True if the camera is currently in streaming mode. If not, returns False."""
+        """Returns ``True`` if the camera is currently in streaming mode. If not, returns ``False``.
+        """
         return self.__capture_fsm is not None and not self._parent_cam._disconnected
 
     @TraceEnable()
     @RaiseIfOutsideContext(msg=__msg)
     @RuntimeTypeCheckEnable()
     def queue_frame(self, frame: Frame):
+        """See :func:`vmbpy.Camera.queue_frame`"""
         if self.__capture_fsm is None:
             return
 

@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@ __all__ = [
 
 
 class LocalDevice(PersistableFeatureContainer):
-    """This class provides access to the Local Device of a Camera
+    """This class provides access to the Local Device of a Camera.
     """
     def __init__(self, handle: VmbHandle) -> None:
         super().__init__()
@@ -50,7 +50,7 @@ class LocalDevice(PersistableFeatureContainer):
     def _close(self):
         self._remove_feature_accessors()
 
-    __msg = 'Called \'{}()\' outside of Cameras \'with\' - statement scope.'
+    __msg = 'Called \'{}()\' outside of Cameras \'with\' context.'
     get_all_features = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_all_features)                  # noqa: E501
     get_features_selected_by = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_selected_by)  # noqa: E501
     get_features_by_type = RaiseIfOutsideContext(msg=__msg)(PersistableFeatureContainer.get_features_by_type)          # noqa: E501

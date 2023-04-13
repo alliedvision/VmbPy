@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,15 +51,15 @@ __all__ = [
 
 class VmbSystem:
     class __Impl(FeatureContainer):
-        """This class allows access to the entire VimbaX System.
-        VmbSystem is meant be used in conjunction with the "with" - Statement, upon entering the
+        """This class allows access to the entire Vimba X System.
+        VmbSystem is meant be used in conjunction with the ``with`` context. Upon entering the
         context, all system features, connected cameras and interfaces are detected and can be used.
         """
 
         @TraceEnable()
         @LeaveContextOnCall()
         def __init__(self):
-            """Do not call directly. Use VmbSystem.get_instance() instead."""
+            """Do not call directly. Use ``VmbSystem.get_instance()`` instead."""
             super().__init__()
 
             # self._handle is required so the inheritance from FeatureContainer works as expected to
@@ -105,10 +105,12 @@ class VmbSystem:
             """Enable vmbpy's logging mechanism.
 
             Arguments:
-                config - Configuration for the logging mechanism.
+                config:
+                    Configuration for the logging mechanism.
 
             Raises:
-                TypeError if parameters do not match their type hint.
+                TypeError:
+                    If parameters do not match their type hint.
             """
             Log.get_instance().enable(config)
 
@@ -121,23 +123,26 @@ class VmbSystem:
         def set_path_configuration(self, *args: str):
             """Set the path_configuration parameter that can be passed to VmbStartup.
 
-            Using this is optional. If no path configuration is set, the GENICAM_GENTL{32|64}_PATH
-            environment variables are considered
+            Using this is optional. If no path configuration is set, the
+            ``GENICAM_GENTL{32|64}_PATH`` environment variables are considered.
 
             Arguments:
-                args - Paths of directories that should be included in the path configuration. Each
-                       path should be a separate argument. The paths contain directories to search
-                       for .cti files, paths to .cti files and optionally the path to a
-                       configuration xml file.
+                args:
+                    Paths of directories that should be included in the path configuration. Each
+                    path should be a separate argument. The paths contain directories to search for
+                    .cti files, paths to .cti files and optionally the path to a configuration xml
+                    file.
+
             Returns:
                 An instance of self. This allows setting the path configuration while entering the
-                `VmbSystem` `with:` - context at the same time.
+                ``VmbSystem`` ``with`` context at the same time.
 
-                Usage example:
-                ```
-                with vmbpy.VmbSytem.get_instance().set_path_configuration('/foo', '/bar'):
-                    # do something
-                ```
+            Example:
+                Using the returned instance to directly open the ``with`` context of
+                ``VmbSystem``::
+
+                    with vmbpy.VmbSytem.get_instance().set_path_configuration('/foo', '/bar'):
+                        # do something
             """
             self.__path_configuration = os.pathsep.join(args)
             return self
@@ -149,18 +154,25 @@ class VmbSystem:
             """Read a byte sequence from a given memory address.
 
             Arguments:
-                addr: Starting address to read from.
-                max_bytes: Maximum number of bytes to read from addr.
+                addr:
+                    Starting address to read from.
+                max_bytes:
+                    Maximum number of bytes to read from addr.
 
             Returns:
                 Read memory contents as bytes.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                ValueError if addr is negative
-                ValueError if max_bytes is negative.
-                ValueError if the memory access was invalid.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
+                ValueError:
+                    If ``addr`` is negative.
+                ValueError:
+                    If ``max_bytes`` is negative.
+                ValueError:
+                    If the memory access was invalid.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
             return read_memory(G_VMB_C_HANDLE, addr, max_bytes)
@@ -172,44 +184,54 @@ class VmbSystem:
             """ Write a byte sequence to a given memory address.
 
             Arguments:
-                addr: Address to write the content of 'data' too.
-                data: Byte sequence to write at address 'addr'.
+                addr:
+                    Address to write the content of ``data`` to.
+                data:
+                    Byte sequence to write at address ``addr``.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                ValueError if addr is negative.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
+                ValueError:
+                    If ``addr`` is negative.
             """
             # Note: Coverage is skipped. Function is untestable in a generic way.
             return write_memory(G_VMB_C_HANDLE, addr, data)
 
         @RaiseIfOutsideContext()
         def get_all_transport_layers(self) -> TransportLayersTuple:
-            """Get access to all loaded Transport Layers
+            """Get access to all loaded Transport Layers.
 
             Returns:
-                A set of all currently loaded Transport Layers
+                A set of all currently loaded Transport Layers.
 
             Raises:
-                RuntimeError then called outside of "with" - statement.
+                RuntimeError:
+                    If called outside of ``with`` context.
             """
             return tuple(self.__transport_layers.values())
 
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_transport_layer_by_id(self, id_: str) -> TransportLayer:
-            """Lookup Transport Layer with given ID.
+            """Lookup Transport Layer with given Id.
 
             Arguments:
-                id_ - Transport Layer Id to search for.
+                id_:
+                    Transport Layer Id to search for.
 
             Returns:
                 Transport Layer associated with given Id.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                VmbTransportLayerError if Transport Layer with id_ can't be found.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
+                VmbTransportLayerError:
+                    If Transport Layer with ``id_`` can't be found.
             """
             tls = [tl for tl in self.__transport_layers.values() if id_ == tl.get_id()]
 
@@ -221,13 +243,14 @@ class VmbSystem:
 
         @RaiseIfOutsideContext()
         def get_all_interfaces(self) -> InterfacesTuple:
-            """Get access to all discovered Interfaces:
+            """Get access to all discovered Interfaces.
 
             Returns:
                 A set of all currently detected Interfaces.
 
             Raises:
-                RuntimeError then called outside of "with" - statement.
+                RuntimeError:
+                    If called outside of ``with`` context.
             """
             with self.__inters_lock:
                 return tuple(self.__inters.values())
@@ -235,18 +258,22 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interface_by_id(self, id_: str) -> Interface:
-            """Lookup Interface with given ID.
+            """Lookup Interface with given Id.
 
             Arguments:
-                id_ - Interface Id to search for.
+                id_:
+                    Interface Id to search for.
 
             Returns:
                 Interface associated with given Id.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                VmbInterfaceError if interface with id_ can't be found.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
+                VmbInterfaceError:
+                    If interface with ``id_`` can't be found.
             """
             with self.__inters_lock:
                 inter = [inter for inter in self.__inters.values() if id_ == inter.get_id()]
@@ -259,17 +286,20 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_interfaces_by_tl(self, tl_: TransportLayer) -> InterfacesTuple:
-            """Get access to interfaces associated with the given Transport Layer
+            """Get access to interfaces associated with the given Transport Layer.
 
             Arguments:
-                tl_ - Transport Layer whose interfaces should be returned
+                tl_:
+                    Transport Layer whose interfaces should be returned.
 
             Returns:
-                A tuple of all interfaces associated with the given Transport Layer
+                A tuple of all interfaces associated with the given Transport Layer.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
             """
             with self.__inters_lock:
                 inters = tuple(i for i in self.__inters.values() if tl_ == i.get_transport_layer())
@@ -284,7 +314,8 @@ class VmbSystem:
                 A set of all currently detected Cameras.
 
             Raises:
-                RuntimeError then called outside of "with" - statement.
+                RuntimeError:
+                    If called outside of ``with`` context.
             """
             with self.__cams_lock:
                 return tuple(self.__cams)
@@ -292,19 +323,23 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_camera_by_id(self, id_: str) -> Camera:
-            """Lookup Camera with given ID.
+            """Lookup Camera with given Id.
 
             Arguments:
-                id_ - Camera Id to search for. For GigE - Cameras, the IP and MAC-Address
-                      can be used to Camera lookup
+                id_:
+                    Camera Id to search for. For GigE Cameras, the IP and MAC Address can be used
+                    for Camera lookup.
 
             Returns:
                 Camera associated with given Id.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
-                VmbCameraError if camera with id_ can't be found.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
+                VmbCameraError:
+                    If camera with ``id_`` can't be found.
             """
             with self.__cams_lock:
                 # Search for given Camera Id in all currently detected cameras.
@@ -312,7 +347,7 @@ class VmbSystem:
                     if id_ == cam.get_id():
                         return cam
 
-                # If a search by ID fails, the given id_ is almost certain an IP or MAC - Address.
+                # If a search by ID fails, the given id_ is almost certain an IP or MAC Address.
                 # Try to query this Camera.
                 try:
                     new_cam = self.__discover_camera(id_)
@@ -337,17 +372,20 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_tl(self, tl_: TransportLayer) -> CamerasTuple:
-            """Get access to cameras associated with the given Transport Layer
+            """Get access to cameras associated with the given Transport Layer.
 
             Arguments:
-                tl_ - Transport Layer whose cameras should be returned
+                tl_:
+                    Transport Layer whose cameras should be returned.
 
             Returns:
-                A tuple of all cameras associated with the given Transport Layer
+                A tuple of all cameras associated with the given Transport Layer.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError
+                    If called outside of ``with`` context.
             """
             with self.__cams_lock:
                 cams = tuple(c for c in self.__cams if tl_ == c.get_transport_layer())
@@ -357,17 +395,20 @@ class VmbSystem:
         @RaiseIfOutsideContext()
         @RuntimeTypeCheckEnable()
         def get_cameras_by_interface(self, inter_: Interface):
-            """Get access to cameras associated with the given interface
+            """Get access to cameras associated with the given interface.
 
             Arguments:
-                inter_ - Interface whose cameras should be returned
+                inter_:
+                    Interface whose cameras should be returned.
 
             Returns:
-                A tuple of all cameras associated with the given interface
+                A tuple of all cameras associated with the given interface.
 
             Raises:
-                TypeError if parameters do not match their type hint.
-                RuntimeError then called outside of "with" - statement.
+                TypeError:
+                    If parameters do not match their type hint.
+                RuntimeError:
+                    If called outside of ``with`` context.
             """
             with self.__cams_lock:
                 cams = tuple(c for c in self.__cams if inter_ == c.get_interface())
@@ -376,13 +417,15 @@ class VmbSystem:
 
         @RuntimeTypeCheckEnable()
         def register_camera_change_handler(self, handler: CameraChangeHandler):
-            """Add Callable what is executed on camera connect/disconnect
+            """Add Callable that is executed on camera connect/disconnect.
 
             Arguments:
-                handler - The change handler that shall be added.
+                handler:
+                    The change handler that shall be added.
 
             Raises:
-                TypeError if parameters do not match their type hint.
+                TypeError:
+                    If parameters do not match their type hint.
             """
             with self.__cams_handlers_lock:
                 if handler not in self.__cams_handlers:
@@ -396,13 +439,15 @@ class VmbSystem:
 
         @RuntimeTypeCheckEnable()
         def unregister_camera_change_handler(self, handler: CameraChangeHandler):
-            """Remove previously registered camera change handler
+            """Remove previously registered camera change handler.
 
             Arguments:
-                handler - The change handler that shall be removed.
+                handler:
+                    The change handler that shall be removed.
 
             Raises:
-                TypeError if parameters do not match their type hint.
+                TypeError:
+                    If parameters do not match their type hint.
             """
             with self.__cams_handlers_lock:
                 if handler in self.__cams_handlers:
@@ -410,33 +455,37 @@ class VmbSystem:
 
         @RuntimeTypeCheckEnable()
         def register_interface_change_handler(self, handler: InterfaceChangeHandler):
-            """Add Callable what is executed on interface connect/disconnect
+            """Add Callable that is executed on interface connect/disconnect.
 
             Arguments:
-                handler - The change handler that shall be added.
+                handler:
+                    The change handler that shall be added.
 
             Raises:
-                TypeError if parameters do not match their type hint.
+                TypeError:
+                    If parameters do not match their type hint.
             """
             with self.__inters_handlers_lock:
                 if handler not in self.__inters_handlers:
                     self.__inters_handlers.append(handler)
 
         def unregister_all_interface_change_handlers(self):
-            """Remove all currently registered interface change handlers"""
+            """Remove all currently registered interface change handlers."""
             with self.__inters_handlers_lock:
                 if self.__inters_handlers:
                     self.__inters_handlers.clear()
 
         @RuntimeTypeCheckEnable()
         def unregister_interface_change_handler(self, handler: InterfaceChangeHandler):
-            """Remove previously registered interface change handler
+            """Remove previously registered interface change handler.
 
             Arguments:
-                handler - The change handler that shall be removed.
+                handler:
+                    The change handler that shall be removed.
 
             Raises:
-                TypeError if parameters do not match their type hint.
+                TypeError:
+                    If parameters do not match their type hint.
             """
             with self.__inters_handlers_lock:
                 if handler in self.__inters_handlers:
@@ -687,7 +736,8 @@ class VmbSystem:
                 call_vmb_c('VmbCameraInfoQuery', id_.encode('utf-8'), byref(info), sizeof(info))
 
             except VmbCError as e:
-                raise VmbCameraError('Failed to query camera info: \"{}\"'.format(str(e.get_error_code()))) from e
+                raise VmbCameraError('Failed to query camera info: \"{}\"'
+                                     ''.format(str(e.get_error_code()))) from e
 
             return Camera(info, self.__inters[info.interfaceHandle])
 

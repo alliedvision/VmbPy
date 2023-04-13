@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -49,14 +49,17 @@ def filter_selected_features(feats: FeaturesTuple, feat: FeatureTypes) -> Featur
     """Search for all Features selected by a given feature within a feature set.
 
     Arguments:
-        feats: Feature set to search in.
-        feat: Feature that might select Features within 'feats'.
+        feats:
+            Feature set to search in.
+        feat:
+            Feature that might select Features within 'feats'.
 
     Returns:
         A set of all features that are selected by 'feat'.
 
     Raises:
-        VmbFeatureError if 'feat' is not stored within 'feats'.
+        VmbFeatureError:
+            If 'feat' is not stored within 'feats'.
     """
     if feat not in feats:
         raise VmbFeatureError('Feature \'{}\' not in given Features'.format(feat.get_name()))
@@ -91,11 +94,13 @@ def filter_features_by_name(feats: FeaturesTuple, feat_name: str):
     """Search for a feature with a specific name within a feature set.
 
     Arguments:
-        feats: Feature set to search in.
-        feat_name: Feature name to look for.
+        feats:
+            Feature set to search in.
+        feat_name:
+            Feature name to look for.
 
     Returns:
-        The Feature with the name 'feat_name' or None if lookup failed
+        The Feature with the name ``feat_name`` or ``None`` if lookup failed
     """
     filtered = [feat for feat in feats if feat_name == feat.get_name()]
     return filtered.pop() if filtered else None
@@ -106,11 +111,13 @@ def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypeTypes) -
     """Search for all features with a specific type within a given feature set.
 
     Arguments:
-        feats: Feature set to search in.
-        feat_type: Feature Type to search for
+        feats:
+            Feature set to search in.
+        feat_type:
+            Feature Type to search for
 
     Returns:
-        A set of all features of type 'feat_type' in 'feats'. If no matching type is found an
+        A set of all features of type ``feat_type`` in ``feats``. If no matching type is found an
         empty set is returned.
     """
     return tuple([feat for feat in feats if type(feat) == feat_type])
@@ -121,11 +128,13 @@ def filter_features_by_category(feats: FeaturesTuple, category: str) -> Features
     """Search for all features of a given category.
 
     Arguments:
-        feats: Feature set to search in.
-        category: Category to filter for
+        feats:
+            Feature set to search in.
+        category:
+            Category to filter for
 
     Returns:
-        A set of all features of category 'category' in 'feats'. If no matching type is found an
+        A set of all features of category ``category`` in ``feats``. If no matching type is found an
         empty set is returned.
     """
     return tuple([feat for feat in feats if feat.get_category() == category])
@@ -136,8 +145,10 @@ def attach_feature_accessors(obj, feats: FeaturesTuple):
     """Attach all Features in feats to obj under the feature name.
 
     Arguments:
-        obj: Object feats should be attached on.
-        feats: Features to attach.
+        obj:
+            Object feats should be attached on.
+        feats:
+            Features to attach.
     """
     BLACKLIST = (
         'PixelFormat',   # PixelFormats have special access methods.
@@ -154,8 +165,10 @@ def remove_feature_accessors(obj, feats: FeaturesTuple):
     """Remove all Features in feats from obj.
 
     Arguments:
-        obj: Object, feats should be removed from.
-        feats: Features to remove.
+        obj:
+            Object, feats should be removed from.
+        feats:
+            Features to remove.
     """
     for feat in feats:
         try:
@@ -170,17 +183,23 @@ def read_memory(handle: VmbHandle, addr: int, max_bytes: int) -> bytes:  # cover
     """Read a byte sequence from a given memory address.
 
     Arguments:
-        handle: Handle on entity that allows raw memory access.
-        addr: Starting address to read from.
-        max_bytes: Maximum number of bytes to read from addr.
+        handle:
+            Handle on entity that allows raw memory access.
+        addr:
+            Starting address to read from.
+        max_bytes:
+            Maximum number of bytes to read from addr.
 
     Returns:
         Read memory contents as bytes.
 
     Raises:
-        ValueError if addr is negative
-        ValueError if max_bytes is negative.
-        ValueError if the memory access was invalid.
+        ValueError:
+            If addr is negative
+        ValueError:
+            If max_bytes is negative.
+        ValueError:
+            If the memory access was invalid.
     """
     # Note: Coverage is skipped. Function is untestable in a generic way.
     _verify_addr(addr)
@@ -204,13 +223,18 @@ def write_memory(handle: VmbHandle, addr: int, data: bytes):  # coverage: skip
     """ Write a byte sequence to a given memory address.
 
     Arguments:
-        handle: Handle on entity that allows raw memory access.
-        addr: Address to write the content of 'data' too.
-        data: Byte sequence to write at address 'addr'.
+        handle:
+            Handle on entity that allows raw memory access.
+        addr:
+            Address to write the content of 'data' too.
+        data:
+            Byte sequence to write at address 'addr'.
 
     Raises:
-        ValueError if addr is negative.
-        ValueError if the memory access was invalid.
+        ValueError:
+            If addr is negative.
+        ValueError:
+            If the memory access was invalid.
     """
     # Note: Coverage is skipped. Function is untestable in a generic way.
     _verify_addr(addr)

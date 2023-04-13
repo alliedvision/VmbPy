@@ -61,13 +61,15 @@ class ScopedLogEnable:
     logging of a code section compared to enabling or disabling the global logging mechanism.
 
     Arguments:
-        config: The configuration the log should be enabled with.
+        config:
+            The configuration the log should be enabled with.
     """
     def __init__(self, config: LogConfig):
         """Add scoped logging to a Callable.
 
         Arguments:
-            config: The configuration the log should be enabled with.
+            config:
+                The configuration the log should be enabled with.
         """
         self.__config = config
 

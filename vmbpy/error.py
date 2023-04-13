@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -44,10 +44,11 @@ class _LoggedError(Exception):
 
 
 class VmbSystemError(_LoggedError):
-    """Errors related to the underlying VimbaX System
+    """Errors related to the underlying Vimba X System
 
     Error type to indicate system-wide errors like:
-    - Incomplete VimbaX installation
+
+    - Incomplete Vimba X installation
     - Incompatible version of the underlying C-Layer
     - An unsupported OS
     """
@@ -57,7 +58,8 @@ class VmbSystemError(_LoggedError):
 class VmbTransportLayerError(_LoggedError):
     """Errors related to Transport Layers
 
-    Error type to indicate Transport Layer related errors like
+    Error type to indicate Transport Layer related errors like:
+
     - Lookup of a non-existing Transport Layer
     """
     pass
@@ -67,6 +69,7 @@ class VmbCameraError(_LoggedError):
     """Errors related to cameras
 
     Error Type to indicate camera-related errors like:
+
     - Access of a disconnected Camera object
     - Lookup of non-existing cameras
     """
@@ -77,6 +80,7 @@ class VmbInterfaceError(_LoggedError):
     """Errors related to Interfaces
 
     Error Type to indicated interface-related errors like:
+
     - Access on a disconnected Interface object
     - Lookup of a non-existing Interface
     """
@@ -87,6 +91,7 @@ class VmbFeatureError(_LoggedError):
     """Error related to Feature access
 
     Error type to indicate invalid Feature access like:
+
     - Invalid access mode on Feature access.
     - Out of range values upon setting a value.
     - Failed lookup of features.
