@@ -1,6 +1,6 @@
 """BSD 2-Clause License
 
-Copyright (c) 2022, Allied Vision Technologies GmbH
+Copyright (c) 2023, Allied Vision Technologies GmbH
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -25,12 +25,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import sys
-import threading
 from typing import Optional
-
-import cv2
+from queue import Queue
 
 from vmbpy import *
+
 
 # All frames will either be recorded in this format, or transformed to it before being displayed
 opencv_display_format = PixelFormat.Bgr8
@@ -149,18 +148,17 @@ def setup_pixel_format(cam: Camera):
 
 class Handler:
     def __init__(self):
-        self.shutdown_event = threading.Event()
+        self.display_queue = Queue(10)
+
+
+    def get_image(self):
+        return self.display_queue.get(True)
+
 
     def __call__(self, cam: Camera, stream: Stream, frame: Frame):
-        ENTER_KEY_CODE = 13
-
-        key = cv2.waitKey(1)
-        if key == ENTER_KEY_CODE:
-            self.shutdown_event.set()
-            return
-
-        elif frame.get_status() == FrameStatus.Complete:
+        if frame.get_status() == FrameStatus.Complete:
             print('{} acquired {}'.format(cam, frame), flush=True)
+
             # Convert frame if it is not already the correct format
             if frame.get_pixel_format() == opencv_display_format:
                 display = frame
@@ -169,8 +167,7 @@ class Handler:
                 # safely while `display` is used
                 display = frame.convert_pixel_format(opencv_display_format)
 
-            msg = 'Stream from \'{}\'. Press <Enter> to stop stream.'
-            cv2.imshow(msg.format(cam.get_name()), display.as_opencv_image())
+            self.display_queue.put(display.as_opencv_image(), True)
 
         cam.queue_frame(frame)
 
@@ -189,7 +186,18 @@ def main():
             try:
                 # Start Streaming with a custom a buffer of 10 Frames (defaults to 5)
                 cam.start_streaming(handler=handler, buffer_count=10)
-                handler.shutdown_event.wait()
+
+                msg = 'Stream from \'{}\'. Press <Enter> to stop stream.'
+                import cv2
+                ENTER_KEY_CODE = 13
+                while True:
+                    key = cv2.waitKey(1)
+                    if key == ENTER_KEY_CODE:
+                        cv2.destroyWindow(msg.format(cam.get_name()))
+                        break
+
+                    display = handler.get_image()
+                    cv2.imshow(msg.format(cam.get_name()), display)
 
             finally:
                 cam.stop_streaming()
