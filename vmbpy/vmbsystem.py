@@ -509,10 +509,7 @@ class VmbSystem:
                 if self.__path_configuration:
                     msg += f'. "path_configuration" was set to "{self.__path_configuration}"'
                 raise Exc(msg) from e
-
-            self.__transport_layers = self.__discover_transport_layers()
-            self.__inters = self.__discover_interfaces()
-            self.__cams = self.__discover_cameras()
+            
             self._attach_feature_accessors()
 
             feat = self.get_feature_by_name('EventInterfaceDiscovery')
@@ -520,6 +517,10 @@ class VmbSystem:
 
             feat = self.get_feature_by_name('EventCameraDiscovery')
             feat.register_change_handler(self.__cam_cb_wrapper)
+
+            self.__transport_layers = self.__discover_transport_layers()
+            self.__inters = self.__discover_interfaces()
+            self.__cams = self.__discover_cameras()
 
         @TraceEnable()
         @LeaveContextOnCall()
@@ -562,11 +563,13 @@ class VmbSystem:
             # Existing camera lost. Remove it from active cameras
             elif event == CameraEvent.Missing:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()  # noqa: E501
-                    cam._disconnected = True
-                    self.__cams.remove(cam)
+                    cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
+                    if cam_list:
+                        cam = cam_list.pop()
+                        cam._disconnected = True
+                        self.__cams.remove(cam)
 
-                log.info('Removed camera \"{}\" from active cameras'.format(cam_id))
+                        log.info('Removed camera \"{}\" from active cameras'.format(cam_id))
 
             # Camera access mode changed. Need to update cached permitted access modes
             elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
