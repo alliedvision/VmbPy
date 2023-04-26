@@ -112,3 +112,11 @@ following command can be executed to generate the usage description.
 ```
 python run_tests.py -h
 ```
+
+# Beta Disclaimer
+Please be aware that all code revisions not explicitly listed in the Github Release section are considered a **Beta Version**.
+
+For Beta Versions, the following applies:
+
+
+THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS. A PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND THE IDENTIFICATION OF DEFECT SOFTWARE, HARDWARE AND DOCUMENTATION.
