@@ -118,8 +118,8 @@ class VmbSystem:
             """Disable vmbpy's logging mechanism."""
             Log.get_instance().disable()
 
-        @TraceEnable()
         @RaiseIfInsideContext()
+        @TraceEnable()
         def set_path_configuration(self, *args: str):
             """Set the path_configuration parameter that can be passed to VmbStartup.
 
@@ -147,8 +147,8 @@ class VmbSystem:
             self.__path_configuration = os.pathsep.join(args)
             return self
 
-        @TraceEnable()
         @RaiseIfOutsideContext()
+        @TraceEnable()
         @RuntimeTypeCheckEnable()
         def read_memory(self, addr: int, max_bytes: int) -> bytes:  # coverage: skip
             """Read a byte sequence from a given memory address.
@@ -177,8 +177,8 @@ class VmbSystem:
             # Note: Coverage is skipped. Function is untestable in a generic way.
             return read_memory(G_VMB_C_HANDLE, addr, max_bytes)
 
-        @TraceEnable()
         @RaiseIfOutsideContext()
+        @TraceEnable()
         @RuntimeTypeCheckEnable()
         def write_memory(self, addr: int, data: bytes):  # coverage: skip
             """ Write a byte sequence to a given memory address.
