@@ -60,7 +60,12 @@ class StreamTest(VmbPyTestCase):
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
 
     def tearDown(self):
-        self.cam._close()
+        # In some test cases the camera might already have been closed. In that case an additional
+        # call to `cam._close` will result in an error. This can be ignored in our test tearDown.
+        try:
+            self.cam._close()
+        except Exception:
+            pass
         self.vmb._shutdown()
 
     def test_stream_feature_discovery(self):
