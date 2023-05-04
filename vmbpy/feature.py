@@ -511,8 +511,8 @@ class EnumFeature(_BaseFeature):
         """Get a set of all possible EnumEntries of this feature.
 
         Note:
-            It is possible that not all EnumEntries returned by this area have currently valid values.
-            See also :func:`get_available_entries`
+            It is possible that not all EnumEntries returned by this area have currently valid
+            values. See also :func:`get_available_entries`
         """
         return self.__entries
 

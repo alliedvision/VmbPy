@@ -509,7 +509,7 @@ class VmbSystem:
                 if self.__path_configuration:
                     msg += f'. "path_configuration" was set to "{self.__path_configuration}"'
                 raise Exc(msg) from e
-            
+
             self._attach_feature_accessors()
 
             feat = self.get_feature_by_name('EventInterfaceDiscovery')
