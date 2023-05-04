@@ -152,10 +152,10 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
         # Make sure that the error message for these classes references their parent scope
         self.assertRaisesRegex(RuntimeError,
-                               'outside of VmbSystem.* scope',
+                               'outside of VmbSystem.* context',
                                tl.load_settings)
         self.assertRaisesRegex(RuntimeError,
-                               'outside of VmbSystem.* scope',
+                               'outside of VmbSystem.* context',
                                inter.load_settings)
 
         # Start VmbSystem again so tearDown method works as expected
@@ -173,10 +173,10 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
         # Make sure that the error message for these classes references their parent scope
         self.assertRaisesRegex(RuntimeError,
-                               'outside of VmbSystem.* scope',
+                               'outside of VmbSystem.* context',
                                tl.save_settings)
         self.assertRaisesRegex(RuntimeError,
-                               'outside of VmbSystem.* scope',
+                               'outside of VmbSystem.* context',
                                inter.save_settings)
 
         # Start VmbSystem again so tearDown method works as expected

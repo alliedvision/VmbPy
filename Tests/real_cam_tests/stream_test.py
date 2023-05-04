@@ -308,26 +308,26 @@ class StreamTest(VmbPyTestCase):
         # stream.close() here if that implicit behavior should not be relied upon
         self.cam._close()
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.get_all_features)
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.get_features_selected_by,
                                feat)
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.get_features_by_type,
                                IntFeature)
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.get_features_by_category,
                                'foo')
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.get_feature_by_name,
                                feat_name)
 

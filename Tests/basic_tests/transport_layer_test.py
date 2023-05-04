@@ -170,25 +170,25 @@ class TransportLayerTest(VmbPyTestCase):
 
         for tl, feat in tls_and_feats:
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    tl.get_all_features)
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    tl.get_features_selected_by,
                                    feat)
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    tl.get_features_by_type,
                                    IntFeature)
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    tl.get_features_by_category,
                                    'foo')
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    tl.get_feature_by_name,
                                    'foo')

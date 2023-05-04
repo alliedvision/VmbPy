@@ -165,10 +165,10 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
         # Make sure that the error message for these classes references their parent scope
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.load_settings)
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.load_settings)
 
     def test_save_settings_api_context_sensitivity_inside_context(self):
@@ -183,8 +183,8 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
 
         # Make sure that the error message for these classes references their parent scope
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                stream.save_settings)
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.save_settings)
