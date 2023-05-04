@@ -26,6 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import os
 import sys
+import tempfile
 
 from vmbpy import *
 
@@ -101,46 +102,43 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
         # path to the given File. Everything else is a ValueError.
 
         # create a temporary directory to test relative paths with subdirs
-        tmpdir = '__vmbpy_tmp_dir'
-        os.mkdir(tmpdir)
-        valid_paths = (
-            'valid1.xml',
-            os.path.join('.', 'valid2.xml'),
-            os.path.join(tmpdir, 'valid3.xml'),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4.xml'),
-        )
-        tl = self.vmb.get_all_transport_layers()[0]
-        self.assertRaises(ValueError, tl.save_settings, 'inval.xm')
+        with tempfile.TemporaryDirectory() as tmpdir:
+            valid_paths = (
+                'valid1_save.xml',
+                os.path.join('.', 'valid2_save.xml'),
+                os.path.join(tmpdir, 'valid3_save.xml'),
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4_save.xml'),
+            )
+            tl = self.vmb.get_all_transport_layers()[0]
+            self.assertRaises(ValueError, tl.save_settings, 'inval.xm')
 
-        for path in valid_paths:
-            self.assertNoRaise(tl.save_settings, path)
-            os.remove(path)
-        os.rmdir(tmpdir)
+            for path in valid_paths:
+                self.assertNoRaise(tl.save_settings, path)
+                os.remove(path)
 
     def test_load_settings_verify_path(self):
         # Expectation: Valid files end with .xml and must exist before before any execution.
 
         # create a temporary directory to test relative paths with subdirs
-        tmpdir = '__vmbpy_tmp_dir'
-        os.mkdir(tmpdir)
-        valid_paths = (
-            'valid1.xml',
-            os.path.join('.', 'valid2.xml'),
-            os.path.join(tmpdir, 'valid3.xml'),
-            os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4.xml'),
-        )
-        tl = self.vmb.get_all_transport_layers()[0]
-        self.assertRaises(ValueError, tl.load_settings, 'inval.xm', PersistType.All)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            valid_paths = (
+                'valid1_load.xml',
+                os.path.join('.', 'valid2_load.xml'),
+                os.path.join(tmpdir, 'valid3_load.xml'),
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), 'valid4_load.xml'),
+            )
+            tl = self.vmb.get_all_transport_layers()[0]
+            self.assertRaises(ValueError, tl.load_settings, 'inval.xm', PersistType.All)
 
-        for path in valid_paths:
-            self.assertRaises(ValueError, tl.load_settings, path, PersistType.All)
+            for path in valid_paths:
+                self.assertRaises(ValueError, tl.load_settings, path, PersistType.All)
 
-        for path in valid_paths:
-            tl.save_settings(path, PersistType.All)
+            for path in valid_paths:
+                tl.save_settings(path, PersistType.All)
 
-            self.assertNoRaise(tl.load_settings, path, PersistType.All)
-            os.remove(path)
-        os.rmdir(tmpdir)
+                self.assertNoRaise(tl.load_settings, path, PersistType.All)
+                os.remove(path)
+
 
     def test_load_settings_api_context_sensitivity_inside_context(self):
         # Expectation: Calling load_settings outside of VmbSystem context raises a RuntimeError and
