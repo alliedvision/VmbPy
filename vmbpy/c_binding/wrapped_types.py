@@ -128,7 +128,7 @@ class PixelFormat(enum.IntEnum):
     Mono10 = VmbPixelFormat.Mono10              #: Monochrome, 10 bits in 16 bits (PFNC Mono10)
     Mono10p = VmbPixelFormat.Mono10p            #: Monochrome, 4x10 bits continuously packed in 40 bits (PFNC Mono10p)
     Mono12 = VmbPixelFormat.Mono12              #: Monochrome, 12 bits in 16 bits (PFNC Mono12)
-    Mono12Packed = VmbPixelFormat.Mono12Packed  #: Monochrome, 2x12 bits in 24 bits (GEV:Mono12Packed)
+    Mono12Packed = VmbPixelFormat.Mono12Packed  #: Monochrome, 2x12 bits in 24 bits (GEV Mono12Packed)
     Mono12p = VmbPixelFormat.Mono12p            #: Monochrome, 2x12 bits continuously packed in 24 bits (PFNC Mono12p)
     Mono14 = VmbPixelFormat.Mono14              #: Monochrome, 14 bits in 16 bits (PFNC Mono14)
     Mono16 = VmbPixelFormat.Mono16              #: Monochrome, 16 bits (PFNC Mono16)
@@ -146,10 +146,10 @@ class PixelFormat(enum.IntEnum):
     BayerRG12 = VmbPixelFormat.BayerRG12              #: Bayer-color, 12 bits in 16 bits, starting with RG line (PFNC BayerRG12)
     BayerGB12 = VmbPixelFormat.BayerGB12              #: Bayer-color, 12 bits in 16 bits, starting with GB line (PFNC BayerGB12)
     BayerBG12 = VmbPixelFormat.BayerBG12              #: Bayer-color, 12 bits in 16 bits, starting with BG line (PFNC BayerBG12)
-    BayerGR12Packed = VmbPixelFormat.BayerGR12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with GR line (GEV:BayerGR12Packed)
-    BayerRG12Packed = VmbPixelFormat.BayerRG12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with RG line (GEV:BayerRG12Packed)
-    BayerGB12Packed = VmbPixelFormat.BayerGB12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with GB line (GEV:BayerGB12Packed)
-    BayerBG12Packed = VmbPixelFormat.BayerBG12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with BG line (GEV:BayerBG12Packed)
+    BayerGR12Packed = VmbPixelFormat.BayerGR12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with GR line (GEV BayerGR12Packed)
+    BayerRG12Packed = VmbPixelFormat.BayerRG12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with RG line (GEV BayerRG12Packed)
+    BayerGB12Packed = VmbPixelFormat.BayerGB12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with GB line (GEV BayerGB12Packed)
+    BayerBG12Packed = VmbPixelFormat.BayerBG12Packed  #: Bayer-color, 2x12 bits in 24 bits, starting with BG line (GEV BayerBG12Packed)
     BayerGR10p = VmbPixelFormat.BayerGR10p            #: Bayer-color, 4x10 bits continuously packed in 40 bits, starting with GR line (PFNC BayerGR10p)
     BayerRG10p = VmbPixelFormat.BayerRG10p            #: Bayer-color, 4x10 bits continuously packed in 40 bits, starting with RG line (PFNC BayerRG10p)
     BayerGB10p = VmbPixelFormat.BayerGB10p            #: Bayer-color, 4x10 bits continuously packed in 40 bits, starting with GB line (PFNC BayerGB10p)
@@ -189,9 +189,9 @@ class PixelFormat(enum.IntEnum):
     Bgra16 = VmbPixelFormat.Bgra16  #: BGRA, 16 bits x 4
 
     # YUV Formats
-    Yuv411 = VmbPixelFormat.Yuv411  #: YUV 411 with 8 bits (GEV:YUV411Packed)
-    Yuv422 = VmbPixelFormat.Yuv422  #: YUV 422 with 8 bits (GEV:YUV422Packed)
-    Yuv444 = VmbPixelFormat.Yuv444  #: YUV 444 with 8 bits (GEV:YUV444Packed)
+    Yuv411 = VmbPixelFormat.Yuv411  #: YUV 411 with 8 bits (GEV YUV411Packed)
+    Yuv422 = VmbPixelFormat.Yuv422  #: YUV 422 with 8 bits (GEV YUV422Packed)
+    Yuv444 = VmbPixelFormat.Yuv444  #: YUV 444 with 8 bits (GEV YUV444Packed)
 
     # YCbCr Formats
     YCbCr411_8_CbYYCrYY = VmbPixelFormat.YCbCr411_8_CbYYCrYY  #: YCbCr 411 with 8 bits (PFNC YCbCr411_8_CbYYCrYY) - identical to Yuv411
