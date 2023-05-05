@@ -450,7 +450,8 @@ class Frame:
     @RuntimeTypeCheckEnable()
     def convert_pixel_format(self,
                              target_fmt: PixelFormat,
-                             debayer_mode: Optional[Debayer] = None) -> 'Frame':
+                             debayer_mode: Optional[Debayer] = None,
+                             destination_buffer: Optional[memoryview] = None) -> 'Frame':
         """Return a converted version of the frame in the given format.
 
         This method always returns a new frame object and leaves the original instance unchanged.
@@ -468,6 +469,8 @@ class Frame:
                 Non-default algorithm used to debayer images in Bayer Formats. If no mode is
                 specified, default debayering mode of the image transform library is applied. If the
                 current format is not a Bayer format, this parameter is silently ignored.
+            destination_buffer:
+                TODO
 
         Raises:
             TypeError:
@@ -511,8 +514,19 @@ class Frame:
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
-        output_frame = Frame(buffer_size=img_size,
-                             allocation_mode=AllocationMode.AnnounceFrame)
+        if destination_buffer:
+            if (destination_buffer.nbytes < img_size
+                or not destination_buffer.contiguous
+                or destination_buffer.readonly):
+                # TODO: Raise a more appropriate exception here. Or should this simply print a
+                # warning and fall back to allocating a buffer anyway?
+                raise Exception
+            output_frame = Frame(buffer_size=img_size,
+                                 allocation_mode=AllocationMode.AllocAndAnnounceFrame)
+            output_frame._set_buffer((ctypes.c_ubyte * img_size).from_buffer(destination_buffer))
+        else:
+            output_frame = Frame(buffer_size=img_size,
+                                 allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
         c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
 
