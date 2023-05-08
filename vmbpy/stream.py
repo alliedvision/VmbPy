@@ -393,8 +393,8 @@ class Stream(PersistableFeatureContainer):
 
         return _frame_generator(self._parent_cam, self, limit, timeout_ms, allocation_mode)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     @contextlib.contextmanager
     def get_frame_with_context(self,

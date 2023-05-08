@@ -28,6 +28,7 @@ import os
 import sys
 
 from vmbpy.util import *
+from vmbpy.util.tracer import _Tracer
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -141,3 +142,11 @@ class TracerTest(VmbPyTestCase):
 
             test_obj()
             self.assertEqual(len(logs.records), 8)
+
+    def test_tracer_is_log_enabled(self):
+        # Expectation: The `_Tracer` class correctly determines if logging is enabled or disabled.
+        # This reduces overhead by not attempting to create trace entries if logging has been
+        # completely disabled
+        self.assertTrue(_Tracer.is_log_enabled())  # Logging is enabled in `setUp` of the test class
+        self.log.disable()
+        self.assertFalse(_Tracer.is_log_enabled())

@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from functools import reduce, wraps
 from inspect import signature
+from logging import NullHandler
 
 from .log import Log
 
@@ -92,7 +93,9 @@ class _Tracer:
 
     @staticmethod
     def is_log_enabled() -> bool:
-        return bool(_Tracer.__log)
+        # If there are any handler registered that are not `NullHandler`s logging is considered to
+        # be enabled
+        return not all([isinstance(handler, NullHandler) for handler in _Tracer.__log.handlers])
 
     def __init__(self, func, *args, **kwargs):
         self.__full_name: str = '{}.{}'.format(func.__module__, func.__qualname__)

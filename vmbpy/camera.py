@@ -181,8 +181,8 @@ class Camera(PersistableFeatureContainer):
         """Returns the instance of ``LocalDevice`` associated with this Camera."""
         return self.__local_device
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def read_memory(self, addr: int, max_bytes: int) -> bytes:  # coverage: skip
         """Read a byte sequence from a given memory address.
@@ -211,8 +211,8 @@ class Camera(PersistableFeatureContainer):
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return read_memory(self._handle, addr, max_bytes)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def write_memory(self, addr: int, data: bytes):  # coverage: skip
         """Write a byte sequence to a given memory address.
@@ -234,8 +234,8 @@ class Camera(PersistableFeatureContainer):
         # Note: Coverage is skipped. Function is untestable in a generic way.
         return write_memory(self._handle, addr, data)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_frame_generator(self,
                             limit: Optional[int] = None,
@@ -277,8 +277,8 @@ class Camera(PersistableFeatureContainer):
                                                      timeout_ms=timeout_ms,
                                                      allocation_mode=allocation_mode)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     @contextlib.contextmanager
     def get_frame_with_context(self,
@@ -316,8 +316,8 @@ class Camera(PersistableFeatureContainer):
                                               allocation_mode=allocation_mode):
             yield frame
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def get_frame(self,
                   timeout_ms: int = 2000,
@@ -352,8 +352,8 @@ class Camera(PersistableFeatureContainer):
         return self.__streams[0].get_frame(timeout_ms=timeout_ms,
                                            allocation_mode=allocation_mode)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def start_streaming(self,
                         handler: FrameHandler,
@@ -390,8 +390,8 @@ class Camera(PersistableFeatureContainer):
                                           buffer_count=buffer_count,
                                           allocation_mode=allocation_mode)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     def stop_streaming(self):
         """Leave streaming mode.
 
@@ -416,8 +416,8 @@ class Camera(PersistableFeatureContainer):
             # No streams are opened. So the camera connection is not open. Cam is not streaming
             return False
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def queue_frame(self, frame: Frame):
         """Reuse acquired frame in streaming mode.
@@ -442,8 +442,8 @@ class Camera(PersistableFeatureContainer):
         """
         self.__streams[0].queue_frame(frame=frame)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     def get_pixel_formats(self) -> FormatTuple:
         """Get supported pixel formats from Camera.
 
@@ -470,8 +470,8 @@ class Camera(PersistableFeatureContainer):
 
         return tuple(result)
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     def get_pixel_format(self):
         """Get current pixel format.
 
@@ -488,8 +488,8 @@ class Camera(PersistableFeatureContainer):
             if k.upper() == enum_value:
                 return PixelFormat[k]
 
-    @TraceEnable()
     @RaiseIfOutsideContext()
+    @TraceEnable()
     @RuntimeTypeCheckEnable()
     def set_pixel_format(self, fmt: PixelFormat):
         """Set current pixel format.
