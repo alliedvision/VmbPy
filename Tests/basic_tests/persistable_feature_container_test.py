@@ -139,7 +139,6 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
                 self.assertNoRaise(tl.load_settings, path, PersistType.All)
                 os.remove(path)
 
-
     def test_load_settings_api_context_sensitivity_inside_context(self):
         # Expectation: Calling load_settings outside of VmbSystem context raises a RuntimeError and
         # the error message references the VmbSystem context
