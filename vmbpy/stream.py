@@ -169,7 +169,7 @@ class _StateAcquiring(_State):
         frame_handle = _frame_handle_accessor(frame)
         try:
             call_vmb_c('VmbCaptureFrameWait', self.context.stream_handle, byref(frame_handle),
-                        timeout_ms)
+                       timeout_ms)
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
@@ -277,7 +277,8 @@ def _frame_generator(cam: Camera,
     if stream.is_streaming():
         raise VmbCameraError('Operation not supported while streaming.')
 
-    buffer_alignment_feature = filter_features_by_name(stream.get_all_features(), 'StreamBufferAlignment')
+    buffer_alignment_feature = filter_features_by_name(stream.get_all_features(),
+                                                       'StreamBufferAlignment')
     if buffer_alignment_feature:
         buffer_alignment = buffer_alignment_feature.get()
     else:
@@ -293,11 +294,14 @@ def _frame_generator(cam: Camera,
     # multiple frames but only used the frame at index 0 for actual data transmission for
     # synchronous acquisition
     buffer_count = 1
-    buffer_minimum_feature = filter_features_by_name(stream.get_all_features(), 'StreamAnnounceBufferMinimum')
+    buffer_minimum_feature = filter_features_by_name(stream.get_all_features(),
+                                                     'StreamAnnounceBufferMinimum')
     if buffer_minimum_feature:
         buffer_count = max(buffer_count, buffer_minimum_feature.get())
 
-    frames = tuple(Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment) for _ in range(buffer_count))
+    frames = tuple([Frame(frame_data_size.value,
+                          allocation_mode,
+                          buffer_alignment=buffer_alignment) for _ in range(buffer_count)])
     frame = frames[0]
     # FRAME_CALLBACK_TYPE() is equivalent to passing None (i.e. nullptr), but allows ctypes to still
     # perform type checking
@@ -439,7 +443,8 @@ class Stream(PersistableFeatureContainer):
                                  ''.format(self, self._parent_cam.get_id()))
 
         # Setup capturing fsm
-        buffer_alignment_feature = filter_features_by_name(self.get_all_features(), 'StreamBufferAlignment')
+        buffer_alignment_feature = filter_features_by_name(self.get_all_features(),
+                                                           'StreamBufferAlignment')
         if buffer_alignment_feature:
             buffer_alignment = buffer_alignment_feature.get()
         else:
@@ -452,7 +457,8 @@ class Stream(PersistableFeatureContainer):
         except VmbCError as e:
             raise _build_camera_error(self._parent_cam, self, e) from e
 
-        buffer_minimum_feature = filter_features_by_name(self.get_all_features(), 'StreamAnnounceBufferMinimum')
+        buffer_minimum_feature = filter_features_by_name(self.get_all_features(),
+                                                         'StreamAnnounceBufferMinimum')
         if buffer_minimum_feature:
             buffer_count = max(buffer_count, buffer_minimum_feature.get())
 
