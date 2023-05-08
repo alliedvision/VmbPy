@@ -165,16 +165,13 @@ class _StateAcquiring(_State):
             raise VmbCError(str(e))
 
     @TraceEnable()
-    def wait_for_frames(self, timeout_ms: int):
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbCaptureFrameWait', self.context.stream_handle, byref(frame_handle),
-                           timeout_ms)
-
-            except VmbCError as e:
-                raise _build_camera_error(self.context.cam, self.context.stream, e) from e
+    def wait_for_frame(self, timeout_ms: int, frame: Frame):
+        frame_handle = _frame_handle_accessor(frame)
+        try:
+            call_vmb_c('VmbCaptureFrameWait', self.context.stream_handle, byref(frame_handle),
+                        timeout_ms)
+        except VmbCError as e:
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
     @TraceEnable()
     def queue_frame(self, frame):
@@ -262,10 +259,10 @@ class _CaptureFsm:
         # Revert state machine until the initial state is reached
         self.go_to_state(None)
 
-    def wait_for_frames(self, timeout_ms: int):
+    def wait_for_frame(self, timeout_ms: int, frame: Frame):
         # Wait for Frames only in AcquiringMode
         if isinstance(self.__states[-1], _StateAcquiring):
-            self.__states[-1].wait_for_frames(timeout_ms)
+            self.__states[-1].wait_for_frame(timeout_ms, frame)
 
     def queue_frame(self, frame):
         # Queue Frame only in AcquiringMode
@@ -314,7 +311,7 @@ def _frame_generator(cam: Camera,
         fsm.enter_capturing_mode()
         while True if limit is None else cnt < limit:
             exc = None
-            fsm.wait_for_frames(timeout_ms)
+            fsm.wait_for_frame(timeout_ms, frame)
             # If an error is encountered while we stop the camera, store it for later. The frame is
             # still yielded to the user and only once they are done with it is the exception raised.
             try:
