@@ -435,9 +435,9 @@ class Stream(PersistableFeatureContainer):
                                  ''.format(self, self._parent_cam.get_id()))
 
         # Setup capturing fsm
-        feat = filter_features_by_name(self.get_all_features(), 'StreamBufferAlignment')
-        if feat:
-            buffer_alignment = feat.get()
+        buffer_alignment_feature = filter_features_by_name(self.get_all_features(), 'StreamBufferAlignment')
+        if buffer_alignment_feature:
+            buffer_alignment = buffer_alignment_feature.get()
         else:
             buffer_alignment = 1
 
@@ -447,6 +447,10 @@ class Stream(PersistableFeatureContainer):
 
         except VmbCError as e:
             raise _build_camera_error(self._parent_cam, self, e) from e
+
+        buffer_minimum_feature = filter_features_by_name(self.get_all_features(), 'StreamAnnounceBufferMinimum')
+        if buffer_minimum_feature:
+            buffer_count = max(buffer_count, buffer_minimum_feature.get())
 
         frames = tuple([Frame(payload_size.value,
                               allocation_mode,
