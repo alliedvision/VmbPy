@@ -145,26 +145,26 @@ class InterfaceTest(VmbPyTestCase):
 
         for inter, feat in inters_and_feats:
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    inter.get_all_features)
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    inter.get_features_selected_by,
                                    feat)
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    inter.get_features_by_type,
                                    IntFeature)
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    inter.get_features_by_category,
                                    'foo')
 
             self.assertRaisesRegex(RuntimeError,
-                                   'outside of VmbSystem.* scope',
+                                   'outside of VmbSystem.* context',
                                    inter.get_feature_by_name,
                                    'foo')
 

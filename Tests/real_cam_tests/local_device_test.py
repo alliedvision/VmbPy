@@ -54,7 +54,12 @@ class LocalDeviceTest(VmbPyTestCase):
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
 
     def tearDown(self):
-        self.cam._close()
+        # In some test cases the camera might already have been closed. In that case an additional
+        # call to `cam._close` will result in an error. This can be ignored in our test tearDown.
+        try:
+            self.cam._close()
+        except Exception:
+            pass
         self.vmb._shutdown()
 
     def test_local_device_feature_discovery(self):
@@ -107,26 +112,26 @@ class LocalDeviceTest(VmbPyTestCase):
         # local_device._close here if that implicit behavior should not be relied upon
         self.cam._close()
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.get_all_features)
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.get_features_selected_by,
                                feat)
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.get_features_by_type,
                                IntFeature)
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.get_features_by_category,
                                'foo')
 
         self.assertRaisesRegex(RuntimeError,
-                               'outside of Camera.* scope',
+                               'outside of Camera.* context',
                                local_device.get_feature_by_name,
                                feat_name)
         # open camera context again so tearDown works as expected
