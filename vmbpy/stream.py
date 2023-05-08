@@ -174,13 +174,11 @@ class _StateAcquiring(_State):
             raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
     @TraceEnable()
-    def queue_frame(self, frame):
+    def queue_frame(self, frame: Frame):
         frame_handle = _frame_handle_accessor(frame)
-
         try:
             call_vmb_c('VmbCaptureFrameQueue', self.context.stream_handle, byref(frame_handle),
                        self.context.frames_callback)
-
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
@@ -264,7 +262,7 @@ class _CaptureFsm:
         if isinstance(self.__states[-1], _StateAcquiring):
             self.__states[-1].wait_for_frame(timeout_ms, frame)
 
-    def queue_frame(self, frame):
+    def queue_frame(self, frame: Frame):
         # Queue Frame only in AcquiringMode
         if isinstance(self.__states[-1], _StateAcquiring):
             self.__states[-1].queue_frame(frame)
