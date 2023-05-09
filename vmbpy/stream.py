@@ -297,7 +297,12 @@ def _frame_generator(cam: Camera,
     buffer_minimum_feature = filter_features_by_name(stream.get_all_features(),
                                                      'StreamAnnounceBufferMinimum')
     if buffer_minimum_feature:
-        buffer_count = max(buffer_count, buffer_minimum_feature.get())
+        buffer_minimum = buffer_minimum_feature.get()
+        if not buffer_count >= buffer_minimum:
+            msg = '`StreamAnnounceBufferMinimum` indicates at least {} buffers are needed. ' \
+                  'Overriding previous number of frames (was {})'
+            Log.get_instance().info(msg.format(buffer_minimum, buffer_count))
+            buffer_count = buffer_minimum
 
     frames = tuple([Frame(frame_data_size.value,
                           allocation_mode,
@@ -460,7 +465,12 @@ class Stream(PersistableFeatureContainer):
         buffer_minimum_feature = filter_features_by_name(self.get_all_features(),
                                                          'StreamAnnounceBufferMinimum')
         if buffer_minimum_feature:
-            buffer_count = max(buffer_count, buffer_minimum_feature.get())
+            buffer_minimum = buffer_minimum_feature.get()
+            if not buffer_count >= buffer_minimum:
+                msg = '`StreamAnnounceBufferMinimum` indicates at least {} buffers are needed. ' \
+                      'Overriding user supplied value (was {})'
+                Log.get_instance().info(msg.format(buffer_minimum, buffer_count))
+                buffer_count = buffer_minimum
 
         frames = tuple([Frame(payload_size.value,
                               allocation_mode,
