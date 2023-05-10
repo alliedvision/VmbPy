@@ -70,22 +70,6 @@ def parse_args() -> Optional[str]:
     return None if argc == 0 else args[0]
 
 
-def print_feature(feature):
-    try:
-        value = feature.get()
-
-    except (AttributeError, VmbFeatureError):
-        value = None
-
-    print('/// Feature name   : {}'.format(feature.get_name()))
-    print('/// Display name   : {}'.format(feature.get_display_name()))
-    print('/// Tooltip        : {}'.format(feature.get_tooltip()))
-    print('/// Description    : {}'.format(feature.get_description()))
-    print('/// SFNC Namespace : {}'.format(feature.get_sfnc_namespace()))
-    print('/// Unit           : {}'.format(feature.get_unit()))
-    print('/// Value          : {}\n'.format(str(value)))
-
-
 def get_camera(camera_id: Optional[str]) -> Camera:
     with VmbSystem.get_instance() as vmb:
         if camera_id:
@@ -116,10 +100,10 @@ def setup_camera(cam: Camera):
             pass
 
         try:
-            # Turn on all Chunk features
+            # Turn on a selection of Chunk features
             cam.ChunkModeActive.set(False)
-            for value in cam.ChunkSelector.get_available_entries():
-                cam.ChunkSelector.set(value)
+            for selector in ('FrameID', 'Timestamp', 'Width', 'Height'):
+                cam.ChunkSelector.set(selector)
                 cam.ChunkEnable.set(True)
             cam.ChunkModeActive.set(True)
         except (AttributeError, VmbFeatureError):
@@ -133,10 +117,13 @@ class FrameHandler:
         cam.queue_frame(frame)
 
     def chunk_callback(self, features: FeatureContainer):
-        # Print all chunk specific features for this example. More features are available (e.g. via
-        # features.get_all_features())
-        for feat in features.get_features_by_category("/ChunkDataControl"):
-            print_feature(feat)
+        # Print information provided by chunk features that were enabled for this example. More
+        # features are available (e.g. via features.get_all_features())
+        print('Chunk Data: id={}, timestamp={}, width={}, height={}'
+              ''.format(features.ChunkFrameID.get(),
+                        features.ChunkTimestamp.get(),
+                        features.ChunkWidth.get(),
+                        features.ChunkHeight.get()), flush=True)
 
 
 def main():
