@@ -165,25 +165,20 @@ class _StateAcquiring(_State):
             raise VmbCError(str(e))
 
     @TraceEnable()
-    def wait_for_frames(self, timeout_ms: int):
-        for frame in self.context.frames:
-            frame_handle = _frame_handle_accessor(frame)
-
-            try:
-                call_vmb_c('VmbCaptureFrameWait', self.context.stream_handle, byref(frame_handle),
-                           timeout_ms)
-
-            except VmbCError as e:
-                raise _build_camera_error(self.context.cam, self.context.stream, e) from e
+    def wait_for_frame(self, timeout_ms: int, frame: Frame):
+        frame_handle = _frame_handle_accessor(frame)
+        try:
+            call_vmb_c('VmbCaptureFrameWait', self.context.stream_handle, byref(frame_handle),
+                       timeout_ms)
+        except VmbCError as e:
+            raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
     @TraceEnable()
-    def queue_frame(self, frame):
+    def queue_frame(self, frame: Frame):
         frame_handle = _frame_handle_accessor(frame)
-
         try:
             call_vmb_c('VmbCaptureFrameQueue', self.context.stream_handle, byref(frame_handle),
                        self.context.frames_callback)
-
         except VmbCError as e:
             raise _build_camera_error(self.context.cam, self.context.stream, e) from e
 
@@ -262,12 +257,12 @@ class _CaptureFsm:
         # Revert state machine until the initial state is reached
         self.go_to_state(None)
 
-    def wait_for_frames(self, timeout_ms: int):
+    def wait_for_frame(self, timeout_ms: int, frame: Frame):
         # Wait for Frames only in AcquiringMode
         if isinstance(self.__states[-1], _StateAcquiring):
-            self.__states[-1].wait_for_frames(timeout_ms)
+            self.__states[-1].wait_for_frame(timeout_ms, frame)
 
-    def queue_frame(self, frame):
+    def queue_frame(self, frame: Frame):
         # Queue Frame only in AcquiringMode
         if isinstance(self.__states[-1], _StateAcquiring):
             self.__states[-1].queue_frame(frame)
@@ -282,9 +277,10 @@ def _frame_generator(cam: Camera,
     if stream.is_streaming():
         raise VmbCameraError('Operation not supported while streaming.')
 
-    feat = filter_features_by_name(stream.get_all_features(), 'StreamBufferAlignment')
-    if feat:
-        buffer_alignment = feat.get()
+    buffer_alignment_feature = filter_features_by_name(stream.get_all_features(),
+                                                       'StreamBufferAlignment')
+    if buffer_alignment_feature:
+        buffer_alignment = buffer_alignment_feature.get()
     else:
         buffer_alignment = 1
 
@@ -294,10 +290,27 @@ def _frame_generator(cam: Camera,
     except VmbCError as e:
         raise _build_camera_error(cam, stream, e) from e
 
-    frame = Frame(frame_data_size.value, allocation_mode, buffer_alignment=buffer_alignment)
+    # Some streams require a minimum number of announced frame buffers to work. VmbPy will announce
+    # multiple frames but only used the frame at index 0 for actual data transmission for
+    # synchronous acquisition
+    buffer_count = 1
+    buffer_minimum_feature = filter_features_by_name(stream.get_all_features(),
+                                                     'StreamAnnounceBufferMinimum')
+    if buffer_minimum_feature:
+        buffer_minimum = buffer_minimum_feature.get()
+        if not buffer_count >= buffer_minimum:
+            msg = '`StreamAnnounceBufferMinimum` indicates at least {} buffers are needed. ' \
+                  'Overriding previous number of frames (was {})'
+            Log.get_instance().info(msg.format(buffer_minimum, buffer_count))
+            buffer_count = buffer_minimum
+
+    frames = tuple([Frame(frame_data_size.value,
+                          allocation_mode,
+                          buffer_alignment=buffer_alignment) for _ in range(buffer_count)])
+    frame = frames[0]
     # FRAME_CALLBACK_TYPE() is equivalent to passing None (i.e. nullptr), but allows ctypes to still
     # perform type checking
-    fsm = _CaptureFsm(_Context(cam, stream, (frame, ), None, FRAME_CALLBACK_TYPE()))
+    fsm = _CaptureFsm(_Context(cam, stream, frames, None, FRAME_CALLBACK_TYPE()))
     cnt = 0
 
     try:
@@ -305,7 +318,7 @@ def _frame_generator(cam: Camera,
         fsm.enter_capturing_mode()
         while True if limit is None else cnt < limit:
             exc = None
-            fsm.wait_for_frames(timeout_ms)
+            fsm.wait_for_frame(timeout_ms, frame)
             # If an error is encountered while we stop the camera, store it for later. The frame is
             # still yielded to the user and only once they are done with it is the exception raised.
             try:
@@ -435,9 +448,10 @@ class Stream(PersistableFeatureContainer):
                                  ''.format(self, self._parent_cam.get_id()))
 
         # Setup capturing fsm
-        feat = filter_features_by_name(self.get_all_features(), 'StreamBufferAlignment')
-        if feat:
-            buffer_alignment = feat.get()
+        buffer_alignment_feature = filter_features_by_name(self.get_all_features(),
+                                                           'StreamBufferAlignment')
+        if buffer_alignment_feature:
+            buffer_alignment = buffer_alignment_feature.get()
         else:
             buffer_alignment = 1
 
@@ -447,6 +461,16 @@ class Stream(PersistableFeatureContainer):
 
         except VmbCError as e:
             raise _build_camera_error(self._parent_cam, self, e) from e
+
+        buffer_minimum_feature = filter_features_by_name(self.get_all_features(),
+                                                         'StreamAnnounceBufferMinimum')
+        if buffer_minimum_feature:
+            buffer_minimum = buffer_minimum_feature.get()
+            if not buffer_count >= buffer_minimum:
+                msg = '`StreamAnnounceBufferMinimum` indicates at least {} buffers are needed. ' \
+                      'Overriding user supplied value (was {})'
+                Log.get_instance().info(msg.format(buffer_minimum, buffer_count))
+                buffer_count = buffer_minimum
 
         frames = tuple([Frame(payload_size.value,
                               allocation_mode,
