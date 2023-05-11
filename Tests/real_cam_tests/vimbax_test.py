@@ -95,7 +95,8 @@ class CamVimbaTest(VmbPyTestCase):
         with self.vmb:
             self.assertNoRaise(self.vmb.get_camera_by_id, camera_id)
 
-    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"), "Test skipped in simulation mode.")
+    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"),
+                     "Test skipped in simulation mode.")
     def test_get_camera_by_ip(self):
         # Expected Behavior: get_camera_by_id() must work with a valid ipv4 address.
         # A with lookup of an invalid ipv4 address (no Camera attached)
@@ -126,7 +127,8 @@ class CamVimbaTest(VmbPyTestCase):
             ip_addr = str(ipaddress.IPv6Address('FD00::DEAD:BEEF'))
             self.assertRaises(VmbCameraError, self.vmb.get_camera_by_id, ip_addr)
 
-    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"), "Test skipped in simulation mode.")
+    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"),
+                     "Test skipped in simulation mode.")
     def test_get_camera_by_mac(self):
         # Expected Behavior: get_feature_by_id must be usable with a given MAC Address.
         with self.vmb:

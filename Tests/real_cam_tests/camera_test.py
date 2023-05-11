@@ -285,7 +285,8 @@ class CamCameraTest(VmbPyTestCase):
             for _ in gener:
                 pass
 
-    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"), "Test skipped in simulation mode.")
+    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"),
+                     "Test skipped in simulation mode.")
     def test_camera_capture_timeout(self):
         # Expectation: Camera access outside of Camera scope must lead to a VmbTimeout
         with self.cam:
