@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import os
 import sys
 import threading
+import unittest
 
 from vmbpy import *
 from vmbpy.feature import *
@@ -272,6 +273,7 @@ class CamCommandFeatureTest(VmbPyTestCase):
         self.assertEqual(self.feat.get_type(), CommandFeature)
 
 
+@unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"), "Test suite skipped in simulation mode.")
 class CamEnumFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()
