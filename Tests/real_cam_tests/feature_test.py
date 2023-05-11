@@ -273,7 +273,8 @@ class CamCommandFeatureTest(VmbPyTestCase):
         self.assertEqual(self.feat.get_type(), CommandFeature)
 
 
-@unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"), "Test suite skipped in simulation mode.")
+@unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"),
+                 "Test suite skipped in simulation mode.")
 class CamEnumFeatureTest(VmbPyTestCase):
     def setUp(self):
         self.vmb = VmbSystem.get_instance()

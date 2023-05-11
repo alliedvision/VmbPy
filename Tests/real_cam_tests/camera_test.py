@@ -145,6 +145,9 @@ class CamCameraTest(VmbPyTestCase):
         for mode in self.cam.get_permitted_access_modes():
             self.assertIn(mode, expected)
 
+    @unittest.skipIf(sys.platform.startswith('linux'),
+                     'Multiple VmbSystem startups via Multiprocessing seems to be problematic on '
+                     'Linux')
     def test_permitted_access_mode_is_updated(self):
         # Expectation: When the camera is opened, permitted access mode changes
         device_unreachable_event = threading.Event()
@@ -285,7 +288,8 @@ class CamCameraTest(VmbPyTestCase):
             for _ in gener:
                 pass
 
-    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"), "Test skipped in simulation mode.")
+    @unittest.skipIf(VmbPyTestCase.get_test_camera_id().startswith("Sim"),
+                     "Test skipped in simulation mode.")
     def test_camera_capture_timeout(self):
         # Expectation: Camera access outside of Camera scope must lead to a VmbTimeout
         with self.cam:

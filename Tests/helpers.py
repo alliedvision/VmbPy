@@ -37,14 +37,14 @@ class VmbPyTestCase(unittest.TestCase):
     Adds the static functions `get_test_camera_id` and `set_test_camera_id` to simplify opening the
     appropriate device for testing.
     """
-    test_cam_id = ''
+    # Initial guess for test cam id is reading appropriate environment variable. If the user
+    # supplies a value after importing this helper class it will overwrite that initial guess. If
+    # the environment variable is empty and the user does not supply a device ID before `setUpClass`
+    # is called, this class will try to detect available cameras and choose the first one.
+    test_cam_id = os.getenv('VMBPY_DEVICE_ID', '')
 
     @classmethod
     def setUpClass(cls):
-        if not VmbPyTestCase.get_test_camera_id():
-            # Try to read device id from environment variable. If it is not set test_cam_id will
-            # still be an empty string
-            VmbPyTestCase.set_test_camera_id(os.getenv('VMBPY_DEVICE_ID', ''))
         if not VmbPyTestCase.get_test_camera_id():
             with vmbpy.VmbSystem.get_instance() as vmb:
                 try:
