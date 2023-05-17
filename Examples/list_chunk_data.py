@@ -87,30 +87,49 @@ def get_camera(camera_id: Optional[str]) -> Camera:
             return cams[0]
 
 
-def setup_camera(cam: Camera):
-    with cam:
-        # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
-        try:
-            stream = cam.get_streams()[0]
-            stream.GVSPAdjustPacketSize.run()
-            while not stream.GVSPAdjustPacketSize.is_done():
+class ChunkExample:
+    def __init__(self, cam: Camera) -> None:
+        self.cam = cam
+        self.enabled_chunk_selectors = []
+
+    def run(self):
+        with self.cam:
+            self.setup_camera()
+            print('Press <enter> to stop Frame acquisition.')
+            try:
+                self.cam.start_streaming(handler=self.frame_callback, buffer_count=10)
+                input()
+            finally:
+                self.cam.stop_streaming()
+
+    def setup_camera(self):
+        with self.cam:
+            # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
+            try:
+                stream = self.cam.get_streams()[0]
+                stream.GVSPAdjustPacketSize.run()
+                while not stream.GVSPAdjustPacketSize.is_done():
+                    pass
+
+            except (AttributeError, VmbFeatureError):
                 pass
 
-        except (AttributeError, VmbFeatureError):
-            pass
+            try:
+                # Turn on a selection of Chunk features
+                self.cam.ChunkModeActive.set(False)
+                for selector in ('FrameID', 'Timestamp', 'Width', 'Height'):
+                    try:
+                        self.cam.ChunkSelector.set(selector)
+                        self.cam.ChunkEnable.set(True)
+                        self.enabled_chunk_selectors.append(selector)
+                    except VmbFeatureError:
+                        print('The device does not support chunk feature "{}". It was not enabled.'
+                              ''.format(selector))
+                self.cam.ChunkModeActive.set(True)
+            except (AttributeError, VmbFeatureError):
+                abort('Failed to enable Chunk Mode for camera \'{}\'. Abort.'
+                      ''.format(self.cam.get_id()))
 
-        try:
-            # Turn on a selection of Chunk features
-            cam.ChunkModeActive.set(False)
-            for selector in ('FrameID', 'Timestamp', 'Width', 'Height'):
-                cam.ChunkSelector.set(selector)
-                cam.ChunkEnable.set(True)
-            cam.ChunkModeActive.set(True)
-        except (AttributeError, VmbFeatureError):
-            abort('Failed to enable Chunk Mode for camera \'{}\'. Abort.'.format(cam.get_id()))
-
-
-class FrameHandler:
     def frame_callback(self, cam: Camera, stream: Stream, frame: Frame):
         print('{} acquired {}'.format(cam, frame), flush=True)
         frame.access_chunk_data(self.chunk_callback)
@@ -119,11 +138,16 @@ class FrameHandler:
     def chunk_callback(self, features: FeatureContainer):
         # Print information provided by chunk features that were enabled for this example. More
         # features are available (e.g. via features.get_all_features())
-        print('Chunk Data: id={}, timestamp={}, width={}, height={}'
-              ''.format(features.ChunkFrameID.get(),
-                        features.ChunkTimestamp.get(),
-                        features.ChunkWidth.get(),
-                        features.ChunkHeight.get()), flush=True)
+        if self.enabled_chunk_selectors:
+            msg = 'Chunk Data:'
+            for selector in self.enabled_chunk_selectors:
+                chunk_feature_name = 'Chunk' + selector
+                # Access to chunk data is only possible via the passed FeatureContainer instance
+                chunk_feature = features.get_feature_by_name(chunk_feature_name)
+                msg += ' {}={}'.format(chunk_feature_name, chunk_feature.get())
+        else:
+            msg = 'No chunk selectors were enabled. No chunk data to show.'
+        print(msg, flush=True)
 
 
 def main():
@@ -131,19 +155,9 @@ def main():
     cam_id = parse_args()
 
     with VmbSystem.get_instance():
-        with get_camera(cam_id) as cam:
-
-            setup_camera(cam)
-            print('Press <enter> to stop Frame acquisition.')
-
-            try:
-                # Start Streaming
-                handler = FrameHandler()
-                cam.start_streaming(handler=handler.frame_callback, buffer_count=10)
-                input()
-
-            finally:
-                cam.stop_streaming()
+        cam = get_camera(cam_id)
+        chunk_example = ChunkExample(cam)
+        chunk_example.run()
 
 
 if __name__ == '__main__':
