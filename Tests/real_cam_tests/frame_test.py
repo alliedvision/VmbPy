@@ -311,7 +311,6 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # them element-wise
         self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer))
 
-# - Does the buffer contain the expected data? e.g. for RGB to BGR is the channel order flipped?
     def test_image_data_is_as_expected(self):
         # Expectation: Format conversion works correctly. Tested here only with RGB8 -> BGR8 as the
         # flipped channel order is easy to verify with numpy. Not a full test for the image
