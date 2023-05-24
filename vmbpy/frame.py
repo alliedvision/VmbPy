@@ -487,8 +487,20 @@ class Frame:
         fmt = self.get_pixel_format()
 
         if fmt == target_fmt:
-            # TODO: This does not work correctly if the user supplied a buffer!
-            return copy.deepcopy(self)
+            memo = {}
+            if destination_buffer is not None:
+                if (destination_buffer.nbytes < img_size
+                    or not destination_buffer.contiguous
+                    or destination_buffer.readonly):
+                    # TODO: Raise a more appropriate exception here. Or should this simply print a
+                    # warning and fall back to allocating a buffer anyway?
+                    raise Exception
+                # Skip deepcopy of self._buffer for the returned frame. A user supplied buffer
+                # already exists and we are copying the image data to it here
+                _buffer = (ctypes.c_ubyte * sizeof(self._buffer)).from_buffer(destination_buffer)
+                ctypes.memmove(_buffer, self._buffer, sizeof(self._buffer))
+                memo[id(self._buffer)] = _buffer
+            return copy.deepcopy(self, memo)
 
         if target_fmt not in fmt.get_convertible_formats():
             raise ValueError('Current PixelFormat can\'t be converted into given format.')
