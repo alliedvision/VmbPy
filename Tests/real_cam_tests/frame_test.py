@@ -32,6 +32,11 @@ import sys
 from vmbpy import *
 from vmbpy.frame import *
 
+try:
+    import numpy as np
+except ImportError:
+    np = None
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from helpers import VmbPyTestCase
@@ -246,3 +251,110 @@ class CamFrameTest(VmbPyTestCase):
 
         # Perform some calculation with numpy array to ensure that access is possible
         self.assertNoRaise(np_array.mean)
+
+
+class UserSuppliedBufferTest(VmbPyTestCase):
+    def setUp(self):
+        if np is None:
+            self.skipTest('Numpy is needed for these tests')
+
+        self.vmb = VmbSystem.get_instance()
+        self.vmb._startup()
+
+        try:
+            self.cam = self.vmb.get_camera_by_id(self.get_test_camera_id())
+
+        except VmbCameraError as e:
+            self.vmb._shutdown()
+            raise Exception('Failed to lookup Camera.') from e
+
+    def tearDown(self):
+        self.vmb._shutdown()
+
+    def test_conversion_writes_to_user_supplied_buffer(self):
+        # Expectation: Performing a conversion from one format to another writes pixel data to the
+        # user supplied buffer
+        record_format = PixelFormat.Rgb8
+        target_format = PixelFormat.Bgr8
+        with self.cam:
+            self.cam.set_pixel_format(record_format)
+            original_frame = self.cam.get_frame()
+        # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
+        # buffer. We can then reuse that buffer for future conversions
+        np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
+        np_buffer[:] = 0  # Set buffer to 0 to be sure that next conversion writes new data to it
+        self.assertEqual(np_buffer.sum(), 0, 'buffer values were not set to 0 correctly')
+        # Discard VmbPy Frame. We are only interested to see if the buffer values actually changed
+        _ = original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer.data)
+        self.assertNotEqual(np_buffer.sum(),
+                            0,
+                            'destination_buffer still contains only 0s. Either data was not '
+                            'written to buffer or recorded camera image contained only 0s')
+
+    def test_conversion_to_same_format_as_input(self):
+        # Expectation: If the target format is the same as the input format the image data in the
+        # user supplied buffer is identical to the input frame
+        record_format = PixelFormat.Rgb8
+        with self.cam:
+            self.cam.set_pixel_format(record_format)
+            original_frame = self.cam.get_frame()
+        # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
+        # buffer. We can then reuse that buffer for future conversions
+        np_buffer = original_frame.convert_pixel_format(original_frame.get_pixel_format()) \
+                                  .as_numpy_ndarray()
+        np_buffer[:] = 0  # Set buffer to 0 to be sure that next conversion writes new data to it
+        self.assertEqual(np_buffer.sum(), 0, 'buffer values were not set to 0 correctly')
+        converted_frame = original_frame.convert_pixel_format(original_frame.get_pixel_format(),
+                                                              destination_buffer=np_buffer.data)
+        self.assertEqual(original_frame.get_pixel_format(), converted_frame.get_pixel_format())
+        # Since target format is the same as input format all elements should be identical. Compare
+        # them element-wise
+        self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer))
+
+# - Does the buffer contain the expected data? e.g. for RGB to BGR is the channel order flipped?
+    def test_image_data_is_as_expected(self):
+        # Expectation: Format conversion works correctly. Tested here only with RGB8 -> BGR8 as the
+        # flipped channel order is easy to verify with numpy. Not a full test for the image
+        # transform library
+        record_format = PixelFormat.Rgb8
+        target_format = PixelFormat.Bgr8
+        with self.cam:
+            self.cam.set_pixel_format(record_format)
+            original_frame = self.cam.get_frame()
+        # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
+        # buffer. We can then reuse that buffer for future conversions
+        np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
+        np_buffer[:] = 0  # Set buffer to 0 to be sure that next conversion writes new data to it
+        self.assertEqual(np_buffer.sum(), 0, 'buffer values were not set to 0 correctly')
+        _ = original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer.data)
+        self.assertNotEqual(np_buffer.sum(),
+                            0,
+                            'destination_buffer still contains only 0s. Either data was not '
+                            'written to buffer or recorded camera image contained only 0s')
+        # BGR8 is just RGB8 with the channel order flipped. Compare the actual pixel data by
+        # flipping channels again and comparing element-wise
+        self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer[:, :, ::-1]))
+
+    def test_numpy_reports_shared_memory_for_user_buffer_and_new_ndarray(self):
+        # Expectation: If a numpy array is taken of the frame conversion result numpy reports that
+        # it shares memory with the user supplied buffer
+        record_format = PixelFormat.Rgb8
+        target_format = PixelFormat.Bgr8
+        with self.cam:
+            self.cam.set_pixel_format(record_format)
+            original_frame = self.cam.get_frame()
+        # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
+        # buffer. We can then reuse that buffer for future conversions
+        np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
+        np_buffer[:] = 0  # Set buffer to 0 to be sure that next conversion writes new data to it
+        self.assertEqual(np_buffer.sum(), 0, 'buffer values were not set to 0 correctly')
+        conversion_result = original_frame.convert_pixel_format(target_format,
+                                                                destination_buffer=np_buffer.data)
+        self.assertNotEqual(np_buffer.sum(),
+                            0,
+                            'destination_buffer still contains only 0s. Either data was not '
+                            'written to buffer or recorded camera image contained only 0s')
+        # Creating a numpy array from the conversion results uses the user supplied buffer
+        self.assertTrue(np.shares_memory(conversion_result.as_numpy_ndarray(), np_buffer))
+        # No memory is shared with the original frame
+        self.assertFalse(np.shares_memory(original_frame.as_numpy_ndarray(), np_buffer))

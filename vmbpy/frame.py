@@ -487,6 +487,7 @@ class Frame:
         fmt = self.get_pixel_format()
 
         if fmt == target_fmt:
+            # TODO: This does not work correctly if the user supplied a buffer!
             return copy.deepcopy(self)
 
         if target_fmt not in fmt.get_convertible_formats():
