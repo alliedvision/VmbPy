@@ -354,6 +354,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
                             'destination_buffer still contains only 0s. Either data was not '
                             'written to buffer or recorded camera image contained only 0s')
         # Creating a numpy array from the conversion results uses the user supplied buffer
-        self.assertTrue(np.shares_memory(conversion_result.as_numpy_ndarray(), np_buffer))
+        conversion_result_np_array = conversion_result.as_numpy_ndarray()
+        self.assertTrue(np.shares_memory(conversion_result_np_array, np_buffer))
         # No memory is shared with the original frame
         self.assertFalse(np.shares_memory(original_frame.as_numpy_ndarray(), np_buffer))
+        # Additional check: if the conversion_result_np_array changes the same change should be
+        # visible in np_buffer since they use the same memory
+        conversion_result_np_array.flat[0] += 1
+        self.assertEqual(conversion_result_np_array.flat[0], np_buffer.flat[0])
