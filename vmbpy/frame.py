@@ -261,8 +261,10 @@ class Frame:
                 raise BufferError(msg.format(len(buffer), self._frame.bufferSize))
             self._buffer = buffer
         else:
-            self._buffer = ctypes.cast(buffer,
-                                       ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)).contents
+            self._buffer = ctypes.cast(
+                buffer,
+                ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)
+            ).contents
 
     def get_buffer(self) -> ctypes.Array:
         """Get internal buffer object containing image data and (if existent) chunk data."""
@@ -496,8 +498,8 @@ class Frame:
             memo = {}
             if destination_buffer is not None:
                 if (destination_buffer.nbytes < sizeof(self._buffer)
-                    or not destination_buffer.contiguous
-                    or destination_buffer.readonly):
+                        or not destination_buffer.contiguous
+                        or destination_buffer.readonly):
                     # TODO: Raise a more appropriate exception here. Or should this simply print a
                     # warning and fall back to allocating a buffer anyway?
                     raise Exception
@@ -535,8 +537,8 @@ class Frame:
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
         if destination_buffer:
             if (destination_buffer.nbytes < img_size
-                or not destination_buffer.contiguous
-                or destination_buffer.readonly):
+                    or not destination_buffer.contiguous
+                    or destination_buffer.readonly):
                 # TODO: Raise a more appropriate exception here. Or should this simply print a
                 # warning and fall back to allocating a buffer anyway?
                 raise Exception
