@@ -255,8 +255,14 @@ class Frame:
 
         Useful if frames were allocated with AllocationMode.AllocAndAnnounce
         """
-        self._buffer = ctypes.cast(buffer,
-                                   ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)).contents
+        if isinstance(buffer, ctypes.Array) and buffer._type_ == ctypes.c_ubyte:
+            if len(buffer) < self._frame.bufferSize:
+                msg = 'The given buffer is {} bytes large but the needed bufferSize is {}'
+                raise BufferError(msg.format(len(buffer), self._frame.bufferSize))
+            self._buffer = buffer
+        else:
+            self._buffer = ctypes.cast(buffer,
+                                       ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)).contents
 
     def get_buffer(self) -> ctypes.Array:
         """Get internal buffer object containing image data and (if existent) chunk data."""
