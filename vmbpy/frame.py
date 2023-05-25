@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import copy
 import ctypes
 import enum
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 
 from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PixelFormat, VmbCError,
                         VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle, VmbImage,
@@ -250,7 +250,7 @@ class Frame:
 
         return result
 
-    def _set_buffer(self, buffer: ctypes.c_void_p):
+    def _set_buffer(self, buffer: Union[ctypes.c_void_p, ctypes.Array]):
         """Set self._buffer to memory pointed to by passed buffer pointer
 
         Useful if frames were allocated with AllocationMode.AllocAndAnnounce
