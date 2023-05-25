@@ -489,7 +489,7 @@ class Frame:
         if fmt == target_fmt:
             memo = {}
             if destination_buffer is not None:
-                if (destination_buffer.nbytes < img_size
+                if (destination_buffer.nbytes < sizeof(self._buffer)
                     or not destination_buffer.contiguous
                     or destination_buffer.readonly):
                     # TODO: Raise a more appropriate exception here. Or should this simply print a
