@@ -314,15 +314,14 @@ def _frame_generator(cam: Camera,
     cnt = 0
 
     try:
-        # Enter Capturing mode
-        fsm.enter_capturing_mode()
         while True if limit is None else cnt < limit:
+            fsm.enter_capturing_mode()
             exc = None
             fsm.wait_for_frame(timeout_ms, frame)
             # If an error is encountered while we stop the camera, store it for later. The frame is
             # still yielded to the user and only once they are done with it is the exception raised.
             try:
-                fsm.go_to_state(_StateQueued)
+                fsm.go_to_state(_StateAnnounced)
             except (VmbCError, VmbCameraError) as e:
                 exc = e
 
@@ -336,10 +335,6 @@ def _frame_generator(cam: Camera,
                 # If we caught an exception in the previous state transition, raise it now that the
                 # user is done with the frame
                 raise exc
-            # TODO: This is not ideal on the last iteration. The camera is started even though no
-            # more frames will be recorded.
-            fsm.enter_capturing_mode()
-            fsm.queue_frame(frame)
 
     finally:
         # Leave Capturing mode
