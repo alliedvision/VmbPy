@@ -21,12 +21,13 @@ tools that are used in our full test suite. The following extras are defined for
 
 - numpy: Enables conversion of `VmbPy.Frame` objects to numpy arrays
 - opencv: Similar to above but ensures that the numpy arrays are valid OpenCV images
-- test: Additional tools such as `flake8`, `mypy`, and `coverage` only necessary for executing `run_tests.py`
+- test: Additional tools such as `flake8`, `mypy`, and `coverage` only necessary for executing
+  `run_tests.py`
 
 ### Yocto on NXP i.MX8 and OpenCV
 
 The GPU in i.MX8 systems requires using the system-wide opencv-python package. When you create the
-Python environment, please use the ``--system-site-packages`` flag to include the system-wide OpenCV
+Python environment, please use the `--system-site-packages` flag to include the system-wide OpenCV
 package.
 
 If you don't set up a separate environment, a warning is shown during the VmbPy installation. You
@@ -69,9 +70,8 @@ structure of VmbPy and VmbCPP makes it easy to migrate an existing VmbPy code ba
 ## Running the test suite
 
 VmbPy provides a number of unittest as part of the [Github
-repository](https://github.com/alliedvision/VmbPy). The test suite can be run in two ways.
-Either by using the test discovery mechanic of Python's `unittest` module, or via the provided
-`run_tests.py`.
+repository](https://github.com/alliedvision/VmbPy). The test suite can be run in two ways. Either by
+using the test discovery mechanic of Python's `unittest` module, or via the provided `run_tests.py`.
 
 ### Unittest discovery
 
@@ -129,7 +129,6 @@ Please be aware that all code revisions not explicitly listed in the Github Rele
 considered a **Beta Version**.
 
 For Beta Versions, the following applies in addition to the BSD 2-Clause License:
-
 
 THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS
 IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS. THE PRIMARY PURPOSE OF THIS EARLY
