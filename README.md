@@ -22,6 +22,15 @@ tools that are used in our full test suite. The following extras are defined for
 - opencv: Similar to above but ensures that the numpy arrays are valid OpenCV images
 - test: Additional tools such as `flake8`, `mypy`, and `coverage` only necessary for executing `run_tests.py`
 
+### Yocto on NXP i.MX8 and OpenCV
+
+The GPU in i.MX8 systems requires using the system-wide opencv-python package. When you create the
+Python environment, please use the ``--system-site-packages`` flag to include the system-wide OpenCV
+package.
+
+If you don't set up a separate environment, a warning is shown during the VmbPy installation. You
+can ignore this warning.
+
 # Differences to VimbaPython
 
 VmbPy is the successor of VimbaPython. As such it shares many similarities, but in some places major
