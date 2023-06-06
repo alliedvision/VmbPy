@@ -14,6 +14,7 @@ To use VmbPy an installation of Vimba X and Python >= 3.7 are required. A ready-
 as usual via the `pip install` command.
 
 ## Optional dependencies
+
 For some functionality of VmbPy optional dependencies (also called "extras") are required. These
 provide for example integration into numpy and OpenCV, as well as some additional code analysis
 tools that are used in our full test suite. The following extras are defined for VmbPy:
@@ -123,10 +124,14 @@ python run_tests.py -h
 ```
 
 # Beta Disclaimer
-Please be aware that all code revisions not explicitly listed in the Github Release section are considered a **Beta Version**.
+
+Please be aware that all code revisions not explicitly listed in the Github Release section are
+considered a **Beta Version**.
 
 For Beta Versions, the following applies in addition to the BSD 2-Clause License:
 
 
-THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS.
-THE PRIMARY PURPOSE OF THIS EARLY ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND THE IDENTIFICATION OF DEFECTS IN THE SOFTWARE, HARDWARE AND DOCUMENTATION.
+THE SOFTWARE IS PRELIMINARY AND STILL IN TESTING AND VERIFICATION PHASE AND IS PROVIDED ON AN “AS
+IS” AND “AS AVAILABLE” BASIS AND IS BELIEVED TO CONTAIN DEFECTS. THE PRIMARY PURPOSE OF THIS EARLY
+ACCESS IS TO OBTAIN FEEDBACK ON PERFORMANCE AND THE IDENTIFICATION OF DEFECTS IN THE SOFTWARE,
+HARDWARE AND DOCUMENTATION.
