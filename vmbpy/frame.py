@@ -501,9 +501,10 @@ class Frame:
                         or not destination_buffer.contiguous
                         or destination_buffer.readonly):
                     msg = "User supplied buffer was not valid."
-                    if destination_buffer.nbytes < img_size:
-                        msg += f" The size of the buffer does not match the image size. Buffer has " \
-                            f"{destination_buffer.nbytes} bytes but {img_size} bytes are needed"
+                    if destination_buffer.nbytes < sizeof(self._buffer):
+                        msg += f" The size of the buffer does not match the image size. Buffer " \
+                               f"has {destination_buffer.nbytes} bytes but " \
+                               f"{sizeof(self._buffer)} bytes are needed"
                     raise BufferError(msg)
                 # Skip deepcopy of self._buffer for the returned frame. A user supplied buffer
                 # already exists and we are copying the image data to it here
