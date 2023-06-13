@@ -500,9 +500,11 @@ class Frame:
                 if (destination_buffer.nbytes < sizeof(self._buffer)
                         or not destination_buffer.contiguous
                         or destination_buffer.readonly):
-                    # TODO: Raise a more appropriate exception here. Or should this simply print a
-                    # warning and fall back to allocating a buffer anyway?
-                    raise Exception
+                    msg = "User supplied buffer was not valid."
+                    if destination_buffer.nbytes < img_size:
+                        msg += f" The size of the buffer does not match the image size. Buffer has " \
+                            f"{destination_buffer.nbytes} bytes but {img_size} bytes are needed"
+                    raise BufferError(msg)
                 # Skip deepcopy of self._buffer for the returned frame. A user supplied buffer
                 # already exists and we are copying the image data to it here
                 _buffer = (ctypes.c_ubyte * sizeof(self._buffer)).from_buffer(destination_buffer)
@@ -539,9 +541,11 @@ class Frame:
             if (destination_buffer.nbytes < img_size
                     or not destination_buffer.contiguous
                     or destination_buffer.readonly):
-                # TODO: Raise a more appropriate exception here. Or should this simply print a
-                # warning and fall back to allocating a buffer anyway?
-                raise Exception
+                msg = "User supplied buffer was not valid."
+                if destination_buffer.nbytes < img_size:
+                    msg += f" The size of the buffer does not match the image size. Buffer has " \
+                           f"{destination_buffer.nbytes} bytes but {img_size} bytes are needed"
+                raise BufferError(msg)
             output_frame = Frame(buffer_size=img_size,
                                  allocation_mode=AllocationMode.AllocAndAnnounceFrame)
             output_frame._set_buffer((ctypes.c_ubyte * img_size).from_buffer(destination_buffer))

@@ -362,3 +362,15 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # visible in np_buffer since they use the same memory
         conversion_result_np_array.flat[0] += 1
         self.assertEqual(conversion_result_np_array.flat[0], np_buffer.flat[0])
+
+    def test_too_small_buffer_raises_exception(self):
+        # Expectation: If the buffer provided is too small, an exception is raised. The exception
+        # message provides information why the buffer was not accepted
+        record_format = PixelFormat.Rgb8
+        target_format = PixelFormat.Bgr8
+        with self.cam:
+            self.cam.set_pixel_format(record_format)
+            original_frame = self.cam.get_frame()
+        np_buffer = np.zeros((1))
+        with self.assertRaisesRegex(BufferError, ".*size.*"):
+            original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer.data)
