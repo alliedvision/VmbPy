@@ -468,7 +468,7 @@ class Frame:
 
         Note: This method allocates a new buffer for the returned image data leading to some runtime
         overhead. For performance reasons, it might be better to set the value of the camera's
-        'PixelFormat' feature instead. In addition, a non-default debayer mode can be specified.
+        ``PixelFormat`` feature instead. In addition, a non-default debayer mode can be specified.
 
         Arguments:
             target_fmt:
@@ -478,7 +478,12 @@ class Frame:
                 specified, default debayering mode of the image transform library is applied. If the
                 current format is not a Bayer format, this parameter is silently ignored.
             destination_buffer:
-                TODO
+                A buffer that the transformation result should be written to. The buffer must be
+                large enough to hold the transformation result, writeable and be contiguous in
+                memory. The recommended way to create a compatible buffer is to let
+                ``convert_pixel_format`` perform a conversion *without* a ``destination_buffer`` and
+                reuse the memory that was allocated for that transformation on future calls to
+                ``convert_pixel_format``. See the `convert_pixel_format.py` example.
 
         Raises:
             TypeError:
@@ -487,6 +492,9 @@ class Frame:
                 ``get_convertible_formats()`` of ``PixelFormat``.
             AssertionError:
                 If image width or height can't be determined.
+            BufferError:
+                If user supplied ``destination_buffer`` is too small, not writeable, or not
+                contiguous in memory.
         """
 
         global BAYER_PIXEL_FORMATS

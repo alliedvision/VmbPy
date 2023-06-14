@@ -32,7 +32,7 @@ def parse_args():
     VmbPy `Frame.convert_pixel_format` Example
 
     Records frames in a user selected pixel format and converts them to a different user selected
-    format. Optionally this transformation will use a pre allocated `destination_buffer` to reduce
+    format. Optionally this transformation can use a pre allocated `destination_buffer` to reduce
     possible overhead from memory allocations and garbage collection.'''
 
     parser = argparse.ArgumentParser(description=textwrap.dedent(description),
