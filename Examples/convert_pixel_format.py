@@ -138,7 +138,7 @@ class FrameProducer:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='VmbPy convert_pixel_format Example')
+    parser = argparse.ArgumentParser(description='VmbPy `Frame.convert_pixel_format` Example')
     parser.add_argument('camera_id', default=None, nargs='?',
                         help='ID of the camera to use (using first camera if not specified)')
     parser.add_argument('-d', '--destination_buffer', action='store_true',
