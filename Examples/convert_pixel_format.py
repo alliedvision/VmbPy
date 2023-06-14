@@ -1,5 +1,6 @@
 import argparse
 import sys
+import textwrap
 from typing import Any, List, Optional
 
 import vmbpy
@@ -24,6 +25,24 @@ def abort(reason: str, return_code: int = 1):
     print(reason + '\n')
 
     sys.exit(return_code)
+
+
+def parse_args():
+    description = '''\
+    VmbPy `Frame.convert_pixel_format` Example
+
+    Records frames in a user selected pixel format and converts them to a different user selected
+    format. Optionally this transformation will use a pre allocated `destination_buffer` to reduce
+    possible overhead from memory allocations and garbage collection.'''
+
+    parser = argparse.ArgumentParser(description=textwrap.dedent(description),
+                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument('camera_id', default=None, nargs='?',
+                        help='ID of the camera to use (using first camera if not specified)')
+    parser.add_argument('-d', '--destination_buffer', action='store_true',
+                        help='If this option is given, a `destination_buffer` will be used in '
+                             'calls to `convert_pixel_format`')
+    return parser.parse_args()
 
 
 def get_camera(camera_id: Optional[str]) -> vmbpy.Camera:
@@ -138,13 +157,8 @@ class FrameProducer:
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='VmbPy `Frame.convert_pixel_format` Example')
-    parser.add_argument('camera_id', default=None, nargs='?',
-                        help='ID of the camera to use (using first camera if not specified)')
-    parser.add_argument('-d', '--destination_buffer', action='store_true',
-                        help='If this option is given, a `destination_buffer` will be used in '
-                             'calls to `convert_pixel_format`')
-    args = parser.parse_args()
+    print_preamble()
+    args = parse_args()
 
     with vmbpy.VmbSystem.get_instance() as vmb:
         cam = get_camera(args.camera_id)
