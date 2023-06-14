@@ -382,4 +382,5 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # Make sure that error message is also correct if no actual transformation is expected
         # because target format is same as record format
         with self.assertRaisesRegex(BufferError, ".*size.*"):
-            original_frame.convert_pixel_format(record_format, destination_buffer=np_buffer.data)
+            original_frame.convert_pixel_format(original_frame.get_pixel_format(),
+                                                destination_buffer=np_buffer.data)
