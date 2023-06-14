@@ -5,7 +5,9 @@ from typing import Any, List, Optional
 import vmbpy
 
 try:
-    import numpy as np
+    # Check if numpy is available. Not used directly by the example but necessary to create numpy
+    # arrays that are used as `destination_buffer`s
+    import numpy as np  # noqa: F401
 except ImportError:
     print('This example requires numpy')
     sys.exit(1)
@@ -89,7 +91,8 @@ class FrameProducer:
                 # conversions. The buffer may only be reused while the shape of the frame and target
                 # pixel format remains unchanged
                 self.numpy_buffer = converted_frame.as_numpy_ndarray()
-            # Use same memory as self.numpy_buffer to store conversion result
+            # Use same memory as self.numpy_buffer to store conversion result. Use the `data` field
+            # of the numpy array as `destination_buffer` parameter
             converted_frame = frame.convert_pixel_format(self.target_format,
                                                          destination_buffer=self.numpy_buffer.data)
         else:
