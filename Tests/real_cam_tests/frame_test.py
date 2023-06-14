@@ -274,7 +274,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
     def test_conversion_writes_to_user_supplied_buffer(self):
         # Expectation: Performing a conversion from one format to another writes pixel data to the
         # user supplied buffer
-        record_format = PixelFormat.Rgb8
+        record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         with self.cam:
             self.cam.set_pixel_format(record_format)
@@ -294,7 +294,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
     def test_conversion_to_same_format_as_input(self):
         # Expectation: If the target format is the same as the input format the image data in the
         # user supplied buffer is identical to the input frame
-        record_format = PixelFormat.Rgb8
+        record_format = PixelFormat.Mono8
         with self.cam:
             self.cam.set_pixel_format(record_format)
             original_frame = self.cam.get_frame()
@@ -318,7 +318,10 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         record_format = PixelFormat.Rgb8
         target_format = PixelFormat.Bgr8
         with self.cam:
-            self.cam.set_pixel_format(record_format)
+            try:
+                self.cam.set_pixel_format(record_format)
+            except ValueError:
+                self.skipTest(f'{str(self.cam)} does not support pixel format "{record_format}"')
             original_frame = self.cam.get_frame()
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
@@ -337,7 +340,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
     def test_numpy_reports_shared_memory_for_user_buffer_and_new_ndarray(self):
         # Expectation: If a numpy array is taken of the frame conversion result numpy reports that
         # it shares memory with the user supplied buffer
-        record_format = PixelFormat.Rgb8
+        record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         with self.cam:
             self.cam.set_pixel_format(record_format)
@@ -362,11 +365,13 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # visible in np_buffer since they use the same memory
         conversion_result_np_array.flat[0] += 1
         self.assertEqual(conversion_result_np_array.flat[0], np_buffer.flat[0])
+        conversion_result_np_array.flat[-1] += 1
+        self.assertEqual(conversion_result_np_array.flat[-1], np_buffer.flat[-1])
 
     def test_too_small_buffer_raises_exception(self):
         # Expectation: If the buffer provided is too small, an exception is raised. The exception
         # message provides information why the buffer was not accepted
-        record_format = PixelFormat.Rgb8
+        record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         with self.cam:
             self.cam.set_pixel_format(record_format)
