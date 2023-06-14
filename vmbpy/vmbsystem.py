@@ -614,10 +614,12 @@ class VmbSystem:
             # Existing interface lost. Remove it from active interfaces
             elif event == InterfaceEvent.Missing:
                 with self.__inters_lock:
-                    inter = [i for i in self.__inters.values() if inter_id == i.get_id()].pop()
-                    del self.__inters[inter._get_handle()]
+                    inter_list = [i for i in self.__inters.values() if inter_id == i.get_id()]
+                    if inter_list:
+                        inter = inter_list.pop()
+                        del self.__inters[inter._get_handle()]
 
-                log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
+                        log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
 
             else:
                 inter = self.get_interface_by_id(inter_id)
