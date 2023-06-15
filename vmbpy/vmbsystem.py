@@ -574,8 +574,13 @@ class VmbSystem:
             # Camera access mode changed. Need to update cached permitted access modes
             elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()  # noqa: E501
-                    cam._update_permitted_access_modes()
+                    cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
+                    if cam_list:
+                        cam = cam_list.pop()
+                        cam._update_permitted_access_modes()
+                    else:
+                        cam = self.__discover_camera(cam_id)
+                        self.__cams.append(cam)
 
                 log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
 
