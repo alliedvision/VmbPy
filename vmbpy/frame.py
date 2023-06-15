@@ -558,7 +558,7 @@ class Frame:
             ctypes.memmove(output_frame._buffer, source, img_size)
         else:
             call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
-                                    byref(transform_info), 1)
+                                     byref(transform_info), 1)
 
         # 7) Update frame metadata that changed due to transformation and buffer pointers that are
         #    not yet set correctly

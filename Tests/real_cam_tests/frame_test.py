@@ -401,6 +401,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             # Try to pass full numpy array instead of the `.data` field of the array
             original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer)
 
+
 class UserSuppliedBufferWithChunkTest(UserSuppliedBufferTest):
     def setUp(self):
         super().setUp()
