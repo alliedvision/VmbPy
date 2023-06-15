@@ -553,7 +553,9 @@ class Frame:
 
         # 6) Perform Transformation
         if fmt == target_fmt:
-            ctypes.memmove(output_frame._buffer, self._frame.imageData, img_size)
+            # No transformation is needed, simply copy over the data
+            source = self._frame.imageData if self._frame.imageData else self._buffer
+            ctypes.memmove(output_frame._buffer, source, img_size)
         else:
             call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
                                     byref(transform_info), 1)
