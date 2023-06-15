@@ -268,7 +268,17 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
 
+        try:
+            # Camera is opened in setUp to make enabling/disabling chunk features in subclass below
+            # possible in setUp and tearDown
+            self.cam._open()
+            self.local_device = self.cam.get_local_device()
+        except VmbCameraError as e:
+            self.cam._close()
+            raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
+
     def tearDown(self):
+        self.cam._close()
         self.vmb._shutdown()
 
     def test_conversion_writes_to_user_supplied_buffer(self):
@@ -276,9 +286,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # user supplied buffer
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
-        with self.cam:
-            self.cam.set_pixel_format(record_format)
-            original_frame = self.cam.get_frame()
+        self.cam.set_pixel_format(record_format)
+        original_frame = self.cam.get_frame()
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
@@ -295,9 +304,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # Expectation: If the target format is the same as the input format the image data in the
         # user supplied buffer is identical to the input frame
         record_format = PixelFormat.Mono8
-        with self.cam:
-            self.cam.set_pixel_format(record_format)
-            original_frame = self.cam.get_frame()
+        self.cam.set_pixel_format(record_format)
+        original_frame = self.cam.get_frame()
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(original_frame.get_pixel_format()) \
@@ -317,12 +325,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # transform library
         record_format = PixelFormat.Rgb8
         target_format = PixelFormat.Bgr8
-        with self.cam:
-            try:
-                self.cam.set_pixel_format(record_format)
-            except ValueError:
-                self.skipTest(f'{str(self.cam)} does not support pixel format "{record_format}"')
-            original_frame = self.cam.get_frame()
+        try:
+            self.cam.set_pixel_format(record_format)
+        except ValueError:
+            self.skipTest(f'{str(self.cam)} does not support pixel format "{record_format}"')
+        original_frame = self.cam.get_frame()
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
@@ -342,9 +349,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # it shares memory with the user supplied buffer
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
-        with self.cam:
-            self.cam.set_pixel_format(record_format)
-            original_frame = self.cam.get_frame()
+        self.cam.set_pixel_format(record_format)
+        original_frame = self.cam.get_frame()
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
@@ -373,9 +379,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # message provides information why the buffer was not accepted
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
-        with self.cam:
-            self.cam.set_pixel_format(record_format)
-            original_frame = self.cam.get_frame()
+        self.cam.set_pixel_format(record_format)
+        original_frame = self.cam.get_frame()
         np_buffer = np.zeros((1))
         with self.assertRaisesRegex(BufferError, ".*size.*"):
             original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer.data)
@@ -384,3 +389,42 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         with self.assertRaisesRegex(BufferError, ".*size.*"):
             original_frame.convert_pixel_format(original_frame.get_pixel_format(),
                                                 destination_buffer=np_buffer.data)
+
+    def test_wrong_buffer_type_raises_exception(self):
+        # Expectation: If the buffer has an incorrect type, a TypeError is raised.
+        record_format = PixelFormat.Mono8
+        target_format = PixelFormat.Bgr8
+        self.cam.set_pixel_format(record_format)
+        original_frame = self.cam.get_frame()
+        np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
+        with self.assertRaises(TypeError):
+            # Try to pass full numpy array instead of the `.data` field of the array
+            original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer)
+
+class UserSuppliedBufferWithChunkTest(UserSuppliedBufferTest):
+    def setUp(self):
+        super().setUp()
+        try:
+            self.enable_chunk_features()
+        except (VmbFeatureError, AttributeError):
+            self.cam._close()
+            self.vmb._shutdown()
+            self.skipTest('Required Feature \'ChunkModeActive\' not available.')
+
+    def tearDown(self):
+        self.disable_chunk_features()
+        super().tearDown()
+
+    def enable_chunk_features(self):
+        # Turn on all Chunk features
+        self.cam.ChunkModeActive.set(False)
+        for value in self.cam.ChunkSelector.get_available_entries():
+            self.cam.ChunkSelector.set(value)
+            self.cam.ChunkEnable.set(True)
+        self.cam.ChunkModeActive.set(True)
+
+    def disable_chunk_features(self):
+        self.cam.ChunkModeActive.set(False)
+        for value in self.cam.ChunkSelector.get_available_entries():
+            self.cam.ChunkSelector.set(value)
+            self.cam.ChunkEnable.set(False)
