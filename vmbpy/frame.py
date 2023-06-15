@@ -502,26 +502,7 @@ class Frame:
         # 1) Perform sanity checking
         fmt = self.get_pixel_format()
 
-        if fmt == target_fmt:
-            memo = {}
-            if destination_buffer is not None:
-                if (destination_buffer.nbytes < sizeof(self._buffer)
-                        or not destination_buffer.contiguous
-                        or destination_buffer.readonly):
-                    msg = "User supplied buffer was not valid."
-                    if destination_buffer.nbytes < sizeof(self._buffer):
-                        msg += f" The size of the buffer does not match the image size. Buffer " \
-                               f"has {destination_buffer.nbytes} bytes but " \
-                               f"{sizeof(self._buffer)} bytes are needed"
-                    raise BufferError(msg)
-                # Skip deepcopy of self._buffer for the returned frame. A user supplied buffer
-                # already exists and we are copying the image data to it here
-                _buffer = (ctypes.c_ubyte * sizeof(self._buffer)).from_buffer(destination_buffer)
-                ctypes.memmove(_buffer, self._buffer, sizeof(self._buffer))
-                memo[id(self._buffer)] = _buffer
-            return copy.deepcopy(self, memo)
-
-        if target_fmt not in fmt.get_convertible_formats():
+        if fmt != target_fmt and target_fmt not in fmt.get_convertible_formats():
             raise ValueError('Current PixelFormat can\'t be converted into given format.')
 
         # 2) Specify Transformation Input Image
@@ -571,8 +552,11 @@ class Frame:
                                      byref(transform_info))
 
         # 6) Perform Transformation
-        call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
-                                 byref(transform_info), 1)
+        if fmt == target_fmt:
+            ctypes.memmove(output_frame._buffer, self._frame.imageData, img_size)
+        else:
+            call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
+                                    byref(transform_info), 1)
 
         # 7) Update frame metadata that changed due to transformation and buffer pointers that are
         #    not yet set correctly
