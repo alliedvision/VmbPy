@@ -574,8 +574,14 @@ class VmbSystem:
             # Camera access mode changed. Need to update cached permitted access modes
             elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
                 with self.__cams_lock:
-                    cam = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())].pop()  # noqa: E501
-                    cam._update_permitted_access_modes()
+                    cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
+                    if cam_list:
+                        cam = cam_list.pop()
+                        cam._update_permitted_access_modes()
+                    else:
+                        log.warn('Unexpected access mode change for undiscovered camera \"{}\"'.format(cam_id))
+                        cam = self.__discover_camera(cam_id)
+                        self.__cams.append(cam)
 
                 log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
 
@@ -614,10 +620,12 @@ class VmbSystem:
             # Existing interface lost. Remove it from active interfaces
             elif event == InterfaceEvent.Missing:
                 with self.__inters_lock:
-                    inter = [i for i in self.__inters.values() if inter_id == i.get_id()].pop()
-                    del self.__inters[inter._get_handle()]
+                    inter_list = [i for i in self.__inters.values() if inter_id == i.get_id()]
+                    if inter_list:
+                        inter = inter_list.pop()
+                        del self.__inters[inter._get_handle()]
 
-                log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
+                        log.info('Removed interface \"{}\" from active interfaces'.format(inter_id))
 
             else:
                 inter = self.get_interface_by_id(inter_id)
