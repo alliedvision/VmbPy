@@ -536,10 +536,14 @@ class Frame:
                     msg += f" The size of the buffer does not match the image size. Buffer has " \
                            f"{destination_buffer.nbytes} bytes but {img_size} bytes are needed"
                 raise BufferError(msg)
+            # By using `AllocAndAnnounce` no buffer will be allocated by VmbPy. Instead the
+            # user-supplied `destination_buffer` is used
             output_frame = Frame(buffer_size=img_size,
                                  allocation_mode=AllocationMode.AllocAndAnnounceFrame)
             output_frame._set_buffer((ctypes.c_ubyte * img_size).from_buffer(destination_buffer))
         else:
+            # with `AnnounceFrame` the `Frame` class will allocate an appropriate buffer
+            # automatically
             output_frame = Frame(buffer_size=img_size,
                                  allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
