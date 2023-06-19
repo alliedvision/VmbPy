@@ -511,7 +511,10 @@ class Frame:
 
         c_src_image = VmbImage()
         c_src_image.Size = sizeof(c_src_image)
-        c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
+        if self._frame.imageData:
+            c_src_image.Data = ctypes.cast(self._frame.imageData, ctypes.c_void_p)
+        else:
+            c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
 
         call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                  byref(c_src_image))
@@ -536,10 +539,14 @@ class Frame:
                     msg += f" The size of the buffer does not match the image size. Buffer has " \
                            f"{destination_buffer.nbytes} bytes but {img_size} bytes are needed"
                 raise BufferError(msg)
+            # By using `AllocAndAnnounce` no buffer will be allocated by VmbPy. Instead the
+            # user-supplied `destination_buffer` is used
             output_frame = Frame(buffer_size=img_size,
                                  allocation_mode=AllocationMode.AllocAndAnnounceFrame)
             output_frame._set_buffer((ctypes.c_ubyte * img_size).from_buffer(destination_buffer))
         else:
+            # with `AnnounceFrame` the `Frame` class will allocate an appropriate buffer
+            # automatically
             output_frame = Frame(buffer_size=img_size,
                                  allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
@@ -566,15 +573,9 @@ class Frame:
         output_frame._frame.bufferSize = sizeof(output_frame._buffer)
         output_frame._frame.imageSize = img_size
         output_frame._frame.pixelFormat = target_fmt
-
-        # calculate offset of original imageData pointer into original buffer
-        if not self._frame.imageData:
-            # imageData pointer is not set. We assume image data begins at the start of the buffer
-            self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
-                                                ctypes.POINTER(VmbUint8))
-        image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)   # noqa: E501
-        # set new imageData pointer to same offset into new buffer
-        output_frame._frame.imageData = ctypes.cast(ctypes.byref(output_frame._buffer, image_data_offset),      # noqa: E501
+        # For transformation results chunk data is no longer relevant so the imageData is the same
+        # as the buffer start
+        output_frame._frame.imageData = ctypes.cast(ctypes.byref(output_frame._buffer),
                                                     ctypes.POINTER(VmbUint8))
 
         return output_frame
