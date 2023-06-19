@@ -127,7 +127,7 @@ def print_test_execution_info():
     print('*' * 80)
 
 
-def main():
+if __name__ == '__main__':
     arg_parser = Parser()
     args = arg_parser.parse_args()
     loader = unittest.TestLoader()
@@ -191,27 +191,16 @@ def main():
         real_cam_tests.vimbax_test
     ]
 
-    # Prepare TestSuites
-    suite_basic = unittest.TestSuite()
-    suite_cam = unittest.TestSuite()
+    # Prepare TestSuite
+    test_suite = unittest.TestSuite()
+    if args.suite in ('basic', 'all'):
+        for mod in BASIC_TEST_MODS:
+            test_suite.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
 
-    for mod in BASIC_TEST_MODS:
-        suite_basic.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
+    if args.suite in ('real_cam', 'all'):
+        for mod in REAL_CAM_TEST_MODS:
+            test_suite.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
 
-    for mod in REAL_CAM_TEST_MODS:
-        suite_cam.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
+    result = runner.run(test_suite)
 
-    # Execute TestSuites
-    if args.suite == 'basic':
-        runner.run(suite_basic)
-
-    elif args.suite == 'real_cam':
-        runner.run(suite_cam)
-
-    elif args.suite == 'all':
-        runner.run(suite_basic)
-        runner.run(suite_cam)
-
-
-if __name__ == '__main__':
-    main()
+    sys.exit(0 if result.wasSuccessful() else 1)
