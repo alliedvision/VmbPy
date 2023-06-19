@@ -317,7 +317,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         self.assertEqual(original_frame.get_pixel_format(), converted_frame.get_pixel_format())
         # Since target format is the same as input format all elements should be identical. Compare
         # them element-wise
-        self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer))
+        self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer),
+                        'Pixel data after conversion is not identical to original pixel data')
 
     def test_image_data_is_as_expected(self):
         # Expectation: Format conversion works correctly. Tested here only with RGB8 -> BGR8 as the
@@ -342,7 +343,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
                             'written to buffer or recorded camera image contained only 0s')
         # BGR8 is just RGB8 with the channel order flipped. Compare the actual pixel data by
         # flipping channels again and comparing element-wise
-        self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer[:, :, ::-1]))
+        self.assertTrue(np.allclose(original_frame.as_numpy_ndarray(), np_buffer[:, :, ::-1]),
+                        'Pixel data did not match expected values')
 
     def test_numpy_reports_shared_memory_for_user_buffer_and_new_ndarray(self):
         # Expectation: If a numpy array is taken of the frame conversion result numpy reports that
