@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import copy
 import ctypes
 import enum
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional, Tuple, Union
 
 from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PixelFormat, VmbCError,
                         VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle, VmbImage,
@@ -250,13 +250,21 @@ class Frame:
 
         return result
 
-    def _set_buffer(self, buffer: ctypes.c_void_p):
+    def _set_buffer(self, buffer: Union[ctypes.c_void_p, ctypes.Array]):
         """Set self._buffer to memory pointed to by passed buffer pointer
 
         Useful if frames were allocated with AllocationMode.AllocAndAnnounce
         """
-        self._buffer = ctypes.cast(buffer,
-                                   ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)).contents
+        if isinstance(buffer, ctypes.Array) and buffer._type_ == ctypes.c_ubyte:
+            if len(buffer) < self._frame.bufferSize:
+                msg = 'The given buffer is {} bytes large but the needed bufferSize is {}'
+                raise BufferError(msg.format(len(buffer), self._frame.bufferSize))
+            self._buffer = buffer
+        else:
+            self._buffer = ctypes.cast(
+                buffer,
+                ctypes.POINTER(ctypes.c_ubyte * self._frame.bufferSize)
+            ).contents
 
     def get_buffer(self) -> ctypes.Array:
         """Get internal buffer object containing image data and (if existent) chunk data."""
@@ -450,7 +458,8 @@ class Frame:
     @RuntimeTypeCheckEnable()
     def convert_pixel_format(self,
                              target_fmt: PixelFormat,
-                             debayer_mode: Optional[Debayer] = None) -> 'Frame':
+                             debayer_mode: Optional[Debayer] = None,
+                             destination_buffer: Optional[memoryview] = None) -> 'Frame':
         """Return a converted version of the frame in the given format.
 
         This method always returns a new frame object and leaves the original instance unchanged.
@@ -459,7 +468,7 @@ class Frame:
 
         Note: This method allocates a new buffer for the returned image data leading to some runtime
         overhead. For performance reasons, it might be better to set the value of the camera's
-        'PixelFormat' feature instead. In addition, a non-default debayer mode can be specified.
+        ``PixelFormat`` feature instead. In addition, a non-default debayer mode can be specified.
 
         Arguments:
             target_fmt:
@@ -468,6 +477,13 @@ class Frame:
                 Non-default algorithm used to debayer images in Bayer Formats. If no mode is
                 specified, default debayering mode of the image transform library is applied. If the
                 current format is not a Bayer format, this parameter is silently ignored.
+            destination_buffer:
+                A buffer that the transformation result should be written to. The buffer must be
+                large enough to hold the transformation result, writeable and be contiguous in
+                memory. The recommended way to create a compatible buffer is to let
+                ``convert_pixel_format`` perform a conversion *without* a ``destination_buffer`` and
+                reuse the memory that was allocated for that transformation on future calls to
+                ``convert_pixel_format``. See the `convert_pixel_format.py` example.
 
         Raises:
             TypeError:
@@ -476,6 +492,9 @@ class Frame:
                 ``get_convertible_formats()`` of ``PixelFormat``.
             AssertionError:
                 If image width or height can't be determined.
+            BufferError:
+                If user supplied ``destination_buffer`` is too small, not writeable, or not
+                contiguous in memory.
         """
 
         global BAYER_PIXEL_FORMATS
@@ -483,10 +502,7 @@ class Frame:
         # 1) Perform sanity checking
         fmt = self.get_pixel_format()
 
-        if fmt == target_fmt:
-            return copy.deepcopy(self)
-
-        if target_fmt not in fmt.get_convertible_formats():
+        if fmt != target_fmt and target_fmt not in fmt.get_convertible_formats():
             raise ValueError('Current PixelFormat can\'t be converted into given format.')
 
         # 2) Specify Transformation Input Image
@@ -511,8 +527,21 @@ class Frame:
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
-        output_frame = Frame(buffer_size=img_size,
-                             allocation_mode=AllocationMode.AnnounceFrame)
+        if destination_buffer:
+            if (destination_buffer.nbytes < img_size
+                    or not destination_buffer.contiguous
+                    or destination_buffer.readonly):
+                msg = "User supplied buffer was not valid."
+                if destination_buffer.nbytes < img_size:
+                    msg += f" The size of the buffer does not match the image size. Buffer has " \
+                           f"{destination_buffer.nbytes} bytes but {img_size} bytes are needed"
+                raise BufferError(msg)
+            output_frame = Frame(buffer_size=img_size,
+                                 allocation_mode=AllocationMode.AllocAndAnnounceFrame)
+            output_frame._set_buffer((ctypes.c_ubyte * img_size).from_buffer(destination_buffer))
+        else:
+            output_frame = Frame(buffer_size=img_size,
+                                 allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
         c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
 
@@ -523,8 +552,13 @@ class Frame:
                                      byref(transform_info))
 
         # 6) Perform Transformation
-        call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
-                                 byref(transform_info), 1)
+        if fmt == target_fmt:
+            # No transformation is needed, simply copy over the data
+            source = self._frame.imageData if self._frame.imageData else self._buffer
+            ctypes.memmove(output_frame._buffer, source, img_size)
+        else:
+            call_vmb_image_transform('VmbImageTransform', byref(c_src_image), byref(c_dst_image),
+                                     byref(transform_info), 1)
 
         # 7) Update frame metadata that changed due to transformation and buffer pointers that are
         #    not yet set correctly
