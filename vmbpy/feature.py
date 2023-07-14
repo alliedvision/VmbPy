@@ -506,13 +506,13 @@ class EnumFeature(_BaseFeature):
 
         except Exception:
             return 'EnumFeature(name={})'.format(self.get_name())
-        
+
     @property
     def __entries(self) -> EnumEntryTuple:
         """Property for enum entries. Lazy initialization to reduce overhead in constructor."""
         if self.__entries_var is None:
             self.__entries_var = _discover_enum_entries(self._handle, self._info.name)
-        
+
         return self.__entries_var
 
     def get_all_entries(self) -> EnumEntryTuple:
