@@ -498,7 +498,7 @@ class EnumFeature(_BaseFeature):
         """Do not call directly. Instead, access Features via System, Camera, or Interface Types."""
         super().__init__(handle, info)
 
-        self.__entries: EnumEntryTuple = _discover_enum_entries(self._handle, self._info.name)
+        self.__entries_var: Optional[EnumEntryTuple] = None
 
     def __str__(self):
         try:
@@ -506,6 +506,14 @@ class EnumFeature(_BaseFeature):
 
         except Exception:
             return 'EnumFeature(name={})'.format(self.get_name())
+
+    @property
+    def __entries(self) -> EnumEntryTuple:
+        """Property for enum entries. Lazy initialization to reduce overhead in constructor."""
+        if self.__entries_var is None:
+            self.__entries_var = _discover_enum_entries(self._handle, self._info.name)
+
+        return self.__entries_var
 
     def get_all_entries(self) -> EnumEntryTuple:
         """Get a set of all possible EnumEntries of this feature.
