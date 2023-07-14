@@ -579,7 +579,8 @@ class VmbSystem:
                         cam = cam_list.pop()
                         cam._update_permitted_access_modes()
                     else:
-                        log.warn('Unexpected access mode change for undiscovered camera \"{}\"'.format(cam_id))
+                        log.warn('Unexpected access mode change for undiscovered camera \"{}\"'
+                                 ''.format(cam_id))
                         cam = self.__discover_camera(cam_id)
                         self.__cams.append(cam)
 
