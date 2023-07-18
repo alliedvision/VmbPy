@@ -381,8 +381,9 @@ def load_vimbax_lib(vimbax_project: str):
     """
 
     platform_handlers = {
-        'linux': _load_under_linux,
-        'win32': _load_under_windows
+        'linux':  _load_under_linux,
+        'win32':  _load_under_windows,
+        'darwin': _load_under_macos
     }
 
     if sys.platform not in platform_handlers:
@@ -390,6 +391,21 @@ def load_vimbax_lib(vimbax_project: str):
         raise VmbSystemError(msg.format(sys.platform))
 
     return platform_handlers[sys.platform](vimbax_project)
+
+
+def _load_under_macos(vimbax_project: str):
+    # Assume global installation in /Library/Frameworks by default,
+    # but allow user override using VIMBA_X_HOME.
+
+    vimbax_home = os.environ.get('VIMBA_X_HOME')
+
+    if vimbax_home is None:
+        vimbax_home = os.path.join('Library', 'Frameworks')
+
+    lib_path = os.path.join(vimbax_home, vimbax_project + '.framework', vimbax_project)
+    lib = ctypes.cdll.LoadLibrary(lib_path)
+
+    return lib
 
 
 def _load_under_linux(vimbax_project: str):
