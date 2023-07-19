@@ -110,7 +110,9 @@ __all__ = [
 
     'TraceEnable',
     'ScopedLogEnable',
-    'RuntimeTypeCheckEnable'
+    'RuntimeTypeCheckEnable',
+    'VmbIntEnum',
+    'VmbFlagEnum'
 ]
 
 from .camera import AccessMode, Camera, CameraChangeHandler, CameraEvent
@@ -135,5 +137,5 @@ from .util import (LOG_CONFIG_CRITICAL, LOG_CONFIG_CRITICAL_CONSOLE_ONLY,
                    LOG_CONFIG_INFO_FILE_ONLY, LOG_CONFIG_TRACE, LOG_CONFIG_TRACE_CONSOLE_ONLY,
                    LOG_CONFIG_TRACE_FILE_ONLY, LOG_CONFIG_WARNING, LOG_CONFIG_WARNING_CONSOLE_ONLY,
                    LOG_CONFIG_WARNING_FILE_ONLY, Log, LogConfig, LogLevel, RuntimeTypeCheckEnable,
-                   ScopedLogEnable, TraceEnable)
+                   ScopedLogEnable, TraceEnable, VmbIntEnum, VmbFlagEnum)
 from .vmbsystem import VmbSystem

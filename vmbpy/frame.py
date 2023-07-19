@@ -26,7 +26,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import copy
 import ctypes
-import enum
 from typing import Callable, Optional, Tuple, Union
 
 from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PixelFormat, VmbCError,
@@ -36,7 +35,7 @@ from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PixelForma
 from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
 from .error import VmbChunkError, VmbFrameError
 from .featurecontainer import FeatureContainer
-from .util import Log, RuntimeTypeCheckEnable, TraceEnable
+from .util import Log, RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum
 
 try:
     import numpy  # type: ignore
@@ -182,7 +181,7 @@ OPENCV_PIXEL_FORMATS = (
 )
 
 
-class AllocationMode(enum.IntEnum):
+class AllocationMode(VmbIntEnum):
     """Enum specifying the supported frame allocation modes."""
     AnnounceFrame = 0          #: The buffer is allocated by vmbpy
     AllocAndAnnounceFrame = 1  #: The buffer is allocated by the Transport Layer

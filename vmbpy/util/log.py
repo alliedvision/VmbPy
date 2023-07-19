@@ -25,10 +25,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import datetime
-import enum
 import logging
 import os
 from typing import List, Optional
+
+from .vmb_enum import VmbIntEnum
 
 __all__ = [
     'LogLevel',
@@ -55,7 +56,7 @@ __all__ = [
 ]
 
 
-class LogLevel(enum.IntEnum):
+class LogLevel(VmbIntEnum):
     """Enum containing all LogLevels."""
     Trace = logging.DEBUG - 5    #: Show Tracing information. Show all messages.
     Debug = logging.DEBUG        #: Show Debug, Informational, Warning, Error, and Critical Events.

@@ -29,7 +29,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # flake8: noqa E501
 
 import ctypes
-import enum
 import functools
 import os
 import platform
@@ -37,6 +36,7 @@ import sys
 from typing import List, Tuple, Optional
 
 from ..error import VmbSystemError
+from ..util import VmbIntEnum, VmbFlagEnum
 
 __all__ = [
     'Int32Enum',
@@ -67,19 +67,19 @@ __all__ = [
 
 
 # Types
-class Int32Enum(enum.IntEnum):
+class Int32Enum(VmbIntEnum):
     @classmethod
     def from_param(cls, obj):
         return ctypes.c_int(obj)
 
 
-class Uint32Enum(enum.IntEnum):
+class Uint32Enum(VmbIntEnum):
     @classmethod
     def from_param(cls, obj):
         return ctypes.c_uint(obj)
 
 
-class Uint32Flag(enum.IntFlag):
+class Uint32Flag(VmbFlagEnum):
     @classmethod
     def from_param(cls, obj):
         return ctypes.c_uint(obj)
