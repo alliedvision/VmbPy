@@ -26,7 +26,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import annotations
 
-import enum
 import contextlib
 from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
@@ -39,7 +38,7 @@ from .localdevice import LocalDevice
 from .shared import read_memory, write_memory
 from .stream import FrameHandler, Stream, StreamsList, StreamsTuple
 from .util import (EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext,
-                   RaiseIfOutsideContext, RuntimeTypeCheckEnable, TraceEnable)
+                   RaiseIfOutsideContext, RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum)
 
 if TYPE_CHECKING:
     from .interface import Interface
@@ -61,7 +60,7 @@ CamerasTuple = Tuple['Camera', ...]
 CamerasList = List['Camera']
 
 
-class CameraEvent(enum.IntEnum):
+class CameraEvent(VmbIntEnum):
     """Enum specifying a Camera Event"""
     Missing = 0      #: A known camera disappeared from the bus
     Detected = 1     #: A new camera was discovered

@@ -27,12 +27,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Disable line length errors from long enum descriptions for flake8 in this file.
 # flake8: noqa: E501
 
-import enum
 from typing import Tuple
 
 from .vmb_c import (VmbAccessMode, VmbFeatureFlags, VmbFeaturePersist, VmbFeatureVisibility,
                     VmbFrameStatus, VmbModulePersistFlags, VmbTransportLayer)
 from .vmb_image_transform import PIXEL_FORMAT_CONVERTIBILITY_MAP, VmbDebayerMode, VmbPixelFormat
+
+from ..util import VmbIntEnum, VmbFlagEnum
 
 __all__ = [
     'AccessMode',
@@ -47,7 +48,7 @@ __all__ = [
 ]
 
 
-class AccessMode(enum.IntEnum):
+class AccessMode(VmbIntEnum):
     """Enum specifying all available camera access modes."""
     None_ = VmbAccessMode.None_          #: No access.
     Full = VmbAccessMode.Full            #: Read and write access.
@@ -56,7 +57,7 @@ class AccessMode(enum.IntEnum):
     Exclusive = VmbAccessMode.Exclusive  #: Read and write access without permitting access for other consumers.
 
 
-class Debayer(enum.IntEnum):
+class Debayer(VmbIntEnum):
     """Enum specifying debayer modes."""
     Mode2x2 = VmbDebayerMode.Mode_2x2        #: 2x2 with green averaging (this is the default if no debayering algorithm is added as transformation option).
     Mode3x3 = VmbDebayerMode.Mode_3x3        #: 3x3 with equal green weighting per line (8-bit images only).
@@ -71,7 +72,7 @@ class Debayer(enum.IntEnum):
         return str(self)
 
 
-class FeatureFlags(enum.IntEnum):
+class FeatureFlags(VmbIntEnum):
     """Enumeration specifying additional information on the feature."""
 
     None_ = VmbFeatureFlags.None_              #: No additional information is provided
@@ -81,7 +82,7 @@ class FeatureFlags(enum.IntEnum):
     ModifyWrite = VmbFeatureFlags.ModifyWrite  #: Value may change after a write
 
 
-class FeatureVisibility(enum.IntEnum):
+class FeatureVisibility(VmbIntEnum):
     """Enumeration specifying UI feature visibility."""
 
     Unknown = VmbFeatureVisibility.Unknown      #: Feature visibility is not known
@@ -91,7 +92,7 @@ class FeatureVisibility(enum.IntEnum):
     Invisible = VmbFeatureVisibility.Invisible  #: Feature is not visible in feature list
 
 
-class FrameStatus(enum.IntEnum):
+class FrameStatus(VmbIntEnum):
     """Enum specifying the current status of internal Frame data."""
 
     Complete = VmbFrameStatus.Complete      #: Frame data is complete without errors
@@ -100,14 +101,14 @@ class FrameStatus(enum.IntEnum):
     Invalid = VmbFrameStatus.Invalid        #: Frame buffer was invalid
 
 
-class PersistType(enum.IntEnum):
+class PersistType(VmbIntEnum):
     """Persistence Type for camera configuration storing and loading."""
     All = VmbFeaturePersist.All                #: Save all features to XML, including look-up tables (if possible)
     Streamable = VmbFeaturePersist.Streamable  #: Save only features marked as streamable, excluding look-up tables
     NoLUT = VmbFeaturePersist.NoLUT            #: Save all features except look-up tables
 
 
-class ModulePersistFlags(enum.IntFlag):
+class ModulePersistFlags(VmbFlagEnum):
     """Parameters determining the operation mode of VmbSettingsSave and VmbSettingsLoad."""
     None_ = VmbModulePersistFlags.None_                    #: Persist/Load features for no module
     TransportLayer = VmbModulePersistFlags.TransportLayer  #: Persist/Load the transport layer features
@@ -121,7 +122,7 @@ class ModulePersistFlags(enum.IntFlag):
         return self._name_
 
 
-class PixelFormat(enum.IntEnum):
+class PixelFormat(VmbIntEnum):
     """Enum specifying all PixelFormats. Note: Not all Cameras support all Pixelformats."""
     # Mono Formats
     Mono8 = VmbPixelFormat.Mono8                #: Monochrome, 8 bits (PFNC Mono8)
@@ -209,7 +210,7 @@ class PixelFormat(enum.IntEnum):
         return tuple([PixelFormat(fmt) for fmt in formats])
 
 
-class TransportLayerType(enum.IntEnum):
+class TransportLayerType(VmbIntEnum):
     """Enum specifying all interface types."""
     Unknown = VmbTransportLayer.Unknown    #: Interface is not known to this version of the API
     GEV = VmbTransportLayer.GEV            #: GigE Vision

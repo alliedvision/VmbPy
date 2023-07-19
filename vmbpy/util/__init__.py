@@ -58,11 +58,16 @@ __all__ = [
     'EnterContextOnCall',
     'LeaveContextOnCall',
     'RaiseIfInsideContext',
-    'RaiseIfOutsideContext'
+    'RaiseIfOutsideContext',
+
+    # Enums
+    'VmbIntEnum',
+    'VmbFlagEnum'
 ]
 
 from .context_decorator import (EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext,
                                 RaiseIfOutsideContext)
+from .vmb_enum import VmbIntEnum, VmbFlagEnum
 from .log import (LOG_CONFIG_CRITICAL, LOG_CONFIG_CRITICAL_CONSOLE_ONLY,
                   LOG_CONFIG_CRITICAL_FILE_ONLY, LOG_CONFIG_DEBUG, LOG_CONFIG_DEBUG_CONSOLE_ONLY,
                   LOG_CONFIG_DEBUG_FILE_ONLY, LOG_CONFIG_ERROR, LOG_CONFIG_ERROR_CONSOLE_ONLY,

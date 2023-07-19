@@ -26,7 +26,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 from __future__ import annotations
 
-import enum
 from typing import TYPE_CHECKING, Callable, Dict, Tuple
 
 from .c_binding import VmbHandle, VmbInterfaceInfo, decode_cstr
@@ -34,7 +33,7 @@ from .featurecontainer import PersistableFeatureContainer
 from .shared import read_memory, write_memory
 from .transportlayer import TransportLayerType
 from .util import (EnterContextOnCall, LeaveContextOnCall, RaiseIfOutsideContext,
-                   RuntimeTypeCheckEnable, TraceEnable)
+                   RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum)
 
 if TYPE_CHECKING:
     from .camera import CamerasTuple
@@ -55,7 +54,7 @@ InterfacesTuple = Tuple['Interface', ...]
 InterfacesDict = Dict[VmbHandle, 'Interface']
 
 
-class InterfaceEvent(enum.IntEnum):
+class InterfaceEvent(VmbIntEnum):
     """Enum specifying an Interface Event"""
     Missing = 0      #: A known interface disappeared from the bus
     Detected = 1     #: A new interface was discovered
