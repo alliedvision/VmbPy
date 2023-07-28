@@ -400,7 +400,7 @@ def _load_under_macos(vimbax_project: str):
     vimbax_home = os.environ.get('VIMBA_X_HOME')
 
     if vimbax_home is None:
-        vimbax_home = os.path.join('Library', 'Frameworks')
+        vimbax_home = '/Library/Frameworks'
 
     lib_path = os.path.join(vimbax_home, vimbax_project + '.framework', vimbax_project)
     lib = ctypes.cdll.LoadLibrary(lib_path)
