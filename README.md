@@ -11,7 +11,7 @@ allowing for rapid development of applications.
 To use VmbPy an installation of Vimba X and Python >= 3.7 are required. A ready-to-install packaged
 `.whl` file of VmbPy can be found as part of the Vimba X installation, or be downloaded from our
 [github release page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed
-as usual via the `pip install` command.
+as usual via the [`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
 
 ## Optional dependencies
 
@@ -23,6 +23,13 @@ tools that are used in our full test suite. The following extras are defined for
 - opencv: Similar to above but ensures that the numpy arrays are valid OpenCV images
 - test: Additional tools such as `flake8`, `mypy`, and `coverage` only necessary for executing
   `run_tests.py`
+
+> [!NOTE]  
+> Installing these extra dependencies is possible by defining them as part of the installation
+> command like so (note the single quotes around the filename and extras):
+> ```
+> pip install '/path/to/vmbpy-X.Y.Z-py-none-any.whl[numpy,opencv]'
+> ```
 
 ### Yocto on NXP i.MX8 and OpenCV
 
