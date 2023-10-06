@@ -131,4 +131,4 @@ from .vmb_image_transform import (EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, LAYOUT_T
                                   VMB_IMAGE_TRANSFORM_VERSION, VmbDebayerMode, VmbImage,
                                   VmbImageInfo, VmbTransformInfo, call_vmb_image_transform)
 from .wrapped_types import (AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus,
-                            PayloadType, ModulePersistFlags, PersistType, PixelFormat,TransportLayerType)
+                            PayloadType, ModulePersistFlags, PersistType, PixelFormat, TransportLayerType)

@@ -199,7 +199,7 @@ class VmbPayloadType(Int32Enum):
     ChunkOnly = 8       #: Chunk data exclusively
     DeviceSpecific = 9  #: Device specific data format
     GenDC = 11          #: GenDC data
-    
+
 
 class VmbFrameFlags(Uint32Enum):
     """Frame Flags."""

@@ -364,16 +364,16 @@ class Frame:
             return None
 
         return self._frame.timestamp
-    
+
     def get_payload_type(self) -> Optional[PayloadType]:
         """Returns the frame's payload type."""
         flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
 
         if VmbFrameFlags.PayloadType not in flags:
             return None
-        
+
         return PayloadType(self._frame.payloadType)
-    
+
     def contains_chunk_data(self) -> Optional[bool]:
         """Does the frame contain chunk data?
 

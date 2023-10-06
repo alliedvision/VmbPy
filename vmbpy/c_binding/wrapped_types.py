@@ -100,8 +100,8 @@ class FrameStatus(VmbIntEnum):
     Incomplete = VmbFrameStatus.Incomplete  #: Frame could not be filled to the end
     TooSmall = VmbFrameStatus.TooSmall      #: Frame buffer was too small
     Invalid = VmbFrameStatus.Invalid        #: Frame buffer was invalid
-    
-    
+
+
 class PayloadType(VmbIntEnum):
     """Enum specifying the payload type of internal Frame data."""
     Unknown = VmbPayloadType.Unknown                #: Unknown payload type
