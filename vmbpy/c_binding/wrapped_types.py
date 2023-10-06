@@ -30,7 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from typing import Tuple
 
 from .vmb_c import (VmbAccessMode, VmbFeatureFlags, VmbFeaturePersist, VmbFeatureVisibility,
-                    VmbFrameStatus, VmbModulePersistFlags, VmbTransportLayer)
+                    VmbFrameStatus, VmbPayloadType, VmbModulePersistFlags, VmbTransportLayer)
 from .vmb_image_transform import PIXEL_FORMAT_CONVERTIBILITY_MAP, VmbDebayerMode, VmbPixelFormat
 
 from ..util import VmbIntEnum, VmbFlagEnum
@@ -41,6 +41,7 @@ __all__ = [
     'FeatureFlags',
     'FeatureVisibility',
     'FrameStatus',
+    'PayloadType',
     'PersistType',
     'ModulePersistFlags',
     'PixelFormat',
@@ -99,6 +100,20 @@ class FrameStatus(VmbIntEnum):
     Incomplete = VmbFrameStatus.Incomplete  #: Frame could not be filled to the end
     TooSmall = VmbFrameStatus.TooSmall      #: Frame buffer was too small
     Invalid = VmbFrameStatus.Invalid        #: Frame buffer was invalid
+    
+    
+class PayloadType(VmbIntEnum):
+    """Enum specifying the payload type of internal Frame data."""
+    Unknown = VmbPayloadType.Unknown                #: Unknown payload type
+    Image = VmbPayloadType.Image                    #: Image data
+    Raw = VmbPayloadType.Raw                        #: Raw data
+    File = VmbPayloadType.File                      #: File data
+    JPEG = VmbPayloadType.JPEG                      #: JPEG data as described in the GigEVision 2.0 specification
+    JPEG2000 = VmbPayloadType.JPEG2000              #: JPEG 2000 data as described in the GigEVision 2.0 specification
+    H264 = VmbPayloadType.H264                      #: H.264 data as described in the GigEVision 2.0 specification
+    ChunkOnly = VmbPayloadType.ChunkOnly            #: Chunk data exclusively
+    DeviceSpecific = VmbPayloadType.DeviceSpecific  #: Device specific data format
+    GenDC = VmbPayloadType.GenDC                    #: GenDC data
 
 
 class PersistType(VmbIntEnum):

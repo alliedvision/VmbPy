@@ -28,9 +28,9 @@ import copy
 import ctypes
 from typing import Callable, Optional, Tuple, Union
 
-from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PixelFormat, VmbCError,
-                        VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle, VmbImage,
-                        VmbPixelFormat, VmbTransformInfo, VmbUint8, byref, call_vmb_c,
+from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PayloadType, PixelFormat,
+                        VmbCError, VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle,
+                        VmbImage, VmbPixelFormat, VmbTransformInfo, VmbUint8, byref, call_vmb_c,
                         call_vmb_image_transform, decode_flags, sizeof)
 from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
 from .error import VmbChunkError, VmbFrameError
@@ -364,6 +364,29 @@ class Frame:
             return None
 
         return self._frame.timestamp
+    
+    def get_payload_type(self) -> Optional[PayloadType]:
+        """Returns the frame's payload type."""
+        flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
+
+        if VmbFrameFlags.PayloadType not in flags:
+            return None
+        
+        return PayloadType(self._frame.payloadType)
+    
+    def contains_chunk_data(self) -> Optional[bool]:
+        """Does the frame contain chunk data?
+
+        Returns:
+            ``True`` if frame contains chunk data, ``False`` if frame does not contain chunk data.
+            ``None`` if this information is not provided by the underlying Transport Layer.
+        """
+        flags = decode_flags(VmbFrameFlags, self._frame.receiveFlags)
+
+        if VmbFrameFlags.ChunkDataPresent not in flags:
+            return None
+
+        return self._frame.chunkDataPresent
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()

@@ -51,6 +51,7 @@ __all__ = [
     'FeatureVisibility',
     'FrameHandler',
     'FrameStatus',
+    'PayloadType',
     'AllocationMode',
     'Debayer',
     'intersect_pixel_formats',
@@ -125,7 +126,7 @@ from .featurecontainer import (FeatureContainer, ModulePersistFlags, Persistable
 from .frame import (BAYER_PIXEL_FORMATS, BGR_PIXEL_FORMATS, BGRA_PIXEL_FORMATS, COLOR_PIXEL_FORMATS,
                     MONO_PIXEL_FORMATS, OPENCV_PIXEL_FORMATS, RGB_PIXEL_FORMATS, RGBA_PIXEL_FORMATS,
                     YCBCR_PIXEL_FORMATS, YUV_PIXEL_FORMATS, AllocationMode, Debayer, Frame,
-                    FrameStatus, PixelFormat, intersect_pixel_formats)
+                    FrameStatus, PayloadType, PixelFormat, intersect_pixel_formats)
 from .interface import Interface, InterfaceChangeHandler, InterfaceEvent
 from .localdevice import LocalDevice
 from .stream import FrameHandler, Stream

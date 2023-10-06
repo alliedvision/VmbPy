@@ -52,6 +52,7 @@ __all__ = [
     'VmbFeatureVisibility',
     'VmbFeatureFlags',
     'VmbFrameStatus',
+    'VmbPayloadType',
     'VmbFrameFlags',
     'VmbVersionInfo',
     'VmbTransportLayerInfo',
@@ -185,6 +186,20 @@ class VmbFrameStatus(Int32Enum):
     def __str__(self):
         return self._name_
 
+
+class VmbPayloadType(Int32Enum):
+    """Frame payload type."""
+    Unknown = 0         #: Unknown payload type
+    Image = 1           #: Image data
+    Raw = 2             #: Raw data
+    File = 3            #: File data
+    JPEG = 5            #: JPEG data as described in the GigEVision 2.0 specification
+    JPEG2000 = 6        #: JPEG 2000 data as described in the GigEVision 2.0 specification
+    H264 = 7            #: H.264 data as described in the GigEVision 2.0 specification
+    ChunkOnly = 8       #: Chunk data exclusively
+    DeviceSpecific = 9  #: Device specific data format
+    GenDC = 11          #: GenDC data
+    
 
 class VmbFrameFlags(Uint32Enum):
     """Frame Flags."""
