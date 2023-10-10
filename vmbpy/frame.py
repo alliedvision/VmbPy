@@ -386,7 +386,7 @@ class Frame:
         if VmbFrameFlags.ChunkDataPresent not in flags:
             return None
 
-        return self._frame.chunkDataPresent
+        return bool(self._frame.chunkDataPresent)
 
     @TraceEnable()
     @RuntimeTypeCheckEnable()
