@@ -117,7 +117,7 @@ class ChunkExample:
             try:
                 # Turn on a selection of Chunk features
                 self.cam.ChunkModeActive.set(False)
-                for selector in ('FrameID', 'Timestamp', 'Width', 'Height'):
+                for selector in ('Timestamp', 'Width', 'Height', 'ExposureTime'):
                     try:
                         self.cam.ChunkSelector.set(selector)
                         self.cam.ChunkEnable.set(True)
