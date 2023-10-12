@@ -80,7 +80,7 @@ class CamFrameTest(VmbPyTestCase):
                 self.assertEqual(id(frame._buffer), id(frame.get_buffer()))
 
     def test_get_id(self):
-        # Expectation: get_id() must return None if Its locally constructed
+        # Expectation: get_id() must return None if it is locally constructed
         # else it must return the frame id.
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
@@ -91,7 +91,7 @@ class CamFrameTest(VmbPyTestCase):
                         self.cam.get_frame(allocation_mode=allocation_mode).get_id())
 
     def test_get_timestamp(self):
-        # Expectation: get_timestamp() must return None if Its locally constructed
+        # Expectation: get_timestamp() must return None if it is locally constructed
         # else it must return the timestamp.
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
@@ -101,8 +101,19 @@ class CamFrameTest(VmbPyTestCase):
                     self.assertIsNotNone(
                         self.cam.get_frame(allocation_mode=allocation_mode).get_timestamp())
 
+    def test_get_payload_type(self):
+        # Expectation: get_payload_type() must return None if it is locally constructed
+        # else it must return the payload type.
+        for allocation_mode in AllocationMode:
+            with self.subTest(f'allocation_mode={str(allocation_mode)}'):
+                self.assertIsNone(Frame(0, allocation_mode).get_payload_type())
+
+                with self.cam:
+                    self.assertIsNotNone(
+                        self.cam.get_frame(allocation_mode=allocation_mode).get_payload_type())
+
     def test_get_offset(self):
-        # Expectation: get_offset_x() must return None if Its locally constructed
+        # Expectation: get_offset_x() must return None if it is locally constructed
         # else it must return the offset as int. Same goes for get_offset_y()
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
@@ -115,8 +126,8 @@ class CamFrameTest(VmbPyTestCase):
                     self.assertIsNotNone(frame.get_offset_y())
 
     def test_get_dimension(self):
-        # Expectation: get_width() must return None if Its locally constructed
-        # else it must return the offset as int. Same goes for get_height()
+        # Expectation: get_width() must return None if it is locally constructed
+        # else it must return width as int. Same goes for get_height()
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 self.assertIsNone(Frame(0, allocation_mode).get_width())
@@ -128,7 +139,7 @@ class CamFrameTest(VmbPyTestCase):
                     self.assertIsNotNone(frame.get_height())
 
     def test_deepcopy(self):
-        # Expectation: a deepcopy must clone the frame buffer with its contents an
+        # Expectation: a deepcopy must clone the frame buffer with it is contents an
         # update the internally store pointer in VmbFrame struct.
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
@@ -180,7 +191,7 @@ class CamFrameTest(VmbPyTestCase):
 
     def test_convert_to_all_given_formats(self):
         # Expectation: A Series of Frame, each acquired with a different Pixel format
-        # Must be convertible to all formats the given format claims its convertible to without any
+        # Must be convertible to all formats the given format claims it is convertible to without any
         # errors.
 
         test_frames = []
