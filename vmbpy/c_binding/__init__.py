@@ -119,9 +119,9 @@ from ctypes import byref, create_string_buffer, sizeof
 from .vmb_c import (EXPECTED_VMB_C_VERSION, G_VMB_C_HANDLE, VMB_C_VERSION, VmbAccessMode,
                     VmbCameraInfo, VmbFeatureData, VmbFeatureEnumEntry, VmbFeatureFlags,
                     VmbFeatureInfo, VmbFeaturePersist, VmbFeaturePersistSettings,
-                    VmbFeatureVisibility, VmbFrame, VmbFrameFlags, VmbFrameStatus, VmbInterfaceInfo,
-                    VmbModulePersistFlags, VmbTransportLayer, VmbTransportLayerInfo, VmbVersionInfo,
-                    call_vmb_c)
+                    VmbFeatureVisibility, VmbFrame, VmbFrameFlags, VmbFrameStatus, VmbPayloadType,
+                    VmbInterfaceInfo, VmbModulePersistFlags, VmbTransportLayer, VmbTransportLayerInfo,
+                    VmbVersionInfo, call_vmb_c)
 from .vmb_common import (VmbBool, VmbCError, VmbDouble, VmbError, VmbHandle, VmbInt8, VmbInt16,
                          VmbInt32, VmbInt64, VmbPixelFormat, VmbUchar, VmbUint8, VmbUint16,
                          VmbUint32, VmbUint64, _as_vmb_file_path, _select_vimbax_home, decode_cstr,

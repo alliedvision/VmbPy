@@ -311,3 +311,16 @@ class ChunkAccessTest(VmbPyTestCase):
         # Even for a valid handler an error is raised. This is because the dummy frame is not
         # announced to VmbC. But it did pass the type check!
         self.assertRaises(VmbChunkError, f.access_chunk_data, valid_handler)
+
+    def test_contains_chunk_data_true(self):
+        # Expectation: if frame contains chunk data the function `contains_chunk_data`
+        # will return true
+        frame = self.cam.get_frame()
+        self.assertTrue(frame.contains_chunk_data())
+
+    def test_contains_chunk_data_false(self):
+        # Expectation: if frame contains no chunk data the function `contains_chunk_data`
+        # will return false
+        self.disable_chunk_features()
+        frame = self.cam.get_frame()
+        self.assertFalse(frame.contains_chunk_data())
