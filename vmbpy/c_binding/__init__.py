@@ -69,6 +69,7 @@ __all__ = [
     'VmbFeatureVisibility',
     'VmbFeatureFlags',
     'VmbFrameStatus',
+    'VmbPayloadType',
     'VmbFrameFlags',
     'VmbVersionInfo',
     'VmbTransportLayerInfo',
@@ -101,6 +102,7 @@ __all__ = [
     'FeatureFlags',
     'FeatureVisibility',
     'FrameStatus',
+    'PayloadType',
     'PersistType',
     'ModulePersistFlags',
     'PixelFormat',
@@ -117,9 +119,9 @@ from ctypes import byref, create_string_buffer, sizeof
 from .vmb_c import (EXPECTED_VMB_C_VERSION, G_VMB_C_HANDLE, VMB_C_VERSION, VmbAccessMode,
                     VmbCameraInfo, VmbFeatureData, VmbFeatureEnumEntry, VmbFeatureFlags,
                     VmbFeatureInfo, VmbFeaturePersist, VmbFeaturePersistSettings,
-                    VmbFeatureVisibility, VmbFrame, VmbFrameFlags, VmbFrameStatus, VmbInterfaceInfo,
-                    VmbModulePersistFlags, VmbTransportLayer, VmbTransportLayerInfo, VmbVersionInfo,
-                    call_vmb_c)
+                    VmbFeatureVisibility, VmbFrame, VmbFrameFlags, VmbFrameStatus, VmbPayloadType,
+                    VmbInterfaceInfo, VmbModulePersistFlags, VmbTransportLayer, VmbTransportLayerInfo,
+                    VmbVersionInfo, call_vmb_c)
 from .vmb_common import (VmbBool, VmbCError, VmbDouble, VmbError, VmbHandle, VmbInt8, VmbInt16,
                          VmbInt32, VmbInt64, VmbPixelFormat, VmbUchar, VmbUint8, VmbUint16,
                          VmbUint32, VmbUint64, _as_vmb_file_path, _select_vimbax_home, decode_cstr,
@@ -129,4 +131,4 @@ from .vmb_image_transform import (EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, LAYOUT_T
                                   VMB_IMAGE_TRANSFORM_VERSION, VmbDebayerMode, VmbImage,
                                   VmbImageInfo, VmbTransformInfo, call_vmb_image_transform)
 from .wrapped_types import (AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus,
-                            ModulePersistFlags, PersistType, PixelFormat, TransportLayerType)
+                            PayloadType, ModulePersistFlags, PersistType, PixelFormat, TransportLayerType)

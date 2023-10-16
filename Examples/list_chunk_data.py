@@ -132,7 +132,10 @@ class ChunkExample:
 
     def frame_callback(self, cam: Camera, stream: Stream, frame: Frame):
         print('{} acquired {}'.format(cam, frame), flush=True)
-        frame.access_chunk_data(self.chunk_callback)
+        if frame.contains_chunk_data():
+            frame.access_chunk_data(self.chunk_callback)
+        else:
+            print('No Chunk Data present', flush=True)
         cam.queue_frame(frame)
 
     def chunk_callback(self, features: FeatureContainer):
