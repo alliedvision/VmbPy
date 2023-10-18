@@ -68,7 +68,7 @@ class Parser(argparse.ArgumentParser):
 def _blacklist_tests(test_suite, blacklist):
     for test in test_suite:
         # Process TestSuites recursively
-        if type(test) == unittest.TestSuite:
+        if isinstance(test, unittest.TestSuite):
             _blacklist_tests(test, blacklist)
 
         # Test is actually a TestCase. Add skip decorator to test
