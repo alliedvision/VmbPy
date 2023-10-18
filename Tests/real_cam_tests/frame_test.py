@@ -190,8 +190,8 @@ class CamFrameTest(VmbPyTestCase):
                         self.assertRaises(ValueError, frame.convert_pixel_format, fmt)
 
     def test_convert_to_all_given_formats(self):
-        # Expectation: A Series of Frame, each acquired with a different Pixel format
-        # Must be convertible to all formats the given format claims it is convertible to without any
+        # Expectation: A Series of Frame, each acquired with a different Pixel format Must be
+        # convertible to all formats the given format claims it is convertible to without any
         # errors.
 
         test_frames = []
