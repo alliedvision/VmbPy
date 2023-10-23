@@ -139,7 +139,7 @@ class RuntimeTypeCheckEnable:
 
     def __matches_tuple_types(self, type_hint, arg) -> bool:
         try:
-            if not (type_hint.__origin__ == tuple and type(arg) == tuple):
+            if not (type_hint.__origin__ == tuple and isinstance(arg, tuple)):
                 return False
 
         except AttributeError:
@@ -182,7 +182,7 @@ class RuntimeTypeCheckEnable:
     def __matches_dict_types(self, type_hint, arg) -> bool:
         # To pass the hint must be a Dictionary and arg must match the given types.
         try:
-            if not (type_hint.__origin__ == dict and type(arg) == dict):
+            if not (type_hint.__origin__ == dict and isinstance(arg, dict)):
                 return False
 
         except AttributeError:
@@ -191,7 +191,7 @@ class RuntimeTypeCheckEnable:
         key_type, val_type = type_hint.__args__
 
         for k, v in arg.items():
-            if type(k) != key_type or type(v) != val_type:
+            if not isinstance(k, key_type) or not isinstance(v, val_type):
                 return False
 
         return True

@@ -120,7 +120,7 @@ def filter_features_by_type(feats: FeaturesTuple, feat_type: FeatureTypeTypes) -
         A set of all features of type ``feat_type`` in ``feats``. If no matching type is found an
         empty set is returned.
     """
-    return tuple([feat for feat in feats if type(feat) == feat_type])
+    return tuple([feat for feat in feats if isinstance(feat, feat_type)])
 
 
 @TraceEnable()
