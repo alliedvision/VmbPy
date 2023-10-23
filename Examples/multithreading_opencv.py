@@ -179,10 +179,8 @@ class FrameProducer(threading.Thread):
         self.log.info('Thread \'FrameProducer({})\' terminated.'.format(self.cam.get_id()))
 
 
-class FrameConsumer(threading.Thread):
+class FrameConsumer:
     def __init__(self, frame_queue: queue.Queue):
-        threading.Thread.__init__(self)
-
         self.log = Log.get_instance()
         self.frame_queue = frame_queue
 
@@ -231,10 +229,8 @@ class FrameConsumer(threading.Thread):
         self.log.info('Thread \'FrameConsumer\' terminated.')
 
 
-class MainThread(threading.Thread):
+class MainThread:
     def __init__(self):
-        threading.Thread.__init__(self)
-
         self.frame_queue = queue.Queue(maxsize=FRAME_QUEUE_SIZE)
         self.producers = {}
         self.producers_lock = threading.Lock()
@@ -274,8 +270,7 @@ class MainThread(threading.Thread):
 
             # Start and wait for consumer to terminate
             vmb.register_camera_change_handler(self)
-            consumer.start()
-            consumer.join()
+            consumer.run()
             vmb.unregister_camera_change_handler(self)
 
             # Stop all FrameProducer threads
@@ -294,5 +289,4 @@ class MainThread(threading.Thread):
 if __name__ == '__main__':
     print_preamble()
     main = MainThread()
-    main.start()
-    main.join()
+    main.run()
