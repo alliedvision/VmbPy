@@ -179,10 +179,8 @@ class FrameProducer(threading.Thread):
         self.log.info('Thread \'FrameProducer({})\' terminated.'.format(self.cam.get_id()))
 
 
-class FrameConsumer(threading.Thread):
+class FrameConsumer:
     def __init__(self, frame_queue: queue.Queue):
-        threading.Thread.__init__(self)
-
         self.log = Log.get_instance()
         self.frame_queue = frame_queue
 
@@ -193,7 +191,7 @@ class FrameConsumer(threading.Thread):
         frames = {}
         alive = True
 
-        self.log.info('Thread \'FrameConsumer\' started.')
+        self.log.info('\'FrameConsumer\' started.')
 
         while alive:
             # Update current state by dequeuing all currently available frames.
@@ -228,13 +226,11 @@ class FrameConsumer(threading.Thread):
                 cv2.destroyAllWindows()
                 alive = False
 
-        self.log.info('Thread \'FrameConsumer\' terminated.')
+        self.log.info('\'FrameConsumer\' terminated.')
 
 
-class MainThread(threading.Thread):
+class Application:
     def __init__(self):
-        threading.Thread.__init__(self)
-
         self.frame_queue = queue.Queue(maxsize=FRAME_QUEUE_SIZE)
         self.producers = {}
         self.producers_lock = threading.Lock()
@@ -260,7 +256,7 @@ class MainThread(threading.Thread):
         vmb = VmbSystem.get_instance()
         vmb.enable_log(LOG_CONFIG_INFO_CONSOLE_ONLY)
 
-        log.info('Thread \'MainThread\' started.')
+        log.info('\'Application\' started.')
 
         with vmb:
             # Construct FrameProducer threads for all detected cameras
@@ -272,10 +268,9 @@ class MainThread(threading.Thread):
                 for producer in self.producers.values():
                     producer.start()
 
-            # Start and wait for consumer to terminate
+            # Run the frame consumer to display the recorded images
             vmb.register_camera_change_handler(self)
-            consumer.start()
-            consumer.join()
+            consumer.run()
             vmb.unregister_camera_change_handler(self)
 
             # Stop all FrameProducer threads
@@ -288,11 +283,10 @@ class MainThread(threading.Thread):
                 for producer in self.producers.values():
                     producer.join()
 
-        log.info('Thread \'MainThread\' terminated.')
+        log.info('\'Application\' terminated.')
 
 
 if __name__ == '__main__':
     print_preamble()
-    main = MainThread()
-    main.start()
-    main.join()
+    app = Application()
+    app.run()
