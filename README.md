@@ -13,6 +13,10 @@ To use VmbPy an installation of Vimba X and Python >= 3.7 are required. A ready-
 [github release page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed
 as usual via the [`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
 
+> [!NOTE]  
+> Depending on the some systems the command might instead be called `pip3`. Check your systems
+> Python documentation for details.
+
 ## Optional dependencies
 
 For some functionality of VmbPy optional dependencies (also called "extras") are required. These
