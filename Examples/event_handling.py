@@ -128,13 +128,10 @@ def main():
             cam.EventSelector.set('AcquisitionStart')
             cam.EventNotification.set('On')
 
-            # Register callable on all Features in the '/EventControl/EventData' - Category
-            feats = cam.get_features_by_category('/EventControl/EventData')
+            # Register callback for the EventAcquisitionStart feature
+            cam.EventAcquisitionStart.register_change_handler(feature_changed_handler)
 
-            for feat in feats:
-                feat.register_change_handler(feature_changed_handler)
-
-            # Acquire a single Frame to trigger events.
+            # Acquire a single Frame. This starts acquisition and triggers the selected event
             cam.get_frame()
 
 
