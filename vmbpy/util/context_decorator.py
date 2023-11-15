@@ -25,6 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import functools
+from typing import Any, Callable, TypeVar
 
 __all__ = [
     'EnterContextOnCall',
@@ -33,12 +34,15 @@ __all__ = [
     'RaiseIfOutsideContext'
 ]
 
+T = TypeVar("T")
+
 
 class EnterContextOnCall:
     """Decorator setting/injecting flag used for checking the context."""
-    def __call__(self, func):
+
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             args[0]._context_entered = True
             try:
                 return func(*args, **kwargs)
@@ -53,9 +57,10 @@ class EnterContextOnCall:
 
 class LeaveContextOnCall:
     """Decorator clearing/injecting flag used for checking the context."""
-    def __call__(self, func):
+
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             result = func(*args, **kwargs)
             args[0]._context_entered = False
             return result
@@ -69,12 +74,13 @@ class RaiseIfInsideContext:
         This Decorator shall work only on Object implementing a Context Manger. For this to work
         object must offer a boolean attribute called ``_context_entered``
     """
+
     def __init__(self, msg='Called \'{}()\' inside of \'with\' context.'):
         self.msg = msg
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             if args[0]._context_entered:
                 msg = self.msg.format('{}'.format(func.__qualname__))
                 raise RuntimeError(msg)
@@ -90,12 +96,13 @@ class RaiseIfOutsideContext:
         This Decorator shall work only on Object implementing a Context Manger. For this to work
         object must offer a boolean attribute called ``_context_entered``
     """
+
     def __init__(self, msg='Called \'{}()\' outside of \'with\' context.'):
         self.msg = msg
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             if not args[0]._context_entered:
                 msg = self.msg.format('{}'.format(func.__qualname__))
                 raise RuntimeError(msg)
