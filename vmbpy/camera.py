@@ -39,6 +39,7 @@ from .shared import read_memory, write_memory
 from .stream import FrameHandler, Stream, StreamsList, StreamsTuple
 from .util import (EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext,
                    RaiseIfOutsideContext, RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum)
+from .feature import EnumFeature
 
 if TYPE_CHECKING:
     from .interface import Interface
@@ -454,7 +455,7 @@ class Camera(PersistableFeatureContainer):
                 If called outside ``with`` context.
         """
         result = []
-        feat = self.get_feature_by_name('PixelFormat')
+        feat: EnumFeature = self.get_feature_by_name('PixelFormat')  # type: ignore
 
         # Build intersection between PixelFormat Enum Values and PixelFormat
         # Note: The Mapping is a bit complicated due to different writing styles within
@@ -508,7 +509,7 @@ class Camera(PersistableFeatureContainer):
         if fmt not in self.get_pixel_formats():
             raise ValueError('Camera does not support PixelFormat \'{}\''.format(str(fmt)))
 
-        feat = self.get_feature_by_name('PixelFormat')
+        feat: EnumFeature = self.get_feature_by_name('PixelFormat')  # type: ignore
         fmt_str = str(fmt).upper()
 
         for entry in feat.get_available_entries():
