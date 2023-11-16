@@ -28,7 +28,7 @@ import os
 from ctypes import byref, sizeof
 
 from .c_binding import (ModulePersistFlags, PersistType, VmbFeaturePersistSettings,
-                        _as_vmb_file_path, call_vmb_c)
+                        _as_vmb_file_path, call_vmb_c, VmbHandle)
 from .error import VmbFeatureError
 from .feature import FeaturesTuple, FeatureTypes, FeatureTypeTypes, discover_features
 from .shared import (attach_feature_accessors, filter_features_by_category, filter_features_by_name,
@@ -55,7 +55,7 @@ class FeatureContainer:
     @TraceEnable()
     def __init__(self) -> None:
         self._feats: FeaturesTuple = ()
-
+        self._handle = VmbHandle(0)
         self.__context_cnt: int = 0
 
     @TraceEnable()
