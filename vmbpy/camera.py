@@ -39,9 +39,9 @@ from .shared import read_memory, write_memory
 from .stream import FrameHandler, Stream, StreamsList, StreamsTuple
 from .util import (EnterContextOnCall, LeaveContextOnCall, RaiseIfInsideContext,
                    RaiseIfOutsideContext, RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum)
-from .feature import EnumFeature
 
 if TYPE_CHECKING:
+    from .feature import EnumFeature
     from .interface import Interface
     from .transportlayer import TransportLayer
 
