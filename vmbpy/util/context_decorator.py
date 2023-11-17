@@ -34,6 +34,8 @@ __all__ = [
     'RaiseIfOutsideContext'
 ]
 
+# TODO: To improve type checking further consider usage of `ParamSpec`. Introduced to standard
+# library with Python 3.10 and available as backport in `typing_extensions` package for Python >=3.8
 T = TypeVar('T')
 
 
