@@ -35,7 +35,7 @@ __all__ = [
     'RuntimeTypeCheckEnable'
 ]
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 class RuntimeTypeCheckEnable:

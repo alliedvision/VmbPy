@@ -37,6 +37,9 @@ __all__ = [
 ]
 
 
+T = TypeVar('T')
+
+
 _FMT_MSG_ENTRY: str = 'Enter | {}'
 _FMT_MSG_LEAVE: str = 'Leave | {}'
 _FMT_MSG_RAISE: str = 'Raise | {}, {}'
@@ -120,9 +123,6 @@ class _Tracer:
         # TODO: when only python versions >=3.8 are supported, add stacklevel parameter here to
         # report correct line numbers in trace logs
         _Tracer.__log.trace(msg)
-
-
-T = TypeVar("T")
 
 
 class TraceEnable:

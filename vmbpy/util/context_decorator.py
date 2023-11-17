@@ -34,7 +34,7 @@ __all__ = [
     'RaiseIfOutsideContext'
 ]
 
-T = TypeVar("T")
+T = TypeVar('T')
 
 
 class EnterContextOnCall:
