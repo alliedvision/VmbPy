@@ -38,7 +38,7 @@ from .featurecontainer import FeatureContainer
 from .util import Log, RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum
 
 try:
-    import numpy  # type: ignore
+    import numpy
 
 except ModuleNotFoundError:
     numpy = None  # type: ignore
@@ -651,10 +651,10 @@ class Frame:
         # Add self._buffer to dtype metadata. This makes sure, that a reference to that buffer is
         # kept while the numpy array still lives, preventing segfaults if the original VmbPy frame
         # goes out of scope and is garbage collected before the numpy array is accessed
-        dt = numpy.dtype(numpy.uint8 if bits_per_channel == 8 else numpy.uint16,  # type: ignore
+        dt = numpy.dtype(numpy.uint8 if bits_per_channel == 8 else numpy.uint16,
                          metadata={'VmbPy_buffer': self._buffer})
         return numpy.ndarray(shape=(height, width, channels_per_pixel),
-                             buffer=image_data.contents,  # type: ignore
+                             buffer=image_data.contents,
                              dtype=dt)
 
     def as_opencv_image(self) -> 'numpy.ndarray':

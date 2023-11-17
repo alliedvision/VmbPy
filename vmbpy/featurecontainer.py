@@ -225,7 +225,7 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.maxIterations = max_iterations
 
         call_vmb_c('VmbSettingsLoad',
-                   self._handle,  # type: ignore
+                   self._handle,
                    _as_vmb_file_path(file_path),
                    byref(settings),
                    sizeof(settings))
@@ -270,7 +270,7 @@ class PersistableFeatureContainer(FeatureContainer):
         settings.maxIterations = max_iterations
 
         call_vmb_c('VmbSettingsSave',
-                   self._handle,  # type: ignore
+                   self._handle,
                    _as_vmb_file_path(file_path),
                    byref(settings),
                    sizeof(settings))
