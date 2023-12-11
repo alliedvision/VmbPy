@@ -38,7 +38,7 @@ from .featurecontainer import FeatureContainer
 from .util import Log, RuntimeTypeCheckEnable, TraceEnable, VmbIntEnum
 
 try:
-    import numpy
+    import numpy  # type: ignore
 
 except ModuleNotFoundError:
     numpy = None  # type: ignore
