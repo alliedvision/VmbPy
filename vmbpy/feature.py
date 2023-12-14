@@ -1216,6 +1216,7 @@ FeaturesTuple = Tuple[FeatureTypes, ...]
 
 def _build_feature(handle: VmbHandle, info: VmbFeatureInfo) -> FeatureTypes:
     feat_value = VmbFeatureData(info.featureDataType)
+    feat: FeatureTypes
 
     if VmbFeatureData.Int == feat_value:
         feat = IntFeature(handle, info)

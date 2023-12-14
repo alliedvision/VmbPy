@@ -27,13 +27,17 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import collections.abc
 from functools import wraps
 from inspect import isfunction, ismethod, signature
-from typing import Union, get_type_hints
+from typing import Union, get_type_hints, Callable, TypeVar, Any
 
 from .log import Log
 
 __all__ = [
     'RuntimeTypeCheckEnable'
 ]
+
+# TODO: To improve type checking further consider usage of `ParamSpec`. Introduced to standard
+# library with Python 3.10 and available as backport in `typing_extensions` package for Python >=3.8
+T = TypeVar('T')
 
 
 class RuntimeTypeCheckEnable:
@@ -49,9 +53,9 @@ class RuntimeTypeCheckEnable:
     """
     _log = Log.get_instance()
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             full_args, hints = self.__dismantle_sig(func, *args, **kwargs)
 
             for arg_name in hints:

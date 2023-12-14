@@ -770,6 +770,6 @@ class VmbSystem:
 
     # Monkey patch class methods that are just remapped VmbSystem functionality. This avoids
     # importing `VmbSystem` from those python files, preventing circular dependencies
-    TransportLayer._get_interfaces = lambda self: VmbSystem.__instance.get_interfaces_by_tl(self)
-    TransportLayer._get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_tl(self)
-    Interface._get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_interface(self)
+    TransportLayer._get_interfaces = lambda self: VmbSystem.__instance.get_interfaces_by_tl(self)  # type: ignore # noqa: E501
+    TransportLayer._get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_tl(self)        # type: ignore # noqa: E501
+    Interface._get_cameras = lambda self: VmbSystem.__instance.get_cameras_by_interface(self)      # type: ignore # noqa: E501

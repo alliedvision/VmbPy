@@ -28,12 +28,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from functools import reduce, wraps
 from inspect import signature
 from logging import NullHandler
+from typing import Any, Callable, TypeVar
 
 from .log import Log
 
 __all__ = [
     'TraceEnable'
 ]
+
+
+# TODO: To improve type checking further consider usage of `ParamSpec`. Introduced to standard
+# library with Python 3.10 and available as backport in `typing_extensions` package for Python >=3.8
+T = TypeVar('T')
 
 
 _FMT_MSG_ENTRY: str = 'Enter | {}'
@@ -126,9 +132,10 @@ class TraceEnable:
     On exit, the log entry contains information if the function was left normally or with an
     exception.
     """
-    def __call__(self, func):
+
+    def __call__(self, func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> T:
             if _Tracer.is_log_enabled():
                 with _Tracer(func, *args, **kwargs):
                     result = func(*args, **kwargs)
