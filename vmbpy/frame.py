@@ -202,6 +202,8 @@ class Frame:
         # Layer will take care of buffer allocation. The self._buffer variable will be updated after
         # the frame is announced and memory has been allocated.
         if self._allocation_mode == AllocationMode.AnnounceFrame:
+            if buffer_alignment > 1:
+                buffer_size = _align_buffersize(buffer_size, alignment=buffer_alignment)
             self._buffer = _allocate_buffer(size=buffer_size, alignment=buffer_alignment)
         else:
             self._buffer = None
@@ -704,6 +706,10 @@ def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTup
     """
     return tuple(set(fmts1).intersection(set(fmts2)))
 
+def _align_buffersize(size, alignment=1):
+    offset = size % alignment
+    offset_to_aligned = (alignment - offset) % alignment
+    return size + offset_to_aligned
 
 def _allocate_buffer(size, alignment=1):
     # Buffer can be at most (alignment -1) bytes out of alignment -> overallocate by that amount
