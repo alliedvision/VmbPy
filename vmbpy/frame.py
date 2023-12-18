@@ -710,10 +710,12 @@ def intersect_pixel_formats(fmts1: FormatTuple, fmts2: FormatTuple) -> FormatTup
     """
     return tuple(set(fmts1).intersection(set(fmts2)))
 
+
 def _align_buffersize(size, alignment=1):
     offset = size % alignment
     offset_to_aligned = (alignment - offset) % alignment
     return size + offset_to_aligned
+
 
 def _allocate_buffer(size, alignment=1):
     # Buffer can be at most (alignment -1) bytes out of alignment -> overallocate by that amount
