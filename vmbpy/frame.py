@@ -203,6 +203,10 @@ class Frame:
         # the frame is announced and memory has been allocated.
         if self._allocation_mode == AllocationMode.AnnounceFrame:
             if buffer_alignment > 1:
+                # For aligned buffers not only must the starting point of the buffer fulfill the
+                # requirement, but also the size of the buffer must fulfill it. This means the
+                # buffer size allocated might be larger than what would be needed to hold the
+                # transferred data
                 buffer_size = _align_buffersize(buffer_size, alignment=buffer_alignment)
             self._buffer = _allocate_buffer(size=buffer_size, alignment=buffer_alignment)
         else:
