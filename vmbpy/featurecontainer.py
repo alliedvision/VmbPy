@@ -266,7 +266,7 @@ class PersistableFeatureContainer(FeatureContainer):
 
         settings = VmbFeaturePersistSettings()
         settings.persistType = persist_type
-        settings.persistFlag = persist_flags
+        settings.modulePersistFlags = persist_flags
         settings.maxIterations = max_iterations
 
         call_vmb_c('VmbSettingsSave',
