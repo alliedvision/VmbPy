@@ -563,13 +563,19 @@ class Camera(PersistableFeatureContainer):
                 exc = VmbCameraError(repr(err))
             raise exc from e
 
-        for i in range(self.__info.streamCount):
-            # The stream at index 0 is automatically opened
-            self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
-                                         is_open=(i == 0),
-                                         parent_cam=self))
-        self.__local_device = LocalDevice(self.__info.localDeviceHandle)
-        self._attach_feature_accessors()
+        try:
+            for i in range(self.__info.streamCount):
+                # The stream at index 0 is automatically opened
+                self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
+                                            is_open=(i == 0),
+                                            parent_cam=self))
+            self.__local_device = LocalDevice(self.__info.localDeviceHandle)
+            self._attach_feature_accessors()
+        except VmbCError as e:
+            err = e.get_error_code()
+            exc = VmbCameraError(repr(err))
+            call_vmb_c('VmbCameraClose', self._handle)
+            raise exc from e
 
     @TraceEnable()
     @LeaveContextOnCall()
