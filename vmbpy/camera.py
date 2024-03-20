@@ -554,6 +554,10 @@ class Camera(PersistableFeatureContainer):
                        byref(self.__info),
                        sizeof(self.__info))
         except VmbCError as e:
+            try:
+                call_vmb_c('VmbCameraClose', self._handle)
+            except:
+                pass
             err = e.get_error_code()
             if err == VmbError.BadHandle:
                 msg = 'Invalid handle used to query camera info. Used handle: {}'
@@ -572,9 +576,12 @@ class Camera(PersistableFeatureContainer):
             self.__local_device = LocalDevice(self.__info.localDeviceHandle)
             self._attach_feature_accessors()
         except VmbCError as e:
+            try:
+                call_vmb_c('VmbCameraClose', self._handle)
+            except:
+                pass
             err = e.get_error_code()
             exc = VmbCameraError(repr(err))
-            call_vmb_c('VmbCameraClose', self._handle)
             raise exc from e
 
     @TraceEnable()
