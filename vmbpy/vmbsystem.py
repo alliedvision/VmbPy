@@ -551,56 +551,63 @@ class VmbSystem:
             cam_id = self.get_feature_by_name('EventCameraDiscoveryCameraID').get()
             log = Log.get_instance()
 
-            # New camera found: Add it to camera list
-            if event == CameraEvent.Detected:
-                cam = self.__discover_camera(cam_id)
+            try:
+                # New camera found: Add it to camera list
+                if event == CameraEvent.Detected:
+                    cam = self.__discover_camera(cam_id)
 
-                with self.__cams_lock:
-                    self.__cams.append(cam)
-
-                log.info('Added camera \"{}\" to active cameras'.format(cam_id))
-
-            # Existing camera lost. Remove it from active cameras
-            elif event == CameraEvent.Missing:
-                with self.__cams_lock:
-                    cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
-                    if cam_list:
-                        cam = cam_list.pop()
-                        cam._disconnected = True
-                        self.__cams.remove(cam)
-
-                        log.info('Removed camera \"{}\" from active cameras'.format(cam_id))
-
-            # Camera access mode changed. Need to update cached permitted access modes
-            elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
-                with self.__cams_lock:
-                    cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
-                    if cam_list:
-                        cam = cam_list.pop()
-                        cam._update_permitted_access_modes()
-                    else:
-                        log.warn('Unexpected access mode change for undiscovered camera \"{}\"'
-                                 ''.format(cam_id))
-                        cam = self.__discover_camera(cam_id)
+                    with self.__cams_lock:
                         self.__cams.append(cam)
 
-                log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
+                    log.info('Added camera \"{}\" to active cameras'.format(cam_id))
 
-            else:
-                cam = self.get_camera_by_id(cam_id)
+                # Existing camera lost. Remove it from active cameras
+                elif event == CameraEvent.Missing:
+                    with self.__cams_lock:
+                        cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
+                        if cam_list:
+                            cam = cam_list.pop()
+                            cam._disconnected = True
+                            self.__cams.remove(cam)
 
-            with self.__cams_handlers_lock:
-                for handler in self.__cams_handlers:
-                    try:
-                        handler(cam, event)
+                            log.info('Removed camera \"{}\" from active cameras'.format(cam_id))
 
-                    except Exception as e:
-                        msg = 'Caught Exception in handler: '
-                        msg += 'Type: {}, '.format(type(e))
-                        msg += 'Value: {}, '.format(e)
-                        msg += 'raised by: {}'.format(handler)
-                        Log.get_instance().error(msg)
-                        raise e
+                # Camera access mode changed. Need to update cached permitted access modes
+                elif event == CameraEvent.Reachable or event == CameraEvent.Unreachable:
+                    with self.__cams_lock:
+                        cam_list = [c for c in self.__cams if cam_id in (c.get_id(), c.get_extended_id())]  # noqa: E501
+                        if cam_list:
+                            cam = cam_list.pop()
+                            cam._update_permitted_access_modes()
+                        else:
+                            log.warn('Unexpected access mode change for undiscovered camera \"{}\"'
+                                    ''.format(cam_id))
+                            cam = self.__discover_camera(cam_id)
+                            self.__cams.append(cam)
+
+                    log.info('Updated permitted access modes for camera \"{}\"'.format(cam_id))
+
+                # unknown camera event
+                else:
+                    cam = self.get_camera_by_id(cam_id)
+
+                with self.__cams_handlers_lock:
+                    for handler in self.__cams_handlers:
+                        try:
+                            handler(cam, event)
+
+                        except Exception as e:
+                            msg = 'Caught Exception in handler: '
+                            msg += 'Type: {}, '.format(type(e))
+                            msg += 'Value: {}, '.format(e)
+                            msg += 'raised by: {}'.format(handler)
+                            Log.get_instance().error(msg)
+
+            except Exception as e:
+                msg = 'Caught Exception in __cam_cb_wrapper: '
+                msg += 'Type: {}, '.format(type(e))
+                msg += 'Value: {}, '.format(e)
+                Log.get_instance().error(msg)
 
         def __inter_cb_wrapper(self, _):   # coverage: skip
             # Skip coverage because it can't be measured. This is called from C-Context
