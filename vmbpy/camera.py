@@ -587,23 +587,27 @@ class Camera(PersistableFeatureContainer):
     @TraceEnable()
     @LeaveContextOnCall()
     def _close(self):
-        for stream in self.__streams:
-            if stream.is_streaming():
-                stream.stop_streaming()
-            stream.close()
+        try:
+            for stream in self.__streams:
+                if stream.is_streaming():
+                    stream.stop_streaming()
+                stream.close()
 
-        for feat in self._feats:
-            feat.unregister_all_change_handlers()
+            for feat in self._feats:
+                feat.unregister_all_change_handlers()
 
-        self._remove_feature_accessors()
+            self._remove_feature_accessors()
 
-        self.__streams = []
+            self.__streams = []
 
-        self.__local_device._close()
-        self.__local_device = None
-
-        call_vmb_c('VmbCameraClose', self._handle)
-        self._handle = VmbHandle(0)
+            self.__local_device._close()
+            self.__local_device = None
+        except:
+            pass
+        finally:
+            # VmbCameraClose must be called in any case
+            call_vmb_c('VmbCameraClose', self._handle)
+            self._handle = VmbHandle(0)
 
     @TraceEnable()
     def _update_permitted_access_modes(self):
