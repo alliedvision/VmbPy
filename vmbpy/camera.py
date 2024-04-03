@@ -556,7 +556,7 @@ class Camera(PersistableFeatureContainer):
         except VmbCError as e:
             try:
                 call_vmb_c('VmbCameraClose', self._handle)
-            except:
+            except Exception:
                 pass
             err = e.get_error_code()
             if err == VmbError.BadHandle:
@@ -578,7 +578,7 @@ class Camera(PersistableFeatureContainer):
         except VmbCError as e:
             try:
                 call_vmb_c('VmbCameraClose', self._handle)
-            except:
+            except Exception:
                 pass
             err = e.get_error_code()
             exc = VmbCameraError(repr(err))
@@ -602,7 +602,7 @@ class Camera(PersistableFeatureContainer):
 
             self.__local_device._close()
             self.__local_device = None
-        except:
+        except Exception:
             pass
         finally:
             # VmbCameraClose must be called in any case
