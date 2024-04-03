@@ -554,6 +554,10 @@ class Camera(PersistableFeatureContainer):
                        byref(self.__info),
                        sizeof(self.__info))
         except VmbCError as e:
+            try:
+                call_vmb_c('VmbCameraClose', self._handle)
+            except Exception:
+                pass
             err = e.get_error_code()
             if err == VmbError.BadHandle:
                 msg = 'Invalid handle used to query camera info. Used handle: {}'
@@ -563,34 +567,47 @@ class Camera(PersistableFeatureContainer):
                 exc = VmbCameraError(repr(err))
             raise exc from e
 
-        for i in range(self.__info.streamCount):
-            # The stream at index 0 is automatically opened
-            self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
-                                         is_open=(i == 0),
-                                         parent_cam=self))
-        self.__local_device = LocalDevice(self.__info.localDeviceHandle)
-        self._attach_feature_accessors()
+        try:
+            for i in range(self.__info.streamCount):
+                # The stream at index 0 is automatically opened
+                self.__streams.append(Stream(stream_handle=self.__info.streamHandles[i],
+                                             is_open=(i == 0),
+                                             parent_cam=self))
+            self.__local_device = LocalDevice(self.__info.localDeviceHandle)
+            self._attach_feature_accessors()
+        except VmbCError as e:
+            try:
+                call_vmb_c('VmbCameraClose', self._handle)
+            except Exception:
+                pass
+            err = e.get_error_code()
+            exc = VmbCameraError(repr(err))
+            raise exc from e
 
     @TraceEnable()
     @LeaveContextOnCall()
     def _close(self):
-        for stream in self.__streams:
-            if stream.is_streaming():
-                stream.stop_streaming()
-            stream.close()
+        try:
+            for stream in self.__streams:
+                if stream.is_streaming():
+                    stream.stop_streaming()
+                stream.close()
 
-        for feat in self._feats:
-            feat.unregister_all_change_handlers()
+            for feat in self._feats:
+                feat.unregister_all_change_handlers()
 
-        self._remove_feature_accessors()
+            self._remove_feature_accessors()
 
-        self.__streams = []
+            self.__streams = []
 
-        self.__local_device._close()
-        self.__local_device = None
-
-        call_vmb_c('VmbCameraClose', self._handle)
-        self._handle = VmbHandle(0)
+            self.__local_device._close()
+            self.__local_device = None
+        except Exception:
+            pass
+        finally:
+            # VmbCameraClose must be called in any case
+            call_vmb_c('VmbCameraClose', self._handle)
+            self._handle = VmbHandle(0)
 
     @TraceEnable()
     def _update_permitted_access_modes(self):
