@@ -26,6 +26,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import copy
 import ctypes
+import os
+
 from ctypes import POINTER as c_ptr
 from ctypes import byref
 from ctypes import c_char_p
@@ -797,6 +799,19 @@ def _check_version(lib_handle):
 
     loaded_version = (v.major, v.minor, v.patch)
     expected_version = tuple(map(int, EXPECTED_VMB_C_VERSION.split(".")))
+
+    if (os.environ.get('SKIP_VMBPY_VMBC_COMPATIBILITY_CHECK', 'false').lower()
+        in ('true', 'yes', '1')):
+        # User specifically requested that versions are not checked
+        import warnings
+        warnings.warn('VmbPy and VmbC compatibility check skipped because '
+                      'SKIP_VMBPY_VMBC_COMPATIBILITY_CHECK was set to "{}". '
+                      'Expected version is: "{}". Loaded version is "{}"'
+                      ''.format(os.environ.get('SKIP_VMBPY_VMBC_COMPATIBILITY_CHECK'),
+                                             expected_version,
+                                             loaded_version),
+                      category=RuntimeWarning)
+        return lib_handle
     # major and minor version must be equal, patch version may be equal or greater
     if not (loaded_version[0:2] == expected_version[0:2] and
             loaded_version[2] >= expected_version[2]):
