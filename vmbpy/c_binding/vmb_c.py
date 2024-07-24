@@ -801,15 +801,15 @@ def _check_version(lib_handle):
     expected_version = tuple(map(int, EXPECTED_VMB_C_VERSION.split(".")))
 
     if (os.environ.get('SKIP_VMBPY_VMBC_COMPATIBILITY_CHECK', 'false').lower()
-        in ('true', 'yes', '1')):
+            in ('true', 'yes', '1')):
         # User specifically requested that versions are not checked
         import warnings
         warnings.warn('VmbPy and VmbC compatibility check skipped because '
                       'SKIP_VMBPY_VMBC_COMPATIBILITY_CHECK was set to "{}". '
                       'Expected version is: "{}". Loaded version is "{}"'
                       ''.format(os.environ.get('SKIP_VMBPY_VMBC_COMPATIBILITY_CHECK'),
-                                             expected_version,
-                                             loaded_version),
+                                expected_version,
+                                loaded_version),
                       category=RuntimeWarning)
         return lib_handle
     # major and minor version must be equal, patch version may be equal or greater
