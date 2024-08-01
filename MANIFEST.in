@@ -1,3 +1,5 @@
+include vmbpy/c_binding/lib/*
+
 graft Tests
 graft Examples
 global-exclude *.py[cod]
