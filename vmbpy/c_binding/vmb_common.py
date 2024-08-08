@@ -453,14 +453,9 @@ def _load_under_linux(vimbax_project: str):
 
 
 def _load_under_windows(vimbax_project: str):
-    vimbax_home = os.environ.get('VIMBA_X_HOME')
-
-    if vimbax_home is None:
-        raise VmbSystemError('Variable VIMBA_X_HOME not set. Please verify VimbaX installation.')
-
     load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
     lib_name = '{}.dll'.format(vimbax_project)
-    lib_path = os.path.join(vimbax_home, 'api', 'bin', lib_name)
+    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
@@ -475,7 +470,8 @@ def _load_under_windows(vimbax_project: str):
             lib = ctypes.windll.LoadLibrary(lib_path)  # type: ignore
 
     except OSError as e:
-        msg = 'Failed to load library \'{}\'. Please verify VimbaX installation.'
+        msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
+            'installation but can not be found.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
