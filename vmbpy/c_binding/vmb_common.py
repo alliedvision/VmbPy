@@ -409,44 +409,15 @@ def _load_under_macos(vimbax_project: str):
 
 
 def _load_under_linux(vimbax_project: str):
-    # Construct VimbaX_Home based on TL installation paths
-    path_list: List[str] = []
-    tl32_path = os.environ.get('GENICAM_GENTL32_PATH', "")
-    if tl32_path:
-        path_list += tl32_path.split(':')
-    tl64_path = os.environ.get('GENICAM_GENTL64_PATH', "")
-    if tl64_path:
-        path_list += tl64_path.split(':')
-
-    # Remove empty strings from path_list if there are any.
-    # Necessary because the GENICAM_GENTLXX_PATH variable might start with a :
-    path_list = [path for path in path_list if path]
-
-    # Early return if required variables are not set.
-    if not path_list:
-        raise VmbSystemError('No TL detected. Please verify VimbaX installation.')
-
-    vimbax_home_candidates: List[str] = []
-    for path in path_list:
-        # home directory is one up from the cti directory that is added to the GENICAM_GENTLXX_PATH
-        # variable
-        vimbax_home = os.path.dirname(path)
-
-        # Make sure we do not add the same directory twice
-        if vimbax_home not in vimbax_home_candidates:
-            vimbax_home_candidates.append(vimbax_home)
-
-    # Select the most likely directory from the candidates
-    vimbax_home = _select_vimbax_home(vimbax_home_candidates)
-
     lib_name = 'lib{}.so'.format(vimbax_project)
-    lib_path = os.path.join(vimbax_home, 'api', 'lib', lib_name)
+    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'api', 'lib', lib_name)
 
     try:
         lib = ctypes.cdll.LoadLibrary(lib_path)
 
     except OSError as e:
-        msg = 'Failed to load library \'{}\'. Please verify VimbaX installation.'
+        msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
+            'installation but can not be found.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
@@ -477,6 +448,8 @@ def _load_under_windows(vimbax_project: str):
     return lib
 
 
+# TODO: Delete/Move this? No longer used during VmbPy runtime, but will probably be useful in build
+# backend
 def _select_vimbax_home(candidates: List[str]) -> str:
     """
     Select the most likely candidate for ``VIMBA_X_HOME`` from the given list of candidates
