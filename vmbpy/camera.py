@@ -588,26 +588,25 @@ class Camera(PersistableFeatureContainer):
     @LeaveContextOnCall()
     def _close(self):
         try:
-            for stream in self.__streams:
-                if stream.is_streaming():
-                    stream.stop_streaming()
-                stream.close()
-
             for feat in self._feats:
                 feat.unregister_all_change_handlers()
 
             self._remove_feature_accessors()
 
-            self.__streams = []
-
             self.__local_device._close()
-            self.__local_device = None
+
+            for stream in self.__streams:
+                if stream.is_streaming():
+                    stream.stop_streaming()
+                stream.close()
         except Exception:
             pass
         finally:
             # VmbCameraClose must be called in any case
             call_vmb_c('VmbCameraClose', self._handle)
             self._handle = VmbHandle(0)
+            self.__streams = []
+            self.__local_device = None
 
     @TraceEnable()
     def _update_permitted_access_modes(self):
