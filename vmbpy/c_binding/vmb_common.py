@@ -410,7 +410,7 @@ def _load_under_macos(vimbax_project: str):
 
 def _load_under_linux(vimbax_project: str):
     lib_name = 'lib{}.so'.format(vimbax_project)
-    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'api', 'lib', lib_name)
+    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
 
     try:
         lib = ctypes.cdll.LoadLibrary(lib_path)
