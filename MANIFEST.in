@@ -1,4 +1,5 @@
 include vmbpy/c_binding/lib/*
+include vmbpy/c_binding/lib/**/*
 
 graft Tests
 graft Examples

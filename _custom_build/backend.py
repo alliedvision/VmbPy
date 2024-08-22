@@ -25,6 +25,47 @@ def find_vimba_x_home() -> Path:
                             '`--config-setting=--vmb-dir=/path/to/vimbax/binary/directory`')
 
 
+def copy_files(file_paths, target_dir):
+    """
+    Copy all files in `file_paths` to `target_dir` removing any common prefix shared among all files
+    in `file_paths`
+
+    Returns a list of `Path`s to the files that were copied.
+    """
+    # Find the common path prefix and ensure it ends with a path separator
+    common_prefix = os.path.commonprefix(file_paths)
+    if os.path.isdir(common_prefix):
+        common_prefix = os.path.join(common_prefix, '')
+
+    copied_files = []
+    for file_path in file_paths:
+        # Remove the common prefix
+        relative_path = os.path.relpath(file_path, common_prefix)
+
+        # Construct the new file destination
+        target_path = os.path.join(target_dir, relative_path)
+
+        # Ensure the target directory exists
+        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+
+        # Copy the file
+        copied_files.append(Path(shutil.copy2(file_path, target_path)))
+    return copied_files
+
+
+def delete_files(file_paths):
+    """
+    Delete all files in `file_paths`
+
+    If a path given in `file_paths` points to a directory, that directory is removed.
+    """
+    for f in file_paths:
+        if f.is_file():
+            f.unlink()
+        else:
+            shutil.rmtree(f)
+
+
 @contextmanager
 def add_vimba_x_libs(search_dir: Optional[Path], target_dir: Path):
     """
@@ -36,19 +77,14 @@ def add_vimba_x_libs(search_dir: Optional[Path], target_dir: Path):
         search_dir = find_vimba_x_home() / 'api/bin'
     # TODO: update documentation to inform user about how to change XML config and what the default xml config is and how it might differ to that installed on Windows machines
     # TODO: Fix regex (and probably logic) to pick up genicam libs in genicam subdir on linux systems
-    regex = r'.*(VmbC|VmbImageTransform|_AVT)\.(dll|so|xml)'
-    files_to_copy = map(Path, filter(re.compile(regex).match, map(str, search_dir.iterdir())))
+    regex = r'.*(VmbC|VmbImageTransform|_AVT)(.dll|.so|.xml|.dylib)?$'
+    to_copy = map(Path, filter(re.compile(regex).match, map(str, search_dir.glob('**/*'))))
+    files_to_copy = [f for f in to_copy if f.is_file()]
     if not target_dir.exists():
         target_dir.mkdir(parents=True)
-    files_to_delete = []
-    for f in files_to_copy:
-        files_to_delete.append(Path(shutil.copy(f, target_dir)))
+    files_to_delete = copy_files(files_to_copy, target_dir)
     yield
-    for f in files_to_delete:
-        if f.is_file():
-            f.unlink()
-        else:
-            shutil.rmtree(f)
+    delete_files(files_to_delete)
 
 
 def build_sdist(sdist_directory, config_settings=None):
