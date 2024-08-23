@@ -1,5 +1,4 @@
-include vmbpy/c_binding/lib/*
-include vmbpy/c_binding/lib/**/*
+recursive-include vmbpy/c_binding/lib *
 
 graft Tests
 graft Examples

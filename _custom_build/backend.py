@@ -33,14 +33,14 @@ def copy_files(file_paths, target_dir):
     Returns a list of `Path`s to the files that were copied.
     """
     # Find the common path prefix and ensure it ends with a path separator
-    common_prefix = os.path.commonprefix(file_paths)
-    if os.path.isdir(common_prefix):
-        common_prefix = os.path.join(common_prefix, '')
+    common_path = os.path.commonpath(file_paths)
+    if os.path.isdir(common_path):
+        common_path = os.path.join(common_path, '')
 
     copied_files = []
     for file_path in file_paths:
         # Remove the common prefix
-        relative_path = os.path.relpath(file_path, common_prefix)
+        relative_path = os.path.relpath(file_path, common_path)
 
         # Construct the new file destination
         target_path = os.path.join(target_dir, relative_path)
@@ -59,11 +59,28 @@ def delete_files(file_paths):
 
     If a path given in `file_paths` points to a directory, that directory is removed.
     """
-    for f in file_paths:
-        if f.is_file():
-            f.unlink()
-        else:
-            shutil.rmtree(f)
+    for file_path in file_paths:
+        os.remove(file_path)
+
+    # Remove now-empty directories (if any)
+    for file_path in file_paths:
+        dir_path = os.path.dirname(file_path)
+        remove_empty_dirs(dir_path)
+
+
+def remove_empty_dirs(directory):
+    while True:
+        try:
+            if not os.listdir(directory):  # Check if the directory is empty
+                os.rmdir(directory)
+                # Move to the parent directory
+                directory = os.path.dirname(directory)
+            else:
+                break
+        except FileNotFoundError:
+            break
+        except OSError:
+            break
 
 
 @contextmanager
