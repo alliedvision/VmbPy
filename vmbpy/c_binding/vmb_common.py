@@ -394,15 +394,7 @@ def load_vimbax_lib(vimbax_project: str):
 
 
 def _load_under_macos(vimbax_project: str):
-    # Assume global installation in /Library/Frameworks by default,
-    # but allow user override using VIMBA_X_HOME.
-
-    vimbax_home = os.environ.get('VIMBA_X_HOME')
-
-    if vimbax_home is None:
-        vimbax_home = '/Library/Frameworks'
-
-    lib_path = os.path.join(vimbax_home, vimbax_project + '.framework', vimbax_project)
+    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', vimbax_project + '.framework', vimbax_project)
     lib = ctypes.cdll.LoadLibrary(lib_path)
 
     return lib
