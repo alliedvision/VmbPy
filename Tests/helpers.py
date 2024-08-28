@@ -26,6 +26,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 import os
 import unittest
+import warnings
 
 import vmbpy
 
@@ -82,3 +83,33 @@ def calculate_acquisition_time(cam: vmbpy.Camera, num_frames: int) -> float:
     """
     fps = cam.get_feature_by_name('AcquisitionFrameRate').get()
     return num_frames / fps
+
+
+def reset_default_user_set(cam_id: str) -> None:
+    try:
+        with vmbpy.VmbSystem.get_instance() as vmb:
+            cam = vmb.get_camera_by_id(cam_id)
+            with cam:
+                try:
+                    cam.get_feature_by_name('UserSetDefault').set('Default')
+                except vmbpy.VmbFeatureError:
+                    try:
+                        cam.get_feature_by_name('UserSetDefaultSelector').set('Default')
+                    except vmbpy.VmbFeatureError:
+                        warnings.warn('Failed to reset default user set')
+    except vmbpy.VmbCameraError:
+        warnings.warn('Camera could not be found to reset the default user set')
+
+
+def load_default_user_set(cam_id: str) -> None:
+    try:
+        with vmbpy.VmbSystem.get_instance() as vmb:
+            cam = vmb.get_camera_by_id(cam_id)
+            with cam:
+                try:
+                    cam.get_feature_by_name('UserSetSelector').set('Default')
+                    cam.get_feature_by_name('UserSetLoad').run()
+                except vmbpy.VmbFeatureError:
+                    warnings.warn('Failed to load default user set')
+    except vmbpy.VmbCameraError:
+        warnings.warn('Camera could not be found to load default user set')
