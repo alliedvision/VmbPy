@@ -206,5 +206,6 @@ if __name__ == '__main__':
     reset_default_user_set(VmbPyTestCase.get_test_camera_id())
     load_default_user_set(VmbPyTestCase.get_test_camera_id())
     result = runner.run(test_suite)
-
+    reset_default_user_set(VmbPyTestCase.get_test_camera_id())
+    load_default_user_set(VmbPyTestCase.get_test_camera_id())
     sys.exit(0 if result.wasSuccessful() else 1)
