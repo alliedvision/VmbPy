@@ -32,7 +32,7 @@ import unittest
 # Add local directory to search path for test module import in this script.
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-from helpers import VmbPyTestCase
+from helpers import VmbPyTestCase, reset_default_user_set, load_default_user_set
 
 # Add VmbPy module at the start of the search path. The tests should run against the
 # local vmbpy sources regardless of any existing installations.
@@ -203,6 +203,9 @@ if __name__ == '__main__':
         for mod in REAL_CAM_TEST_MODS:
             test_suite.addTests(_blacklist_tests(loader.loadTestsFromModule(mod), args.blacklist))
 
+    reset_default_user_set(VmbPyTestCase.get_test_camera_id())
+    load_default_user_set(VmbPyTestCase.get_test_camera_id())
     result = runner.run(test_suite)
-
+    reset_default_user_set(VmbPyTestCase.get_test_camera_id())
+    load_default_user_set(VmbPyTestCase.get_test_camera_id())
     sys.exit(0 if result.wasSuccessful() else 1)
