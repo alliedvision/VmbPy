@@ -299,6 +299,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         target_format = PixelFormat.Bgr8
         self.cam.set_pixel_format(record_format)
         original_frame = self.cam.get_frame()
+        self.assertEqual(original_frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot reliably work with a possibly '
+                         'empty frame because we want to check if pixel values are written '
+                         'correctly.')
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
@@ -317,6 +322,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         record_format = PixelFormat.Mono8
         self.cam.set_pixel_format(record_format)
         original_frame = self.cam.get_frame()
+        self.assertEqual(original_frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot reliably work with a possibly '
+                         'empty frame because we want to check if pixel values are written '
+                         'correctly.')
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(original_frame.get_pixel_format()) \
@@ -342,6 +352,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         except ValueError:
             self.skipTest(f'{str(self.cam)} does not support pixel format "{record_format}"')
         original_frame = self.cam.get_frame()
+        self.assertEqual(original_frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot reliably work with a possibly '
+                         'empty frame because we want to check if pixel values are written '
+                         'correctly.')
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
@@ -364,6 +379,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         target_format = PixelFormat.Bgr8
         self.cam.set_pixel_format(record_format)
         original_frame = self.cam.get_frame()
+        self.assertEqual(original_frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot reliably work with a possibly '
+                         'empty frame because we want to check if pixel values are written '
+                         'correctly.')
         # Do conversion once without user supplied buffer. This creates a new VmbPy Frame with fresh
         # buffer. We can then reuse that buffer for future conversions
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
