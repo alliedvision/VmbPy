@@ -1,3 +1,6 @@
 recursive-include vmbpy/c_binding/lib *
 
+graft Tests
+graft Examples
+graft _custom_build
 global-exclude *.py[cod]
