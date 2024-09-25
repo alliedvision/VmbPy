@@ -32,7 +32,7 @@ from vmbpy import *
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase, calculate_acquisition_time
+from helpers import VmbPyTestCase, calculate_acquisition_time, set_throughput_to_min
 
 
 class ChunkAccessTest(VmbPyTestCase):
@@ -50,6 +50,7 @@ class ChunkAccessTest(VmbPyTestCase):
         try:
             self.cam._open()
             self.local_device = self.cam.get_local_device()
+            set_throughput_to_min(self.cam)
         except VmbCameraError as e:
             self.cam._close()
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e

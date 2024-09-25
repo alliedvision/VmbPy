@@ -39,7 +39,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase
+from helpers import VmbPyTestCase, set_throughput_to_min
 
 
 class CamFrameTest(VmbPyTestCase):
@@ -283,6 +283,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             # Camera is opened in setUp to make enabling/disabling chunk features in subclass below
             # possible in setUp and tearDown
             self.cam._open()
+            set_throughput_to_min(self.cam)
             self.local_device = self.cam.get_local_device()
         except VmbCameraError as e:
             self.cam._close()
