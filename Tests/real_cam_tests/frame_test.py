@@ -53,6 +53,13 @@ class CamFrameTest(VmbPyTestCase):
         except VmbCameraError as e:
             self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
+        
+        # prevent camera sending completely black frames
+        with self.cam as cam:
+            _, maxExpTime = cam.ExposureTime.get_range()
+            cam.ExposureTime.set(min(100000, maxExpTime))
+            _, maxGain = cam.Gain.get_range()
+            cam.Gain.set(maxGain)
 
     def tearDown(self):
         self.vmb._shutdown()
