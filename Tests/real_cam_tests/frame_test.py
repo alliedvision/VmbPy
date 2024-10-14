@@ -39,7 +39,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase
+from helpers import VmbPyTestCase, set_throughput_to_min
 
 
 class CamFrameTest(VmbPyTestCase):
@@ -53,13 +53,14 @@ class CamFrameTest(VmbPyTestCase):
         except VmbCameraError as e:
             self.vmb._shutdown()
             raise Exception('Failed to lookup Camera.') from e
-        
+
         # prevent camera sending completely black frames
         with self.cam as cam:
             _, maxExpTime = cam.ExposureTime.get_range()
             cam.ExposureTime.set(min(100000, maxExpTime))
             _, maxGain = cam.Gain.get_range()
             cam.Gain.set(maxGain)
+            set_throughput_to_min(self.cam)
 
     def tearDown(self):
         self.vmb._shutdown()
@@ -290,6 +291,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             # Camera is opened in setUp to make enabling/disabling chunk features in subclass below
             # possible in setUp and tearDown
             self.cam._open()
+            set_throughput_to_min(self.cam)
             self.local_device = self.cam.get_local_device()
         except VmbCameraError as e:
             self.cam._close()
