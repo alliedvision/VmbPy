@@ -114,14 +114,11 @@ def load_default_user_set(cam_id: str) -> None:
     except vmbpy.VmbCameraError:
         warnings.warn('Camera could not be found to load default user set')
 
+
 def set_throughput_to_min(cam: vmbpy.Camera):
     try:
         cam.DeviceLinkThroughputLimitMode.set("On")
         (min, max) = cam.DeviceLinkThroughputLimit.get_range()
         cam.DeviceLinkThroughputLimit.set(min)
-        (min, max) = cam.Width.get_range()
-        cam.Width.set(min)
-        (min, max) = cam.Height.get_range()
-        cam.Height.set(min)
-    except:
-        warnings.warn('Could not set DeviceLinkThroughputLimit to minimum')
+    except Exception:
+        warnings.warn(f'Could not set DeviceLinkThroughputLimit to minimum')
