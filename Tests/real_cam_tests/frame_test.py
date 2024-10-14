@@ -60,6 +60,7 @@ class CamFrameTest(VmbPyTestCase):
             cam.ExposureTime.set(min(100000, maxExpTime))
             _, maxGain = cam.Gain.get_range()
             cam.Gain.set(maxGain)
+            set_throughput_to_min(self.cam)
 
     def tearDown(self):
         self.vmb._shutdown()
