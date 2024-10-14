@@ -121,4 +121,4 @@ def set_throughput_to_min(cam: vmbpy.Camera):
         (min, max) = cam.DeviceLinkThroughputLimit.get_range()
         cam.DeviceLinkThroughputLimit.set(min)
     except Exception:
-        warnings.warn(f'Could not set DeviceLinkThroughputLimit to minimum')
+        warnings.warn('Could not set DeviceLinkThroughputLimit to minimum')
