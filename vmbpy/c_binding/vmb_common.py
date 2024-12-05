@@ -426,6 +426,9 @@ def _load_under_windows(vimbax_project: str):
 
     lib_name = '{}.dll'.format(vimbax_project)
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
+    # Make sure file exists before trying to load it
+    if not os.path.isfile(lib_path):
+        raise VmbSystemError('FILE NOT FOUND!!! TODO: IMPROVE THIS MESSAGE')
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
