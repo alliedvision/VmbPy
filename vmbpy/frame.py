@@ -551,10 +551,16 @@ class Frame:
         c_dst_image = VmbImage()
         c_dst_image.Size = sizeof(c_dst_image)
 
-        layout, bits = PIXEL_FORMAT_TO_LAYOUT[VmbPixelFormat(target_fmt)]
+        if fmt == target_fmt:
+            # If the format does not change, ImageInfo will also remain the same. Just copy it to
+            # prevent issues where formats that are not supported by ImageTransform library are
+            # passed to this function
+            c_dst_image.ImageInfo = c_src_image.ImageInfo
+        else:
+            layout, bits = PIXEL_FORMAT_TO_LAYOUT[VmbPixelFormat(target_fmt)]
 
-        call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
-                                 bits, byref(c_dst_image))
+            call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
+                                    bits, byref(c_dst_image))
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
