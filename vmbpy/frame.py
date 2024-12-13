@@ -560,7 +560,7 @@ class Frame:
             layout, bits = PIXEL_FORMAT_TO_LAYOUT[VmbPixelFormat(target_fmt)]
 
             call_vmb_image_transform('VmbSetImageInfoFromInputImage', byref(c_src_image), layout,
-                                    bits, byref(c_dst_image))
+                                     bits, byref(c_dst_image))
 
         # 4) Create output frame and carry over image metadata
         img_size = int(height * width * c_dst_image.ImageInfo.PixelInfo.BitsPerPixel / 8)
