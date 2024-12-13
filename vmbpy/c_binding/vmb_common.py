@@ -416,23 +416,29 @@ def _load_under_linux(vimbax_project: str):
 
 
 def _load_under_windows(vimbax_project: str):
-    load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
+    def _load_lib(lib_path: str) -> ctypes.CDLL | ctypes.WinDLL:
+        """Helper to load 64 or 32 bit dlls depending on platform"""
+        load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
+        if load_64bit:
+            return ctypes.cdll.LoadLibrary(lib_path)
+        else:
+            return ctypes.windll.LoadLibrary(lib_path)
+
     lib_name = '{}.dll'.format(vimbax_project)
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
-        # Load Library with 64 Bit and use cdecl call convention
-        if load_64bit:
-            lib = ctypes.cdll.LoadLibrary(lib_path)
-
-        # Load Library with 32 Bit and use stdcall call convention
-        else:
-            # Tell mypy to ignore this line to allow type checking on both windows and linux as
-            # windll is not available on linux and would therefore produce an error there
-            lib = ctypes.windll.LoadLibrary(lib_path)  # type: ignore
+        lib = _load_lib(lib_path)
 
     except OSError as e:
+        # library could not be loaded. Probably missing some dependency. On Windows most likely
+        # vcredist is not installed.
+        try:
+            _load_lib('MSVCP140.dll')
+        except OSError as e:
+            msg = 'FAILED TO LOAD VCREDIST DEPENDENCY. MAKE SURE IT IS INSTALLED. TODO: IMPROVE THIS MESSAGE: https://aka.ms/vs/17/release/vc_redist.x64.exe'
+            raise VmbSystemError(msg) from e
         msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
             'installation but can not be found.'
         raise VmbSystemError(msg.format(lib_path)) from e
