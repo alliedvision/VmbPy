@@ -36,7 +36,7 @@ import sys
 from typing import List, Tuple, Optional
 
 from ..error import VmbSystemError
-from ..util import VmbIntEnum, VmbFlagEnum
+from ..util import VmbIntEnum, VmbFlagEnum, Log
 
 __all__ = [
     'Int32Enum',
@@ -395,6 +395,7 @@ def load_vimbax_lib(vimbax_project: str):
 
 def _load_under_macos(vimbax_project: str):
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', vimbax_project + '.framework', vimbax_project)
+    Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
     lib = ctypes.cdll.LoadLibrary(lib_path)
 
     return lib
@@ -405,6 +406,7 @@ def _load_under_linux(vimbax_project: str):
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
 
     try:
+        Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
         lib = ctypes.cdll.LoadLibrary(lib_path)
 
     except OSError as e:
@@ -418,6 +420,7 @@ def _load_under_linux(vimbax_project: str):
 def _load_under_windows(vimbax_project: str):
     def _load_lib(lib_path: str) -> ctypes.CDLL | ctypes.WinDLL:
         """Helper to load 64 or 32 bit dlls depending on platform"""
+        Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
         load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
         if load_64bit:
             return ctypes.cdll.LoadLibrary(lib_path)
