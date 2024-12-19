@@ -431,7 +431,9 @@ def _load_under_windows(vimbax_project: str):
     lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
     # Make sure file exists before trying to load it
     if not os.path.isfile(lib_path):
-        raise VmbSystemError('FILE NOT FOUND!!! TODO: IMPROVE THIS MESSAGE')
+        msg = 'Expected {} to be included with VmbPy at {} but could not find it. Please verify ' \
+              'the installed VmbPy wheel.'
+        raise VmbSystemError(msg.format(vimbax_project, lib_path))
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
@@ -443,8 +445,10 @@ def _load_under_windows(vimbax_project: str):
         try:
             _load_lib('MSVCP140.dll')
         except OSError as e:
-            msg = 'FAILED TO LOAD VCREDIST DEPENDENCY. MAKE SURE IT IS INSTALLED. TODO: IMPROVE THIS MESSAGE: https://aka.ms/vs/17/release/vc_redist.x64.exe'
-            raise VmbSystemError(msg) from e
+            msg = 'Failed to load library \'{}\'. This is likely caused by a missing vcredist ' \
+                   'dependency. Please download and install the latest vcredist from microsoft ' \
+                   'here: https://aka.ms/vs/17/release/vc_redist.x64.exe'
+            raise VmbSystemError(msg.format(lib_path)) from e
         msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
             'installation but can not be found.'
         raise VmbSystemError(msg.format(lib_path)) from e
