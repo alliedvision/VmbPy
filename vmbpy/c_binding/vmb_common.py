@@ -394,16 +394,69 @@ def load_vimbax_lib(vimbax_project: str):
 
 
 def _load_under_macos(vimbax_project: str):
-    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', vimbax_project + '.framework', vimbax_project)
-    Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
-    lib = ctypes.cdll.LoadLibrary(lib_path)
+    bundled_lib = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', vimbax_project + '.framework', vimbax_project)
+    # If file is not included with whl fall back to trying to load from global installation
+    if os.path.exists(bundled_lib):
+        lib_path = bundled_lib
+    else:
+        # Assume global installation in /Library/Frameworks by default,
+        # but allow user override using VIMBA_X_HOME.
+        vimbax_home = os.environ.get('VIMBA_X_HOME')
+
+        if vimbax_home is None:
+            vimbax_home = '/Library/Frameworks'
+
+        lib_path = os.path.join(vimbax_home, vimbax_project + '.framework', vimbax_project)
+
+    try:
+        Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
+        lib = ctypes.cdll.LoadLibrary(lib_path)
+    except OSError as e:
+        msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
+            'or Vimba X installation but can not be found.'
+        raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
 
 def _load_under_linux(vimbax_project: str):
     lib_name = 'lib{}.so'.format(vimbax_project)
-    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
+    bundled_lib = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
+    # If file is not included with whl fall back to trying to load from VIMBA_X_HOME guess
+    if os.path.exists(bundled_lib):
+        lib_path = bundled_lib
+    else:
+        # Construct VIMBA_X_HOME based on TL installation paths
+        path_list: List[str] = []
+        tl32_path = os.environ.get('GENICAM_GENTL32_PATH', "")
+        if tl32_path:
+            path_list += tl32_path.split(':')
+        tl64_path = os.environ.get('GENICAM_GENTL64_PATH', "")
+        if tl64_path:
+            path_list += tl64_path.split(':')
+
+        # Remove empty strings from path_list if there are any.
+        # Necessary because the GENICAM_GENTLXX_PATH variable might start with a :
+        path_list = [path for path in path_list if path]
+
+        # Early return if required variables are not set.
+        if not path_list:
+            raise VmbSystemError('No TL detected. Please verify Vimba X installation.')
+
+        vimbax_home_candidates: List[str] = []
+        for path in path_list:
+            # home directory is one up from the cti directory that is added to the
+            # GENICAM_GENTLXX_PATH variable
+            vimbax_home = os.path.dirname(path)
+
+            # Make sure we do not add the same directory twice
+            if vimbax_home not in vimbax_home_candidates:
+                vimbax_home_candidates.append(vimbax_home)
+
+        # Select the most likely directory from the candidates
+        vimbax_home = _select_vimbax_home(vimbax_home_candidates)
+        lib_path = os.path.join(vimbax_home, 'api', 'lib', lib_name)
+
 
     try:
         Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
@@ -411,7 +464,7 @@ def _load_under_linux(vimbax_project: str):
 
     except OSError as e:
         msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
-            'installation but can not be found.'
+            'or Vimba X installation but can not be found.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
@@ -428,12 +481,18 @@ def _load_under_windows(vimbax_project: str):
             return ctypes.windll.LoadLibrary(lib_path)
 
     lib_name = '{}.dll'.format(vimbax_project)
-    lib_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
-    # Make sure file exists before trying to load it
-    if not os.path.isfile(lib_path):
-        msg = 'Expected {} to be included with VmbPy at {} but could not find it. Please verify ' \
-              'the installed VmbPy wheel.'
-        raise VmbSystemError(msg.format(vimbax_project, lib_path))
+    bundled_lib = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
+    # If file is not included in whl fall back to trying to load from VIMBA_X_HOME
+    if os.path.isfile(bundled_lib):
+        lib_path = bundled_lib
+    else:
+        vimbax_home = os.environ.get('VIMBA_X_HOME')
+        if vimbax_home is None:
+            msg = 'Expected {} to be included with VmbPy wheel at {} or to find VIMBA_X_HOME ' \
+                'variable but could not find either. Please verify the installed VmbPy wheel or ' \
+                'the Vimba X installation.'
+            raise VmbSystemError(msg.format(vimbax_project, bundled_lib))
+        lib_path = os.path.join(vimbax_home, 'api', 'bin', lib_name)
     os.environ["PATH"] = os.path.dirname(lib_path) + os.pathsep + os.environ["PATH"]
 
     try:
@@ -444,20 +503,18 @@ def _load_under_windows(vimbax_project: str):
         # vcredist is not installed.
         try:
             _load_lib('MSVCP140.dll')
-        except OSError as e:
+        except OSError as vcredist_error:
             msg = 'Failed to load library \'{}\'. This is likely caused by a missing vcredist ' \
                    'dependency. Please download and install the latest vcredist from microsoft ' \
                    'here: https://aka.ms/vs/17/release/vc_redist.x64.exe'
-            raise VmbSystemError(msg.format(lib_path)) from e
+            raise VmbSystemError(msg.format(lib_path)) from vcredist_error
         msg = 'Failed to load library \'{}\'. It should have been included as part of the VmbPy ' \
-            'installation but can not be found.'
+            'or Vimba X installation but can not be found.'
         raise VmbSystemError(msg.format(lib_path)) from e
 
     return lib
 
 
-# TODO: Delete/Move this? No longer used during VmbPy runtime, but will probably be useful in build
-# backend
 def _select_vimbax_home(candidates: List[str]) -> str:
     """
     Select the most likely candidate for ``VIMBA_X_HOME`` from the given list of candidates
