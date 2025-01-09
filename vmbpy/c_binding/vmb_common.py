@@ -471,7 +471,7 @@ def _load_under_linux(vimbax_project: str):
 
 
 def _load_under_windows(vimbax_project: str):
-    def _load_lib(lib_path: str) -> ctypes.CDLL | ctypes.WinDLL:
+    def _load_lib(lib_path: str):
         """Helper to load 64 or 32 bit dlls depending on platform"""
         Log.get_instance().debug(f'Loading {vimbax_project} from {lib_path}')
         load_64bit = True if (platform.machine() == 'AMD64') and _is_python_64_bit() else False
