@@ -478,7 +478,9 @@ def _load_under_windows(vimbax_project: str):
         if load_64bit:
             return ctypes.cdll.LoadLibrary(lib_path)
         else:
-            return ctypes.windll.LoadLibrary(lib_path)
+            # Tell mypy to ignore this line to allow type checking on both windows and linux as
+            # windll is not available on linux and would therefore produce an error there
+            return ctypes.windll.LoadLibrary(lib_path)  # type: ignore
 
     lib_name = '{}.dll'.format(vimbax_project)
     bundled_lib = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib', lib_name)
