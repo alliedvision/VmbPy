@@ -84,14 +84,12 @@ def remove_empty_dirs(directory):
 
 
 @contextmanager
-def add_vimba_x_libs(search_dir: Optional[Path], target_dir: Path):
+def add_vimba_x_libs(search_dir: Path, target_dir: Path):
     """
     Context manager that adds the compiled shared libraries from Vimba X that VmbPy requires to the
     given `target_dir` while the context is active. When the context is left, all files that were
     copied into `target_dir` are removed again. If `target_dir` does not exist it will be created
     """
-    if search_dir is None:
-        search_dir = find_vimba_x_home() / 'api/bin'
     # TODO: update documentation to inform user about how to change XML config and what the default xml config is and how it might differ to that installed on Windows machines
     # TODO: Fix regex (and probably logic) to pick up genicam libs in genicam subdir on linux systems
     regex = r'.*(VmbC|VmbImageTransform|_AVT)(.dll|.so|.xml|.dylib)?$'
@@ -110,7 +108,9 @@ def build_sdist(sdist_directory, config_settings=None):
     search_dir = config_settings.get('--vmb-dir')
     if search_dir is not None:
         search_dir = Path(search_dir)
-    with add_vimba_x_libs(search_dir, Path(__file__).parent / "../vmbpy/c_binding/lib"):
+        with add_vimba_x_libs(search_dir, Path(__file__).parent / "../vmbpy/c_binding/lib"):
+            result = _orig.build_sdist(sdist_directory, config_settings)
+    else:
         result = _orig.build_sdist(sdist_directory, config_settings)
     return result
 
@@ -123,14 +123,21 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     # https://github.com/pypa/setuptools/issues/2491
     plat_name_arg = '--plat-name'
     plat_name_value = config_settings.get(plat_name_arg, None)
+    search_dir = config_settings.get('--vmb-dir', None)
     if plat_name_value is None:
-        plat_name_value = sysconfig.get_platform()
+        if search_dir is not None:
+            raise ValueError(f'This build will contain platform specific binaries found in provided '
+                            f'vmb-dir: {search_dir}. This means a platform-tag must also be '
+                            f'specified via --plat-name=<some-tag>')
+        else:
+            plat_name_value = 'any'
     config_settings['--build-option'] = f'{plat_name_arg}={plat_name_value}'
     # if the user directly calls pip install, it will not build an sdist first. This means that even
     # during wheel build we should make sure the lb directory contains the needed files
-    search_dir = config_settings.get('--vmb-dir', None)
     if search_dir is not None:
         search_dir = Path(search_dir)
-    with add_vimba_x_libs(search_dir, Path(__file__).parent / "../vmbpy/c_binding/lib"):
+        with add_vimba_x_libs(search_dir, Path(__file__).parent / "../vmbpy/c_binding/lib"):
+            result = _orig.build_wheel(wheel_directory, config_settings, metadata_directory)
+    else:
         result = _orig.build_wheel(wheel_directory, config_settings, metadata_directory)
     return result
