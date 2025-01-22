@@ -91,7 +91,6 @@ def add_vimba_x_libs(search_dir: Path, target_dir: Path):
     copied into `target_dir` are removed again. If `target_dir` does not exist it will be created
     """
     # TODO: update documentation to inform user about how to change XML config and what the default xml config is and how it might differ to that installed on Windows machines
-    # TODO: Fix regex (and probably logic) to pick up genicam libs in genicam subdir on linux systems
     regex = r'.*(VmbC|VmbImageTransform|_AVT)(.dll|.so|.xml|.dylib)?$'
     to_copy = map(Path, filter(re.compile(regex).match, map(str, search_dir.glob('**/*'))))
     files_to_copy = [f for f in to_copy if f.is_file()]
