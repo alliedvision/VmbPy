@@ -8,7 +8,7 @@ allowing for rapid development of applications.
 
 # Installation
 
-To use VmbPy an Python >= 3.7 is required. A ready-to-install packaged `.whl` file of VmbPy can be
+To use VmbPy, Python >= 3.7 is required. A ready-to-install packaged `.whl` file of VmbPy can be
 found as part of the Vimba X installation, or be downloaded from our [github release
 page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed as usual via the
 [`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
