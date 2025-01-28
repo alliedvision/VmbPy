@@ -30,6 +30,11 @@ Alternatively, you can use the `.whl` without the included VmbC libs (platform t
 requires a pre-existing Vimba X installation on your system, as VmbPy will attempt to load the
 necessary libraries at import time.
 
+> [!NOTE]  
+> If a `.whl` with included VmbC libs is used, it is possible that binary dependencies of VmbC need
+> to be installed separately. For example on windows the Visual C++ Redistributable is required.
+> These dependencies will be automatically installed if Vimba X is installed on the system.
+
 ## Optional dependencies
 
 For some functionality of VmbPy optional dependencies (also called "extras") are required. These
@@ -101,6 +106,9 @@ variable. The location of this configuration file depends on the type of `.whl` 
 using the `.whl` with included libs, it can be found in `/site-packages/vmbpy/c_binding/lib`. If
 you're using the `.whl` without included libs, it is located in the `/api/bin` directory of your
 Vimba X installation.
+
+Alternatively it is also possible for the user to provide a `VmbC.xml` configuration with the help
+of `VmbSystem.set_path_configuration`.
 
 ## Running the test suite
 
