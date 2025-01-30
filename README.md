@@ -8,14 +8,32 @@ allowing for rapid development of applications.
 
 # Installation
 
-To use VmbPy an installation of Vimba X and Python >= 3.7 are required. A ready-to-install packaged
-`.whl` file of VmbPy can be found as part of the Vimba X installation, or be downloaded from our
-[github release page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed
-as usual via the [`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
+To use VmbPy, Python >= 3.7 is required. A ready-to-install packaged `.whl` file of VmbPy can be
+found as part of the Vimba X installation, or be downloaded from our [github release
+page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed as usual via the
+[`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
 
 > [!NOTE]  
 > Depending on the some systems the command might instead be called `pip3`. Check your systems
 > Python documentation for details.
+
+## Selecting the correct `.whl`
+
+When selecting the correct `.whl` file for your project, you have two options. The recommended
+approach is to use the `.whl` that includes the VmbC libs, as this provides all the required
+libraries to get started with development right away. Note, however, that this `.whl` does not
+include any Transport Layers or device drivers, which must be installed separately (for example, by
+installing Vimba X). You can identify `.whl`s with included libs by the platform tag that is
+included in their filename (for example, `win_amd64`).
+
+Alternatively, you can use the `.whl` without the included VmbC libs (platform tag `any`), but this
+requires a pre-existing Vimba X installation on your system, as VmbPy will attempt to load the
+necessary libraries at import time.
+
+> [!NOTE]  
+> If a `.whl` with included VmbC libs is used, it is possible that binary dependencies of VmbC need
+> to be installed separately. For example on windows the Visual C++ Redistributable is required.
+> These dependencies will be automatically installed if Vimba X is installed on the system.
 
 ## Optional dependencies
 
@@ -77,6 +95,20 @@ be entered to start the underlying VmbC API.
 VmbPy is also designed to closely resemble VmbCPP. While VmbPy aims to be as performant as possible,
 it might not be fast enough for performance critical applications. In that case the similar
 structure of VmbPy and VmbCPP makes it easy to migrate an existing VmbPy code base to VmbCPP.
+
+## Configuration of the underlying VmbC API
+
+The underlying VmbC API used by VmbPy can be configured in various ways to suit your development
+needs. Multiple configuration options are available, including the ability to enable logging of VmbC
+calls and customize the loading behavior of transport layers. Configuration is achieved through the
+`VmbC.xml` file, which by default loads Transport Layers from the `GENICAM_GENTL64_PATH` environment
+variable. The location of this configuration file depends on the type of `.whl` installed: if you're
+using the `.whl` with included libs, it can be found in `/site-packages/vmbpy/c_binding/lib`. If
+you're using the `.whl` without included libs, it is located in the `/api/bin` directory of your
+Vimba X installation.
+
+Alternatively it is also possible for the user to provide a `VmbC.xml` configuration with the help
+of `VmbSystem.set_path_configuration`.
 
 ## Running the test suite
 
