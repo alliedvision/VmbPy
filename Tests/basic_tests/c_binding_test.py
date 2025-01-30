@@ -339,7 +339,6 @@ class ImageTransformTest(VmbPyTestCase):
 
     def test_call_vmb_image_transform_valid(self):
         # Expectation for valid call: No exceptions, no errors
-        expected_ver_info = EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
         v = VmbUint32()
         self.assertEqual(v.value, 0)
 
