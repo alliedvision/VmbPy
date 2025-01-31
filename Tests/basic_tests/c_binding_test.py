@@ -265,6 +265,20 @@ class VmbCTest(VmbPyTestCase):
         # Not an actual check for compatibility. Just make sure a sensible value was filled
         self.assertGreaterEqual(ver_info, expected_ver_info)
 
+    def test_loaded_and_expected_vmbc_version_match(self):
+        # Expectation: Loaded VmbC Version matches what is expected in vmb_c.py
+        expected_version = tuple(map(int, EXPECTED_VMB_C_VERSION.split('.')))
+        v = VmbVersionInfo()
+
+        call_vmb_c('VmbVersionQuery', byref(v), sizeof(v))
+
+        loaded_version = (v.major, v.minor, v.patch)
+
+        # Note: A version mismatch does not automatically mean that VmbC and VmbPy are incompatible.
+        # The minor and patch version may be greater than the defined expected version. This test
+        # case will still fail to indicate a *possible* incompatibility
+        self.assertEqual(expected_version, loaded_version)
+
     def test_call_vmb_c_invalid_func_name(self):
         # Expectation: An invalid function name must throw an AttributeError
 
@@ -325,14 +339,27 @@ class ImageTransformTest(VmbPyTestCase):
 
     def test_call_vmb_image_transform_valid(self):
         # Expectation for valid call: No exceptions, no errors
-        expected_ver_info = EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
+        v = VmbUint32()
+        self.assertEqual(v.value, 0)
+
+        call_vmb_image_transform('VmbGetImageTransformVersion', byref(v))
+
+        self.assertNotEqual(v.value, 0)
+
+    def test_loaded_and_expected_vmbimagetransform_versions_match(self):
+        # Expectation: Loaded VmbImageTransform Version matches what is expected in
+        # vmb_image_transform.py
+        expected_version = tuple(map(int, EXPECTED_VMB_IMAGE_TRANSFORM_VERSION.split('.')))
         v = VmbUint32()
 
         call_vmb_image_transform('VmbGetImageTransformVersion', byref(v))
 
-        ver_info = str(v.value >> 24 & 0xff) + '.' + str(v.value >> 16 & 0xff)
+        loaded_version = ((v.value >> 24 & 0xff), (v.value >> 16 & 0xff))
 
-        self.assertEqual(expected_ver_info, ver_info)
+        # Note: A version mismatch does not automatically mean that VmbImageTransform and VmbPy are
+        # incompatible. The minor version may be greater than the defined expected version. This
+        # test case will still fail to indicate a *possible* incompatibility
+        self.assertEqual(expected_version, loaded_version)
 
     def test_call_vmb_c_invalid_func_name(self):
         # Expectation: An invalid function name must throw an AttributeError
