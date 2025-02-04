@@ -72,7 +72,7 @@ class CamFrameTest(VmbPyTestCase):
     def tearDown(self):
         # Reset ExposureTime and Gain to values that were set before this class was executed
         with self.cam as cam:
-            cam.ExpsureTime.set(self._old_exposure_time)
+            cam.ExposureTime.set(self._old_exposure_time)
             cam.Gain.set(self._old_gain)
         self.vmb._shutdown()
 
