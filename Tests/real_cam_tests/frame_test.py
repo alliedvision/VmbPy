@@ -62,8 +62,9 @@ class CamFrameTest(VmbPyTestCase):
             cam.ExposureTime.set(new_exposure_time)
             # Determine how long our get_frame timeout should be so we do not run into timeout
             # issues with the long exposure time. SFNC defines that ExposureTime feature gives time
-            # in us. get_frame expects timeout duration in ms.
-            self.frame_timeout_ms = 1.5 * new_exposure_time * 1e-3
+            # in us. get_frame expects timeout duration in ms. Timeout is at least three seconds or
+            # calculated based on exposure time.
+            self.frame_timeout_ms = max(3000, int(1.5 * new_exposure_time * 1e-3))
             _, max_gain = cam.Gain.get_range()
             self._old_gain = cam.Gain.get()
             cam.Gain.set(max_gain)
