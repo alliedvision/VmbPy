@@ -64,6 +64,10 @@ class StreamTest(VmbPyTestCase):
         # In some test cases the camera might already have been closed. In that case an additional
         # call to `cam._close` will result in an error. This can be ignored in our test tearDown.
         try:
+            try:
+                self.cam.DeviceLinkThroughputLimitMode.set("Off")
+            except AttributeError:
+                pass
             self.cam._close()
         except Exception:
             pass

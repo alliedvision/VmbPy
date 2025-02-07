@@ -46,14 +46,31 @@ class VmbPyTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        if not VmbPyTestCase.get_test_camera_id():
-            with vmbpy.VmbSystem.get_instance() as vmb:
+        with vmbpy.VmbSystem.get_instance() as vmb:
+            if not VmbPyTestCase.get_test_camera_id():
                 try:
                     VmbPyTestCase.set_test_camera_id(vmb.get_all_cameras()[0].get_id())
                 except IndexError:
                     # no cameras found by VmbC. Leave test_cam_id empty. This will cause tests
                     # using a real camera to fail
                     VmbPyTestCase.set_test_camera_id('<NO CAMERA FOUND>')
+
+            try:
+                # Try to adjust GeV packet size. This Feature is only available for GigE - Cameras.
+                cam = vmb.get_camera_by_id(VmbPyTestCase.get_test_camera_id())
+                with cam:
+                    try:
+                        stream = cam.get_streams()[0]
+                        stream.GVSPAdjustPacketSize.run()
+
+                        while not stream.GVSPAdjustPacketSize.is_done():
+                            pass
+
+                    except (AttributeError, vmbpy.VmbFeatureError):
+                        pass
+
+            except vmbpy.VmbCameraError:
+                pass
 
         print(f'Executing tests in class "{cls.__name__}" '
               f'with camera ID "{VmbPyTestCase.get_test_camera_id()}"', flush=True)

@@ -56,13 +56,29 @@ class CamFrameTest(VmbPyTestCase):
 
         # prevent camera sending completely black frames
         with self.cam as cam:
-            _, maxExpTime = cam.ExposureTime.get_range()
-            cam.ExposureTime.set(min(100000, maxExpTime))
-            _, maxGain = cam.Gain.get_range()
-            cam.Gain.set(maxGain)
+            _, max_exposure_time = cam.ExposureTime.get_range()
+            new_exposure_time = min(100000, max_exposure_time)
+            self._old_exposure_time = cam.ExposureTime.get()
+            cam.ExposureTime.set(new_exposure_time)
+            # Determine how long our get_frame timeout should be so we do not run into timeout
+            # issues with the long exposure time. SFNC defines that ExposureTime feature gives time
+            # in us. get_frame expects timeout duration in ms. Timeout is at least three seconds or
+            # calculated based on exposure time.
+            self.frame_timeout_ms = max(3000, int(1.5 * new_exposure_time * 1e-3))
+            _, max_gain = cam.Gain.get_range()
+            self._old_gain = cam.Gain.get()
+            cam.Gain.set(max_gain)
             set_throughput_to_min(self.cam)
 
     def tearDown(self):
+        # Reset ExposureTime and Gain to values that were set before this class was executed
+        with self.cam as cam:
+            cam.ExposureTime.set(self._old_exposure_time)
+            cam.Gain.set(self._old_gain)
+            try:
+                self.cam.DeviceLinkThroughputLimitMode.set("Off")
+            except AttributeError:
+                pass
         self.vmb._shutdown()
 
     def test_verify_buffer(self):
@@ -84,7 +100,8 @@ class CamFrameTest(VmbPyTestCase):
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 with self.cam:
-                    frame = self.cam.get_frame(allocation_mode=allocation_mode)
+                    frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                               allocation_mode=allocation_mode)
                 self.assertEqual(id(frame._buffer), id(frame.get_buffer()))
 
     def test_get_id(self):
@@ -96,7 +113,8 @@ class CamFrameTest(VmbPyTestCase):
 
                 with self.cam:
                     self.assertIsNotNone(
-                        self.cam.get_frame(allocation_mode=allocation_mode).get_id())
+                        self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                           allocation_mode=allocation_mode).get_id())
 
     def test_get_timestamp(self):
         # Expectation: get_timestamp() must return None if it is locally constructed
@@ -107,7 +125,8 @@ class CamFrameTest(VmbPyTestCase):
 
                 with self.cam:
                     self.assertIsNotNone(
-                        self.cam.get_frame(allocation_mode=allocation_mode).get_timestamp())
+                        self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                           allocation_mode=allocation_mode).get_timestamp())
 
     def test_get_payload_type(self):
         # Expectation: get_payload_type() must return None if it is locally constructed
@@ -118,7 +137,8 @@ class CamFrameTest(VmbPyTestCase):
 
                 with self.cam:
                     self.assertIsNotNone(
-                        self.cam.get_frame(allocation_mode=allocation_mode).get_payload_type())
+                        self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                           allocation_mode=allocation_mode).get_payload_type())
 
     def test_get_offset(self):
         # Expectation: get_offset_x() must return None if it is locally constructed
@@ -129,7 +149,8 @@ class CamFrameTest(VmbPyTestCase):
                 self.assertIsNone(Frame(0, allocation_mode).get_offset_y())
 
                 with self.cam:
-                    frame = self.cam.get_frame(allocation_mode=allocation_mode)
+                    frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                               allocation_mode=allocation_mode)
                     self.assertIsNotNone(frame.get_offset_x())
                     self.assertIsNotNone(frame.get_offset_y())
 
@@ -142,7 +163,8 @@ class CamFrameTest(VmbPyTestCase):
                 self.assertIsNone(Frame(0, allocation_mode).get_height())
 
                 with self.cam:
-                    frame = self.cam.get_frame(allocation_mode=allocation_mode)
+                    frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                               allocation_mode=allocation_mode)
                     self.assertIsNotNone(frame.get_width())
                     self.assertIsNotNone(frame.get_height())
 
@@ -152,7 +174,8 @@ class CamFrameTest(VmbPyTestCase):
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 with self.cam:
-                    frame = self.cam.get_frame(allocation_mode=allocation_mode)
+                    frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                               allocation_mode=allocation_mode)
 
                 frame_cpy = copy.deepcopy(frame)
 
@@ -181,14 +204,16 @@ class CamFrameTest(VmbPyTestCase):
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 with self.cam:
                     self.assertNotEqual(
-                        self.cam.get_frame(allocation_mode=allocation_mode).get_pixel_format(), 0)
+                        self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                           allocation_mode=allocation_mode).get_pixel_format(), 0)
 
     def test_incompatible_formats_value_error(self):
         # Expectation: Conversion into incompatible formats must lead to an value error
         for allocation_mode in AllocationMode:
             with self.subTest(f'allocation_mode={str(allocation_mode)}'):
                 with self.cam:
-                    frame = self.cam.get_frame(allocation_mode=allocation_mode)
+                    frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms,
+                                               allocation_mode=allocation_mode)
 
                 current_fmt = frame.get_pixel_format()
                 convertable_fmt = current_fmt.get_convertible_formats()
@@ -209,7 +234,7 @@ class CamFrameTest(VmbPyTestCase):
             for fmt in self.cam.get_pixel_formats():
                 self.cam.set_pixel_format(fmt)
 
-                frame = self.cam.get_frame()
+                frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
 
                 self.assertEqual(fmt, frame.get_pixel_format())
                 test_frames.append(frame)
@@ -257,7 +282,7 @@ class CamFrameTest(VmbPyTestCase):
                               f'formats are {OPENCV_PIXEL_FORMATS}')
             if self.cam.get_pixel_format() not in compatible_formats:
                 self.cam.set_pixel_format(compatible_formats[0])
-            frame = self.cam.get_frame()
+            frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         try:
             np_array = frame.as_numpy_ndarray()
         except ImportError:
@@ -298,6 +323,10 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
 
     def tearDown(self):
+        try:
+            self.cam.DeviceLinkThroughputLimitMode.set("Off")
+        except AttributeError:
+            pass
         self.cam._close()
         self.vmb._shutdown()
 
