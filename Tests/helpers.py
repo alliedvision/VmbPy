@@ -132,10 +132,20 @@ def load_default_user_set(cam_id: str) -> None:
         warnings.warn('Camera could not be found to load default user set')
 
 
-def set_throughput_to_min(cam: vmbpy.Camera):
+def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
+    """
+    Set the DeviceLinkThroughputLimit feature of `cam` to `fraction * max_limit`.
+
+    Note:
+        The value that is actually set on the feature is clamped to the (nim, max) interval. This
+        means that if the fraction is set to 0.0, the value will be set to min. If the fraction is
+        set to 1.1, the value will be set to max.
+    """
+    def clamp(n, smallest, largest):
+        return max(smallest, min(largest, n))
     try:
-        cam.DeviceLinkThroughputLimitMode.set("On")
-        (min, max) = cam.DeviceLinkThroughputLimit.get_range()
-        cam.DeviceLinkThroughputLimit.set(min)
-    except Exception:
-        warnings.warn('Could not set DeviceLinkThroughputLimit to minimum')
+        (min_limit, max_limit) = cam.DeviceLinkThroughputLimit.get_range()
+        new_value = clamp(fraction*max_limit, min_limit, max_limit)
+        cam.DeviceLinkThroughputLimit.set(new_value)
+    except Exception as e:
+        warnings.warn(f'Could not set DeviceLinkThroughputLimit to {new_value}: {e}')

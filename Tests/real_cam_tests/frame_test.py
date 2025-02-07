@@ -39,7 +39,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase, set_throughput_to_min
+from helpers import VmbPyTestCase, set_throughput_to_fraction
 
 
 class CamFrameTest(VmbPyTestCase):
@@ -68,7 +68,8 @@ class CamFrameTest(VmbPyTestCase):
             _, max_gain = cam.Gain.get_range()
             self._old_gain = cam.Gain.get()
             cam.Gain.set(max_gain)
-            set_throughput_to_min(self.cam)
+            set_throughput_to_fraction(self.cam, 0.8)
+            self.cam.DeviceLinkThroughputLimitMode.set("On")
 
     def tearDown(self):
         # Reset ExposureTime and Gain to values that were set before this class was executed
@@ -316,7 +317,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             # Camera is opened in setUp to make enabling/disabling chunk features in subclass below
             # possible in setUp and tearDown
             self.cam._open()
-            set_throughput_to_min(self.cam)
+            set_throughput_to_fraction(self.cam, 0.8)
+            self.cam.DeviceLinkThroughputLimitMode.set("On")
             self.local_device = self.cam.get_local_device()
         except VmbCameraError as e:
             self.cam._close()
