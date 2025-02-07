@@ -75,6 +75,7 @@ class CamFrameTest(VmbPyTestCase):
         with self.cam as cam:
             cam.ExposureTime.set(self._old_exposure_time)
             cam.Gain.set(self._old_gain)
+            cam.DeviceLinkThroughputLimitMode.set("Off")
         self.vmb._shutdown()
 
     def test_verify_buffer(self):
@@ -319,6 +320,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
 
     def tearDown(self):
+        self.cam.DeviceLinkThroughputLimitMode.set("Off")
         self.cam._close()
         self.vmb._shutdown()
 

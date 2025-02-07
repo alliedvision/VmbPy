@@ -65,6 +65,7 @@ class ChunkAccessTest(VmbPyTestCase):
 
     def tearDown(self):
         self.disable_chunk_features()
+        self.cam.DeviceLinkThroughputLimitMode.set("Off")
         self.cam._close()
         self.vmb._shutdown()
 
