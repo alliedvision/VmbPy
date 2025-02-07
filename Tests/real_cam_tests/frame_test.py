@@ -230,7 +230,7 @@ class CamFrameTest(VmbPyTestCase):
             for fmt in self.cam.get_pixel_formats():
                 self.cam.set_pixel_format(fmt)
 
-                frame = self.cam.get_frame()
+                frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
 
                 self.assertEqual(fmt, frame.get_pixel_format())
                 test_frames.append(frame)
@@ -278,7 +278,7 @@ class CamFrameTest(VmbPyTestCase):
                               f'formats are {OPENCV_PIXEL_FORMATS}')
             if self.cam.get_pixel_format() not in compatible_formats:
                 self.cam.set_pixel_format(compatible_formats[0])
-            frame = self.cam.get_frame()
+            frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         try:
             np_array = frame.as_numpy_ndarray()
         except ImportError:
@@ -328,7 +328,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         self.cam.set_pixel_format(record_format)
-        original_frame = self.cam.get_frame()
+        original_frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         self.assertEqual(original_frame.get_status(),
                          FrameStatus.Complete,
                          'Recorded frame was not complete. We cannot reliably work with a possibly '
@@ -351,7 +351,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         # user supplied buffer is identical to the input frame
         record_format = PixelFormat.Mono8
         self.cam.set_pixel_format(record_format)
-        original_frame = self.cam.get_frame()
+        original_frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         self.assertEqual(original_frame.get_status(),
                          FrameStatus.Complete,
                          'Recorded frame was not complete. We cannot reliably work with a possibly '
@@ -381,7 +381,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             self.cam.set_pixel_format(record_format)
         except ValueError:
             self.skipTest(f'{str(self.cam)} does not support pixel format "{record_format}"')
-        original_frame = self.cam.get_frame()
+        original_frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         self.assertEqual(original_frame.get_status(),
                          FrameStatus.Complete,
                          'Recorded frame was not complete. We cannot reliably work with a possibly '
@@ -408,7 +408,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         self.cam.set_pixel_format(record_format)
-        original_frame = self.cam.get_frame()
+        original_frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         self.assertEqual(original_frame.get_status(),
                          FrameStatus.Complete,
                          'Recorded frame was not complete. We cannot reliably work with a possibly '
@@ -443,7 +443,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         self.cam.set_pixel_format(record_format)
-        original_frame = self.cam.get_frame()
+        original_frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         np_buffer = np.zeros((1))
         with self.assertRaisesRegex(BufferError, ".*size.*"):
             original_frame.convert_pixel_format(target_format, destination_buffer=np_buffer.data)
@@ -458,7 +458,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         record_format = PixelFormat.Mono8
         target_format = PixelFormat.Bgr8
         self.cam.set_pixel_format(record_format)
-        original_frame = self.cam.get_frame()
+        original_frame = self.cam.get_frame(timeout_ms=self.frame_timeout_ms)
         np_buffer = original_frame.convert_pixel_format(target_format).as_numpy_ndarray()
         with self.assertRaises(TypeError):
             # Try to pass full numpy array instead of the `.data` field of the array
