@@ -54,8 +54,11 @@ class StreamTest(VmbPyTestCase):
 
         try:
             self.cam._open()
-            set_throughput_to_fraction(self.cam, 0.8)
-            self.cam.DeviceLinkThroughputLimitMode.set("On")
+            try:
+                set_throughput_to_fraction(self.cam, 0.8)
+                self.cam.DeviceLinkThroughputLimitMode.set("On")
+            except AttributeError:
+                pass
             self.streams = self.cam.get_streams()
         except VmbCameraError as e:
             self.cam._close()

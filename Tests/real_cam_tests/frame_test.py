@@ -68,8 +68,11 @@ class CamFrameTest(VmbPyTestCase):
             _, max_gain = cam.Gain.get_range()
             self._old_gain = cam.Gain.get()
             cam.Gain.set(max_gain)
-            set_throughput_to_fraction(self.cam, 0.8)
-            self.cam.DeviceLinkThroughputLimitMode.set("On")
+            try:
+                set_throughput_to_fraction(self.cam, 0.8)
+                self.cam.DeviceLinkThroughputLimitMode.set("On")
+            except AttributeError:
+                pass
 
     def tearDown(self):
         # Reset ExposureTime and Gain to values that were set before this class was executed
@@ -317,8 +320,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             # Camera is opened in setUp to make enabling/disabling chunk features in subclass below
             # possible in setUp and tearDown
             self.cam._open()
-            set_throughput_to_fraction(self.cam, 0.8)
-            self.cam.DeviceLinkThroughputLimitMode.set("On")
+            try:
+                set_throughput_to_fraction(self.cam, 0.8)
+                self.cam.DeviceLinkThroughputLimitMode.set("On")
+            except AttributeError:
+                pass
             self.local_device = self.cam.get_local_device()
         except VmbCameraError as e:
             self.cam._close()

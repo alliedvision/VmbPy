@@ -147,5 +147,7 @@ def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
         (min_limit, max_limit) = cam.DeviceLinkThroughputLimit.get_range()
         new_value = clamp(fraction*max_limit, min_limit, max_limit)
         cam.DeviceLinkThroughputLimit.set(new_value)
+    except AttributeError as e:
+        warnings.warn(f'Camera does not have feature DeviceLinkThroughputLimit: {e}')
     except Exception as e:
         warnings.warn(f'Could not set DeviceLinkThroughputLimit to {new_value}: {e}')

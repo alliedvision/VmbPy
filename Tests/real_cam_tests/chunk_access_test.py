@@ -50,8 +50,11 @@ class ChunkAccessTest(VmbPyTestCase):
         try:
             self.cam._open()
             self.local_device = self.cam.get_local_device()
-            set_throughput_to_fraction(self.cam, 0.8)
-            self.cam.DeviceLinkThroughputLimitMode.set("On")
+            try:
+                set_throughput_to_fraction(self.cam, 0.8)
+                self.cam.DeviceLinkThroughputLimitMode.set("On")
+            except AttributeError:
+                pass
         except VmbCameraError as e:
             self.cam._close()
             raise Exception('Failed to open Camera {}.'.format(self.cam)) from e
