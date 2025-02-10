@@ -33,7 +33,7 @@ from vmbpy import *
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase, calculate_acquisition_time, set_throughput_to_min
+from helpers import VmbPyTestCase, calculate_acquisition_time, set_throughput_to_fraction
 
 
 def dummy_frame_handler(cam: Camera, stream: Stream, frame: Frame):
@@ -54,7 +54,11 @@ class StreamTest(VmbPyTestCase):
 
         try:
             self.cam._open()
-            set_throughput_to_min(self.cam)
+            try:
+                set_throughput_to_fraction(self.cam, 0.8)
+                self.cam.DeviceLinkThroughputLimitMode.set("On")
+            except AttributeError:
+                pass
             self.streams = self.cam.get_streams()
         except VmbCameraError as e:
             self.cam._close()
