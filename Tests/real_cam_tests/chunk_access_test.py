@@ -144,6 +144,9 @@ class ChunkAccessTest(VmbPyTestCase):
 
         helper = CallbackHelper()
         with self.cam.get_frame_with_context() as frame:
+            self.assertEqual(frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot parse incomplete frame for chunk data.')
             frame.access_chunk_data(helper.chunk_callback)
         self.assertEqual(1, helper.chunk_callbacks_executed)
 
@@ -168,9 +171,13 @@ class ChunkAccessTest(VmbPyTestCase):
 
         helper = CallbackHelper()
         number_of_iterations = 5
+        number_of_complete_frames = 0
         for frame in self.cam.get_frame_generator(limit=number_of_iterations):
-            frame.access_chunk_data(helper.chunk_callback)
-        self.assertEqual(number_of_iterations, helper.chunk_callbacks_executed)
+            if frame.get_status() == FrameStatus.Complete:
+                number_of_complete_frames += 1
+                frame.access_chunk_data(helper.chunk_callback)
+        self.assertNotEqual(number_of_complete_frames, 0)
+        self.assertEqual(number_of_complete_frames, helper.chunk_callbacks_executed)
 
     def test_error_raised_if_chunk_is_not_active(self):
         # Expectation: If the frame does not contain chunk data `VmbFrameError` is raised upon
@@ -327,6 +334,9 @@ class ChunkAccessTest(VmbPyTestCase):
         # Expectation: if frame contains chunk data the function `contains_chunk_data`
         # will return true
         frame = self.cam.get_frame()
+        self.assertEqual(frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot parse incomplete frame for chunk data.')
         self.assertTrue(frame.contains_chunk_data())
 
     def test_contains_chunk_data_false(self):
@@ -334,4 +344,7 @@ class ChunkAccessTest(VmbPyTestCase):
         # will return false
         self.disable_chunk_features()
         frame = self.cam.get_frame()
+        self.assertEqual(frame.get_status(),
+                         FrameStatus.Complete,
+                         'Recorded frame was not complete. We cannot parse incomplete frame for chunk data.')
         self.assertFalse(frame.contains_chunk_data())
