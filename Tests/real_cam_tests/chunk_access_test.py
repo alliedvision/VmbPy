@@ -32,7 +32,7 @@ from vmbpy import *
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase, calculate_acquisition_time, set_throughput_to_fraction
+from helpers import VmbPyTestCase, calculate_acquisition_time, set_throughput_to_fraction, reset_roi
 
 
 class ChunkAccessTest(VmbPyTestCase):
@@ -53,6 +53,7 @@ class ChunkAccessTest(VmbPyTestCase):
             try:
                 set_throughput_to_fraction(self.cam, 0.8)
                 self.cam.DeviceLinkThroughputLimitMode.set("On")
+                reset_roi(self.cam, 64)
             except AttributeError:
                 pass
         except VmbCameraError as e:
@@ -71,6 +72,7 @@ class ChunkAccessTest(VmbPyTestCase):
         self.disable_chunk_features()
         try:
             self.cam.DeviceLinkThroughputLimitMode.set("Off")
+            reset_roi(self.cam)
         except AttributeError:
             pass
         self.cam._close()
