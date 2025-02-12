@@ -326,6 +326,10 @@ class UserSuppliedBufferTest(VmbPyTestCase):
                 set_throughput_to_fraction(self.cam, 0.8)
                 self.cam.DeviceLinkThroughputLimitMode.set("On")
                 reset_roi(self.cam, 64)
+                _, max_gain = self.cam.Gain.get_range()
+                self._old_gain = self.cam.Gain.get()
+                # set Gain to max. to make sure, that dark frames won't contain only zeros
+                self.cam.Gain.set(max_gain)
             except AttributeError:
                 pass
             self.local_device = self.cam.get_local_device()
@@ -337,6 +341,7 @@ class UserSuppliedBufferTest(VmbPyTestCase):
         try:
             self.cam.DeviceLinkThroughputLimitMode.set("Off")
             reset_roi(self.cam)
+            self.cam.Gain.set(self._old_gain)
         except AttributeError:
             pass
         self.cam._close()
