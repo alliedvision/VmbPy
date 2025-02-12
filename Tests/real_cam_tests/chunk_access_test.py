@@ -145,8 +145,9 @@ class ChunkAccessTest(VmbPyTestCase):
         helper = CallbackHelper()
         with self.cam.get_frame_with_context() as frame:
             self.assertEqual(frame.get_status(),
-                         FrameStatus.Complete,
-                         'Recorded frame was not complete. We cannot parse incomplete frame for chunk data.')
+                             FrameStatus.Complete,
+                             'Recorded frame was not complete. '
+                             'We cannot parse incomplete frame for chunk data.')
             frame.access_chunk_data(helper.chunk_callback)
         self.assertEqual(1, helper.chunk_callbacks_executed)
 
@@ -336,7 +337,8 @@ class ChunkAccessTest(VmbPyTestCase):
         frame = self.cam.get_frame()
         self.assertEqual(frame.get_status(),
                          FrameStatus.Complete,
-                         'Recorded frame was not complete. We cannot parse incomplete frame for chunk data.')
+                         'Recorded frame was not complete. '
+                         'We cannot parse incomplete frame for chunk data.')
         self.assertTrue(frame.contains_chunk_data())
 
     def test_contains_chunk_data_false(self):
@@ -346,5 +348,6 @@ class ChunkAccessTest(VmbPyTestCase):
         frame = self.cam.get_frame()
         self.assertEqual(frame.get_status(),
                          FrameStatus.Complete,
-                         'Recorded frame was not complete. We cannot parse incomplete frame for chunk data.')
+                         'Recorded frame was not complete. '
+                         'We cannot parse incomplete frame for chunk data.')
         self.assertFalse(frame.contains_chunk_data())
