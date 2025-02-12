@@ -155,7 +155,7 @@ def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
 
 def reset_roi(cam: vmbpy.Camera, roi: int = 0):
     """
-    Set the ROI (width, height) to specified value. 
+    Set the ROI (width, height) to specified value.
     If no 'roi' value specified - the maximum will be set.
 
     Limiting ROI should reduce the time to acquire and transfer frames,
@@ -171,5 +171,3 @@ def reset_roi(cam: vmbpy.Camera, roi: int = 0):
         width = max_width
     cam.Width.set(width)
     cam.Height.set(height)
-
-
