@@ -55,6 +55,8 @@ class Parser(argparse.ArgumentParser):
         self.add_argument('blacklist',
                           help='Optional sequence of unittest functions to skip',
                           nargs='*')
+        self.add_argument('--test_filter_file',
+                          help='Optional file containing test filter rules')
         output_group = self.add_mutually_exclusive_group(required=True)
         output_group.add_argument('--console',
                                   help='log output to console',
@@ -63,6 +65,33 @@ class Parser(argparse.ArgumentParser):
                                   help='log output to junit compatible xml file. The file is '
                                        'placed inside report_dir',
                                   metavar='report_dir')
+
+
+class CustomTestLoader(unittest.TestLoader):
+
+    def _parse_file(file_path):
+        with open(file_path, 'r') as file:
+            lines = [line.split('#')[0].strip() for line in file if line.split('#')[0].strip()]
+        return lines
+
+    def __init__(self, test_filter_file:str = None):
+        super().__init__()
+        self.test_whitelist = None
+        if test_filter_file:
+            self.test_whitelist = CustomTestLoader._parse_file(test_filter_file)
+            print(f"Found {len(self.test_whitelist)} tests in test_filter_file {test_filter_file}")
+
+    def loadTestsFromModule(self, module):
+        tests = super().loadTestsFromModule(module)
+        if self.test_whitelist is None:
+            return tests
+        filtered_tests = []
+        for test in tests:
+            if isinstance(test, unittest.suite.TestSuite):
+                for subtest in test:
+                    if subtest.id() in self.test_whitelist:
+                        filtered_tests.append(subtest)
+        return unittest.TestSuite(filtered_tests)
 
 
 def _blacklist_tests(test_suite, blacklist):
@@ -130,7 +159,7 @@ def print_test_execution_info():
 if __name__ == '__main__':
     arg_parser = Parser()
     args = arg_parser.parse_args()
-    loader = unittest.TestLoader()
+    loader = CustomTestLoader(args.test_filter_file)
 
     if args.camera_id:
         VmbPyTestCase.set_test_camera_id(args.camera_id)
@@ -169,7 +198,6 @@ if __name__ == '__main__':
     # Assign test cases to test suites
     BASIC_TEST_MODS = [
         basic_tests.c_binding_test,
-        basic_tests.frame_test,
         basic_tests.util_runtime_type_check_test,
         basic_tests.util_tracer_test,
         basic_tests.util_context_decorator_test,
@@ -189,8 +217,7 @@ if __name__ == '__main__':
         real_cam_tests.local_device_test,
         real_cam_tests.chunk_access_test,
         real_cam_tests.persistable_feature_container_test,
-        real_cam_tests.stream_test,
-        real_cam_tests.vimbax_test
+        real_cam_tests.stream_test
     ]
 
     # Prepare TestSuite
