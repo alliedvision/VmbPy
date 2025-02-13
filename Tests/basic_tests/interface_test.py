@@ -96,7 +96,7 @@ class InterfaceTest(VmbPyTestCase):
 
     def test_interface_get_features_by_type(self):
         # Expectation: Call get_features_by_type raises RuntimeError outside of with
-        # Inside of with return a non empty set for IntFeature (DeviceCount is IntFeature)
+        # Inside of with return a non empty set for IntFeature (DeviceSelector is IntFeature)
         inter = self.vmb.get_all_interfaces()[0]
         self.assertNotEqual(inter.get_features_by_type(IntFeature), ())
 
@@ -108,10 +108,10 @@ class InterfaceTest(VmbPyTestCase):
 
     def test_interface_get_feature_by_name(self):
         # Expectation: Call get_feature_by_name raises RuntimeError outside of with
-        # Inside of with return dont raise VmbFeatureError for 'DeviceCount'
+        # Inside of with return dont raise VmbFeatureError for 'InterfaceID'
         # A invalid name must raise VmbFeatureError
         inter = self.vmb.get_all_interfaces()[0]
-        self.assertNoRaise(inter.get_feature_by_name, 'DeviceCount')
+        self.assertNoRaise(inter.get_feature_by_name, 'InterfaceID')
         self.assertRaises(VmbFeatureError, inter.get_feature_by_name, 'Invalid Name')
 
     def test_interface_get_transport_layer_type(self):

@@ -39,7 +39,7 @@ except ImportError:
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from helpers import VmbPyTestCase, set_throughput_to_fraction
+from helpers import VmbPyTestCase, set_throughput_to_fraction, reset_roi
 
 
 class CamFrameTest(VmbPyTestCase):
@@ -71,6 +71,7 @@ class CamFrameTest(VmbPyTestCase):
             try:
                 set_throughput_to_fraction(self.cam, 0.8)
                 self.cam.DeviceLinkThroughputLimitMode.set("On")
+                reset_roi(cam, 64)
             except AttributeError:
                 pass
 
@@ -81,6 +82,7 @@ class CamFrameTest(VmbPyTestCase):
             cam.Gain.set(self._old_gain)
             try:
                 self.cam.DeviceLinkThroughputLimitMode.set("Off")
+                reset_roi(self.cam)
             except AttributeError:
                 pass
         self.vmb._shutdown()
@@ -323,6 +325,11 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             try:
                 set_throughput_to_fraction(self.cam, 0.8)
                 self.cam.DeviceLinkThroughputLimitMode.set("On")
+                reset_roi(self.cam, 64)
+                _, max_gain = self.cam.Gain.get_range()
+                self._old_gain = self.cam.Gain.get()
+                # set Gain to max. to make sure, that dark frames won't contain only zeros
+                self.cam.Gain.set(max_gain)
             except AttributeError:
                 pass
             self.local_device = self.cam.get_local_device()
@@ -333,6 +340,8 @@ class UserSuppliedBufferTest(VmbPyTestCase):
     def tearDown(self):
         try:
             self.cam.DeviceLinkThroughputLimitMode.set("Off")
+            reset_roi(self.cam)
+            self.cam.Gain.set(self._old_gain)
         except AttributeError:
             pass
         self.cam._close()

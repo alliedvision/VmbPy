@@ -151,3 +151,23 @@ def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
         warnings.warn(f'Camera does not have feature DeviceLinkThroughputLimit: {e}')
     except Exception as e:
         warnings.warn(f'Could not set DeviceLinkThroughputLimit to {new_value}: {e}')
+
+
+def reset_roi(cam: vmbpy.Camera, roi: int = 0):
+    """
+    Set the ROI (width, height) to specified value.
+    If no 'roi' value specified - the maximum will be set.
+
+    Limiting ROI should reduce the time to acquire and transfer frames,
+    making the tests independent from the sensor size.
+    """
+    width = roi
+    height = roi
+    if roi == 0:
+        # set to maximum
+        (min_height, max_height) = cam.Height.get_range()
+        height = max_height
+        (min_width, max_width) = cam.Width.get_range()
+        width = max_width
+    cam.Width.set(width)
+    cam.Height.set(height)
