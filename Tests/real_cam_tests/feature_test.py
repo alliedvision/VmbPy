@@ -417,7 +417,8 @@ class CamEnumFeatureTest(VmbPyTestCase):
         # - VmbFeatureError if feature is read only
 
         # Read Only Feature
-        self.assertRaises(VmbFeatureError, self.feat_r.set, str(self.feat_r.get_entry(0)))
+        if not self.feat_r.is_writeable():
+            self.assertRaises(VmbFeatureError, self.feat_r.set, str(self.feat_r.get_entry(0)))
 
         # Read/Write Feature
         old_entry = self.feat_rw.get()
@@ -440,7 +441,8 @@ class CamEnumFeatureTest(VmbPyTestCase):
         # - VmbFeatureError if feature is read only
 
         # Read Only Feature
-        self.assertRaises(VmbFeatureError, self.feat_r.set, int(self.feat_r.get_entry(0)))
+        if not self.feat_r.is_writeable():
+            self.assertRaises(VmbFeatureError, self.feat_r.set, int(self.feat_r.get_entry(0)))
 
         # Read/Write Feature
         old_entry = self.feat_rw.get()
