@@ -148,7 +148,7 @@ def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
         means that if the fraction is set to 0.0, the value will be set to min. If the fraction is
         set to 1.1, the value will be set to max.
     """
-    
+
     try:
         (min_limit, max_limit) = cam.DeviceLinkThroughputLimit.get_range()
         new_value = _clamp(fraction*max_limit, min_limit, max_limit)

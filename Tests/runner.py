@@ -74,7 +74,7 @@ class CustomTestLoader(unittest.TestLoader):
             lines = [line.split('#')[0].strip() for line in file if line.split('#')[0].strip()]
         return lines
 
-    def __init__(self, test_filter_file:str = None):
+    def __init__(self, test_filter_file: str = None):
         super().__init__()
         self.test_whitelist = None
         if test_filter_file:
