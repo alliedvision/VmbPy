@@ -780,6 +780,9 @@ class CamStringFeatureTest(VmbPyTestCase):
         for feat in feats:
             if feat.get_access_mode() == (True, False):
                 self.feat_r = feat
+                n = feat.get_name()
+                print(f"Set read-only feature '{n}'")
+                break
 
         if self.feat_r is None:
             self.cam._close()
@@ -792,6 +795,9 @@ class CamStringFeatureTest(VmbPyTestCase):
         for feat in feats:
             if feat.get_access_mode() == (True, True):
                 self.feat_rw = feat
+                n = feat.get_name()
+                print(f"Set read-write feature '{n}'")
+                break
 
         if self.feat_rw is None:
             self.cam._close()
