@@ -99,7 +99,10 @@ def calculate_acquisition_time(cam: vmbpy.Camera, num_frames: int) -> float:
     features!
     """
     fps = cam.get_feature_by_name('AcquisitionFrameRate').get()
-    return num_frames / fps
+    if fps > 0:
+        return num_frames / fps
+    warnings.warn("Failed to get feature 'AcquisitionFrameRate'")
+    return num_frames * 2.0  # set timeout to 2s. per frame
 
 
 def reset_default_user_set(cam_id: str) -> None:
@@ -132,6 +135,10 @@ def load_default_user_set(cam_id: str) -> None:
         warnings.warn('Camera could not be found to load default user set')
 
 
+def _clamp(n, smallest, largest):
+    return max(smallest, min(largest, n))
+
+
 def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
     """
     Set the DeviceLinkThroughputLimit feature of `cam` to `fraction * max_limit`.
@@ -141,11 +148,10 @@ def set_throughput_to_fraction(cam: vmbpy.Camera, fraction: float = 0.75):
         means that if the fraction is set to 0.0, the value will be set to min. If the fraction is
         set to 1.1, the value will be set to max.
     """
-    def clamp(n, smallest, largest):
-        return max(smallest, min(largest, n))
+    
     try:
         (min_limit, max_limit) = cam.DeviceLinkThroughputLimit.get_range()
-        new_value = clamp(fraction*max_limit, min_limit, max_limit)
+        new_value = _clamp(fraction*max_limit, min_limit, max_limit)
         cam.DeviceLinkThroughputLimit.set(new_value)
     except AttributeError as e:
         warnings.warn(f'Camera does not have feature DeviceLinkThroughputLimit: {e}')
@@ -161,13 +167,15 @@ def reset_roi(cam: vmbpy.Camera, roi: int = 0):
     Limiting ROI should reduce the time to acquire and transfer frames,
     making the tests independent from the sensor size.
     """
-    width = roi
-    height = roi
-    if roi == 0:
-        # set to maximum
-        (min_height, max_height) = cam.Height.get_range()
-        height = max_height
-        (min_width, max_width) = cam.Width.get_range()
-        width = max_width
+    (min_height, max_height) = cam.Height.get_range()
+    (min_width, max_width) = cam.Width.get_range()
+    # roi==0 sets to maximum
+    height = max_height
+    width = max_width
+    if roi > 0:
+        width = _clamp(roi, min_width, max_width)
+        height = _clamp(roi, min_height, max_height)
+        if width != roi or height != roi:
+            warnings.warn(f'ROI set to minimum: ({width}x{height})')
     cam.Width.set(width)
     cam.Height.set(height)
