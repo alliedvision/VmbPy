@@ -59,6 +59,7 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
             fname = 'camera.xml'
 
             feat_height = self.cam.get_feature_by_name('Height')
+            is_streamable = feat_height.is_streamable()
 
             # Save initial state of all features
             old_val = feat_height.get()
@@ -75,7 +76,9 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
             self.assertNoRaise(self.cam.load_settings, fname)
             os.remove(fname)
 
-            self.assertEqual(old_val, feat_height.get())
+            # Only streamable features will be persisted with VmbPy
+            if is_streamable:
+                self.assertEqual(old_val, feat_height.get())
 
     def test_stream_save_load(self):
         # Expectation: Settings can be saved to a file and loaded from it.
