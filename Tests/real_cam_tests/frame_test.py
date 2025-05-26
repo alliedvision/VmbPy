@@ -509,11 +509,20 @@ class UserSuppliedBufferWithChunkTest(UserSuppliedBufferTest):
         self.cam.ChunkModeActive.set(False)
         for value in self.cam.ChunkSelector.get_available_entries():
             self.cam.ChunkSelector.set(value)
-            self.cam.ChunkEnable.set(True)
+
+            # Some legacy cameras provide no mechanism to configure individual chunks.
+            # Their feature "ChunkEnable" is READ-ONLY and always enabled for every selector entry.
+            if not self.cam.ChunkEnable.get():
+                self.cam.ChunkEnable.set(True)
+
         self.cam.ChunkModeActive.set(True)
 
     def disable_chunk_features(self):
         self.cam.ChunkModeActive.set(False)
         for value in self.cam.ChunkSelector.get_available_entries():
             self.cam.ChunkSelector.set(value)
-            self.cam.ChunkEnable.set(False)
+
+            # Some legacy cameras provide no mechanism to configure individual chunks.
+            # Their feature "ChunkEnable" is READ-ONLY and always enabled for every selector entry.
+            if self.cam.ChunkEnable.is_writeable():
+                self.cam.ChunkEnable.set(False)
