@@ -217,7 +217,8 @@ class Frame:
 
         # Setup underlaying Frame
         if self._allocation_mode == AllocationMode.AnnounceFrame:
-            self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
+            # self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
+            self._frame.buffer = _get_non_owning_pointer(self._buffer, ctypes.c_void_p)
             self._frame.bufferSize = sizeof(self._buffer)
         elif self._allocation_mode == AllocationMode.AllocAndAnnounceFrame:
             # Set buffer pointer to NULL and inform Transport Layer of size it should allocate
@@ -241,13 +242,15 @@ class Frame:
         setattr(result, '_buffer', copy.deepcopy(self._buffer, memo))
         setattr(result, '_frame', self._frame.deepcopy_skip_ptr(memo))
 
-        result._frame.buffer = ctypes.cast(result._buffer, ctypes.c_void_p)
+        # result._frame.buffer = ctypes.cast(result._buffer, ctypes.c_void_p)
+        result._frame.buffer = _get_non_owning_pointer(result._buffer, ctypes.c_void_p)
         result._frame.bufferSize = sizeof(result._buffer)
         # calculate offset of original imageData pointer into original buffer
         if not self._frame.imageData:
             # imageData pointer is not set. We assume image data begins at the start of the buffer
-            self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
-                                                ctypes.POINTER(VmbUint8))
+            # self._frame.imageData = ctypes.cast(ctypes.addressof(self._buffer),
+            #                                     ctypes.POINTER(VmbUint8))
+            self._frame.imageData = _get_non_owning_pointer(self._buffer, ctypes.POINTER(VmbUint8))
         image_data_offset = ctypes.addressof(self._frame.imageData.contents) - ctypes.addressof(self._buffer)  # noqa 501: E501
         # set new imageData pointer to same offset into new buffer
         result._frame.imageData = ctypes.cast(ctypes.byref(result._buffer, image_data_offset),
@@ -542,7 +545,8 @@ class Frame:
         if self._frame.imageData:
             c_src_image.Data = ctypes.cast(self._frame.imageData, ctypes.c_void_p)
         else:
-            c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
+            # c_src_image.Data = ctypes.cast(self._buffer, ctypes.c_void_p)
+            c_src_image.Data = _get_non_owning_pointer(self._buffer, ctypes.c_void_p)
 
         call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                  byref(c_src_image))
@@ -584,7 +588,8 @@ class Frame:
             output_frame = Frame(buffer_size=img_size,
                                  allocation_mode=AllocationMode.AnnounceFrame)
         output_frame._frame = self._frame.deepcopy_skip_ptr({})
-        c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
+        # c_dst_image.Data = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
+        c_dst_image.Data = _get_non_owning_pointer(output_frame._buffer, ctypes.c_void_p)
 
         # 5) Setup Debayering mode if given.
         transform_info = VmbTransformInfo()
@@ -603,7 +608,8 @@ class Frame:
 
         # 7) Update frame metadata that changed due to transformation and buffer pointers that are
         #    not yet set correctly
-        output_frame._frame.buffer = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
+        # output_frame._frame.buffer = ctypes.cast(output_frame._buffer, ctypes.c_void_p)
+        output_frame._frame.buffer = _get_non_owning_pointer(output_frame._buffer, ctypes.c_void_p)
         output_frame._frame.bufferSize = sizeof(output_frame._buffer)
         output_frame._frame.imageSize = img_size
         output_frame._frame.pixelFormat = target_fmt
@@ -735,3 +741,6 @@ def _allocate_buffer(size, alignment=1):
     offset_to_aligned = (alignment - offset) % alignment
 
     return (ctypes.c_ubyte * size).from_buffer(overallocated_memory, offset_to_aligned)
+
+def _get_non_owning_pointer(memory, pointer_type):
+    return ctypes.cast(ctypes.pointer(memory).contents, pointer_type)
