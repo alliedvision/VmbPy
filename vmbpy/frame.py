@@ -742,5 +742,6 @@ def _allocate_buffer(size, alignment=1):
 
     return (ctypes.c_ubyte * size).from_buffer(overallocated_memory, offset_to_aligned)
 
+
 def _get_non_owning_pointer(memory, pointer_type):
     return ctypes.cast(ctypes.pointer(memory).contents, pointer_type)
