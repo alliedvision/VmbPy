@@ -215,7 +215,7 @@ class Frame:
         # Mark frame as invalid until it has been used at least once
         self._frame.receiveStatus = FrameStatus.Invalid
 
-        # Setup underlaying Frame
+        # Setup underlying Frame
         if self._allocation_mode == AllocationMode.AnnounceFrame:
             # self._frame.buffer = ctypes.cast(self._buffer, ctypes.c_void_p)
             self._frame.buffer = _get_non_owning_pointer(self._buffer, ctypes.c_void_p)
