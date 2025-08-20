@@ -69,6 +69,7 @@ __all__ = [
 FrameTuple = Tuple['Frame', ...]
 FormatTuple = Tuple['PixelFormat', ...]
 ChunkCallback = Callable[[FeatureContainer], None]
+PixelPattern = Tuple[Tuple[int, ...], ...]
 
 
 MONO_PIXEL_FORMATS = (
@@ -612,6 +613,50 @@ class Frame:
                                                     ctypes.POINTER(VmbUint8))
 
         return output_frame
+
+    def deinterlace_frame(self, pixel_pattern: PixelPattern) -> tuple['Frame', ...]:
+        # TODO: Add optional destination buffers
+        # unpack the list of lists to find max element so we can figure out how many frames should
+        # be returned. Assumes the user gave 0-based indices
+
+        # TODO: Add check that smallest index in pixel_pattern is 0 and we continuously count up to
+        # max value with no gaps in indices
+
+        # Examples:
+        # valid:   ((0,0), (0,1)) (Only contains indices from 0 up with no gaps)
+        # valid:   ((1,2), (0,3))
+        # invalid: ((1,2), (2,3)) (missing index 0) -> Should be ((0,1),(1,2))
+        # invalid: ((0,1), (1,3)) (missing index 2 but contains >2) -> Should be ((0,1),(1,2))
+
+
+        num_frames = max([index for row in pixel_pattern for index in row]) + 1
+        output_frames = tuple(Frame(self.get_buffer_size()//2, AllocationMode.AnnounceFrame)
+                              for _ in range(num_frames))
+
+        pattern = VmbPixelPattern(frameIndices=pixel_pattern)
+        c_src_image = VmbImage()
+        c_src_image.Size = sizeof(c_src_image)
+        c_src_image.Data = _get_non_owning_pointer(self._buffer, ctypes.c_void_p)
+        fmt = self.get_pixel_format()
+        width = self.get_width()
+        height = self.get_height()
+        call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+                                 byref(c_src_image))
+        c_dst_images = []
+        for f in output_frames:
+            f._frame.pixelFormat = VmbPixelFormat.Mono8
+            f._frame.width = width // 2
+            f._frame.height = height // 2
+            c_dst_image = VmbImage()
+            c_dst_image.Size = sizeof(c_dst_image)
+            c_dst_image.Data = _get_non_owning_pointer(f._buffer, ctypes.c_void_p)
+            c_dst_images.append(c_dst_image)
+        c_dst_array = (ctypes.POINTER(VmbImage)*len(c_dst_images))(*
+                                                                   [ctypes.pointer(img) for img in c_dst_images])
+
+        call_vmb_image_transform('VmbDeinterlaceImage', byref(c_src_image),
+                                 byref(pattern), c_dst_array, len(c_dst_images))
+        return output_frames
 
     def as_numpy_ndarray(self) -> 'numpy.ndarray':
         """Construct ``numpy.ndarray`` view on VmbCFrame.
