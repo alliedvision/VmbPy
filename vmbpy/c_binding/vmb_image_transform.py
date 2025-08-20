@@ -32,7 +32,7 @@ from typing import Any, Callable, Dict, List, Tuple
 from ..error import VmbSystemError
 from ..util import TraceEnable
 from .vmb_common import (Uint32Enum, VmbCError, VmbError, VmbFloat, VmbInt32, VmbPixelFormat,
-                         VmbUint32, fmt_enum_repr, fmt_repr, load_vimbax_lib)
+                         VmbUint8, VmbUint32, fmt_enum_repr, fmt_repr, load_vimbax_lib)
 
 __all__ = [
     'VmbBayerPattern',
@@ -44,6 +44,7 @@ __all__ = [
     'VmbImage',
     'VmbImageInfo',
     'VmbTransformInfo',
+    'VmbPixelPattern',
     'VMB_IMAGE_TRANSFORM_VERSION',
     'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
     'call_vmb_image_transform',
@@ -277,6 +278,13 @@ class VmbTransformInfo(ctypes.Structure):
     _fields_ = [
         ('TransformType', VmbUint32),
         ('Parameter', VmbTransformParameter)
+    ]
+
+
+class VmbPixelPattern(ctypes.Structure):
+    """Struct holding information for interlaced images"""
+    _fields_ = [
+        ('frameIndices', (VmbUint8*2)*2)
     ]
 
 

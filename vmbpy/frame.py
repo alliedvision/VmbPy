@@ -30,8 +30,8 @@ from typing import Callable, Optional, Tuple, Union
 
 from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PayloadType, PixelFormat,
                         VmbCError, VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle,
-                        VmbImage, VmbPixelFormat, VmbTransformInfo, VmbUint8, byref, call_vmb_c,
-                        call_vmb_image_transform, decode_flags, sizeof)
+                        VmbImage, VmbPixelFormat, VmbTransformInfo, VmbPixelPattern, VmbUint8,
+                        byref, call_vmb_c, call_vmb_image_transform, decode_flags, sizeof)
 from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
 from .error import VmbChunkError, VmbFrameError
 from .featurecontainer import FeatureContainer
