@@ -282,7 +282,7 @@ class VmbTransformInfo(ctypes.Structure):
 
 # API
 VMB_IMAGE_TRANSFORM_VERSION = None
-EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '2.2'
+EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '2.3'
 
 # For detailed information on the signatures see "VmbTransform.h"
 # To improve readability, suppress 'E501 line too long (> 100 characters)'
