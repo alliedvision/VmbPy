@@ -29,6 +29,7 @@ import os
 import sys
 
 from vmbpy import *
+from vmbpy.c_binding import VmbFrameFlags
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -65,3 +66,106 @@ class FrameTest(VmbPyTestCase):
         f = Frame(10, allocation_mode=AllocationMode.AnnounceFrame)
         self.assertNoRaise(repr, f)
         self.assertNoRaise(repr, f._frame)
+
+class DeinterlaceFrameTest(VmbPyTestCase):
+    @staticmethod
+    def __get_frame(width: int, height: int, pixelformat: PixelFormat) -> Frame:
+        """Helper function to create a dummy Frame instance with valid width, height, and pixel
+        format"""
+        f = Frame(width * height, allocation_mode=AllocationMode.AnnounceFrame)
+        # Make sure all pixels have a value corresponding to their result image index
+        f._frame.pixelFormat = pixelformat
+        f._frame.width = width
+        f._frame.height = height
+        f._frame.receiveFlags |= VmbFrameFlags.Dimension
+        return f
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_deinterlace_frame_to_four_images(self):
+        f = self.__get_frame(12, 12, PixelFormat.Mono8)
+        arr = f.as_numpy_ndarray()
+        arr[0::2, 0::2] = 0
+        arr[0::2, 1::2] = 1
+        arr[1::2, 0::2] = 2
+        arr[1::2, 1::2] = 3
+        # Resulting frame should look like this only bigger:
+        # [[0, 1, 0, 1],
+        #  [2, 3, 2, 3],
+        #  [0, 1, 0, 1],
+        #  [2, 3, 2, 3]]
+        images = f.deinterlace_frame(((0, 1),
+                                      (2, 3)))
+        self.assertEqual(len(images), 4)
+        for i, image in enumerate(images):
+            self.assertEqual(image.get_width(), f.get_width() // 2)
+            self.assertEqual(image.get_height(), f.get_height() // 2)
+            # The sub-image at index i should only hold pixels with value i
+            self.assertTrue((image.as_numpy_ndarray() == i).all())
+
+    def test_deinterlace_frame_to_three_images(self):
+        f = self.__get_frame(12, 12, PixelFormat.Mono8)
+        arr = f.as_numpy_ndarray()
+        arr[0::2, 0::2] = 0
+        arr[0::2, 1::2] = 1
+        arr[1::2, 0::2] = 1
+        arr[1::2, 1::2] = 2
+        # Resulting frame should look like this only bigger:
+        # [[0, 1, 0, 1],
+        #  [1, 2, 1, 2],
+        #  [0, 1, 0, 1],
+        #  [1, 2, 1, 2]]
+        images = f.deinterlace_frame(((0, 1),
+                                      (1, 2)))
+        self.assertEqual(len(images), 3)
+        for i, image in enumerate(images):
+            self.assertEqual(image.get_width(), f.get_width() // 2)
+            self.assertEqual(image.get_height(), f.get_height() // 2)
+            # The sub-image at index i should only hold pixels with value i
+            self.assertTrue((image.as_numpy_ndarray() == i).all())
+
+    def test_deinterlace_frame_to_two_images(self):
+        f = self.__get_frame(12, 12, PixelFormat.Mono8)
+        arr = f.as_numpy_ndarray()
+        arr[0::2, 0::2] = 0
+        arr[0::2, 1::2] = 1
+        arr[1::2, 0::2] = 1
+        arr[1::2, 1::2] = 0
+        # Resulting frame should look like this only bigger:
+        # [[0, 1, 0, 1],
+        #  [1, 0, 1, 0],
+        #  [0, 1, 0, 1],
+        #  [1, 0, 1, 0]]
+        images = f.deinterlace_frame(((0, 1),
+                                      (1, 0)))
+        self.assertEqual(len(images), 2)
+        for i, image in enumerate(images):
+            self.assertEqual(image.get_width(), f.get_width() // 2)
+            self.assertEqual(image.get_height(), f.get_height() // 2)
+            # The sub-image at index i should only hold pixels with value i
+            self.assertTrue((image.as_numpy_ndarray() == i).all())
+
+    def test_deinterlace_frame_to_one_image(self):
+        f = self.__get_frame(12, 12, PixelFormat.Mono8)
+        arr = f.as_numpy_ndarray()
+        arr[0::2, 0::2] = 0
+        arr[0::2, 1::2] = 1
+        arr[1::2, 0::2] = 1
+        arr[1::2, 1::2] = 0
+        # Resulting frame should look like this only bigger:
+        # [[0, 1, 0, 1],
+        #  [1, 0, 1, 0],
+        #  [0, 1, 0, 1],
+        #  [1, 0, 1, 0]]
+        images = f.deinterlace_frame(((0, 1),
+                                      (1, 0)))
+        self.assertEqual(len(images), 2)
+        for i, image in enumerate(images):
+            self.assertEqual(image.get_width(), f.get_width() // 2)
+            self.assertEqual(image.get_height(), f.get_height() // 2)
+            # The sub-image at index i should only hold pixels with value i
+            self.assertTrue((image.as_numpy_ndarray() == i).all())
