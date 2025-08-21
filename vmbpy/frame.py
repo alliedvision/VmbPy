@@ -615,9 +615,31 @@ class Frame:
         return output_frame
 
     def deinterlace_frame(self, pixel_pattern: PixelPattern) -> tuple['Frame', ...]:
-        # TODO: Add optional destination buffers
-        # unpack the list of lists to find max element so we can figure out how many frames should
-        # be returned. Assumes the user gave 0-based indices
+        """Extracts multiple images from a single interlaced image.
+
+        This method takes a single image which contains interlaced image data for multiple exposures
+        and separates the interlaced image data into separate images. Deinterlacing takes place on a
+        2x2 pattern basis.
+
+        Arguments:
+            pixel_pattern:
+                A 2x2 pattern explaining which output image the corresponding pixel should be
+                included in. If multiple pixels are included in the same output image their value is
+                averaged. The pattern should be passed as a nested tuple such as `((0, 1), (2, 3))`.
+                The index values should start at 0 and count up with no gaps. The number of
+                different indices determines how many output images are used.
+
+        Returns:
+            output_images:
+                A tuple of `Frame` objects that hold the deinterlaced images.
+
+        Raises:
+            TODO
+        """
+        # TODO: Add optional destination buffers?
+
+        # TODO: Add check for pixel format of self to see it is a supported pattern? Otherwise the
+        # call to VmbDeinterlaceImage will just return BadParameter causing a VmbCException
 
         # TODO: Add check that smallest index in pixel_pattern is 0 and we continuously count up to
         # max value with no gaps in indices
@@ -628,7 +650,8 @@ class Frame:
         # invalid: ((1,2), (2,3)) (missing index 0) -> Should be ((0,1),(1,2))
         # invalid: ((0,1), (1,3)) (missing index 2 but contains >2) -> Should be ((0,1),(1,2))
 
-
+        # unpack the list of lists to find max element so we can figure out how many frames should
+        # be returned. Assumes the user gave 0-based indices
         num_frames = max([index for row in pixel_pattern for index in row]) + 1
         output_frames = tuple(Frame(self.get_buffer_size()//2, AllocationMode.AnnounceFrame)
                               for _ in range(num_frames))
