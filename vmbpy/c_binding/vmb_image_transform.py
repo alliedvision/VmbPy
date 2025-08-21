@@ -298,10 +298,10 @@ EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '2.3'
 _SIGNATURES = {
     'VmbGetImageTransformVersion': (VmbError, [c_ptr(VmbUint32)]),
     'VmbSetDebayerMode': (VmbError, [VmbDebayerMode, c_ptr(VmbTransformInfo)]),
-    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),         # noqa: E501
-    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),    # noqa: E501
-    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32]),       # noqa: E501
-    'VmbDeinterlaceImage': (VmbError, [c_ptr(VmbImage), c_ptr(VmbPixelPattern), c_ptr(c_ptr(VmbImage)), VmbUint8]) # noqa: E501
+    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),          # noqa: E501
+    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),     # noqa: E501
+    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32]),        # noqa: E501
+    'VmbDeinterlaceImage': (VmbError, [c_ptr(VmbImage), c_ptr(VmbPixelPattern), c_ptr(c_ptr(VmbImage)), VmbUint8])  # noqa: E501
 }
 
 

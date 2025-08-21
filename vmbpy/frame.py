@@ -675,8 +675,8 @@ class Frame:
             c_dst_image.Size = sizeof(c_dst_image)
             c_dst_image.Data = _get_non_owning_pointer(f._buffer, ctypes.c_void_p)
             c_dst_images.append(c_dst_image)
-        c_dst_array = (ctypes.POINTER(VmbImage)*len(c_dst_images))(*
-                                                                   [ctypes.pointer(img) for img in c_dst_images])
+        # Create a C compatible array holding pointers to the VmbImage instances in c_dst_images
+        c_dst_array = (ctypes.POINTER(VmbImage)*len(c_dst_images))(*[ctypes.pointer(img) for img in c_dst_images])  # noqa: E501
 
         call_vmb_image_transform('VmbDeinterlaceImage', byref(c_src_image),
                                  byref(pattern), c_dst_array, len(c_dst_images))

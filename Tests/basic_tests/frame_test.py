@@ -67,6 +67,7 @@ class FrameTest(VmbPyTestCase):
         self.assertNoRaise(repr, f)
         self.assertNoRaise(repr, f._frame)
 
+
 class DeinterlaceFrameTest(VmbPyTestCase):
     @staticmethod
     def __get_frame(width: int, height: int, pixelformat: PixelFormat) -> Frame:
