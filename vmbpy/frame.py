@@ -670,6 +670,7 @@ class Frame:
             f._frame.pixelFormat = VmbPixelFormat.Mono8
             f._frame.width = width // 2
             f._frame.height = height // 2
+            f._frame.receiveFlags |= VmbFrameFlags.Dimension
             c_dst_image = VmbImage()
             c_dst_image.Size = sizeof(c_dst_image)
             c_dst_image.Data = _get_non_owning_pointer(f._buffer, ctypes.c_void_p)
