@@ -67,9 +67,9 @@ class PersistableFeatureContainerTest(VmbPyTestCase):
             self.assertTrue(os.path.isfile(fname))
 
             # Modify one of the features
-            min_, max_ = feat_height.get_range()
+            _, max_ = feat_height.get_range()
             inc = feat_height.get_increment()
-            feat_height.set(max_ - min_ - inc)
+            feat_height.set(max_ - inc)
 
             # Load saved state from xml file. This should write the old value back to the modified
             # feature
