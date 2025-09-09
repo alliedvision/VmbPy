@@ -73,7 +73,10 @@ class DeinterlaceFrameTest(VmbPyTestCase):
     def __get_frame(width: int, height: int, pixelformat: PixelFormat) -> Frame:
         """Helper function to create a dummy Frame instance with valid width, height, and pixel
         format"""
-        f = Frame(width * height, allocation_mode=AllocationMode.AnnounceFrame)
+        if pixelformat not in (PixelFormat.Mono8, PixelFormat.Mono10, PixelFormat.Mono12, PixelFormat.Mono14, PixelFormat.Mono16):
+            raise ValueError(f"This function does not support generation of {pixelformat} frames.")
+        bytes_per_pixel = 1 if pixelformat == PixelFormat.Mono8 else 2
+        f = Frame(width * height * bytes_per_pixel, allocation_mode=AllocationMode.AnnounceFrame)
         # Make sure all pixels have a value corresponding to their result image index
         f._frame.pixelFormat = pixelformat
         f._frame.width = width
