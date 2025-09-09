@@ -258,3 +258,26 @@ class DeinterlaceFrameTest(VmbPyTestCase):
             # The sub-image at index i should only hold pixels with value i
             self.assertTrue((image.as_numpy_ndarray() == i).all())
     
+    def test_correct_endinanness_of_deinterlacing(self):
+        # This test adds large values to the image to check that deinterlacing does not accidentally
+        # change the byte order of the pixel values during deinterlacing
+        f = self.__get_frame(12, 12, PixelFormat.Mono16)
+        pixel_values = [2**1, 2**7, 2**12, 2**15]
+        arr = f.as_numpy_ndarray()
+        arr[0::2, 0::2] = pixel_values[0]
+        arr[0::2, 1::2] = pixel_values[1]
+        arr[1::2, 0::2] = pixel_values[2]
+        arr[1::2, 1::2] = pixel_values[3]
+        # Resulting frame should look like this only bigger:
+        # [[2**1,  2**7,  2**1,  2**7 ],
+        #  [2**12, 2**15, 2**12, 2**15],
+        #  [2**1,  2**7,  2**1,  2**7 ],
+        #  [2**12, 2**15, 2**12, 2**15]]
+        images = f.deinterlace_frame(((0, 1),
+                                      (2, 3)))
+        self.assertEqual(len(images), 4)
+        for i, image in enumerate(images):
+            self.assertEqual(image.get_width(), f.get_width() // 2)
+            self.assertEqual(image.get_height(), f.get_height() // 2)
+            # The sub-image at index i should only hold pixels with value i
+            self.assertTrue((image.as_numpy_ndarray() == pixel_values[i]).all())
