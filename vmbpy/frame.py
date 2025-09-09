@@ -667,7 +667,7 @@ class Frame:
                                  byref(c_src_image))
         c_dst_images = []
         for f in output_frames:
-            f._frame.pixelFormat = VmbPixelFormat.Mono8
+            f._frame.pixelFormat = fmt
             f._frame.width = width // 2
             f._frame.height = height // 2
             f._frame.receiveFlags |= VmbFrameFlags.Dimension
