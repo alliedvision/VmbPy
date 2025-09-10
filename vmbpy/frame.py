@@ -614,7 +614,7 @@ class Frame:
 
         return output_frame
 
-    def deinterlace_frame(self, pixel_pattern: PixelPattern) -> Tuple['Frame', ...]:
+    def deinterlace(self, pixel_pattern: PixelPattern) -> Tuple['Frame', ...]:
         """Extracts multiple images from a single interlaced image.
 
         This method takes a single image which contains interlaced image data for multiple exposures

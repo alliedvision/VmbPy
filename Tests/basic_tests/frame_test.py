@@ -106,8 +106,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [2, 3, 2, 3],
         #  [0, 1, 0, 1],
         #  [2, 3, 2, 3]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (2, 3)))
+        images = f.deinterlace(((0, 1),
+                                (2, 3)))
         self.assertEqual(len(images), 4)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -127,8 +127,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 2, 1, 2],
         #  [0, 1, 0, 1],
         #  [1, 2, 1, 2]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 2)))
+        images = f.deinterlace(((0, 1),
+                                (1, 2)))
         self.assertEqual(len(images), 3)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -148,8 +148,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 0, 1, 0],
         #  [0, 1, 0, 1],
         #  [1, 0, 1, 0]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 0)))
+        images = f.deinterlace(((0, 1),
+                                (1, 0)))
         self.assertEqual(len(images), 2)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -169,8 +169,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 0, 1, 0],
         #  [0, 1, 0, 1],
         #  [1, 0, 1, 0]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 0)))
+        images = f.deinterlace(((0, 1),
+                                (1, 0)))
         self.assertEqual(len(images), 2)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -190,8 +190,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 0, 1, 0],
         #  [0, 1, 0, 1],
         #  [1, 0, 1, 0]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 0)))
+        images = f.deinterlace(((0, 1),
+                                (1, 0)))
         self.assertEqual(len(images), 2)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -211,8 +211,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 0, 1, 0],
         #  [0, 1, 0, 1],
         #  [1, 0, 1, 0]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 0)))
+        images = f.deinterlace(((0, 1),
+                                (1, 0)))
         self.assertEqual(len(images), 2)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -232,8 +232,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 0, 1, 0],
         #  [0, 1, 0, 1],
         #  [1, 0, 1, 0]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 0)))
+        images = f.deinterlace(((0, 1),
+                                (1, 0)))
         self.assertEqual(len(images), 2)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -253,8 +253,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [1, 0, 1, 0],
         #  [0, 1, 0, 1],
         #  [1, 0, 1, 0]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (1, 0)))
+        images = f.deinterlace(((0, 1),
+                                (1, 0)))
         self.assertEqual(len(images), 2)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -277,8 +277,8 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         #  [2**12, 2**15, 2**12, 2**15],
         #  [2**1,  2**7,  2**1,  2**7 ],
         #  [2**12, 2**15, 2**12, 2**15]]
-        images = f.deinterlace_frame(((0, 1),
-                                      (2, 3)))
+        images = f.deinterlace(((0, 1),
+                                (2, 3)))
         self.assertEqual(len(images), 4)
         for i, image in enumerate(images):
             self.assertEqual(image.get_width(), f.get_width() // 2)
@@ -295,7 +295,7 @@ class DeinterlaceFrameTest(VmbPyTestCase):
             ((3, 2), (1, 0))
         ]
         for p in valid_patterns:
-            self.assertNoRaise(f.deinterlace_frame, p)
+            self.assertNoRaise(f.deinterlace, p)
 
         invalid_patterns = [
             ((1, 2), (3, 4)),  # No index 0
@@ -304,7 +304,7 @@ class DeinterlaceFrameTest(VmbPyTestCase):
             ((4, 3), (2, 1))   # No index 0
         ]
         for p in invalid_patterns:
-            self.assertRaises(ValueError, f.deinterlace_frame, p)
+            self.assertRaises(ValueError, f.deinterlace, p)
 
     def test_invalid_pixelformat(self):
         f = Frame(10 * 10 * 3, AllocationMode.AnnounceFrame)
@@ -312,9 +312,9 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         f._frame.width = 10
         f._frame.height = 10
         f._frame.receiveFlags |= VmbFrameFlags.Dimension
-        self.assertRaises(ValueError, f.deinterlace_frame, ((0, 1), (1, 0)))
+        self.assertRaises(ValueError, f.deinterlace, ((0, 1), (1, 0)))
 
     def test_value_error_raised_if_dimensions_arent_available(self):
         f = Frame(10 * 10, AllocationMode.AnnounceFrame)
         f._frame.pixelFormat = PixelFormat.Mono8
-        self.assertRaises(ValueError, f.deinterlace_frame, ((0, 1), (1, 0)))
+        self.assertRaises(ValueError, f.deinterlace, ((0, 1), (1, 0)))
