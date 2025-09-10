@@ -305,3 +305,16 @@ class DeinterlaceFrameTest(VmbPyTestCase):
         ]
         for p in invalid_patterns:
             self.assertRaises(ValueError, f.deinterlace_frame, p)
+
+    def test_invalid_pixelformat(self):
+        f = Frame(10 * 10 * 3, AllocationMode.AnnounceFrame)
+        f._frame.pixelFormat = PixelFormat.Rgb8
+        f._frame.width = 10
+        f._frame.height = 10
+        f._frame.receiveFlags |= VmbFrameFlags.Dimension
+        self.assertRaises(ValueError, f.deinterlace_frame, ((0, 1), (1, 0)))
+
+    def test_value_error_raised_if_dimensions_arent_available(self):
+        f = Frame(10 * 10, AllocationMode.AnnounceFrame)
+        f._frame.pixelFormat = PixelFormat.Mono8
+        self.assertRaises(ValueError, f.deinterlace_frame, ((0, 1), (1, 0)))
