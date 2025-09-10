@@ -638,17 +638,8 @@ class Frame:
         """
         # TODO: Add optional destination buffers?
 
-        # TODO: Add check for pixel format of self to see it is a supported pattern? Otherwise the
-        # call to VmbDeinterlaceImage will just return BadParameter causing a VmbCException
-
-        # TODO: Add check that smallest index in pixel_pattern is 0 and we continuously count up to
-        # max value with no gaps in indices
-
-        # Examples:
-        # valid:   ((0,0), (0,1)) (Only contains indices from 0 up with no gaps)
-        # valid:   ((1,2), (0,3))
-        # invalid: ((1,2), (2,3)) (missing index 0) -> Should be ((0,1),(1,2))
-        # invalid: ((0,1), (1,3)) (missing index 2 but contains >2) -> Should be ((0,1),(1,2))
+        if not _is_valid_deinterlacing_pattern(pixel_pattern):
+            raise ValueError("The provided pixel_pattern is not valid.")
 
         # unpack the list of lists to find max element so we can figure out how many frames should
         # be returned. Assumes the user gave 0-based indices
@@ -809,3 +800,13 @@ def _allocate_buffer(size, alignment=1):
 
 def _get_non_owning_pointer(memory, pointer_type):
     return ctypes.cast(ctypes.pointer(memory).contents, pointer_type)
+
+
+def _is_valid_deinterlacing_pattern(pixel_pattern):
+    indices = [index for pair in pixel_pattern for index in pair]
+    unique_indices = sorted(set(indices))
+    # Check if the indices form a continuous sequence starting from 0
+    expected_indices = list(range(len(unique_indices)))
+    if unique_indices != expected_indices:
+        return False
+    return True
