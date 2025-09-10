@@ -89,6 +89,7 @@ __all__ = [
     'VmbImageInfo',
     'VmbDebayerMode',
     'VmbTransformInfo',
+    'VmbPixelPattern',
     'VMB_IMAGE_TRANSFORM_VERSION',
     'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
     'call_vmb_image_transform',
@@ -129,6 +130,6 @@ from .vmb_common import (VmbBool, VmbCError, VmbDouble, VmbError, VmbHandle, Vmb
 from .vmb_image_transform import (EXPECTED_VMB_IMAGE_TRANSFORM_VERSION, LAYOUT_TO_PIXEL_FORMAT,
                                   PIXEL_FORMAT_CONVERTIBILITY_MAP, PIXEL_FORMAT_TO_LAYOUT,
                                   VMB_IMAGE_TRANSFORM_VERSION, VmbDebayerMode, VmbImage,
-                                  VmbImageInfo, VmbTransformInfo, call_vmb_image_transform)
+                                  VmbImageInfo, VmbTransformInfo, VmbPixelPattern, call_vmb_image_transform)
 from .wrapped_types import (AccessMode, Debayer, FeatureFlags, FeatureVisibility, FrameStatus,
                             PayloadType, ModulePersistFlags, PersistType, PixelFormat, TransportLayerType)

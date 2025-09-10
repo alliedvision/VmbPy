@@ -32,7 +32,7 @@ from typing import Any, Callable, Dict, List, Tuple
 from ..error import VmbSystemError
 from ..util import TraceEnable
 from .vmb_common import (Uint32Enum, VmbCError, VmbError, VmbFloat, VmbInt32, VmbPixelFormat,
-                         VmbUint32, fmt_enum_repr, fmt_repr, load_vimbax_lib)
+                         VmbUint8, VmbUint32, fmt_enum_repr, fmt_repr, load_vimbax_lib)
 
 __all__ = [
     'VmbBayerPattern',
@@ -44,6 +44,7 @@ __all__ = [
     'VmbImage',
     'VmbImageInfo',
     'VmbTransformInfo',
+    'VmbPixelPattern',
     'VMB_IMAGE_TRANSFORM_VERSION',
     'EXPECTED_VMB_IMAGE_TRANSFORM_VERSION',
     'call_vmb_image_transform',
@@ -280,6 +281,13 @@ class VmbTransformInfo(ctypes.Structure):
     ]
 
 
+class VmbPixelPattern(ctypes.Structure):
+    """Struct holding information for interlaced images"""
+    _fields_ = [
+        ('frameIndices', (VmbUint8*2)*2)
+    ]
+
+
 # API
 VMB_IMAGE_TRANSFORM_VERSION = None
 EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '2.3'
@@ -290,9 +298,10 @@ EXPECTED_VMB_IMAGE_TRANSFORM_VERSION = '2.3'
 _SIGNATURES = {
     'VmbGetImageTransformVersion': (VmbError, [c_ptr(VmbUint32)]),
     'VmbSetDebayerMode': (VmbError, [VmbDebayerMode, c_ptr(VmbTransformInfo)]),
-    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),       # noqa: E501
-    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),  # noqa: E501
-    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32])      # noqa: E501
+    'VmbSetImageInfoFromPixelFormat': (VmbError, [VmbPixelFormat, VmbUint32, VmbUint32, c_ptr(VmbImage)]),          # noqa: E501
+    'VmbSetImageInfoFromInputImage': (VmbError, [c_ptr(VmbImage), VmbPixelLayout, VmbUint32, c_ptr(VmbImage)]),     # noqa: E501
+    'VmbImageTransform': (VmbError, [c_ptr(VmbImage), c_ptr(VmbImage), c_ptr(VmbTransformInfo), VmbUint32]),        # noqa: E501
+    'VmbDeinterlaceImage': (VmbError, [c_ptr(VmbImage), c_ptr(VmbPixelPattern), c_ptr(c_ptr(VmbImage)), VmbUint8])  # noqa: E501
 }
 
 
@@ -363,6 +372,7 @@ def call_vmb_image_transform(func_name: str, *args):
         - VmbSetImageInfoFromPixelFormat
         - VmbSetImageInfoFromInputImage
         - VmbImageTransform
+        - VmbDeinterlaceImage
     """
 
     global _lib_instance

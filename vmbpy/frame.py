@@ -30,8 +30,8 @@ from typing import Callable, Optional, Tuple, Union
 
 from .c_binding import (PIXEL_FORMAT_TO_LAYOUT, Debayer, FrameStatus, PayloadType, PixelFormat,
                         VmbCError, VmbDebayerMode, VmbError, VmbFrame, VmbFrameFlags, VmbHandle,
-                        VmbImage, VmbPixelFormat, VmbTransformInfo, VmbUint8, byref, call_vmb_c,
-                        call_vmb_image_transform, decode_flags, sizeof)
+                        VmbImage, VmbPixelFormat, VmbTransformInfo, VmbPixelPattern, VmbUint8,
+                        byref, call_vmb_c, call_vmb_image_transform, decode_flags, sizeof)
 from .c_binding.vmb_c import CHUNK_CALLBACK_TYPE
 from .error import VmbChunkError, VmbFrameError
 from .featurecontainer import FeatureContainer
@@ -69,6 +69,7 @@ __all__ = [
 FrameTuple = Tuple['Frame', ...]
 FormatTuple = Tuple['PixelFormat', ...]
 ChunkCallback = Callable[[FeatureContainer], None]
+PixelPattern = Tuple[Tuple[int, ...], ...]
 
 
 MONO_PIXEL_FORMATS = (
@@ -613,6 +614,71 @@ class Frame:
 
         return output_frame
 
+    def deinterlace(self, pixel_pattern: PixelPattern) -> Tuple['Frame', ...]:
+        """Extracts multiple images from a single interlaced image.
+
+        This method takes a single image which contains interlaced image data for multiple exposures
+        and separates the interlaced image data into separate images. Deinterlacing takes place on a
+        2x2 pattern basis.
+
+        Arguments:
+            pixel_pattern:
+                A 2x2 pattern explaining which output image the corresponding pixel should be
+                included in. If multiple pixels are included in the same output image their value is
+                averaged. The pattern should be passed as nested tuple such as ``((0, 1), (2, 3))``.
+                The index values should start at 0 and count up with no gaps. The number of
+                different indices determines how many output images are used.
+
+        Returns:
+            output_images:
+                A tuple of ``Frame`` objects that hold the deinterlaced images.
+
+        Raises:
+            ValueError:
+                If one of the following conditions is not met
+                    - ``pixel_pattern`` follows required format as described in this docstring
+                    - input frame does not provide ``width`` or ``height`` information
+                    - input frame has an unsupported ``PixelFormat``
+        """
+        if not _is_valid_deinterlacing_pattern(pixel_pattern):
+            raise ValueError("The provided pixel_pattern is not valid.")
+
+        # unpack the list of lists to find max element so we can figure out how many frames should
+        # be returned. Assumes the user gave 0-based indices
+        num_frames = max([index for row in pixel_pattern for index in row]) + 1
+        output_frames = tuple(Frame(self.get_buffer_size()//2, AllocationMode.AnnounceFrame)
+                              for _ in range(num_frames))
+
+        pattern = VmbPixelPattern(frameIndices=pixel_pattern)
+        c_src_image = VmbImage()
+        c_src_image.Size = sizeof(c_src_image)
+        c_src_image.Data = _get_non_owning_pointer(self._buffer, ctypes.c_void_p)
+        fmt = self.get_pixel_format()
+        width = self.get_width()
+        height = self.get_height()
+        if width is None or height is None:
+            raise ValueError("The input frame does not provide width or height information")
+        call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
+                                 byref(c_src_image))
+        if c_src_image.ImageInfo.PixelInfo.BitsPerPixel not in (8, 16):
+            raise ValueError("The input image does not have a supported bit-depth")
+        c_dst_images = []
+        for f in output_frames:
+            f._frame.pixelFormat = fmt
+            f._frame.width = width // 2
+            f._frame.height = height // 2
+            f._frame.receiveFlags |= VmbFrameFlags.Dimension
+            c_dst_image = VmbImage()
+            c_dst_image.Size = sizeof(c_dst_image)
+            c_dst_image.Data = _get_non_owning_pointer(f._buffer, ctypes.c_void_p)
+            c_dst_images.append(c_dst_image)
+        # Create a C compatible array holding pointers to the VmbImage instances in c_dst_images
+        c_dst_array = (ctypes.POINTER(VmbImage)*len(c_dst_images))(*[ctypes.pointer(img) for img in c_dst_images])  # noqa: E501
+
+        call_vmb_image_transform('VmbDeinterlaceImage', byref(c_src_image),
+                                 byref(pattern), c_dst_array, len(c_dst_images))
+        return output_frames
+
     def as_numpy_ndarray(self) -> 'numpy.ndarray':
         """Construct ``numpy.ndarray`` view on VmbCFrame.
 
@@ -738,3 +804,13 @@ def _allocate_buffer(size, alignment=1):
 
 def _get_non_owning_pointer(memory, pointer_type):
     return ctypes.cast(ctypes.pointer(memory).contents, pointer_type)
+
+
+def _is_valid_deinterlacing_pattern(pixel_pattern):
+    indices = [index for pair in pixel_pattern for index in pair]
+    unique_indices = sorted(set(indices))
+    # Check if the indices form a continuous sequence starting from 0
+    expected_indices = list(range(len(unique_indices)))
+    if unique_indices != expected_indices:
+        return False
+    return True
