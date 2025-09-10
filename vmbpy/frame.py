@@ -663,6 +663,8 @@ class Frame:
         fmt = self.get_pixel_format()
         width = self.get_width()
         height = self.get_height()
+        if width is None or height is None:
+            raise ValueError("The input frame does not provide width or height information")
         call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                  byref(c_src_image))
         c_dst_images = []
