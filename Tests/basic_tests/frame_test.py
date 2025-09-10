@@ -285,3 +285,23 @@ class DeinterlaceFrameTest(VmbPyTestCase):
             self.assertEqual(image.get_height(), f.get_height() // 2)
             # The sub-image at index i should only hold pixels with value i
             self.assertTrue((image.as_numpy_ndarray() == pixel_values[i]).all())
+
+    def test_pixel_pattern_validation(self):
+        f = self.__get_frame(12, 12, PixelFormat.Mono8)
+        valid_patterns = [
+            ((0, 1), (1, 2)),
+            ((1, 1), (1, 0)),
+            ((0, 0), (0, 0)),
+            ((3, 2), (1, 0))
+        ]
+        for p in valid_patterns:
+            self.assertNoRaise(f.deinterlace_frame, p)
+
+        invalid_patterns = [
+            ((1, 2), (3, 4)),  # No index 0
+            ((0, 1), (1, 3)),  # Gap between index 1 and 3
+            ((1, 1), (1, 1)),  # No index 0
+            ((4, 3), (2, 1))   # No index 0
+        ]
+        for p in invalid_patterns:
+            self.assertRaises(ValueError, f.deinterlace_frame, p)
