@@ -640,8 +640,6 @@ class Frame:
                     - input frame does not provide ``width`` or ``height`` information
                     - input frame has an unsupported ``PixelFormat``
         """
-        # TODO: Add optional destination buffers?
-
         if not _is_valid_deinterlacing_pattern(pixel_pattern):
             raise ValueError("The provided pixel_pattern is not valid.")
 
