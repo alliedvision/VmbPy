@@ -658,6 +658,8 @@ class Frame:
             raise ValueError("The input frame does not provide width or height information")
         call_vmb_image_transform('VmbSetImageInfoFromPixelFormat', fmt, width, height,
                                  byref(c_src_image))
+        if c_src_image.ImageInfo.PixelInfo.BitsPerPixel not in (8, 16):
+            raise ValueError("The input image does not have a supported bit-depth")
         c_dst_images = []
         for f in output_frames:
             f._frame.pixelFormat = fmt
