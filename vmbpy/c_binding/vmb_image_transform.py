@@ -372,6 +372,7 @@ def call_vmb_image_transform(func_name: str, *args):
         - VmbSetImageInfoFromPixelFormat
         - VmbSetImageInfoFromInputImage
         - VmbImageTransform
+        - VmbDeinterlaceImage
     """
 
     global _lib_instance
