@@ -73,7 +73,11 @@ class DeinterlaceFrameTest(VmbPyTestCase):
     def __get_frame(width: int, height: int, pixelformat: PixelFormat) -> Frame:
         """Helper function to create a dummy Frame instance with valid width, height, and pixel
         format"""
-        if pixelformat not in (PixelFormat.Mono8, PixelFormat.Mono10, PixelFormat.Mono12, PixelFormat.Mono14, PixelFormat.Mono16):
+        if pixelformat not in (PixelFormat.Mono8,
+                               PixelFormat.Mono10,
+                               PixelFormat.Mono12,
+                               PixelFormat.Mono14,
+                               PixelFormat.Mono16):
             raise ValueError(f"This function does not support generation of {pixelformat} frames.")
         bytes_per_pixel = 1 if pixelformat == PixelFormat.Mono8 else 2
         f = Frame(width * height * bytes_per_pixel, allocation_mode=AllocationMode.AnnounceFrame)
@@ -257,7 +261,7 @@ class DeinterlaceFrameTest(VmbPyTestCase):
             self.assertEqual(image.get_height(), f.get_height() // 2)
             # The sub-image at index i should only hold pixels with value i
             self.assertTrue((image.as_numpy_ndarray() == i).all())
-    
+
     def test_correct_endinanness_of_deinterlacing(self):
         # This test adds large values to the image to check that deinterlacing does not accidentally
         # change the byte order of the pixel values during deinterlacing
