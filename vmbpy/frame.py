@@ -625,16 +625,20 @@ class Frame:
             pixel_pattern:
                 A 2x2 pattern explaining which output image the corresponding pixel should be
                 included in. If multiple pixels are included in the same output image their value is
-                averaged. The pattern should be passed as a nested tuple such as `((0, 1), (2, 3))`.
+                averaged. The pattern should be passed as nested tuple such as ``((0, 1), (2, 3))``.
                 The index values should start at 0 and count up with no gaps. The number of
                 different indices determines how many output images are used.
 
         Returns:
             output_images:
-                A tuple of `Frame` objects that hold the deinterlaced images.
+                A tuple of ``Frame`` objects that hold the deinterlaced images.
 
         Raises:
-            TODO
+            ValueError:
+                If one of the following conditions is not met
+                    - ``pixel_pattern`` follows required format as described in this docstring
+                    - input frame does not provide ``width`` or ``height`` information
+                    - input frame has an unsupported ``PixelFormat``
         """
         # TODO: Add optional destination buffers?
 
