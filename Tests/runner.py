@@ -89,7 +89,14 @@ class CustomTestLoader(unittest.TestLoader):
         for test in tests:
             if isinstance(test, unittest.suite.TestSuite):
                 for subtest in test:
-                    if subtest.id() in self.test_whitelist:
+                    # Add the subtest if the fully qualified name or a ('.'-separated)
+                    # part of the name is specified in the white list
+                    allowed_matches = []
+                    parts = subtest.id().split('.')
+                    for i in range(1, len(parts) + 1):
+                        allowed_matches.append('.'.join(parts[:i]))
+                    # Hint: this is true if both lists share a common entry
+                    if not set(allowed_matches).isdisjoint(self.test_whitelist):
                         filtered_tests.append(subtest)
         return unittest.TestSuite(filtered_tests)
 
@@ -206,7 +213,8 @@ if __name__ == '__main__':
         basic_tests.vmbsystem_test,
         basic_tests.interface_test,
         basic_tests.transport_layer_test,
-        basic_tests.persistable_feature_container_test
+        basic_tests.persistable_feature_container_test,
+        basic_tests.frame_test
     ]
 
     REAL_CAM_TEST_MODS = [
