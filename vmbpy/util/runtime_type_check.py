@@ -29,6 +29,8 @@ from functools import wraps
 from inspect import isfunction, ismethod, signature
 from typing import Union, get_type_hints, Callable, TypeVar, Any
 
+import sys
+
 from .log import Log
 
 __all__ = [
@@ -75,7 +77,9 @@ class RuntimeTypeCheckEnable:
             # Workaround for Python bug with type hints for wrapped functions
             # https://bugs.python.org/issue37838
             func = func.__wrapped__
-        hints = get_type_hints(func)
+        # The VmbPy package namespace is passed as localns here to make resolution of forward
+        # references more reliable with changes introduced to annotation resolution in Python 3.14
+        hints = get_type_hints(func, localns=sys.modules['vmbpy'].__dict__)
         hints.pop('return', None)
 
         return (full_args.arguments, hints)
