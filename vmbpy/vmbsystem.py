@@ -725,24 +725,40 @@ class VmbSystem:
             result = []
             cams_count = VmbUint32(0)
 
-            call_vmb_c('VmbCamerasList', None, 0, byref(cams_count), 0)
+            # Perform calls to VmbCamerasList in a looping block to have an easy way to deal with
+            # situations where new devices become available between the two calls to VmbCamerasList.
+            # If the second call raises a VmbCError with error code MoreData the loop is repeated to
+            # get a full camera list. If the second call does not raise a VmbCError the loop will be
+            # left via the return
+            while True:
+                call_vmb_c('VmbCamerasList', None, 0, byref(cams_count), 0)
 
-            if cams_count:
-                cams_found = VmbUint32(0)
-                cams_infos = (VmbCameraInfo * cams_count.value)()
+                if cams_count:
+                    cams_found = VmbUint32(0)
+                    cams_infos = (VmbCameraInfo * cams_count.value)()
 
-                call_vmb_c('VmbCamerasList', cams_infos, cams_count, byref(cams_found),
-                           sizeof(VmbCameraInfo))
-
-                for info in cams_infos[:cams_found.value]:
                     try:
-                        result.append(Camera(info, self.__inters[info.interfaceHandle]))
-                    except Exception as e:
-                        msg = 'Failed to create Camera for {}: {}'
-                        msg = msg.format(info.cameraName, e)
-                        Log.get_instance().error(msg)
+                        call_vmb_c('VmbCamerasList', cams_infos, cams_count, byref(cams_found),
+                                   sizeof(VmbCameraInfo))
+                    except VmbCError as e:
+                        err = e.get_error_code()
+                        if err == VmbError.MoreData:
+                            # More cameras became available between calls to VmbCamerasList. Start
+                            # loop again to pass a cams_infos list that is long enough for all
+                            # devices
+                            continue
+                        else:
+                            raise e
 
-            return result
+                    for info in cams_infos[:cams_found.value]:
+                        try:
+                            result.append(Camera(info, self.__inters[info.interfaceHandle]))
+                        except Exception as e:
+                            msg = 'Failed to create Camera for {}: {}'
+                            msg = msg.format(info.cameraName, e)
+                            Log.get_instance().error(msg)
+
+                return result
 
         @TraceEnable()
         def __discover_camera(self, id_: str) -> Camera:
