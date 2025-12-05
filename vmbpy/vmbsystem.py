@@ -90,7 +90,8 @@ class VmbSystem:
                     if isinstance(e, VmbSystemError):
                         raise
                     else:
-                        raise VmbSystemError('Encountered an error while entering VmbSystem context') from e
+                        msg = 'Encountered an error while entering VmbSystem context'
+                        raise VmbSystemError(msg) from e
 
             self.__context_cnt += 1
             return self
