@@ -73,7 +73,7 @@ class VmbSystem:
             self.__inters_handlers: List[InterfaceChangeHandler] = []
             self.__inters_handlers_lock: threading.Lock = threading.Lock()
 
-            self.__cams: CamerasList = ()
+            self.__cams: CamerasList = []
             self.__cams_lock: threading.Lock = threading.Lock()
             self.__cams_handlers: List[CameraChangeHandler] = []
             self.__cams_handlers_lock: threading.Lock = threading.Lock()
@@ -540,7 +540,7 @@ class VmbSystem:
 
             self._remove_feature_accessors()
             self.__cams_handlers = []
-            self.__cams = ()
+            self.__cams = []
             self.__inters_handlers = []
             for inter in self.__inters.values():
                 inter._close()
