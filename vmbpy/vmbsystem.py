@@ -83,7 +83,14 @@ class VmbSystem:
         @TraceEnable()
         def __enter__(self):
             if not self.__context_cnt:
-                self._startup()
+                try:
+                    self._startup()
+                except (VmbCError, VmbSystemError) as e:
+                    self._shutdown()
+                    if isinstance(e, VmbSystemError):
+                        raise
+                    else:
+                        raise VmbSystemError('Encountered an error while entering VmbSystem context') from e
 
             self.__context_cnt += 1
             return self
