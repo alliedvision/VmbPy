@@ -146,9 +146,9 @@ class VmbError(Int32Enum):
     UserCallbackException = -35    #: A callback provided by the user threw an exception
     FeaturesUnavailable = -36      #: The XML for the module is currently not loaded; the module could be in the wrong state or the XML could not be retrieved or could not be parsed properly
     TLNotFound = -37               #: A required transport layer could not be found or loaded
-    Ambiguous = -39                #: An entity cannot be uniquely identified based on the information provided
-    RetriesExceeded = -40          #: Something could not be accomplished with a given number of retries
-    InsufficientBufferCount = -41  #: The operation requires more buffers
+    Ambiguous = -38                #: An entity cannot be uniquely identified based on the information provided
+    RetriesExceeded = -39          #: Something could not be accomplished with a given number of retries
+    InsufficientBufferCount = -40  #: The operation requires more buffers
     Custom = 1                     #: The minimum error code to use for user defined error codes to avoid conflict with existing error codes
 
     def __str__(self):
