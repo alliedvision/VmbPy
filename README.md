@@ -1,4 +1,4 @@
-# VmbPy [![python version](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+# VmbPy [![python version](https://img.shields.io/badge/python-3.10_--_3.14-blue.svg)](https://www.python.org/downloads/)
 
 Python API of the [Vimba X SDK](https://www.alliedvision.com)
 
@@ -8,10 +8,10 @@ allowing for rapid development of applications.
 
 # Installation
 
-To use VmbPy, Python >= 3.7 is required. A ready-to-install packaged `.whl` file of VmbPy can be
-found as part of the Vimba X installation, or be downloaded from our [github release
-page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed as usual via the
-[`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
+VmbPy is validated to work with Python versions 3.10 to 3.14. A ready-to-install packaged `.whl`
+file of VmbPy can be found as part of the Vimba X installation, or be downloaded from our [github
+release page](https://github.com/alliedvision/VmbPy/releases). The `.whl` can be installed as usual
+via the [`pip install`](https://pip.pypa.io/en/stable/cli/pip_install/) command.
 
 > [!NOTE]  
 > Depending on the some systems the command might instead be called `pip3`. Check your systems
