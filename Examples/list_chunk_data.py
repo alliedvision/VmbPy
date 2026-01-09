@@ -124,8 +124,11 @@ class ChunkExample:
                         # Some legacy cameras provide no mechanism to configure individual chunks.
                         # Their feature "ChunkEnable" is READ-ONLY and always enabled for every
                         # selector entry.
-                        if self.cam.ChunkEnable.get() or self.cam.ChunkEnable.set(True):
-                            self.enabled_chunk_selectors.append(selector)
+                        if self.cam.ChunkEnable.get():
+                            pass
+                        else:
+                            self.cam.ChunkEnable.set(True)
+                        self.enabled_chunk_selectors.append(selector)
                     except VmbFeatureError:
                         print('The device does not support chunk feature "{}". It was not enabled.'
                               ''.format(selector))
