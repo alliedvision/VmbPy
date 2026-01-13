@@ -65,9 +65,13 @@ class CamFrameTest(VmbPyTestCase):
             # in us. get_frame expects timeout duration in ms. Timeout is at least three seconds or
             # calculated based on exposure time.
             self.frame_timeout_ms = max(3000, int(1.5 * new_exposure_time * 1e-3))
-            _, max_gain = cam.Gain.get_range()
-            self._old_gain = cam.Gain.get()
-            cam.Gain.set(max_gain)
+            try:
+                _, max_gain = cam.Gain.get_range()
+                self._old_gain = cam.Gain.get()
+                cam.Gain.set(max_gain)
+            except AttributeError:
+                # CameraSimulatorTL has no feature Gain
+                pass
             try:
                 set_throughput_to_fraction(self.cam, 0.8)
                 self.cam.DeviceLinkThroughputLimitMode.set("On")
@@ -79,7 +83,10 @@ class CamFrameTest(VmbPyTestCase):
         # Reset ExposureTime and Gain to values that were set before this class was executed
         with self.cam as cam:
             cam.ExposureTime.set(self._old_exposure_time)
-            cam.Gain.set(self._old_gain)
+            try:
+                cam.Gain.set(self._old_gain)
+            except AttributeError:
+                pass
             try:
                 self.cam.DeviceLinkThroughputLimitMode.set("Off")
                 reset_roi(self.cam)
@@ -323,13 +330,17 @@ class UserSuppliedBufferTest(VmbPyTestCase):
             # possible in setUp and tearDown
             self.cam._open()
             try:
-                set_throughput_to_fraction(self.cam, 0.8)
-                self.cam.DeviceLinkThroughputLimitMode.set("On")
-                reset_roi(self.cam, 64)
                 _, max_gain = self.cam.Gain.get_range()
                 self._old_gain = self.cam.Gain.get()
                 # set Gain to max. to make sure, that dark frames won't contain only zeros
                 self.cam.Gain.set(max_gain)
+            except AttributeError:
+                # CameraSimulatorTL has no feature Gain
+                pass
+            try:
+                set_throughput_to_fraction(self.cam, 0.8)
+                self.cam.DeviceLinkThroughputLimitMode.set("On")
+                reset_roi(self.cam, 64)
             except AttributeError:
                 pass
             self.local_device = self.cam.get_local_device()
@@ -339,9 +350,12 @@ class UserSuppliedBufferTest(VmbPyTestCase):
 
     def tearDown(self):
         try:
+            self.cam.Gain.set(self._old_gain)
+        except AttributeError:
+            pass
+        try:
             self.cam.DeviceLinkThroughputLimitMode.set("Off")
             reset_roi(self.cam)
-            self.cam.Gain.set(self._old_gain)
         except AttributeError:
             pass
         self.cam._close()
