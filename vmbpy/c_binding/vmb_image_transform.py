@@ -306,8 +306,6 @@ _SIGNATURES = {
 
 
 def _attach_signatures(lib_handle):
-    global _SIGNATURES
-
     for function_name, signature in _SIGNATURES.items():
         fn = getattr(lib_handle, function_name)
         fn.restype, fn.argtypes = signature
@@ -317,7 +315,6 @@ def _attach_signatures(lib_handle):
 
 
 def _check_version(lib_handle):
-    global EXPECTED_VMB_IMAGE_TRANSFORM_VERSION
     global VMB_IMAGE_TRANSFORM_VERSION
 
     v = VmbUint32()
@@ -374,8 +371,6 @@ def call_vmb_image_transform(func_name: str, *args):
         - VmbImageTransform
         - VmbDeinterlaceImage
     """
-
-    global _lib_instance
     getattr(_lib_instance, func_name)(*args)
 
 
@@ -427,8 +422,6 @@ LAYOUT_TO_PIXEL_FORMAT = dict([(v, k) for k, v in PIXEL_FORMAT_TO_LAYOUT.items()
 
 
 def _query_compatibility(pixel_format: VmbPixelFormat) -> Tuple[VmbPixelFormat, ...]:
-    global LAYOUT_TO_PIXEL_FORMAT
-
     # Query compatible formats from ImageTransform
     output_pixel_layouts = (VmbPixelLayout.Mono, VmbPixelLayout.MonoPacked, VmbPixelLayout.Raw,
                             VmbPixelLayout.RawPacked, VmbPixelLayout.RGB, VmbPixelLayout.BGR,

@@ -524,9 +524,6 @@ class Frame:
                 If user supplied ``destination_buffer`` is too small, not writeable, or not
                 contiguous in memory.
         """
-
-        global BAYER_PIXEL_FORMATS
-
         # 1) Perform sanity checking
         fmt = self.get_pixel_format()
 
@@ -747,8 +744,6 @@ class Frame:
                 If current pixel format is not compatible with opencv. Compatible formats are listed
                 in ``OPENCV_PIXEL_FORMATS``.
         """
-        global OPENCV_PIXEL_FORMATS
-
         if numpy is None:
             raise ImportError('\'Frame.as_opencv_image()\' requires module \'numpy\'.')
 
