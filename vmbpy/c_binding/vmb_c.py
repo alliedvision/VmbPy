@@ -697,8 +697,6 @@ class VmbFeaturePersistSettings(ctypes.Structure):
 
 
 def _build_callback_type(*args):
-    global _lib_instance
-
     lib_type = type(_lib_instance)
 
     if lib_type == ctypes.CDLL:
@@ -778,8 +776,6 @@ _SIGNATURES = {
 
 
 def _attach_signatures(lib_handle):
-    global _SIGNATURES
-
     for function_name, signature in _SIGNATURES.items():
         fn = getattr(lib_handle, function_name)
         fn.restype, fn.argtypes = signature
@@ -789,7 +785,6 @@ def _attach_signatures(lib_handle):
 
 
 def _check_version(lib_handle):
-    global EXPECTED_VMB_C_VERSION
     global VMB_C_VERSION
 
     v = VmbVersionInfo()
@@ -903,5 +898,4 @@ def call_vmb_c(func_name: str, *args):
         - VmbSettingsLoad
         - VmbChunkDataAccess
     """
-    global _lib_instance
     getattr(_lib_instance, func_name)(*args)
