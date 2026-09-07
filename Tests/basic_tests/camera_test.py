@@ -28,6 +28,7 @@ import os
 import sys
 
 from vmbpy import VmbCameraError
+from vmbpy.c_binding import VmbCameraInfo
 from vmbpy.camera import Camera
 from vmbpy.frame import Frame
 
@@ -64,6 +65,11 @@ class CameraNoStreamsTest(VmbPyTestCase):
     def setUp(self):
         self.cam = Camera.__new__(Camera)
         self.cam._Camera__streams = []
+        # start_streaming()'s VmbCameraError message includes get_id(), which reads
+        # __info.cameraIdString - give it a minimal real VmbCameraInfo rather than nothing.
+        info = VmbCameraInfo()
+        info.cameraIdString = b'DEV_TEST0000'
+        self.cam._Camera__info = info
         # Satisfy the `RaiseIfOutsideContext` decorator without opening a real device.
         self.cam._context_entered = True
 
