@@ -272,10 +272,17 @@ class Camera(PersistableFeatureContainer):
                 If Frame acquisition timed out.
             VmbCameraError:
                 If Camera is streaming while executing the generator.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
-        return self.__streams[0].get_frame_generator(limit=limit,
-                                                     timeout_ms=timeout_ms,
-                                                     allocation_mode=allocation_mode)
+        try:
+            stream = self.__streams[0]
+        except IndexError:
+            raise VmbCameraError('Camera \'{}\' does not expose any data stream.'
+                                 ''.format(self.get_id()))
+        return stream.get_frame_generator(limit=limit,
+                                          timeout_ms=timeout_ms,
+                                          allocation_mode=allocation_mode)
 
     @RaiseIfOutsideContext()
     @TraceEnable()
@@ -310,6 +317,8 @@ class Camera(PersistableFeatureContainer):
                 If a ``timeout_ms`` is negative.
             VmbTimeout:
                 If Frame acquisition timed out.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
@@ -348,9 +357,15 @@ class Camera(PersistableFeatureContainer):
                 If a timeout_ms is negative.
             VmbTimeout:
                 If Frame acquisition timed out.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
-        return self.__streams[0].get_frame(timeout_ms=timeout_ms,
-                                           allocation_mode=allocation_mode)
+        try:
+            stream = self.__streams[0]
+        except IndexError:
+            raise VmbCameraError('Camera \'{}\' does not expose any data stream.'
+                                 ''.format(self.get_id()))
+        return stream.get_frame(timeout_ms=timeout_ms, allocation_mode=allocation_mode)
 
     @RaiseIfOutsideContext()
     @TraceEnable()
