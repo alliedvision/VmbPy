@@ -47,22 +47,18 @@ class CameraNoStreamsTest(VmbPyTestCase):
     `Camera._open()` fills `Camera.__streams` from `self.__info.streamCount`. If a given camera
     (e.g. a new/unsupported model, or one whose Transport Layer misreports its stream count)
     reports 0 streams, `Camera.__streams` stays empty for the lifetime of the `with` context.
-
-    `Camera.is_streaming()` already anticipates this and guards the resulting `__streams[0]`
-    access with `except IndexError: return False`. `start_streaming()`, `stop_streaming()` and
-    `queue_frame()` did not have the same guard, so they instead raised a bare
-    `IndexError: list index out of range` that gave no indication a Camera/stream problem
-    caused it. This test constructs that zero-stream state without needing real hardware, by
+    This test constructs that zero-stream state without needing real hardware, by
     bypassing `Camera.__init__` (which requires a real `VmbCameraInfo`/`Interface` from
     discovery) and only setting the attributes these methods actually touch.
 
     `start_streaming()` cannot silently succeed without any stream to stream from, so it raises
     `VmbCameraError`. `stop_streaming()` and `queue_frame()` document that they return silently
-    if streaming mode is not active, so - like `is_streaming()` - a missing stream is treated as
-    "not streaming" rather than an error.
+    if streaming mode is not active, so a missing stream is treated as "not streaming" rather
+    than an error.
     """
 
     def setUp(self):
+        # Mock a Camera instance that does not have any streams
         self.cam = Camera.__new__(Camera)
         self.cam._Camera__streams = []
         # start_streaming()'s VmbCameraError message includes get_id(), which reads
