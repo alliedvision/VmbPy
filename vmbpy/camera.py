@@ -272,10 +272,17 @@ class Camera(PersistableFeatureContainer):
                 If Frame acquisition timed out.
             VmbCameraError:
                 If Camera is streaming while executing the generator.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
-        return self.__streams[0].get_frame_generator(limit=limit,
-                                                     timeout_ms=timeout_ms,
-                                                     allocation_mode=allocation_mode)
+        try:
+            stream = self.__streams[0]
+        except IndexError:
+            raise VmbCameraError('Camera \'{}\' does not expose any data stream.'
+                                 ''.format(self.get_id()))
+        return stream.get_frame_generator(limit=limit,
+                                          timeout_ms=timeout_ms,
+                                          allocation_mode=allocation_mode)
 
     @RaiseIfOutsideContext()
     @TraceEnable()
@@ -310,6 +317,8 @@ class Camera(PersistableFeatureContainer):
                 If a ``timeout_ms`` is negative.
             VmbTimeout:
                 If Frame acquisition timed out.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
         for frame in self.get_frame_generator(1,
                                               timeout_ms=timeout_ms,
@@ -348,9 +357,15 @@ class Camera(PersistableFeatureContainer):
                 If a timeout_ms is negative.
             VmbTimeout:
                 If Frame acquisition timed out.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
-        return self.__streams[0].get_frame(timeout_ms=timeout_ms,
-                                           allocation_mode=allocation_mode)
+        try:
+            stream = self.__streams[0]
+        except IndexError:
+            raise VmbCameraError('Camera \'{}\' does not expose any data stream.'
+                                 ''.format(self.get_id()))
+        return stream.get_frame(timeout_ms=timeout_ms, allocation_mode=allocation_mode)
 
     @RaiseIfOutsideContext()
     @TraceEnable()
@@ -385,18 +400,25 @@ class Camera(PersistableFeatureContainer):
                 If the camera is already streaming.
             VmbCameraError:
                 If anything went wrong on entering streaming mode.
+            VmbCameraError:
+                If the camera does not expose any data stream.
         """
-        self.__streams[0].start_streaming(handler=handler,
-                                          buffer_count=buffer_count,
-                                          allocation_mode=allocation_mode)
+        try:
+            stream = self.__streams[0]
+        except IndexError:
+            raise VmbCameraError('Camera \'{}\' does not expose any data stream.'
+                                 ''.format(self.get_id()))
+        stream.start_streaming(handler=handler,
+                               buffer_count=buffer_count,
+                               allocation_mode=allocation_mode)
 
     @RaiseIfOutsideContext()
     @TraceEnable()
     def stop_streaming(self):
         """Leave streaming mode.
 
-        Leave asynchronous frame acquisition. If streaming mode was not activated before, it just
-        returns silently.
+        Leave asynchronous frame acquisition. If streaming mode was not activated before (this
+        includes a Camera that does not expose any data stream), it just returns silently.
 
         Raises:
             RuntimeError:
@@ -404,7 +426,12 @@ class Camera(PersistableFeatureContainer):
             VmbCameraError:
                 If anything went wrong on leaving streaming mode.
         """
-        self.__streams[0].stop_streaming()
+        try:
+            self.__streams[0].stop_streaming()
+        except IndexError:
+            # No streams are opened. So the camera connection is not open/does not expose a
+            # stream. There is nothing to stop.
+            pass
 
     @TraceEnable()
     def is_streaming(self) -> bool:
@@ -440,7 +467,12 @@ class Camera(PersistableFeatureContainer):
             VmbCameraError:
                 If reusing the frame was unsuccessful.
         """
-        self.__streams[0].queue_frame(frame=frame)
+        try:
+            self.__streams[0].queue_frame(frame=frame)
+        except IndexError:
+            # No streams are opened. So the camera connection is not open/does not expose a
+            # stream. Streaming mode can't be active, so return silently as documented above.
+            pass
 
     @RaiseIfOutsideContext()
     @TraceEnable()
