@@ -69,6 +69,20 @@ class CameraNoStreamsTest(VmbPyTestCase):
         # Satisfy the `RaiseIfOutsideContext` decorator without opening a real device.
         self.cam._context_entered = True
 
+    def test_get_frame_without_streams_raises_camera_error(self):
+        with self.assertRaises(VmbCameraError):
+            self.cam.get_frame()
+
+    def test_get_frame_with_context_without_streams_raises_camera_error(self):
+        with self.assertRaises(VmbCameraError):
+            with self.cam.get_frame_with_context() as _:
+                pass
+
+    def test_get_frame_generator_without_streams_raises_camera_error(self):
+        with self.assertRaises(VmbCameraError):
+            for _ in self.cam.get_frame_generator(limit=1):
+                pass
+
     def test_start_streaming_without_streams_raises_camera_error(self):
         with self.assertRaises(VmbCameraError):
             self.cam.start_streaming(handler=_dummy_frame_handler)
